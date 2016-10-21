@@ -1,0 +1,134 @@
+v3.5
+^UTP-Base ^12 ^0 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^|= ^30 ^0 !p
+^1 !MO
+^|= ^&32;P&32;|=&32;P&32; ^1 !MG
+^0 !MK
+^|=-refl ^|= ^30 ^P !PV
+!"P
+^P !PV
+!"P
+^2 !'0
+^|= !'T
+!'0
+^3 !PL
+!CT
+^butrfeld !OU
+^ROOT !OS
+^2 !OP
+^DEF&32;|= ^|= ^60 ^P0 !PV
+!"P
+^P1 !PV
+!"P
+^2 !'0
+^|= !'T
+!'0
+^3 !PL
+^P1 !PV
+^P0 !PV
+!PI
+!PU
+!PQ
+!CT
+^butrfeld !OU
+^2 !lM
+^ESUBST-TEST ^P !PV
+^1 !EN
+^2 !EN
+^2 ^x ^y ^2 !QL
+!SE
+!PS
+!CT
+!L
+^QVAR-TEST ^M ^S ^2 !QL
+^P !PV
+!PAl
+!CT
+!L
+^[[]]-FALSE !PF
+!PU
+!PF
+!PQ
+!CT
+!L
+^[[]]-TRUE !PT
+!PU
+!PT
+!PQ
+!CT
+!L
+^4 !ML
+^|=-refl ^UTP-Base ^|=-refl ^|= ^30 ^P !PV
+!"P
+^P !PV
+!"P
+^2 !'0
+^|= !'T
+!'0
+^3 !PL
+!CT
+!PT
+!RE
+^0 !mal
+^PropLogic$87$==-refl ^ROOT !OS
+^1 !OP
+!Il
+^0 !MP
+^0 !ME
+^0 !MK
+^0 !MQ
+!B4
+!j
+!PT
+!PU
+!s
+!AJ
+!RE
+^1 ^1 !mle
+^PropLogic$87$=>-Refl ^ROOT !OS
+^1 !OP
+!Il
+^P ^P !PV
+^1 !MP
+^0 !ME
+^0 !MK
+^0 !MQ
+!B4
+!j
+^P !PV
+^P !PV
+!PI
+!PU
+!s
+!AJ
+!RE
+^0 !mle
+^UTP-Base$1$DEF&32;|= ^butrfeld !OU
+!Il
+^P0 ^P !PV
+^P1 ^P !PV
+^2 !MP
+^0 !ME
+^0 !MK
+^0 !MQ
+!B4
+!j
+^|= ^30 ^P !PV
+!"P
+^P !PV
+!"P
+^2 !'0
+^|= !'T
+!'0
+^3 !PL
+!s
+!AJ
+^3 !X
+!?R
+^$T ^0 ^vcqsfgck !!
+^1 !MT
+!@

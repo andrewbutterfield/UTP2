@@ -1,0 +1,28 @@
+Type matching can only return type-bindings,
+so it is simpler than the others.
+
+For the formal presentation we assume the following mathematical
+type syntax:
+\begin{eqnarray*}
+  \rho,\tau \in Type
+    & ::= &  B \mbox{ --- Boolean}
+  \\ &|& Z \mbox{ --- Integer}
+  \\ &|& t \mbox{ --- Type variable}
+  \\ &|& ? \mbox{ --- Arbitrary Type}
+  \\ &|& P~\tau \mbox{ --- Set Type Constructor}
+  \\ &|& \tau^* \mbox{ --- List Type Constructor}
+  \\ &|& \tau \times \tau \mbox{ --- Product Type Constructor}
+  \\ &|& \tau \fun \tau \mbox{ --- Function Type Constructor}
+  \\ &|& !s \mbox{ --- Error Type}
+\end{eqnarray*}
+
+We can define inference rules for matching:
+\input{doc/formal/Matching-Type-Rules}
+The following rules are controversial
+(a form of reverse matching):
+$$\begin{array}{r@{\qquad}l}
+   \MRTVarRN & \MRTVarR
+\\ \MRTArbRN& \MRTArbR
+\end{array}$$
+The rules are intended to check law matches
+for type-compatibility.

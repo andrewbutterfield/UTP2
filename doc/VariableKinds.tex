@@ -1,0 +1,34 @@
+Conceptually,
+variables have a root and decoration,
+and if list-variables, may also have a list of `subtracted' roots
+\begin{eqnarray*}
+  (r,d,rs),v \in Var &\defs& Root \times Decor \times Root^*
+\end{eqnarray*}
+The root is a simple name:
+\begin{eqnarray*}
+  r \in Root &\defs& Name
+\end{eqnarray*}
+A decoration is either a pre-marking, a post-marking, or a subscript:
+\begin{eqnarray*}
+  d \in Decor &\defs&  Pre | Post | PrePost | Subscript~Name
+\end{eqnarray*}
+We use the notation $(r,d)$ when the subtracted-list is empty or irrelevant.
+
+What has just been presented is the \emph{abstract} form of a variable.
+
+Current concrete rendering:
+
+\begin{tabular}{|c|c|}
+  \hline
+  Abstract & Concrete 
+  \\ \hline
+  $(r,Pre)$ & \verb"r"
+  \\ \hline
+  $(r,Post)$ & \verb"r'"
+  \\ \hline
+  $(r,PrePost)$ & \verb"r?"
+  \\ \hline
+  $(r,Subscript~s)$ & \verb"r_s"
+  \\ \hline
+\end{tabular}
+

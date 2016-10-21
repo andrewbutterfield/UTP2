@@ -1,0 +1,48 @@
+\documentclass[fleqn,10pt]{article}
+%\usepackage[a4paper, margin=1.1in]{geometry}
+\usepackage{amssymb,amsmath}
+\usepackage{mathpartir}
+\usepackage{doc/saoithin}
+\usepackage{tikz}
+\usepackage{tikz-cd}
+\usetikzlibrary{arrows,matrix}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+
+\def\includepicture#1{\includegraphics{#1.eps}}
+
+\parindent=0pt % I hate first line indentation
+\parskip=3pt   % I like a visual white gap between paragraphs
+
+
+\author{%
+  Andrew Butterfield%
+  \and
+  Arthur Hughes
+}
+\title{Theoretical Aspects of UTP}
+\date\today
+
+\def\TODO#1{%
+  \textbf{ToDo: }
+  \textit{#1}
+}
+
+\begin{document}
+
+\bibliographystyle{alpha}
+
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+This document is a collection of theoretical musings regarding the UTP.
+
+\newpage
+\input{theory/Kleisli-Relations}
+
+\newpage
+\bibliography{doc/SAOITHIN}
+
+\end{document}

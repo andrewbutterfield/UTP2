@@ -1,0 +1,191 @@
+\section{\LaTeX\ Formatting}
+
+In this section we describe the \LaTeX\ notation
+used to input theory information into \Saoithin.
+We base our description around the components of the \texttt{Theory}
+(a.k.a. \texttt{ProofContext}) datatype.
+
+\subsection{Theory-Related \LaTeX\ Environments}
+
+Each major component of the ProofContext datatype
+has its components described within
+a specific \LaTeX\ environment,
+which we list below.
+
+\begin{description}
+  \item[\texttt{ctxtName,ctxtSeqNo :: String,Int}]~\\
+    We use a single macro within a \texttt{theoryid} environment
+    to encode these two values:
+    \begin{verbatim}
+    \begin{theoryid}
+    \theoryNameVersion{LaTeX-Test}{99}
+    \end{theoryid}
+    \end{verbatim}
+  \item[\texttt{typedefs :: Trie Type}]~\\
+    Type-definition maps a (type-)name to a type(-definition).
+    \\\verb"\begin{typedef}"
+    \\ \phantom{mm}\textit{\textsf{name1}} \verb" & \defs & "\textit{\textsf{type1}}
+    \\ \verb"\\" \textit{\textsf{  name2}} \verb" & \defs & "\textit{\textsf{type2}}
+    \\ \ldots
+    \\\verb"\end{typedef}"
+    \\ An issue that arises is how the parser distinguishes between
+    a newline (double-backslash) acting as a definition separator
+    from one acting to split a long righthand-side over multiples lines (e.g.):
+    \\ \phantom{mm}\textit{\textsf{name1}} \verb" & \defs & "\textit{\textsf{a-long}}
+    \\ \verb"\\        &       & "\textit{\textsf{type-expression}}
+    \\ \verb"\\" \textit{\textsf{  name2}} \verb" & \defs & "\textit{\textsf{type2}}
+    \\ Perhaps we need an explixit \LaTeX\ macro (\verb"\next" ?)
+    to denote definition separation?
+  \item[\texttt{consts :: Trie Expr}]~\\
+    Constant-definition maps a (variable-)name to a ground expr(-definition).
+    \\\verb"\begin{consts}"
+    \\ \phantom{mm}\textit{\textsf{name}} \verb" & \defs & "\textit{\textsf{expr}}
+    \\\verb"\end{consts}"
+        \\(From here on, we only list a single element).
+  \item[\texttt{exprs :: Trie Expr}]~\\
+    Expression-definition maps a (expr-)name to a expr(-definition).
+    \\\verb"\begin{exprs}"
+    \\ \phantom{mm}\textit{\textsf{name}} \verb" & \defs & "\textit{\textsf{expr}}
+    \\\verb"\end{exprs}"
+  \item[\texttt{preds :: Trie Pred}]~\\
+    Predicate-definition maps a (expr-)name to a predicate(-definition).
+    \\\verb"\begin{preds}"
+    \\ \phantom{mm}\textit{\textsf{name}} \verb" & \defs & "\textit{\textsf{pred}}
+    \\\verb"\end{preds}"
+  \item[\texttt{obs :: Trie Type}]~\\
+    Observation table maps a (variable-)name to a type.
+    \\\verb"\begin{obs}"
+    \\ \phantom{mm}\textit{\textsf{name}} \verb" & : & "\textit{\textsf{type}}
+    \\\verb"\end{obs}"
+  \item[\texttt{precs :: Trie Precs}]~\\
+    Precedences table maps a (operator-)name to precedence data.
+    \\\verb"\begin{precs}"
+    \\ \phantom{mm}\textit{\textsf{name}} \verb" & \defs & "\textit{\textsf{prec}}
+    \\\verb"\end{precs}"
+  \item[\texttt{types :: Trie Type}]~\\
+    Type table maps a (variable-)name to its type.
+    \\\verb"\begin{types}"
+    \\ \phantom{mm}\textit{\textsf{name}} \verb" & : & "\textit{\textsf{type}}
+    \\\verb"\end{types}"
+  \item[\texttt{alphas :: Trie Alphabet}]~\\
+    Alphabet table maps a (predicate-)name to its alphabet.
+    \\\verb"\begin{alphas}"
+    \\ \phantom{mm}\textit{\textsf{name}} \verb" & \hasalpha??? & "\textit{\textsf{alpha}}
+    \\\verb"\end{alphas}"
+  \item[\texttt{laws :: LawTable}]~\\
+    Law table maps a (law-)name to laws
+    \\\verb"\begin{laws}"
+    \\ \phantom{mn}\textit{\textsf{name}} \verb" & \defs & "\textit{\textsf{law}}  (axiom)
+    \\ \verb"\\"   \textit{\textsf{name}} \verb" &   =   & "\textit{\textsf{law}}  (theorem)
+    \\\verb"\end{laws}"
+  \item[\texttt{conjectures :: Trie Law}]~\\
+    Conjecture table maps a (conjecture-)name to laws
+    \\\verb"\begin{conjectures}"
+    \\ \phantom{mm}\textit{\textsf{name}} \verb" & \defs & "\textit{\textsf{law}}
+    \\\verb"\end{conjectures}"
+  \item[\texttt{theorems :: Trie Proof}]~\\
+    Conjecture table maps a (proof-)name to proof
+    \\\verb"\begin{theorems}"
+    \\ \phantom{mm}\textit{\textsf{name}} \verb" & \hasproof??? & "\textit{\textsf{proof}}
+    \\\verb"\end{theorems}"
+\end{description}
+
+\newpage
+\subsection{The \LaTeX\ Syntax of Types}
+
+\begin{verbatim}
+B                                \bool
+Z                                \num
+Tprod [Type]                     ... \cross ...
+Tfun Type Type                   ... \fun  ...
+Tpfun Type Type                  ... \pfun ...
+Tmap Type Type                   ... \ffun ...
+Tset Type                        \power ...
+Tseq Type                        \seq ...
+Tseqp Type                       \seq_1 ...
+Tfree String [(String,[Type])]    ...  ::=  (... \ldata ... \rdata ) * |
+Tvar String                      ...
+Tenv                             \Env
+Terror String                    ...
+Tarb                             \tarb
+\end{verbatim}
+
+
+\newpage
+\subsection{The \LaTeX\ Syntax of Expressions}
+
+\begin{verbatim}
+T
+F
+Num Int
+Var String
+Prod [Expr]
+App String Expr
+Bin String Int Expr Expr
+Equal Expr Expr
+Set [Expr]
+Setc QVars Pred Expr
+Seq [Expr]
+Seqc QVars Pred Expr
+Map [(Expr,Expr)]
+Cond Pred Expr Expr
+Build String [Expr]
+The QVars Pred Pred -- definite description
+Evar String -- meta-variable denoting an expression
+Eqvar String  -- meta-variable denoting a quantified variable
+Eabs QVars Expr
+Esub Expr ESubst
+Eerror String
+Efocus Expr [(Expr,Int)] -- focus, parent-list
+\end{verbatim}
+
+
+\newpage
+\subsection{The \LaTeX\ Syntax of Predicates}
+
+\begin{verbatim}
+TRUE
+FALSE
+Obs Type Expr -- type is "underlying type" (See Types.lhs).
+Defd Expr
+TypeOf Expr Type
+Not Pred
+And [Pred]
+Or [Pred]
+Imp Pred Pred
+Eqv Pred Pred
+Forall QVars Pred Pred
+Exists QVars Pred Pred
+Exists1 QVars Pred Pred
+Univ Pred
+Sub Pred ESubst
+Pvar String -- predicate meta-variable
+>  -- UTP fundamentals
+If Pred Pred Pred
+Comp Pred Pred
+NDC Pred Pred
+RfdBy Pred Pred
+LPredPred String Int Pred Pred -- e.g  Pre |- Post
+LVarExpr String Int String Expr --  e.g.  x := e
+LExprPred String Int Expr Pred  --  e.g.  c * P,  a --> P
+LPredExprPred String Int Pred Expr Pred -- e.g   P [| S |] Q
+Peabs String Pred  -- abstracting over an expression variable
+Ppabs String Pred  -- abstracting over a predicate variable
+Papp Pred Pred
+Pfocus FContext Pred [(Pred,Int,FContext)] -- focus, ancestors
+\end{verbatim}
+
+
+\newpage
+\subsection{The \LaTeX\ Syntax of Side-Conditions}
+
+\begin{verbatim}
+SCtrue
+SCisCond String -- no dashed variables
+SCnotFreeInP [String]  String -- Qvar, Pvar
+SCnotFreeInE [String] String -- Qvar, Eevar
+SCareTheFreeOfP [String] String -- Qvar, Pvar
+SCcoverTheFreeOfP [String] String -- Qvar, Pvar
+SCAnd [SideCond]
+\end{verbatim}
+

@@ -1,0 +1,62 @@
+Basically, we have a type system like the following:
+\begin{itemize}
+  \item
+     A type context $\Gamma$
+     giving types to function names and known variables;
+  \item
+    A type judgement $\Gamma \infer e :: T$ that asserts
+    that $e$ has type $T$ in context $\Gamma$; and
+  \item
+    A set of inference rules that allow types to be deduced:
+    \begin{eqnarray*}
+       \INFER%
+         {~}
+         {\Gamma,x::T \infer x :: T}
+         && [Var]
+    \\ \INFER%
+         {k :: T}
+         {\Gamma \infer k :: T}
+         && [Const]
+    \\ \INFER%
+         {\Gamma,x::S \infer e::T}
+         {\Gamma \infer \lambda x @ e :: S \fun T}
+         && [Abs]
+    \\ \INFER%
+         {\Gamma \infer f :: S \fun T \qquad \Gamma \infer x :: S}
+         {\Gamma \infer f~x :: T}
+         && [App]
+    \\ \INFER%
+         {\Gamma \infer e_i :: T_i \qquad \Gamma,x_i::T_i \infer e::T}
+         {\Gamma \infer e[e_1,\ldots,e_n/x_1,\ldots,x_n] :: T}
+         && [Sub]
+    \\ \INFER%
+         {\Gamma \infer e_i :: T_i}
+         {\Gamma \infer (e_1,\ldots,e_n) :: T_1 \cross \cdots \cross T_n}
+         && [Prod]
+    \\ \INFER%
+         {\Gamma \infer e_i :: T}
+         {\Gamma \infer \setof{e_1,\ldots,e_n} :: \power T}
+         && [Set]
+    \\ \INFER%
+         {\Gamma \infer e_i :: T}
+         {\Gamma \infer \seqof{e_1,\ldots,e_n} :: T^*}
+         && [Seq]
+    \\ \INFER%
+         {\Gamma \infer d_i :: T_D \qquad \Gamma \infer r_i :: T_R}
+         {\Gamma \infer \setof{d_1 \mapsto r_1,\ldots,d_n \mapsto r_n} :: T_D \ffun T_R}
+         && [Map]
+    \\ \INFER%
+         {\Gamma \infer x :: T \mbox{ in }  P }
+         {\Gamma \infer (\theta x @ P) :: T}
+         && [The]
+    \end{eqnarray*}
+\end{itemize}
+We need an algorithm that given $\Gamma$ and $e$ computes (the most general) $T$
+such that $\Gamma \infer e :: T$ is deducible using the above rules.
+
+An important point of interpretation --- in $\Gamma$
+the scope of type variables is limited to each entry,
+so, for example, in the type context  $f:\tau \fun \sigma, g:\sigma \fun \tau$,
+we cannot conclude that either $f \circ g$ or $g \circ f$ are well-typed,
+as the $\tau$($\sigma$) in $f$'s type is in no way related to the $\tau$($\sigma$)
+in $g$'s type.

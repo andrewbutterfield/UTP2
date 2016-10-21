@@ -1,0 +1,31 @@
+\section{Conclusions}\label{sec:conclusions}
+
+\PLAN{Wrap-up the paper.}
+
+We can, in effect,
+summarise the paper
+ by giving a requirements list summarising all the special logic features we desire
+ for \UTP2:
+predicate and expression meta-variables;
+user language definitions;
+quantifier list variables, with specials to identify alphabets;
+explicit substitutions;
+``semantic'' side-conditions;
+and
+predicate transformers.
+
+All the above could be implemented using Isabelle, or CoQ,
+or PVS, or pretty much any higher-order theorem prover.
+However any algorithm can, in principle, be written in the pure lambda
+calculus, or expressed as a Turing machine,
+but this does not make it
+feasible, desirable or practical to use those notations.
+Similarly we feel that encoding our requirements into one of the above higher-order
+systems, at least to the extent that it would be visible to the user,
+is not the way to meet our requirement for machine-assisted support
+for UTP foundational reasoning.
+
+The resulting logic is quite large, and space limitations have prevented
+us from giving a complete description here.
+More details can be found in a draft of the \UTP2\ Reference Manual
+\cite{UTP2:Reference}.

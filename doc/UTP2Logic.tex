@@ -1,0 +1,481 @@
+\section{Overview}
+
+The logic of UTP is a variant of the equational logic
+espoused by David Gries\cite{gries.93}, with extensions as described below.
+In formal terms we take the work of Tourlakis \cite{journals/logcom/Tourlakis01},
+and adapt this appropriately.
+
+\section{Syntax}
+
+Particularly in the implementation, we use the terminology
+``Expression'' and ``Predicate''
+where many logicians use ``Term'' and ``Formula''.
+We do not have a clean separation of the two,
+as we have expressions that define values with the aid of predicates
+(e.g. set comprehensions, and unique values).
+Other features to note are the presence of explicit substitutions
+in the object language---they are not simply part of the meta-language
+defining inference rules---and the use of explicit pattern-matching
+meta-variables in quantifier variable lists.
+
+We use the following syntax notation, where
+$::=~|~{}^*~{}^+~[~]~(~)~\litm~$ have special meaning:
+
+\begin{tabular}{|c|l|}
+  \hline
+  symbol & meaning
+\\\hline
+  $::=$ & is defined to be
+\\
+  $|$ & separates alternatives
+\\
+  $x^*$ & zero or more $x$
+\\
+  $x^+$ & one or more $x$
+\\
+  $x^{(*|+)}_s$ & (zero$|$one) or more $x$ separated by $s$
+\\
+  $[x]$ & optional $x$
+\\
+  $(\ldots)$ & grouping
+\\
+  $\litm[$ & the symbol itself
+\\\hline
+\end{tabular}
+
+Any other character/symbol denotes itself,
+and writing $x \in NonT ::= \ldots$ lets $x$ stand for anything that
+satisfies the the definition of non-terminal $NonT$
+that occurs on the righthand side of the $::=$.
+
+\subsection{Names}
+
+
+We have a number of variable namespaces (Fig. \ref{fig:UTP2:variables}):
+\begin{description}
+  \item[Observation Variables]
+    correspond to term (or ``ordinary'' variables) in predicate logic,
+    and capture observations of the system behaviour being modelled.
+  \item[Constants]
+    We take all constants (Numeric etc) as ``names'' for their values.
+  \item[Function Names]
+   are used in applications, as we do not yet support full higher order
+   function notation.
+  \item[Type Variables]
+   are used to support a simple polymorphic type system,
+   whose main purpose is to prevent spurious matches.
+  \item[Expression Names]
+   are names that denote arbitrary expressions
+   (known as term ``schematic variables'' in some circles).
+  \item[Predicate Names]
+   are names that denote arbitrary predicates
+   (also known as formula ``schematic variables'').
+  \item[Variable-List Names]
+   are names that denote a list of variables,
+   in contexts where such lists make sense 
+   (e.g., quantifier and substitution variable lists).
+   These are distinguished from Observation Variables, Expression and Predicate
+   Names, is that they have a dollar postfix, e.g, $\lst x, \lst E, \lst P$.
+   The only exceptions are the names $OBS$, $MDL$ and $SCR$ which are taken as
+   Variable-list variables whose meaning is always a (sorted) list of
+   known observation variables (all, model and script respectively).
+\end{description}
+
+\begin{figure}
+  \framebox{\VARMATHSYNTAX}
+  \caption{\UTP2 Variables}
+  \label{fig:UTP2:variables}
+\end{figure}
+
+The key distinction between observation variables
+and metavariables is what they represent:
+\begin{description}
+  \item[Observations]
+     are variables that denote values in some
+    kind of semantic domain, with some form of typing used
+    to distinguish different parts of that domain.
+    The meaning of an expression with free observation variables
+    has to be defined w.r.t an environment mapping names to values.
+    \begin{eqnarray*}
+     \rho \in Env &=& Name \pfun Val
+    \end{eqnarray*}
+  \item[Metavariables]
+     denote expression or formula syntax.
+     The meaning of an expression or predicate with free metavariables
+     has to be defined w.r.t. an meta-environment (interpretation) mapping names
+     to expressions or predicates.
+     \begin{eqnarray*}
+        \Phi \in EInt &=& Name \pfun Expr \\
+     \\ \Psi \in PInt &=& Name \pfun Pred
+     \end{eqnarray*}
+  \item[List Variables]
+    are variables that match lists of variables, where such lists
+    make sense.
+\end{description}
+A key difference between observations $x,y$ and metavariables $X,Y$
+is the  outcome of asking for free variables:
+\begin{eqnarray*}
+  \fv (x \oplus y)&=& \setof{x,y}
+\\ \fv (X \bigoplus Y) &=& \fv.X \cup \fv.Y
+\end{eqnarray*}
+The free variables of a metavariable are dependent on the
+the meta-environment (interpretation) in place.
+The requirement to handle free-variables in this way leads
+to the need to have an explicit notation to describe free-variable sets.
+
+\newpage
+\subsection{Types (Sorts)}
+
+We have the type syntax shown in Figure \ref{fig:UTP2:types}.
+\begin{figure}
+\boxedm{\TYPEMATHSYNTAX}
+  \caption{\UTP2 Type Syntax}
+  \label{fig:UTP2:types}
+\end{figure}
+We do not have naturals or reals as basic types,
+although the former will probably be introduced shortly,
+to support probabilistic reasoning.
+The $Env$ type is a placeholder for name environments,
+where the range type is often not expressible using the
+above type language, because it is some form of universal type.
+
+
+\subsection{Expressions (Terms)}
+
+The core expression syntax (Fig. \ref{fig:UTP2:expressions})
+has constants, variables
+(for both values and expressions),
+application of (named) functions%
+\footnote{%
+We use a definition table to connect function names to abstractions
+---we should really do a proper higher-order expression model here,
+but it's not a high priority right now.}
+,
+and abstractions and substitutions over observation, expression and predicate variables.
+Also provided are equality, and definite descriptions, which has predicate components (to be defined).
+Not shown are the explicit support for binary operators,
+or booleans, integers, sets, lists and maps.
+\begin{figure}
+\framebox{\EXPRMATHSYNTAX}
+  \caption{\UTP2 Expression Syntax}
+  \label{fig:UTP2:expressions}
+\end{figure}
+We note here, that unlike terms in \cite{journals/logcom/Tourlakis01},
+our expressions here have quantifiers, and may contain predicates
+(well-founded formulas) as sub-components.
+
+
+\subsection{Predicates (Formulas)}
+
+The core logic is higher order,
+with quantification, abstraction and substitution for variables, expressions and predicates.
+In particular we have predicates that use predicate-sets
+(useful for recursion theory, in particular).
+\begin{figure}
+\framebox{\PREDMATHSYNTAX}
+  \caption{\UTP2 Predicates (and Sets)}
+  \label{fig:UTP2:predicates}
+\end{figure}
+We also have a simple polymorphic type-system, and a predicate asserting that
+an expression has a specified type---details to be added.
+This means that our logic is in fact many-sorted.
+
+
+\section{Substitution}
+
+The meaning of $A[x:=t]$ in Tourlakis is not given
+explicitly, but is discussed, particularly with regard
+to the  side-condition designed to avoid variable capture ($t$ substitutable in $x$ (in $A$)).
+We shall define $P[x_1,\ldots,x_n:=e_1,\ldots,e_n]$
+as meta-notation describing the simultaneous syntactical substitution
+of each $e_i$ for all free occurrences of the corresponding $x_i$ in $P$, with $\alpha$-renaming being
+used to avoid name-capture. We will write this in shorthand as $[\vec x:=\vec e]$.
+
+So we have explicit substitutions in the object language (written $[e/x]$),
+and syntactical-substitutions used to define axiom schemas and inference rules
+(written $[x:=e]$).
+We use the notation $[\vec x := \vec e]\hide\vec y$
+to denote a substitution with all entries $(x_i,e_i)$ removed
+where $x_i$ is a member of $\vec y$.
+We also have a notion of substitution composition,
+denoted by juxtaposition.
+
+There is also another complication,
+given that we can abstract over different classes of variables.
+Consider the following example (with $X$ used as a predicate meta-variable,
+to make it stand out):
+$$
+  ((\Lambda X @ Q \lor X)R)[e/x]
+$$
+If we evaluation this by reducing the predicate application first we obtain:
+\begin{eqnarray*}
+  && ((\Lambda X @ Q \lor X)R)[e/x]
+\EQV{Predicate $\beta$-reduction}
+\\&& (Q \lor R)[e/x]
+\EQV{Defn. of observation substitution}
+\\&& Q[e/x] \lor R[e/x]
+\end{eqnarray*}
+Now let's do the substitution first:
+\begin{eqnarray*}
+  && ((\Lambda X @ Q \lor X)R)[e/x]
+\EQV{Defn.of observation substitution}
+\\&& ((\Lambda X @ Q \lor X)[e/x])(R[e/x])
+\end{eqnarray*}
+The question now concerns how we evaluate
+$$
+(\Lambda X @ Q \lor X)[e/x].
+$$
+If we say that the quantifier applies to predicate variables,
+but not to observation variables, so it can be ignored,
+then we obtain
+$$
+  \Lambda X @ Q[e/x] \lor X[e/x]
+$$
+If we do this and then $\beta$-reduce, we obtain
+$$
+  Q[e/x] \lor (R[e/x])[e/x]
+$$
+This is not the correct outcome, as substitutions are not idempotent
+(consider $e=x+1$ in this example).
+
+So we see that the rule for substitution here is
+context dependent --- we cannot apply an observation substitution
+to any $\Lambda$-bound predicate (or expression) meta-variable.
+This generalises to whenever we substitute for one type
+of variable (obs/expr/pred) under a lambda binding a different kind.
+If the variables are $\forall$ or $\exists$-bound,
+then the substitution is safe.
+
+In Figure \ref{fig:UTP2:obs-expr-Expr-subst}
+we show the basic definition of syntactical substitution of expressions
+for observations, in expressions,
+without details of how variable capture is avoided.
+Following figures deal with predicates, and substitution
+for predicate and expression meta-variables
+\begin{figure}
+  \boxedm{
+    \DEFOEESUBST
+  }
+  \caption{%
+    Observation substitution for Expressions
+     (modulo $\alpha$-renaming to avoid variable capture)
+  }
+  \label{fig:UTP2:obs-expr-Expr-subst}
+\end{figure}
+
+\begin{figure}
+  \boxedm{$$
+  \DEFOEPSUBST{fig:UTP2:obs-expr-Expr-subst}
+$$}
+  \caption{%
+    Observation substitution for Predicates
+     (modulo $\alpha$-renaming to avoid variable capture)
+  }
+  \label{fig:UTP2:obs-expr-Pred-subst}
+\end{figure}
+
+\begin{figure}
+  \boxedm{
+  \DEFEEESUBST
+  }
+  \caption{%
+    Expression substitution for Expressions
+     (modulo $\alpha$-renaming to avoid variable capture)
+  }
+  \label{fig:UTP2:expr-expr-Expr-subst}
+\end{figure}
+
+\begin{figure}
+  \boxedm{
+  \DEFPPESUBST
+  }
+  \caption{%
+    Predicate substitution for Expressions
+     (modulo $\alpha$-renaming to avoid variable capture)
+  }
+  \label{fig:UTP2:pred-pred-Expr-subst}
+\end{figure}
+
+
+\begin{figure}
+  \boxedm{$$
+  \DEFEEPSUBST{fig:UTP2:expr-expr-Expr-subst}
+$$}
+  \caption{%
+    Expression substitution for Predicates
+     (modulo $\alpha$-renaming to avoid variable capture)
+  }
+  \label{fig:UTP2:expr-expr-Pred-subst}
+\end{figure}
+
+\begin{figure}
+  \boxedm{$$
+  \DEFPPPSUBST{fig:UTP2:pred-pred-Expr-subst}
+$$}
+  \caption{%
+    Predicate substitution for Predicates
+     (modulo $\alpha$-renaming to avoid variable capture)
+  }
+  \label{fig:UTP2:pred-pred-Pred-subst}
+\end{figure}
+
+\newpage
+\section{Free Variable Set Notation}
+\input{doc/FreeBound-ObsVar-Theory}
+
+
+\newpage
+\section{Axioms}
+
+We take our inspiration from \cite{journals/logcom/Tourlakis01}:
+\begin{quote}
+\begin{description}
+  \item[Ax1.] All propositional axioms from \cite{gries.93}.
+  \item[Ax2.] $A \lor (\forall x @ B) \equiv (\forall x @ A \lor B), x \notin A$
+  \item[Ax3.] $(\forall x @ A) \implies A[x:=t]$ ($t$ substitutable in $x$ (in $A$))
+  \item[Ax4.] $x = x$
+  \item[Ax5. (Liebniz)] $x = t \implies (A \equiv A[x:=t])$
+     \\($t$ substitutable in $x$ (in $A$))
+\end{description}
+\end{quote}
+The meaning of $A[x:=t]$ in Tourlakis is not given
+explicitly, but is discussed, particularly with regard
+to the  side-condition designed to avoid variable capture ($t$ substitutable in $x$ (in $A$)).
+We shall define $A[x:=t]$
+as meta-notation describing the substitution
+of $t$ for all free $x$ in $A$, with $\alpha$-renaming being
+used to avoid name-capture (so the side-conditions on Ax3 and 5 above can be dropped).
+Our take on the propositional axioms is shown in Figure \ref{fig:UTP2:prop-axioms}.
+\begin{figure}
+\begin{center}
+  \boxedm{$$
+  \AXPROP
+  $$}
+\end{center}
+  \caption{\UTP2 Propositional Axioms}
+  \label{fig:UTP2:prop-axioms}
+\end{figure}
+The remaining axioms are shown in Figure \ref{fig:UTP2:non-prop-axioms}.
+\begin{figure}
+\begin{center}
+\boxedm{$$
+  \AXNONPROP
+$$}
+\end{center}
+  \caption{\UTP2 Non-propositional Axioms}
+  \label{fig:UTP2:non-prop-axioms}
+\end{figure}
+The substitution axioms (\LNAME{Ax-XXX-Subst}) are experimental.
+The reflexivity axiom, and that for $\theta$ are in fact schemas, indexed by all possible
+types (sorts), as we have a many-sorted logic.
+
+Also worth noting are the $\beta$-reduction axioms, e.g.
+$$\AXObetaRed~.$$
+The lhs can match a lambda-expression with only one variable ($(\lambda x @ e)f$)
+which results in the rhs being $(\lambda \qsep @ e)[f/x]$,
+which is just $e[f/x]$.
+So, to maintain consistency, we should be able to match a rhs
+of the form $e[f/x]$ and then view it as a zero-argument lambda abstraction,
+and succeed, returning the lhs as $(\lambda x @ e)f$.
+
+
+
+
+\section{Inference}
+
+From \cite{journals/logcom/Tourlakis01}:
+\begin{description}
+  \item[Inf1. (Substitution)]  (no capture)
+  \item[Inf2. (Leibniz)] $\INFER{A\equiv B}{C[p:=A] \equiv C[p:=B]}$
+  \item[Inf3. (Equanimity)] $\INFER{A, A \equiv B}{B}$
+  \item[Inf4. (Transitivity)] $\INFER{A\equiv B, B \equiv C}{A \equiv C}$\\
+\end{description}
+We note that Inf4 is derivable from  Inf2 and Inf3, so we treat it
+as derivable.
+Our inference rules are shown in Figure \ref{fig:UTP2:inference-rules}.
+\begin{figure}
+\begin{center}
+\boxedm{$$
+  \INFERENCES
+$$}
+\end{center}
+  \caption{\UTP2 Inference Rules}
+  \label{fig:UTP2:inference-rules}
+\end{figure}
+
+\section{Proof/Theorems}
+
+We adopt the definitions from \cite{journals/logcom/Tourlakis01}
+with minor changes in notation:
+
+The set of $\Gamma$-theorems, $\mathbf{Thm}_\Gamma$,
+is the $\subseteq$-smallest subset of $Pred$ that satisfies:
+\begin{description}
+  \item[Th1]
+     $\mathbf{Thm}_\Gamma$ contains as subset the closure under (Substitution)
+     of all the propositional axioms (Fig. \ref{fig:UTP2:prop-axioms})
+     and all the instances of the axiom schemata for the non-propositional part
+     (Fig. \ref{fig:UTP2:non-prop-axioms})---the so-called logical axioms.
+  \item[Th2] $\Gamma \subseteq \mathbf{Thm}_\Gamma$---the non-logical axioms.
+  \item[Th3] $\mathbf{Thm}_\Gamma$ is closed under (Leibniz) and (Equanimity).
+\end{description}
+We write $p \in \mathbf{Thm}_\Gamma$ as $\Gamma \vdash p$,
+and use $\vdash p$ to denote $\emptyset \vdash p$.
+
+A finite sequence $p_1,\ldots,p_n$ of $Pred$
+is a $\Gamma$-proof iff every $p_i$, for $i=1,\ldots,n$
+is one of
+\begin{description}
+  \item[Pr1] A logical axiom
+  \item[Pr2] A member of $\Gamma$
+  \item[Pr3] The result of either (Leibniz) or (Equanimity)
+   applied to some $p_j$, with $j < i$.
+\end{description}
+
+
+\section{Meta-Theorems}
+
+We shall need to identify the derived rules that are embodied,
+either in the matcher or in the provided proof strategies,
+as these form part of the prover ``core''
+(e.g. the deduction theorem and the \texttt{Assume} strategy,
+or the all the derived variants of \LNAME{AX-$\lor$-$\forall$-scope},
+which are implemented by \texttt{completeMatch}, in module \texttt{Manipulation}).
+Some of these rules are presented in Figure \ref{fig:UTP2:derived-rules}.
+\begin{figure}
+\begin{center}
+\boxedm{$$
+  \DERIVED
+$$}
+\end{center}
+  \caption{\UTP2 Derived Rules}
+  \label{fig:UTP2:derived-rules}
+\end{figure}
+Post's Tautology Theorem
+requires more background.
+Of considerable importance is the Herbrand Deduction Theorem
+and its variants, shown in Figure \ref{fig:UTP2:deduction-theorem}.
+\begin{figure}
+\begin{center}
+\boxedm{$$
+  \DEDUCTION
+$$}
+\end{center}
+  \caption{\UTP2 Deduction Theorem}
+  \label{fig:UTP2:deduction-theorem}
+\end{figure}
+The Flexible Deduction rule is implemented,
+as suggested in \cite{journals/logcom/Tourlakis01},
+not by doing the substitution, but by making $\vec x$
+behave like constants, by marking them as ``known'',
+to use the parlance in module \texttt{Matching}.
+
+
+\section{Undefinedness}
+
+We have yet to make a firm decision how to handle undefinedness,
+apart from noting that the technical details of how this is
+done have implications for the validity of the reflexivity of equals,
+and of the Deduction Theorem, among others.
+
+\input{doc/Matching-Types}

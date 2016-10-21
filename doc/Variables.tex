@@ -1,0 +1,135 @@
+\section{Variables in \UTP2}
+
+\subsection{Motivation}
+
+We want a machine-readable notation that is lightweight,
+with a minimal amount of declaration on the part of the user,
+and a maximal degree of inference on the part of the parser,
+and law matching facilities.
+
+
+\subsection{Variable Classes}
+
+We recognise four classes of variables in \UTP2:
+\begin{description}
+  \item[Standard] ($x,y,z$)
+     denote values in the relevant semantic space,
+     and include the \emph{observation} variables that form part of a UTP predicate's alphabet.
+  \item[Expr-Schematic] ($E,F,G$)
+    represent arbitrary expressions, particularly in general laws and definitions.
+  \item[Pred-Schematic ($P,Q,R$)]
+    represent arbitrary predicates,  particularly in general laws and definitions.
+  \item[List] ($q,r$)
+    denote lists of zero or more Standard and List variables,
+    and are only valid were lists of variables appear,
+    i.e., quantifier variable lists, explicit substitution target lists,
+    and the special case of 2-place predicates.
+    This category of variable differs considerably from the other three:
+    \begin{itemize}
+      \item
+        There are no binding constructs for these---they generally occur in binding positions
+        for other (currently just Standard) variable classes.
+    \end{itemize}
+\end{description}
+The first three classes all have possible binders, and so the notion of
+whether or not any given occurrence is free or bound makes sense,
+as is the notion of sets of free or bound variables for each of the classes.
+In general, the phrase ``free (bound) variables'' refers to ``free (bound) Standard variables",
+as this is were most of the focus and complexity lies.
+The key difference between Standard and Expr-Schematic variables
+is what is returned as the free variable set of a single such variable:
+\begin{eqnarray*}
+   fv(x) &\defs& \setof x
+\\ fv(E) &\defs& fv.E
+\end{eqnarray*}
+Here $fv.E$ is a token that denotes
+the free variables of whatever expression syntax $E$ represents,
+once that is determined.
+In general, if a law has a side-condition of the form $a \in fv(b)$,
+with $a$ and $b$ both variables,
+we consider $b$ to be a schematic variable, and if $a$ occurs in a context where
+it could either be a Standard or Expr-Schematic variable, we take it to be Standard.
+
+\newpage
+\subsection{Variable Matching}
+
+The general principle behind matching is that a variable matches
+any object of the right ``kind'', except:
+\begin{enumerate}
+  \item
+    if the variable is bound, in which case it can only match another bound variable of the same ``kind''.
+  \item
+    if the variable is ``known'',
+    in which case it only matches itself, or its ``definition'', if one exists.
+\end{enumerate}
+\begin{description}
+  \item[``kind'']
+    describes the sort of entity we are interested in: these are (Standard) variables (\textsf{V}),
+    expressions (\textsf{E}), predicates (\textsf{P}) and  variable-lists (\textsf{V*}),
+    noting that Standard and Expr-Schematic variables are considered instances of expressions,
+    and that Pred-Schematic variables are instances of predicates.
+  \item[``known'']
+    variables are those that have been declared as having a special meaning.
+    Examples include the observation variables of a UTP theory such as Reactive Processes (e.g. $ok$ and $ok'$),
+    or the introduction of a named predicate from that theory, e.g. $J$.
+    (e.g. $J \defs (ok\implies ok') \land wait'=wait \land tr'=tr \land ref'=ref$)
+  \item[``definition'']
+    Some known variables have definitions, which is an object of the same kind
+    for which they may be substituted.
+    An example is $J$ in the Reactive theory
+    (e.g. $J \defs (ok\implies ok') \land wait'=wait \land tr'=tr \land ref'=ref$),
+    and so will match only themselves or their definition.
+    Other variables are known but have no such definition (e.g., $ok$) and so only match themselves.
+\end{description}
+If a binder binds an otherwise known variable,
+then all instances in scope of that binding are bound, and not known.
+So, in a context where $ok$ is known, then in the
+pattern:
+$$
+ok \lor \exists ok @ ok \implies ok'
+$$
+the first occurrence of $ok$ ($ ok'$) can only match $ok$ ($ok'$), whilst the
+second and third occurrences of $ok$ can match any bound variables, so the
+above can match:
+$$
+ok \lor \exists a @ a \implies ok'
+$$
+In practise, we $\alpha$-rename laws/patterns so that bound variables
+do not clash with known ones, or each other. making bindings much simpler.
+To see why, consider matching the following, where $ok$ is known:
+$$
+ok \land (\exists ok @ \lnot ok) \land (\exists ok @ ok \lor ok')
+$$
+against:
+$$
+ok \land (\exists a @ \lnot a) \land (\exists b @ b \lor ok')
+$$
+We need three different bindings for $ok$ in different parts of the pattern
+($ok \mapsto ok$, $ok \mapsto a$ and $ok \mapsto b$, respectively).
+
+\newpage
+\subsection{Variable Syntax}
+
+All of the variables mentioned above fit the same general lexical pattern.
+
+\input{doc/Variable-Syntax}
+
+At present the various classes of variables belong to the following
+syntactical groups:
+
+\begin{tabular}{|l|c|}
+  \hline
+  Variable Class & Syntax Group
+\\\hline
+  \textbf{Standard} & $Var$
+\\\hline
+  \textbf{Expr-Schematic} & $Gen$
+\\\hline
+  \textbf{Pred-Schematic} & $Gen$
+\\\hline
+  \textbf{List} & $Lst$, $Rsv$
+\\\hline
+\end{tabular}
+
+We note that the four classes described here have to a large extent been
+superseded by the five syntactical groups ($Std$, $Lst$, $Gen$, $Rsv$, $Var$) as described above.

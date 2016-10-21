@@ -1,0 +1,58 @@
+\section{Discussion}
+
+Proofs done with \UTP2 are, in our opinion, more ``open'',
+in that we can easily see the steps and laws used in a proof, in an equational style.
+A consequence of this is readily seen when we consider the students taking the
+Formal Methods course offered at Trinity College Dublin, that focusses on the
+UTP, and uses \UTP2 for part of the classwork.
+The feedback obtained from these students shows clearly that
+(i) the learning curve to get good at \UTP2 proofs is fairly shallow---they almost never
+get ``stuck'', once a few tricks are shown---experimentation is easy;
+(ii) their concerns are regarding improvement to the GUI itself,
+either in terms of how it looks, or having the flexibility to define their own keyboard
+shortcuts.
+A key feature that reduces the learning curve is the ability
+of the prover to suggest possible next steps, by doing advance pattern-matching
+and instantiation.
+
+Proofs in CoQ or Isabelle/HOL are, again in this authors words, more ``procedural'',
+and ``opaque'', but definitely more powerful. The disadvantage is that the learning
+curve is much steeper, particularly when early success it obtained by tactics like
+\texttt{auto}, \texttt{simp} or \texttt{sledgehammer}.
+When these fail, the best approach is not so clear to the beginner.
+However, there is undeniable power once that learning curve has been climbed.
+
+\UTP2 was really developed to assist in the development of new semantic theories
+within the UTP framework. Others have also put effort into doing this for UTP
+using both ProofPowerZ\cite{conf/utp/ZC08}
+and Isabelle/HOL\cite{conf/vstte/FeliachiGW12,conf/utp/FZW14}.
+The price they pay is having to recast material in the ProofPower/HL style.
+The benefit they tap into is the power of their proof engines.
+
+The key questions raised here are:
+\begin{itemize}
+  \item Should point-n-click GUIs be added to existing provers?
+  \item To what extent are front-ends like Proof-General or jEdit
+  are step in this direction?
+  \item
+    Should more attention be paid to developing equational reasoning approaches?
+  \item
+  Can the \UTP2 front-end be fruitfully turned into a wrapper around Isabelle/HOL say?
+  \item
+  Should it use Isabelle/HOL as a way to check its proofs
+  (would save trying to develop a small safe LCF-style kernel for \UTP2) ?
+  \item
+   Can we envisage proofs been done using gestures on a tablet?
+\end{itemize}
+Very recent work, presented as Tutorial 2 at FM2014 in Singapore, by Jim Woodcock, Simon Foster
+and Frank Zeyda of the University of York, showed an encoding of UTP and some key theories
+into Isabelle/HOL. One the negative side, they had to employ further nested quotation schemes,
+but on the positive side, they used Isar in such a way that it may be relatively easy to use
+Isabelle/HOL to check proof steps made by \UTP2. We hope to explore this connection in the near future.
+
+\subsection{Obtaining Code}
+
+\UTP2 is written in Haskell using the wxHaskell GUI library,
+and is available open-source, currently under a GPL v2 license,
+from \url{https://bitbucket.org/andrewbutterfield/saoithin}.
+The screenshots in this paper were produced using version 0.98a.

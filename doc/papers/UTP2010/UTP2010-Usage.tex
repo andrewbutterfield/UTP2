@@ -1,0 +1,64 @@
+\section{Usage}
+\label{sec:usage}
+
+\REVIEW1{(CLOSED)\\
+The author is supposed to describe the implementation algorithm
+of the prover more clearly and give the performance evaluation
+of this tool.
+}
+
+Here we show a proof
+(that $x:=e;x:=f~=~ x:=f[e/x]$),
+using the reduce both sides strategy (Fig.\ref{fig:UI:proof-example}).
+\begin{figure}[tb]
+  \includegraphics[scale=0.55]{\imgfile{proof-example}}
+  \caption{\STHN\ Proof Example}
+  \label{fig:UI:proof-example}
+\end{figure}
+A number of steps have already been performed, expanding
+the definitions of $:=$ and $\vdash$, with the steps shown in reverse order
+(first proof step last).
+The user has right-clicked, bringing up a possible list of replacements.
+Law matching can return a large number of successful matches,
+and these need to be presented to the user in a manner that makes it easy
+for them to select the law they wish to apply. There are basically two
+ways for a user to request law matching:
+one displays all the matches in a special window for the user to peruse,
+whilst the other displays up to 20 of them
+in a popup menu for immediate selection.
+In both cases we need some way to rank matches so the most useful appear first.
+In essence, we need some form of heuristics that can take a law match and compute
+a ranking number.
+There has been a limited amount of experimentation in this area,
+and it is a difficult area to get right.
+While at present the heuristics
+are hard-coded, we expect to improve matters to give the users more control
+in this area in future.
+The performance of the law matching is excellent at present,
+with a virtually instant return of results, while the GUI performance
+can be a little slow when inspecting large theory tables,
+so this is an obvious area for improvement.
+
+Earlier versions of \STHN\ have been tested on 3rd-year Computer Science
+students at TCD who have taken an elective module on Formal Methods,
+which presents the subject through the UTP framework.
+Initially they were shown the use of the prover using a logic module
+with initial laws drawn from the axiomatization of equational logic
+in \cite{Gries-Schneider94},
+material that they studied in their first year.
+Then they were asked to prove conjectures arising from useful library theories,
+such as Sets or Lists.
+Most problems reported by the students had to do with installation or user-interface
+behaviour issues%
+---most students found the proof aspects easy to apply once these initial hurdles
+were overcome, and feedback from them has been used to improve the tool.
+We have used the tool to produce a wide range of proofs of UTP relevance,
+of which the following is just a short representative list:
+\begin{mathpar}
+(\sigma \cat \tau) - \sigma = \tau
+\and S_1 \cap (S_2 \cup S_3) = (S_1 \cap S_2) \cup (S_1 \cap S_3)
+\and P \vdash Q \equiv P \vdash P \land Q
+\and  x:=e; y:=f \equiv y:=f[e/x]; x:=e, \quad y \notin e
+\and \RR3(\RR3(P)) \equiv \RR3
+\and \RR2 \circ \RR2 = \RR2
+\end{mathpar}

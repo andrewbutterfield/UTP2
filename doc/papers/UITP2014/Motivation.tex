@@ -1,0 +1,47 @@
+\section{Motivation}\label{sec:motivation}
+
+There are a lot of theorem provers in existence,
+of which the most prominent feature in \cite{conf/tphol/2006provers}.
+Of these, the most obvious candidates for consideration for UTP prover support
+are Isabelle/HOL\cite{books/sp/NipkowPW02},
+PVS\cite{conf/fmcad/Shankar96},
+and CoQ \cite{bk:Coq'Art:04}.
+They are powerful, well-supported,
+with decades of development experience
+and large active user communities.
+They all support higher-order logic of some form, with a command-line interface,
+typically based around tactics of some form. All three require functions to be total,
+but support some kind of mechanism for handling partial functions
+(e.g. dependent types in PVS).
+Their reasoning frameworks are based on some form of sequent calculus,
+and do not support equational reasoning in a native fashion.
+
+There has been work done on improving the user interfaces
+of theorem provers of this kind.
+An interesting example was ``proof by pointing'' \cite{conf/tacs/BertotKT94}
+for CoQ which allowed the user to select a subterm,
+whereupon it would generate and apply a tactic based on the subterm's top-level
+operator.
+Whilst proof-by-pointing is not supported in more recent versions of CoQ,
+it has been incorporated into ``Proof General'' \cite{conf/tacas/Aspinall00},
+a general purpose user interface for theorem provers, built on top of Emacs.
+It supports Isabelle and Coq, among others,
+and is basically a proof-script management system.
+In essence it supports the command-line tactics of the provers,
+allowing the user to edit proof scripts at will,
+whilst maintaining prover consistency behind the scenes.
+Other explorations in this area include
+INKA \cite{Hutter96}, Lovely OMEGA \cite{oai:CiteSeerXPSU:10.1.1.42.1864},
+Window inference \cite{Staples95},
+Generalized Rewriting in Type Theory \cite{journals/eik/Basin94},
+The CoRe Calculus, \cite{conf/cade/Autexier05}
+and the Jape Theorem Proving framework (\url{http://japeforall.org.uk/}.)
+Of the above, \cite{conf/cade/Autexier05},\cite{journals/eik/Basin94} seems designed
+to support equational reasoning, but lack any notion of a GUI. In \cite{Hutter96} and \cite{oai:CiteSeerXPSU:10.1.1.42.1864} we have GUIs, but the logic/proof style is tree based.
+The window inference work \cite{Staples95} has a notion of ``focus'' similar to ours,
+but has no GUI, and while capable of handling equational rewrites seems to be more general.
+Jape has a GUI and facilities to encode logics, but again is deduction-biased, and has no easy 
+way to extend the language.
+
+
+

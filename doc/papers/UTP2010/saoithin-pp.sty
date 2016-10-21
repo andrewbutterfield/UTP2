@@ -1,0 +1,202 @@
+%
+\def\Saoithin{\textsc{Saoith\'{i}n}}
+%
+%
+\mathchardef\spot="320F
+\mathcode`\@=\spot
+\mathcode`\|=\mid
+%
+% generic mathematics
+\def\nequiv{\not\equiv}
+\def\setof#1{\{#1\}}
+\def\seqof#1{\langle #1\rangle}
+\def\mapof#1{\{ #1\}}
+\def\to{\!\mapsto\!}
+\def\cond#1{\mathbin{\lhd{\,#1\,}\rhd}}
+\def\sem#1{[\![#1]\!]}
+\def\elems{\mathsf{elems}}
+\def\len{\mathsf{len}}
+\def\then{\rightarrow}
+\def\Bool{{\mathbb B}}
+\def\otherwise{\mathrm{otherwise}}
+\def\qed{~{\blacksquare}}
+\def\implies{\Rightarrow}
+\def\impliedby{\Leftarrow}
+\def\amp{\&}
+\def\tvarname#1{#1}
+\def\defs{\widehat{=}}
+
+\def\arbitrarytype{T}
+\def\arbitarytype{T}
+
+\def\override{\mathbin{\dagger}}
+
+\def\ProofName#1{\textbf{#1}}
+
+% generic proof
+\def\coz#1{\mbox{``#1''}}
+\def\EQV#1{\\&\equiv&\coz{#1}}
+\def\IMP#1{\\&\implies&\coz{#1}}
+\def\PMI#1{\\&\impliedby&\coz{#1}}
+
+\def\qed{\\\Box}
+
+\def\bool{B}
+\def\cross{\times}
+\def\fun{\rightarrow}
+%\def\pfun{\rightsquigarrow}
+\def\names{::}
+
+
+\newenvironment{theoryid}{\begin{center}}{\end{center}}
+\def\theoryNameVersion#1#2{\large Theory: \textbf{{#1}\${#2}}}
+
+
+\newenvironment{typedefs}{\begin{eqnarray*}}{\end{eqnarray*}}
+\newenvironment{consts}{\begin{eqnarray*}}{\end{eqnarray*}}
+\newenvironment{exprs}{\begin{eqnarray*}}{\end{eqnarray*}}
+\newenvironment{preds}{\begin{eqnarray*}}{\end{eqnarray*}}
+\newenvironment{obs}{\begin{eqnarray*}}{\end{eqnarray*}}
+\newenvironment{precs}{\begin{eqnarray*}}{\end{eqnarray*}}
+\newenvironment{types}{\begin{eqnarray*}}{\end{eqnarray*}}
+\newenvironment{alphas}{\begin{eqnarray*}}{\end{eqnarray*}}
+\newenvironment{laws}{\begin{eqnarray*}}{\end{eqnarray*}}
+\newenvironment{conjectures}{\begin{eqnarray*}}{\end{eqnarray*}}
+\newenvironment{theorems}{\begin{eqnarray*}}{\end{eqnarray*}}
+
+\newenvironment{ppproof}{\begin{eqnarray*}}{\end{eqnarray*}}
+
+
+
+% Builtin Specific
+\def\integer{\mathbb{Z}}
+
+%% UTP specific
+%\def\HH#1#2{\ensuremath{\mathbf{{#1}{#2}}}}
+%\def\H{\HH{H}{}}
+%\def\RR#1{\HH{R}{#1}}
+%\def\CSP#1{\HH{CSP}{#1}}
+%\def\Skip{\mathit{II}}
+%\def\FALSE{\mathbf{false}}
+%\def\TRUE{\mathbf{true}}
+%\def\refines{\sqsupseteq}
+%\def\refinedby{\sqsubseteq}
+%\def\seqcomp{\mathop{;}}
+
+% UTP specific
+\def\HH#1#2{\ensuremath{\mathbf{{#1}{#2}}}}
+\def\mkHH#1#2{\ensuremath{\mathbf{{mk#1}{#2}}}}
+\def\isHH#1#2{\ensuremath{\mathbf{{is#1}{#2}}}}
+
+\def\H{\HH{H}{}}
+\def\isH{\isHH{H}{}}
+\def\mkH{\mkHH{H}{}}
+\def\DD{\HH{D}{}}
+\def\RR#1{\HH{R}{#1}}
+\def\CSP#1{\HH{CSP}{#1}}
+
+\def\Skip{\mathit{II}}
+\def\FALSE{\mathbf{false}}
+\def\TRUE{\mathbf{true}}
+\def\refines{\sqsupseteq}
+\def\refinedby{\sqsubseteq}
+
+\def\seqcomp{\mathrel{;}}
+
+
+% Logic specific
+\def\F{{\small\textsc{False}}}
+%\def\pseudo#1{{}_p\!{#1}}
+\def\pseudo#1{\tilde{#1}}
+\def\infer{\vdash}
+\def\INFER#1#2{\mprset{fraction={-{\smash -}-}}\inferrule{#1}{#2}}
+\def\BINFER#1#2{\mprset{fraction={===}} \inferrule{#1}{#2}}
+\def\LNAME#1{\textsc{[#1]}}
+\def\INTRO#1{\LNAME{{#1}--I}}
+\def\ELIM#1{\LNAME{{#1}--E}}
+\def\INFERN#1#2#3{\INFER{#1}{#2}\;#3}
+\def\RRULES#1{
+  $$\begin{array}{c@{\quad}l}
+    #1
+  \end{array}$$
+}
+\def\quant{\mathcal{Q}}
+
+
+% FM Specific
+\def\PFX#1{\mathrm{#1}\!\!-\!\!}
+\def\Inv#1{\PFX{inv}{#1}}
+\def\Pre#1{\PFX{pre}{#1}}
+\def\Post#1{\PFX{post}{#1}}
+
+%%% SAOITIHN new stuff
+\def\environmenttype{Env}
+\def\power{\mathcal{P}}
+\def\seq{\textsf{seq-}\!}
+\def\seqp{\textsf{seq1-}\!}
+\def\elambda{\lambda}
+\def\plambda{\Lambda}
+\def\propname#1{\textsf{#1}}
+\def\arbitrarytype{T}
+
+
+% Logic Background
+
+\def\mkelabel#1{\textsf{[~#1~]}}
+\def\elabel#1{\mkelabel{#1}\label{#1}}
+\def\ecite#1{\mkelabel{#1}}
+\def\eref#1{\mkelabel{#1}\pageref{#1}}
+
+\def\RLEQNS#1{
+  $$\begin{array}{lcl@{\quad}l}
+    #1
+  \end{array}$$
+}
+
+% meta-Logic
+\def\AND{\mathrel{\textbf{and}}}
+\def\OR{\mathrel{\textbf{or}}}
+\def\IMPLIES{\mathrel{\textbf{implies}}}
+\def\FORALL{\mathrel{\textbf{for-all}}}
+\def\WEHAVE{\mathrel{\textbf{we-have}}}
+\def\EXISTS{\mathrel{\textbf{there-exists}}}
+\def\SUCHTHAT{\mathrel{\textbf{such-that}}}
+\def\IFF{\mathrel{\textbf{iff}}}
+
+\def\synf#1{\ensuremath{\mathsf{#1}}}
+\def\fv{\synf{fv}}
+\def\bv{\synf{bv}}
+\def\fpre{\synf{fpre}}
+\def\opre{\synf{opre}}
+\def\nocapture{\synf{nocapture}}
+\def\nf{\synf{nf}}
+
+\def\semf#1{\ensuremath{\mathrm{#1}}}
+\def\ctype{\semf{ctype}}
+\def\isbasic{\semf{isbasic}}
+\def\ispartial{\semf{ispartial}}
+\def\val{\semf{val}}
+\def\tval{\semf{tval}}
+\def\pval{\semf{pval}}
+
+\def\defined{\downarrow}
+\def\Defd{\mathcal D}
+\def\carrier#1{\mathbin{|\!\!#1\!|}}
+\def\valsat{\mathrel{\vdash\!\!\!\vdash}}
+
+\def\sthen{\Rrightarrow}
+
+% =========================== Standard Infix Symbols =================================
+%
+% At LaTeX level, we need to disambiguate overloaded symbols, such as \le used for
+% numbers, sequences, etc...
+%
+
+% Sequences
+
+\def\sle{\leq}
+\def\slt{<}
+\def\sge{\geq}
+\def\sgt{>}
+\def\cat{\frown}
+\def\ssub{-}

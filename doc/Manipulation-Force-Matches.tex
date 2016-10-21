@@ -1,0 +1,59 @@
+\textbf{Force Matches}
+We have (``inverted'') variable tables of the form:
+ \begin{eqnarray*}
+   a_i &\mapsto& \setof{x_{i1},\ldots,x_{in_i}, \lst x_{i1},\ldots,\lst x_{im_i}}
+ \\ \lst a_j &\mapsto& \setof{ \lst x_{j1},\ldots,\lst x_{jn_j}}
+ \end{eqnarray*}
+and a ``regular'' substitution table of the form
+\begin{eqnarray*}
+   (\lst x_i,\lst e_i) &\mapsto&
+     \setof{(a_{k+1},f_{k+1}),\ldots,(a_n,f_n), (\lst a_1,\lst f_1),\ldots,(\lst a_m\lst f_m)}
+\end{eqnarray*}
+We can interpret this latter table as being the following two
+\begin{eqnarray*}
+   \lst x_i &\mapsto&
+    \setof{a_{k+1},\ldots,a_n,\lst a_1,,\ldots,\lst a_m}
+\\ \lst e_i &\mapsto&
+    \setof{f_{k+1},\ldots,f_n, \lst f_1,\ldots,\lst f_m}
+\end{eqnarray*}
+but noting that $\lst x$ and $\lst e$ in the latter linked.
+so we eliminate any occurrences of these $\lst x$ from the first two tables.
+
+We can invert the substitution tables to get variable tables like:
+ \begin{eqnarray*}
+    a_s &\mapsto& \setof{\lst x_{s1},\ldots,\lst x_{sm_s}}
+  \\ \lst a_t &\mapsto& \setof{ \lst x_{t1},\ldots,\lst x_{tn_t}}
+ \end{eqnarray*}
+We merge this by taking intersections with the inverted variable
+tables, as both represent matching constraints that must be satisfied.
+
+The list variables can be broken into general, and reserved.
+  Reserved variables here in the inverted tables
+  match anything because they are in a quantifier,
+  but we do have information about how many standard variables they can
+  match:
+  \begin{eqnarray*}
+     \#_R &:& Var \fun \Nat
+  \\ \#_R(R) &\defs& \#_D(\sem{R}_\Gamma)
+  \\ \#_D &:& (\power Var)^2 \fun \Nat
+  \\ \#_D(V\ominus \emptyset ) &=& \# V
+  \\ \#_D(V \ominus x_1,\ldots x_n) &=& (\# V) - n, \qquad n \leq \# V, \quad 0~ \otherwise.
+  \\ \#_D(V \ominus \setof{\ldots,\lst v,\ldots} &\leq& \# V
+  \end{eqnarray*}
+  Reserved variables in the substitution table may not be bound by a quantifier
+  and so can only match something with the same denotation.
+
+We then process the single inverted table to construct a mapping \texttt{citab}:
+\begin{eqnarray*}
+  a_i &\mapsto& n_i \qquad \mbox{number of $\lst x$}
+\end{eqnarray*}
+We then un-invert the tables to get back to the form:
+\begin{eqnarray*}
+  x_i &\mapsto& \setof{a_{i1},\ldots,a_{in_i}}
+\\ \lst x_j &\mapsto& \setof{a_{j1},\ldots,a_{jn_j}, \lst a_{j1},\ldots,\lst a_{jm_j}}
+\end{eqnarray*}
+We use \texttt{citab} to sort the \texttt{stab} range elements in ascending order.
+We then process the sorted table to update the bindings.
+We then do a greedy assignment of mappings from  \texttt{mtab},
+using size information for reserved variables.
+Finally we do something similar with the substitution matches.

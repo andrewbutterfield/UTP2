@@ -1,0 +1,248 @@
+\section{UTP}\label{sec:utp}
+
+\PLAN{ Describing the more ubiquitous operators of UTP,
+and why we want to handle alphabets implicitly.}
+
+Some key concepts are common to most UTP theories,
+namely sequential composition ($\comp$), non-deterministic choice ($\sqcap$),
+refinement ($\refinedby$) and conditional ($\cond c$).
+Importantly, in most theories these all have the same definition:
+\begin{eqnarray*}
+% \nonumber to remove numbering (before each equation)
+  P \comp Q &\defs& \exists Obs_m @ P[Obs_m/Obs'] \land Q[Obs_m/Obs] \\
+  P \sqcap Q &\defs& P \lor Q \\
+  P \refinedby Q &\defs& [ Q \implies P ] \\
+  P \cond c Q &\defs& c \land P \lor \lnot c \land Q
+\end{eqnarray*}
+The definitions for $\sqcap$, $\refinedby$ and $\cond c$ are unproblematical,
+and are easily handled by the existing machinery,
+with one key extension.
+The definition of $\comp$ not only makes use of explicit substitution notation,
+but also raises the question of how to interpret $Obs_m$, $Obs'$ and $Obs$.
+Clearly they stand for the obervational variables of a UTP theory along with
+appropriate decorations, but how do we support this?
+In particular, how can we arrange matters so that
+we only define $\comp$ once, in such a way that it can be used by many different theories?
+We will first address the key extension alluded to above,
+and then return to the problem of sequential composition.
+
+\subsection{Defining your own language in \UTP2}
+
+A key aspect of a UTP theory is the signature that captures the
+abstract syntax of the language being defined.
+This means that \UTP2\ needs to support user-defined languages.
+This is achieved by having a table-driven parser for entering predicates,
+and providing a facility for the user to add new entries
+to the relevant tables:
+\begin{eqnarray*}
+Theory &=& \textbf{record} \ldots
+\\ && precs : Name \pfun Precedence
+\\ && lang : Name \pfun LangSpec
+\\ && \ldots \textbf{end}
+\end{eqnarray*}
+The $precs$ table maps the name of an infix operator
+to information about its parsing precedence and its associativity.
+The $lang$ table maps a language construct name to a language specification
+($LangSpec$) that describes the concrete syntactical structure of that construct.
+A language specification is a mix of keywords denoting syntactical components
+like variables (V) , expressions (E) , predicates (P),
+ or various lists of such,
+interspersed with concrete syntax symbols.
+We won't give a full definition here but present some examples to give the
+idea:
+\begin{itemize}
+  \item
+    Refinement: we specify this as ``\verb@P |= P@'',
+  which states that \verb@|=@ is an infix operator between two predicates.
+  When this is entered into the $lang$ table,
+  a corresponding entry is automatically created in the $precs$
+  table with default values (mid-range precedence, non-associative)
+  which can then be edited by the user to suit.
+  Also entered is a dummy definition for the construct
+  into the $laws$ table, which itself then needs to be edited.
+  \item Assignment:
+    specified as ``\verb@V := E@'', stating that \verb@:=@
+    is an infix operator in-between a variable and expression,
+    resulting in a predicate.
+\end{itemize}
+In general defining a language construct (resulting in a predicate)
+ involves adding entries
+to the $lang$ and $laws$ tables,
+and possibly also to the $types$ and $precs$ tables, depending
+on the precise nature of the construct.
+Infix expression operators do not have $lang$ entries
+but require $laws$, $precs$ and $types$ entries.
+
+When we talk about developing a theory of Designs (Section \ref{sec:designs}),
+we shall give a worked-out example of  a language definition.
+
+\subsection{The problem with $\protect\comp$}
+
+The definition of sequential composition,
+\begin{eqnarray*}
+P \comp Q &\defs& \exists Obs_m @ P[Obs_m/Obs'] \land Q[Obs_m/Obs]
+\end{eqnarray*}
+says in effect that for each observation, $x$, say, in $Obs$,
+we replace any free occurrence of $x'$ in $p$ by $x_m$
+and any free occurrence of $x$ in $q$ by $Obs_m$,
+and use existential quantification to hide $x_m$.
+In effect the rule above is really a rule-schema,
+characterising an infinite number of rules,
+one for each possible alphabet represented by $Obs$.
+However, we don't want to repeatedly instantiate this rule
+and reason about its consequences for each specific alphabet we use.
+In fact, we want to use the definition in cases where only part
+of the alphabet is known (Designs again, Section \ref{sec:designs}).
+We would prefer to be able to do proofs with the definition
+as given above, only instantiating $Obs$ where necessary,
+and then perhaps only partially.
+In fact, we want to support the following proof
+(of the associativity of $\comp$)
+which does not require any instantation of $Obs$:
+{\small
+\begin{eqnarray*}
+  && P ; (Q ; R)
+\\&\equiv& \exists Obs_m @ P[Obs_m/Obs']
+           \land (Q;R)[Obs_m/Obs]
+\\&\equiv& \exists Obs_m @ P[Obs_m/Obs']
+           \land (\exists Obs_n @ Q[Obs_n/Obs'] \land R[Obs_n/Obs])[Obs_m/Obs]
+\\&\equiv& \exists Obs_m,Obs_n @ P[Obs_m/Obs']
+           \land Q[Obs_n/Obs'][Obs_m/Obs]
+           \land R[Obs_n/Obs][Obs_m/Obs]
+\\&\equiv& \exists Obs_m,Obs_n @
+                  P[Obs_m/Obs'][Obs_n/Obs']
+           \land Q[Obs_n,Obs_m/Obs',Obs]
+           \land R[Obs_n/Obs]
+\\&\equiv& \exists Obs_n @
+                  (\exists Obs_m @ P[Obs_m/Obs'][Obs_n/Obs']
+           \land Q[Obs_m/Obs][Obs_n/Obs'])
+\\&& \qquad\qquad {} \land R[Obs_n/Obs]
+\\&\equiv& \exists Obs_n @
+                  (\exists Obs_m @ P[Obs_m/Obs']
+           \land Q[Obs_m/Obs])[Obs_n/Obs']
+           \land R[Obs_n/Obs]
+\\&\equiv& \exists Obs_n @
+                  (P ; Q)[Obs_n/Obs']
+           \land R[Obs_n/Obs]
+\\&\equiv&(P ; Q) ; R
+\end{eqnarray*}
+}
+In effect we want to reason within our logic about ``schematic''
+variables like $Obs$ and treat the substitution notation as part
+of the object logic, rather than meta-notation describing
+the behaviour of an inference rule.
+
+To achieve this we have to add another linguistic innovation
+to the logic.
+A common shorthand in most presentations of logic is to
+view $\forall x,y,z @ p$ (say)
+as a shorthand for $\forall x @ \forall y @ \forall z @ p$.
+Our innovation is not only to add the former as a full part
+of the logic syntax, but also a further extension.
+We want to be able to have quantifier variables (e.g. $Obs$)
+that represent lists of ``ordinary'' quantifier variables.
+We do this by splitting the list into two parts, separated by
+a semi-colon, with those in the first part being ordinary,
+whilst those in the second part denote lists of variables.
+The revised syntax of $\forall$ is now:
+$$
+\forall x_1,\ldots,x_m \qsep xs_1, \ldots , xs_m @P
+\qquad
+m \geq 0, n \geq 0, m+n \geq 1
+$$
+Other observation (1st-order) quantifiers are modified similarly.
+The $x_i$ and $xs_j$ above are ``quantifier variables'',
+and will be disambiguated were necessary by referring to the $x_i$
+(before the $\qsep$ sysmbol) as ``single variables''
+and the $xs_j$ (after $\qsep$ as ``list variables'').
+A list where $m=0$ is referred to as an ``ordinary list''.
+The meaning of a quantifier variable list of the
+form $x_1,\ldots,x_m \qsep xs_1, \ldots , xs_m$
+is that it matches an ordinary list
+of the form $y_1,\ldots,y_{m+k}, k \geq 0$
+where each $x_i$ binds to one $y_j$,
+each $xs_i$ binds to zero or more $y_j$,
+and every $y_j$ is bound exactly once.
+In principle the bindings associated with a variable like $xs_i$
+are non-deterministic, albeit they must be consistent with bindings derived
+from the match as a whole, i.e. the wider context in which that  variable occurs.
+In practice, heuristics are used in the implementation to select
+a binding that is hopefully as ``good'' as possible.
+
+As our proof above largely depended on properties of (explicit)
+substitution, we have to add it into our logic as well.
+So we revise our syntax for predicates:
+\RLEQNS{
+   p,q,r \in Pred &::=& \ldots
+\\              &|& \yen qvs @ p & \mbox{1st-order Quantifiers, } \yen \in \setof{\forall,\exists,\exists!}
+\\              &|& p[ e/x ] & \mbox{Explicit Obs. Substitution}
+\\              &|& p[ e/E ] & \mbox{Explicit E-var. Substitution}
+\\              &|& p[ p/P ] & \mbox{Explicit P-var. Substitution}
+\\ qvs \in QVars &&& \mbox{Quantifier Variable lists}
+\\ &::=~& x_1,\ldots,x_m \qsep xs_1, \ldots , xs_m
+   & m \geq 0, n \geq 0, m+n \geq 1
+}
+Explicit substitutions are also added to expressions as well.
+Laws regarding explicit substitutions also need to be developed,
+e.g.
+$$
+p[e/x][f/y] = p[e,f/x,y], \quad x \neq y, y \notin \fv.e
+$$
+but we do not list these here.
+
+This extension allows us to introduce axioms like:
+$$
+\AXallOInst \qquad \AXallOInstN
+$$
+rather than relying on a simple single quantifier axiom
+and the usual conventions regarding the $\forall x,y,z$ shorthand.
+In essence what we have done is to formalise and automate this convention.
+
+To support the definition of $\comp$ we need one further step.
+The list variable $Obs$ does not stand for an arbitrary
+list of single variables, but is instead intended to stand for
+precisely those un-dashed variables that are present in the
+alphabet of the current theory, even if that alphabet
+has not been fully described.
+Similarly, $Obs'$ stands for all the dashed variables,
+and $Obs_m$ denotes the decoration of all the $Obs$ variables.
+In effect we designate certain list variables (like $Obs$)
+as having a special meaning.
+
+The basic matcher described in Section \ref{sec:logic},
+has to be enhanced to perform appropriate matching
+where non-ordinary quantifier lists are present.
+To make this work, we need to extend theories to have
+a table that records the theory alphabet:
+\begin{eqnarray*}
+Theory &=& \textbf{record} \ldots
+\\ && obs : Name \pfun Type
+\\ && \ldots \textbf{end}
+\end{eqnarray*}
+The $obs$ table needs to become part of the matching context $\Gamma$,
+and we introduce rules for matching quantifier lists:
+\begin{eqnarray*}
+  & \inferrule%
+       {~}%
+       {\Gamma \vdash \qsep Obs \ddagger \qsep Obs | \varepsilon }
+\\
+\\& \inferrule%
+       {Obs(\Gamma)=\setof{o_1,\ldots,o_n}}%
+       {\Gamma \vdash \qsep Obs \ddagger \setof{o_1,\ldots,o_n}
+         | \setof{Obs \mapsto \setof{o_1,\ldots,o_n}}}
+\end{eqnarray*}
+The first rule allows $Obs$ to match itself, and so we can do proofs
+that do not require it to be expanded to an ordinary list.
+Note also that in this case an empty binding ($\varepsilon$) is returned.
+Other matching rules not shown here, take care of decorations,
+ensuring that $Obs$ matches $x,y,z$, if appropriate,
+but not $x',y',z'$.
+
+We can now define sequential composition in our revised logic as:
+\begin{eqnarray*}
+P \comp Q &\defs& \exists \qsep Obs_m @ P[Obs_m/Obs'] \land Q[Obs_m/Obs]
+\end{eqnarray*}
+and produce a proof as shown earlier.
+There is an additional extension required to the logic to do this,
+but we shall motivate and introduce it
+in the section on Designs (Section \ref{sec:designs}).

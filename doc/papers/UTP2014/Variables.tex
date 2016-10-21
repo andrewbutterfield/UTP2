@@ -1,0 +1,226 @@
+\section{Variables in \UTP2}\label{sec:variables}
+
+The notion of ``variable'' in \UTP2 (and by extension UTP)
+is not simple, as exemplified by the following examples,
+from the book\cite{UTP-book}:
+\[\begin{array}{rcl@{\quad}r}
+   P(\nu');Q(\nu) &~~=_{df}~~& \exists \nu_0 @ P(\nu_0)\land Q(\nu_0),
+   out\alpha P = in\alpha' Q = \{\nu\}
+   & [p49]
+\\ \Skip_A &=_{df}& (\nu'=\nu), A = \{\nu,\nu'\}
+   & [p50]
+\\ x:=e &=_{df}& (true \design x'=e \land y'=y \land \ldots \land z'=z )
+   &[p78]
+\end{array}\]
+and the following from the UTP semantics of \Circus\cite{journals/fac/OliveiraCW09}:
+\[\begin{array}{rcl@{\quad}r}
+   A_1 ; A_2 &~\defs~& \exists x_0 @ A_1[x_0/x'] \land A_2[x_0/x]
+   & [p9]
+\\ J &\defs& (okay\implies okay') \land tr'=tr \land wait'=wait
+\\ && {} \land ref'=ref \land \nu'=\nu
+   & [p9]
+\end{array}\]
+Here we have variables like $\nu$, $x$ that actually represent lists of variables,
+usually those in the alphabet, or subscripted variants thereof.
+We also have predicates like $\nu'=\nu$
+that are a shorthand for loosely specified conjunctions of individual
+variables, eg, $y'=y \land \ldots \land z'=z$.
+We also note that despite their importance to UTP,
+alphabets are often treated in proofs and derivations as implicit and understood.
+A key design goal of \UTP2 is to support these aspects of UTP reasoning,
+in do far as is practicable.
+In effect this paper is a description of the impact of that decision
+on the underlying complexity of the matcher.
+
+At present we support the use of ``variable-list variables'' like $\nu$ of $x_0$
+above, but not the style of using function notation to highlight free
+variables, like $P(\nu')$.
+Laws using this style can be formulated in \UTP2,
+but pattern matching with the requisite level of generality
+is extremely difficult.
+Formulating laws using explicit substitution ($A_1[x_0/x']$
+results in a much more tractable matcher (but still non-trivial).
+
+We now present the \UTP2 approach to variables.
+
+\subsection{Variable Categories}
+
+Variables fall into the following categories:
+\begin{description}
+  \item[Standard]
+    These are are ``ordinary'' variables, that denote observations or values,
+    and can typically match in a law against other such variables, or expressions.
+    They are represented as sequences of letters, e.g.: $ok, x, y, wait, \ldots$.
+  \item[List]
+    These are variables that represent a list of variables, in a context were
+    variable lists occur, namely in quantifiers and substitutions.
+    We can break these down into two distinct classes of list-variable:
+    \begin{description}
+      \item[Generic]
+        These variables represent arbitrary variable-lists,
+        and typically are used to denote remaining or left-over lists of variables.
+        These are represented as sequences of letters with a $\lst{}$ postfix,
+        e.g.: $\lst x, \lst{var}, \ldots$.
+      \item[Reserved]
+        These are special list variables that act as a shorthand, referring
+        to the observational variables of a theory.
+        It is important to realise that in many UTP theories
+        we actually have two classes of observations: those associated with
+        the values of variables in the program text under consideration (e.g. $x$, $y$ and $z$),
+        and those that capture overall program properties, independent of any program variable
+        (e.g., $ok$ and $ok'$, denoting termination).
+        We shall refer to the former as Script variables and the latter as Model variables.
+        \begin{eqnarray*}
+           OClass &::=& Model | Script
+        \end{eqnarray*}
+        These are represented succinctly as single-character strings: $\OBS$
+        (all observation variables in the current theory alphabet),
+        $\MDL$ (all model (auxilliary, non-program) alphabet variables),
+        and $\SCR$ (all script (e.g. program) alphabet variables).
+    \end{description}
+    With both type of list-variables, it is sometimes useful to talk about
+    the ``meaning'' of such a variable with some nominated variables removed.
+    For example, the meaning of $x:=e$ will want to say that $x'=e$,
+    and that ``all the remaining program variables are unchanged''.
+    We can assert the latter as predicate $\SCR'\less x = \SCR\less x$
+    In general a list-variable can have the form $\lst v\less{x,y,z,\ldots}$,
+    which is itself an expression denoting a modified list-variable.
+    The nesting of this notation is not permitted.
+\end{description}
+Note: there have been some key notation changes in this area
+since earlier publications
+---see Appendix \ref{sec:syntax:change}.
+
+In addition to all of the above,
+variables can also have decorations: none; dash or subscripts.
+So the following are all valid distinct variables:
+\[
+x~~~~x'~~~~x_1~~~~x_m~~~~\lst x~~~~\lst x'~~~~\lst x_1~~~~\SCR~~~~\SCR'~~~~\SCR_m
+~~~~\SCR\less x~~~~\SCR'\less x~~~~\SCR_m\less x
+\]
+In the last three examples, we do not add the decoration to the subtracted
+variable $x$, instead assuming it implicitly has the same decoration as the
+list-variable---contrast $\SCR'\less{x,y}$ with $\SCR'\less{x',y'}$.
+The subtraction decoration does not add anything essential.
+
+\subsection{List-variable Semantics}
+
+There are three places in our logic where lists of variables can occur:
+\begin{description}
+  \item[Quantifiers] $\forall x,y,z @ p$
+  \item[Substitution Targets] $q[e_1,e_2,e_3/x,y,z]$
+  \item[Substitution Replacements] $r[E,F,G/x,y,z]$
+\end{description}
+We can imagine capturing the above as following more general patterns:
+\begin{description}
+  \item[Quantifiers] $\forall \lst v @ p$
+  \item[Substitution Targets] $q[\lst E/\lst v]$
+  \item[Substitution Replacements] $r[\lst F/\lst v]$
+\end{description}
+We can recover our original specific instances by positing the
+following mapping from list-variables to lists of variables
+or lists of expressions:
+\begin{eqnarray*}
+   \lst v &\mapsto& x,y,z
+\\ \lst E &\mapsto& e_1,e_2,e_3
+\\ \lst F &\mapsto& E,F,G
+\end{eqnarray*}
+In effect, the meaning of a list-variable is ultimately
+a set of possible lists of zero or more standard variables, or expressions.
+
+For reserved list-variables, the meaning is fixed by the observation variables
+of the relevant theory, so if we have a theory of designs with $ok$ as
+as a model variable, and $x,y,z$ as program (script) variables, then
+the binding is forced to
+\begin{eqnarray*}
+   \MDL &\mapsto& ok
+\\ \SCR &\mapsto& x,y,z
+\\ \OBS &\mapsto& ok,x,y,z
+\end{eqnarray*}
+Note that the mapping always respects the following law: $\OBS=\MDL\cup\SCR$.
+
+If we are in a theory that does not define any particular observation variables,
+then the only possible mappings for \OBS,\MDL, and \SCR\ are those to themselves,
+or $\OBS \mapsto \MDL,\SCR$.
+Such theories do occur, perhaps the best example being a UTP ``base'' theory
+that defines ubiquitous concepts such as refinement, conditionals,
+and sequential composition.
+
+\subsection{Laws of Interest}
+We shall look a small selection of axioms and definitions
+focussing on those that make most use of the list-variables as just described.
+
+\subsubsection{Axioms of Interest}
+
+We consider 3 axioms to be worth noting,
+either for the matching challenge they present,
+or surprising consequences of how they can match:
+\begin{description}
+  \item[1 Std, and the rest]
+     \[
+       \AXallOInstN \qquad \AXallOInst
+     \]
+     This captures a very common idiom where a law basically wants
+     to single out a single variable from a list for special treatment.
+     It is worth noting that $\lst x$ can match an empty list of variables,
+     so the more traditional form of this instantiation axiom
+     $(\forall x@p)\implies p[e/x]$ matches the above.
+  \item[Ours and Theirs]
+     \[
+          \AXorAllOScopeN \qquad  \AXorAllOScope
+     \]
+     This covers a more general case where we want to split a list into two
+     parts, often as here, under the influence of a side-condition.
+     This points out that the side-conditions have a key role to play
+     in matching, as detailed later.
+  \item[Hidden Depths]
+     \[
+       \AXanyODefN \qquad  \AXanyODef
+     \]
+     This is the standard way to define existential quantification
+     in terms of universal, sometimes referred to as ``generalised deMorgan''.
+     However, if we consider a matching in which $\lst x$ is matched against
+     an empty list of variables, $\lst x \mapsto \emptyset$,
+     then the target will look like
+     $(\exists \emptyset @ p) \equiv \lnot(\forall\emptyset@\lnot p)$,
+     which, if we drop the quantifiers, since they quantify nothing,
+     reduces to $p \equiv \lnot\lnot p$--the law of involution!
+     At present \UTP2 does perform this match,
+     and in particular we have that any predicate $q$
+     will match $\forall \lst x @ P$, with bindings $\lst x \mapsto \emptyset, P \mapsto q$.
+     This can lead to what look like spurious matches,
+     and it is not yet clear if it should be disabled, or retained.
+\end{description}
+
+\subsubsection{Definitions of Interest}
+
+The following UTP definitions from various theories
+were key drivers for the current architecture of the \UTP2 matching system:
+\begin{description}
+  \item[Reserved]
+    \[\begin{array}{l@{\quad}l}
+       \LNAME{$\comp$-def} & P \comp Q \defs \exists \OBS_m @ P[\OBS_m/\OBS'] \land Q[\OBS_m/\OBS]
+    \end{array}\]
+    This law motivates the need for reserved list variables.
+  \item[Designs]
+    \[\begin{array}{l@{\quad}l}
+       \LNAME{$ok$-decl} & ok,ok' : \Bool \quad \mbox{(Model)}
+    \\
+       \LNAME{$\design$-def} & P \design Q \defs ok \land P \implies ok' \land Q
+       , \qquad ok,ok' \notin \fv.P \cup \fv.Q
+    \end{array}\]
+    These declaration and definition shows the need for knowing that $ok$ and $ok'$
+    are in the alphabet, and that they are not program variables.
+  \item[Jay]
+    \[\begin{array}{l@{\quad}l}
+       \LNAME{$J$-def} & J \defs (ok \implies ok') \land wait'=wait \land tr'=tr \land ref'=ref
+    \end{array}\]
+    Definitions like these are common in UTP, so need to be supported.
+    We also need to ensure that $J$ only ever matches itself or its definition rhs.
+  \item[Assignment]
+    \[\begin{array}{l@{\quad}l}
+       \LNAME{$:=$-def} & v:=e \defs True \design v' = e \land \SCR'\less{v'}=\SCR\less v
+    \end{array}\]
+    Here we see the need for a reserved variable that only refers to program variables,
+    and the need to remove nominated variables from it.
+\end{description}

@@ -1,0 +1,60 @@
+\section{Introduction}\label{sec:intro}
+
+Unifying Theories of Programming (UTP) \cite{UTP-book},
+is a framework that uses alphabetised predicates to define language
+semantics in a relational calculus style, in a way that facilitates
+the unification of otherwise disjoint semantic theories,
+either by merging them, or using special linking predicates
+that form a Galois connection. The framework is designed
+to cover the spectrum from abstract specifications
+all the way down to near-machine level descriptions,
+and as a consequence the notion of refinement plays a key role.
+
+We are doing foundational work in the UTP \cite{UTP-book},
+which requires formal reasoning with not only predicates,
+but also predicate transformers: $\RR3(P)$ $\defs$ $\Skip \cond{wait} P$
+and predicates over predicates: $P = \RR3(P)$.
+We also need to use recursion at the predicate level:
+$ P \defs \mu Q \bullet F(Q)$,
+as well as partially-defined expressions:
+$s \le s \cat (tr'-tr) \equiv  tr \le tr'$.
+The logic being used is therefore semi-classical
+(two-valued logic, but expressions may be undefined)
+and of least 2nd-order.
+In addition, tool support for foundational work in UTP requires the ability
+to easily describe new language constructs,
+which can themselves be treated just like predicates,
+in keeping with the ``programs are predicates''
+philosophy \cite{predprog} of UTP.
+In \cite{conf/utp/Butterfield10}
+we gave an overview of the Unifying Theories of Programming Theorem Prover
+(\UTP2)
+that we are developing to support such theory development work%
+\footnote{%
+In that paper it was called \STHN, but the name has since changed to \UTP2
+}%
+.
+The prover is an interactive tool, with a graphical user-interface,
+designed to make it easy to define a UTP theory and to experiment
+and perform the key foundational proofs.
+The motivation for developing this tool,
+rather than using an existing one,
+has been discussed in some detail
+in \cite{conf/utp/Butterfield10}, but key elements will be reprised here.
+The logical and  technical underpinning was further elaborated
+upon in \cite{conf/utp/Butterfield12},
+which described as being an adapted and generalised version of
+the equational reasoning system developed by Tourlakis \cite{journals/logcom/Tourlakis01},
+itself inspired by the equational logic of David Gries and his colleagues \cite{gries.93}.
+
+In this paper, we describe how the user interacts
+with this theorem prover,
+that was developed,
+\emph{from the outset},
+with the proof and reasoning styles typically used in UTP research and published work.
+
+The key emphasis in development was to use window-based GUI techniques early on as the primary
+mode of interaction, in stark contrast to most modern interactive theorem provers
+that have essentially a command-line interface (most HOL flavours, CoQ, PVS, \ldots) sometimes wrapped with a
+elaborate interface built on top of a highly configurable text editor
+(e.g., Proof General on Emacs, new Isabelle/HOL interface on top of jEdit).

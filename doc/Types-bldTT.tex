@@ -1,0 +1,64 @@
+The algorithm is loosely as follows, where at the top level
+we invoke
+$$bldTT(e,empty,empty)$$
+\begin{eqnarray*}
+   bldTT_\Gamma &:& Expr \times VT \times TT \fun TVar \times VT \times TT
+\\
+\\ (k,vt,tt)
+   &\mapsto& (t,vt,tt \oplus t \mapsto T), \qquad \Gamma(k)=T
+\\ &\mapsto& (t,vt,tt), \qquad k \notin \Gamma
+\\ \WHERE && new~t
+\\
+\\ (v,vt,tt)
+   &\mapsto& (t,vt \oplus v \mapsto t,tt), \qquad \Gamma(v) \mbox{ is a type-var.}
+\\ &\mapsto& (t,vt \oplus v \mapsto t,tt \oplus t \mapsto T), \qquad \Gamma(v)=T
+\\ &\mapsto& (t,vt \oplus v \mapsto t,tt), \qquad v \notin \Gamma
+\\ \WHERE && new~t
+\\
+\\ (\lambda x_1,\ldots,x_n @ e)
+   &\mapsto& (t,vt',tt')
+\\ \WHERE && new~t; new~t_1; \ldots ; new~t_n
+\\ && (t_e,vt_e,tt_e) = bldTT_{(\Gamma\oplus{x_i \mapsto t_i})}(e,vt,tt)
+\\ && (vt',tt') = (vt_e,tt_e \oplus t \mapsto t_1 \fun \ldots \fun t_n \fun t_e)
+\\
+\\ (f~a,vt,tt)
+   &\mapsto& (t,vt',tt')
+\\ \WHERE && new~t
+\\  && (t_a,vt_a,tt_a) = bldTT_\Gamma(a,vt,tt)
+\\ && (vt',tt') = (vt_a,tt_a \oplus t_a \mapsto S, t \mapsto T),
+   \Gamma(f) = S \fun T
+\\ && (vt',tt') = (vt_a,tt_a), \qquad f \notin \Gamma
+\\
+\\ (e[e_1,\ldots,e_n/x_1,\ldots,x_n],vt,tt)
+   &\mapsto& (t,vt',tt' \oplus t \mapsto t')
+\\ \WHERE && new~t
+\\  && (t_1,vt_1,tt_1) = bldTT_\Gamma(e_1,vt,tt)
+\\  && \vdots
+\\  && (t_n,vt_n,tt_n) = bldTT_\Gamma(e_n,vt_{n-1},tt_{n-1})
+\\  && (t',vt',tt') = bldTT_\Gamma(e,vt_n \oplus x_i \mapsto t_i,tt_n)
+\end{eqnarray*}
+\begin{eqnarray*}
+\\ ((e1,\ldots,e_n),vt,tt)
+   &\mapsto& (t,vt',tt')
+\\ \WHERE && new~t
+\\  && (t_1,vt_1,tt_1) = bldTT_\Gamma(e_1,vt,tt)
+\\  && \vdots
+\\  && (t_n,vt_n,tt_n) = bldTT_\Gamma(e_n,vt_{n-1},tt_{n-1})
+\\ && (vt',tt') = (vt_n,tt_n \oplus t \mapsto t_1 \times \ldots \times t_n)
+\\
+\\ (\setof{e1,\ldots,e_n},vt,tt)
+   &\mapsto& (t,vt',tt')
+\\ \WHERE && new~t
+\\  && new t_e
+\\  && (t_1,vt_1,tt_1) = bldTT_\Gamma(e_1,vt,tt)
+\\  && \vdots
+\\  && (t_n,vt_n,tt_n) = bldTT_\Gamma(e_n,vt_{n-1},tt_{n-1})
+\\ && (vt',tt') = (vt_n \oplus t_e \mapsto \seqof{t_1,\ldots,t_n}
+      ,tt_n \oplus t \mapsto \power t_e)
+\\
+\\ (\theta x @ P,vt,tt)
+   &\mapsto& (t,vt,tt \oplus t \mapsto T), \qquad  \Gamma \infer x ::T \mbox{ in } P
+\\ &\mapsto& (t,vt,tt \oplus t \mapsto t'), \qquad \mbox{otherwise}
+\\ \WHERE && new~t \quad new~t'
+\end{eqnarray*}
+Any cases not covered above lead to a type error.

@@ -1,0 +1,27 @@
+Assume we have well-formed $(ues,vfs)$ as a deferred match.
+The situation is similar to that above for \texttt{QVar} matches,
+but with the added complication of corresponding expressions having to match.
+Consider  a standard V-E match in $beta$, such as $u \mapsto g$,
+where $g$ is \emph{not} a variable:
+\begin{eqnarray*}
+   u \notin \power\pi_1~us  && (us,vs)
+\\ u \in \power\pi_1~us      && \mbox{fail}
+\end{eqnarray*}
+Consider a standard V-V match in $beta$, such as $u \mapsto v$,
+then if we have expressions $e$ and $f$ as follows
+\begin{eqnarray*}
+   u \notin \power\pi_1~ues  && (ues,vfs)
+\\ v \notin \power\pi_1~vfs, (u,e) \in ues  && \mbox{fail}
+\\ (v,f) \in vfs, (u,e) \in ues  && (ues \setminus (u,e), vfs \setminus (v,f)
+\\ \mbox{provided} && e \mbox{ matches } f
+\\ && \mbox{this match may have deferrals!}
+\end{eqnarray*}
+ Consider a list V-VS match in $beta$, such as $\lst u \mapsto ws$,
+then if we have expressions $e$ and $fs$ as follows
+\begin{eqnarray*}
+   \lst u \notin \power\pi_1~ues  && (ues,vfs)
+\\ ws \not\subseteq \power\pi_1~vfs, (\lst u,\lst e) \in ues  && \mbox{fail}
+\\ (ws\times fs) \subseteq vfs, (\lst u,\lst e) \in ues
+    && (ues \setminus (\lst u,\lst e), vfs \setminus (ws\times fs)
+\\ \mbox{provided} && es \mbox{ matches } fs
+\end{eqnarray*}

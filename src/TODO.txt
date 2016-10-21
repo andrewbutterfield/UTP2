@@ -1,0 +1,278 @@
+Saoithin TODO list - most urgent/crucial at top
+
+Before mainstreaming the prototype matcher:
+
+When merging (mrgMR and variants) we should always try to condition
+the deferred matches based on new binding information, which may
+fail, of course (MatchTypes.mkMR)
+
+
+
+!!! cleanQVarsToDo  is broken (Matching.135)
+Signature is wrong - there is no need to change VEBind !
+
+
+Need bindings for Script,Pre and Post to be consistent.
+
+x is NoDecor if not an observable, Pre if it is.
+
+Implemented
+
+aandb     |->  A /\ B
+allxp     |->  forall x @ P
+allxsp    |->  forall x$ @ P
+allxsysp  |->  forall x$,y$ @ P
+allxxsp   |->  forall x,x$ @ P
+anyoap    |->  exists O_a @ P
+anyomp    |->  exists O_m @ P
+anysvp    |->  exists S\v @ P
+anysvsp   |->  exists S\v$ @ P
+anysxp    |->  exists S\x @ P
+eqss      |->  S' = S
+eqsusvs   |->  S'\u$:v$ = S\u$:v$  (FAIL 4)
+eqsv      |->  S'\v = S\v
+eqsvs     |->  S'\v$ = S\v$  (FAIL 3)
+eqsx      |->  S'\x = S\x
+equssx    |->  x$ = S'\v
+eqxses    |->  x$ = e$
+eqxso     |->  x$ = O
+eqxsus    |->  x$ = S'\u$
+
+currently
+  regressed: anysvsp anysxp eqsusvs
+  failures : eqsvs eqsusvs
+
+
+Interactions are complex - maybe not support the use
+of O\vs, where vs = [[O]] \ [[S]]
+- S should be used instead
+
+Perhaps need to re-think matching?
+Lots of bespoke code for things like 2-place matching
+particularly for reserved variable matching - looks like
+inconsistent duplication has crept in.
+
+Still to do
+
+eqsvs       S'\v$ = S\v$
+eqsusvs     S'\u$:v$ = S\u$:v$
+sube4u      P[e//u]
+subes4us    P[e$//u$]
+subef4uv    P[e,f//u,v]
+subefs4uvs  P[e,f$//u,v$]
+subom4o     P[O_m//O']
+subms4ms    P[M_m,S_m//M',S']
+
+Parser should disallow O\vs where vs = [[O]]\[[S]]
+
+
+Continue implementing Matching.allVarMatches
+Done, now needs testing
+
+Need to get rid of silent failures in proof steps
+that produce a new step, but with no change.
+
+Have more vacuous forall axioms !
+
+Need to get matches on side-conditions to help guide
+the completeMatch phase....  SideCond^2 -> [MatchResult]
+
+revisit:
+   Laws.forceMatch, esp resolveMultiMatches and splitESBindPairs
+
+need to annotate Evar
+
+LaTeX rendering needs to be fixed to handle list-variables
+when Bindings are rendered.
+
+Going to redo basic logic hierarchy
+ (i) from ROOT axioms prove Morgan/Sanders axioms
+    -- in progress, propositional ones done.
+ (ii) Prove useful Implication Laws (all the AND and OR distributivities)
+    -- done
+
+  completeMatch doesn't do Rsv variables properly.
+  The construction of msubtab looks like the best place to do this
+  makeSubstnFeasibilityTable
+
+
+
+NEED TO ENSURE THAT WE DO NOT ignore outer foralls when
+matching an equivalence law on one side only.
+
+Need to systematically check every axiom in RootTheory against
+its official definition, given the "Variable rewrite".
+Also do similar for Logic, GSLOgic, GS3001, Builtin, ....
+
+Need to refactor DSL, Builtin to hide local shorthands for variables. etc...
+Builtin depending on 'vx' from DSL is too flakey - is that a String, Variable or Expr ?
+See Builtin.lawsArithmetic3 for an exemplar.
+
+
+DO we allow explicit substitutions in substitution list-variables
+denoting replacement expressions?
+
+IDEA: web-interface to this program !!!!!!
+
+
+TODO 1 (? fixed ?)
+
+KEY PRINCIPLE: all pattern vars result in a binding, even if only to self.
+
+var always binds to what they matched (rather than a defined equivalent)
+
+ O can only match O and its denotations (incl. M,S)
+
+ O' can only match O' and its denotations
+
+ O_t can match O_p , for  any p, and its denotations
+
+If x$ occurs in a quantifier list then x$ must be in qbinds
+If x$ occurs in a substitution expr-list then it must be in ebinds
+If x$ occurs in a substitution pred-list then it must be in pbinds
+
+
+TODO 2
+We need to ensure that LangDefs are non-circular
+
+TODO 3
+The Reference Manual is defining the basic logic
+ - We shall take those axioms and add into the _ROOT Theory
+ - start building a definitive collection of theories on top
+   of this - use this to drive the debugging
+
+
+Add to Hackers's Guide:
+  reference for Matching API
+  reference for Display Descr API
+
+
+AlphaSubs.freeBoundPartition matters!!
+!!!! We do !!!!  used by pred2law to condition bound variable use.
+
+Non urgent
+*** trying to apply Ax-TRUE-xSubst to TRUE[e//x] to get TRUE
+replacing TRUE by TRUE[es//;xs] didn't force instantiation
+    of es, xs --- wanted to instantiate as [e//x].
+    Bug predFreeVars -seems to be in how subst is handled
+     Use $$$ to experiment... [es//xs] diff result to [es\//;xs] for instance
+
+Matching of substitutions fails if either side has any multi-vars !!!
+The original idea was that this kind of heavy lifting would be done
+by the built-in stuff (e.g. the "s" command).
+
+1. Propositional Theory
+2. Non-Propositional Theory
+3. Equality Theory
+4. UTP (Standard) Base Theory:  |~|  <||>  ;  [=
+5. Designs:  ok, ok'  |-
+
+
+Essential - either ACI matching (later) or ACI variants of laws
+
+
+SOUNDNESS/COMPLETENESS
+
+ - Matching and meta-vars needs to work
+*** Side Conditions - we need to know type of variables (type,obs,expr,pred)
+    and entity (Type,Expr,Pred)
+    type only occur in Type (for now)
+    obs,expr and pred can occur in either Expr or Pred
+    --- can this always be deduced from context ? by looking at
+    the accompanying law predicates
+
+ - Induction Axiom Handling needs tightening up, to avoid name capture...
+
+ - Is SideCondition Freshness properly handled?
+
+USEABILITY - Huibiao Zhu (ShHanghai, Feb 2012)
+ need to be able to handle complex (large bracket) expressions
+ found in concurrency theory work.
+
+
+USEABILITY 0.88a3 (Jim Woodcocks UTP 2010 tutorial)
+  ability to match arbitrary infix operator between predicates
+  a variety of labellings as substitutions
+  P' == P[_OBS'//_OBS]
+  1.P == P[1._OBS/_OBS]
+  P^b == P[b//ok']
+  An infix operator without a DEF can act as a schematic
+  operator variable.
+
+INCOMPLETE 0.85a5 (C-1) - need to support alphabets properly
+  Idea: use special meta variables with tailored
+  pattern-matching and instantiation
+  At present, our alphabet variables start with underscores.
+  Drop this and make them ordinary reserved variables instead?
+
+USEABILITY 0.91a5 (FM2011, David Gries and Jim Woodcock)
+  ACI matching desirable
+  Equivalence and equality as syntactically conjunctive.
+
+USEABILITY 0.90a2 - identifying conservative defns.
+  If a language construct has a DEF with the following properties:
+   1. it is the only DEF that matches any instance of the construct
+   2. all construct components on lhs are meta-vars
+   3. rhs does not use construct
+  then the definition is conservative (construct is
+  basically a macro..)
+  We upgrade their provenance from User to Defn.
+
+USEABILITY 0.88a3 - GUI enhancements
+  auto-adding dashed versions of obs-vars
+  better ways to enter side-conditions,
+  or have them auto generated.
+
+SOUNDNESS 0.90a2 - law modification checks
+ It is now possible to delete, and edit user laws.
+ We need a facility to assess the impact
+ of these changes on existing proofs.
+ PROOF REPLAY FIXES THIS
+
+
+USEABILITY 0.89a - proof/theory visibility
+  Need to handle attempts to close a proof window
+   - should invoke abandon-proof dialogue, except if as a result
+     of a global shutdown.
+     (global shutdown should save state, and then use
+      destroyWindow, rather than sending a close event)
+
+USEABILITY 0.88a - post-edit checking/processing
+  When a table entry in a theory tab is edited/added we need to run
+  basic checks - like preventing user redefinition of keywords or symbols,
+  (i.e \ or : )
+  as well as any other knock-on effects (e.g. adding language constructs
+  may required precedences table to be updated).
+
+USEABILITY 0.86a5 - lang def expansion
+  It would be handy to be able to expand lang defs fully
+  (as is currently done under the hood in the matcher)
+
+USEABILITY 0.86a5 - focus in long /\ or \/ chains (Riccardo Bresciani)
+  When focussing down into long /\ or \/ sequences, it might
+  be nicer to group in pairs under the hood,
+  with easy permute/fill options
+  (Nice idea, but hard to implement without extending Pred datatype)
+
+USEABILITY 0.86a5 - auto-substitute/expand facility
+  Esp. in Induction, having all substitutions applied would be useful,
+  (as well as expanding lang defns.)
+
+USEABILITY UITP2010 - ideas from UITP2010 talks, with attribution.
+  shortcut keys integration with relevant code (Holger Gast)
+  allow user text in justifications? (Carst Tankink)
+  ensure our parser/pretty-printer are "Pollack consistent" (Freek Wiedijk)
+  retrieving theorems by content, rather than name (Lapets/Kfoury)
+
+UNOPENED 0.85a3 - Website and mailing-list setup.
+  (IN PROGRESS)
+
+DOCUMENTATION 0.85a5
+  link this document (TODO.txt) to Issues chapter in sources
+
+USEABILITY 0.85a3 - independent proof saving
+  Save proofs independently of rest of theory,
+  so allowing .uttxt to be output, edited and reloaded
+  * Requires a proof checking facility when proofs are re-loaded.
+
+USEABILITY 0.85a3 - shortcuts into menu in proof frame

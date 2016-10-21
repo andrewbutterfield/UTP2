@@ -1,0 +1,73 @@
+\section{Structural Matching}\label{sec:struct:matching}
+
+A representative collection of match inference rules are:
+
+\begin{eqnarray*}
+   \MRKnownVN    && \MRKnownV
+\\ \MRUnknownVN  && \MRUnknownV
+\\ \MROrN        && \MROr
+\\ \MRAllN       && \MRAll
+\\ \MRSubstN     && \MRSubst
+\end{eqnarray*}
+The notation $\beta_1 \uplus \beta_2$ denotes the merging of
+two bindings, which can fail if they contradict one another.
+The notation $\beta_1 \cong \beta_2$ means that $\beta_1 \uplus \beta_2$
+will not fail.
+
+The first rule covers the situation, in expression matching, where we are matching
+a known standard  variable against itself.
+The second rule shows that an unknown standard variable matches any expression.
+In fact there are a number of detailed rules to do with matching of decorations
+(dashes and subscripts) but we don't consider those here.
+The third rule is a typical composite structural rule:
+match the corresponding subparts, and then merge the bindings.
+The fourth rule deals with quantifier matching, and introduces the notion
+of matching two lists of variables
+($u_1,\ldots,u_p \matches v_1,\ldots,v_t \withbind \beta_2$).
+This is where the difficulties arise.
+The last rule is for substitution, and again we find ourselves matching lists,
+in this case containing expression/variable pairs:
+($(e_1,u_1),\ldots,(e_p,u_p) \matches (f_1,v_1),\ldots,(f_t,v_t) \withbind \beta_1$).
+
+We also note the following rule,
+that covers the empty quantifier list case:
+\[
+\MRNullAllN \qquad \MRNullAll
+\]
+
+The rules \MRAllN\ and \MRSubstN\ require us to match lists of things
+against lists of things,
+were some of those things may themselves be list-variables
+that themselves denote lists of things
+(``thing'' here is either a variable or an expression).
+The ordering in any of these lists is not important,
+so the consequence is that our matching has become non-deterministic.
+The challenge is to search all the possible matches to find at least
+one that is compatible with other bindings,
+and constraints introduced by the side-conditions.
+
+
+The structural matching phase handles simple instances of this problem itself,
+such as matching a singleton pattern variable list $\lst x$ against any target
+variable-list $v_1,\ldots,v_t$.
+Here the only possible outcome is to succeed with binding $\lst x \mapsto v_1,\ldots,v_t$.
+Another common simple case is pattern $x,\lst y$ against target $u,\lst v$.
+Standard pattern variables can only match standard target variables,
+so the only possible match and binding results in
+$ x \mapsto u, \lst y \mapsto \lst v$.
+
+If the list match problem is not one of a few easy simple cases as just outlined,
+then we have to \emph{defer} the match: in effect we return
+it as a pattern-list,target-list pair $(\seqof{u_1,\ldots,u_p},\seqof{v_1,\ldots,v_t})$.
+The type-signature of structural matching differs from $match$
+in that is returns bindings, and sets of deferred match pairs:
+\begin{eqnarray*}
+   structM &:& Context \fun Pred \fun Pred \fun (1 + (Bind \times Deferred))
+\\ Deferred &=& QDeferred \times SDeferred
+\\ QDeferred &=& (QList \times QList)
+\\ QList &=& Var^*
+\\ SDeferred &=& (SList \times SList)
+\\ SList &=& (Expr \times Var)^*
+\end{eqnarray*}
+A structural match is complete if the deferred lists are all empty,
+otherwise the deferred match completion phase has to be invoked.

@@ -1,0 +1,86 @@
+%
+% This document provides a single place for definitions
+% that will appear in multiple locations,
+% and so ensures they are kept consistent.
+%
+% This does not generate any typeset output.
+%
+
+\def\VARMATHSYNTAX{
+\begin{tabular}{lcl@{$\quad$}l}
+   $x \in Var$ && (given) & Obs. Variables
+\\ $k \in Const$ && (given) & Constants
+\\ $f \in FNames$ && (given) & Function Names
+\\ $\tau \in TVar$ && (given) & Type Variables
+\\ $E \in ENames$ && (given) & Expression Metavariable Names
+\\ $P \in PNames$ && (given) & Predicate Metavariable Names
+\\ $\lst x,\lst E,\lst P\in LNames$ && (given) & List Variables
+\\ $\ell \in QVars_x$        &$::=$& $(x|\lst x)^*_,$
+\\ $\varepsilon \in QVars_E$ &$::=$& $(E|\lst E)^*_,$
+\\ $\varrho \in QVars_P$     &$::=$& $(P|\lst P)^*_,$
+   & Binding Lists
+\end{tabular}
+}
+
+\def\TYPEMATHSYNTAX{
+$$
+\begin{array}{lcl@{$\quad$}l}
+   t \in Type
+ &::=& ? & \mbox{Arbitrary Type}
+\\ &|& \litm\Bool & \mbox{Booleans}
+\\ &|& \litm\Int & \mbox{Integers}
+\\ &|& \tau    & \mbox{Type Variable}
+\\ &|& \litm\power~t & \mbox{Sets}
+\\ &|& t^+_{\litm \cross} & \mbox{Products}
+\\ &|& t^{\litm *} & \mbox{Sequences}
+\\ &|& t \litm\fun t & \mbox{Functions}
+\\ &|& \litm{Env} & \mbox{Environments }Name \fun Type
+\\ &|& \litm{free} & \mbox{Free Types (to be defined)}
+\\ &|& \litm\mu ~\tau ~\litm@~ t & \mbox{Recursive Types}
+\end{array}
+$$
+} 
+
+\def\EXPRMATHSYNTAX{
+\begin{tabular}{lcl@{$\quad$}l}
+   $e \in Expr$ &$::=$& $k$ & Constants
+\\              &$|$& $x$  & (Obs.) Variables
+\\              &$|$& $f~e$ & Applications
+\\              &$|$& $E$ & Expr Metavariable
+\\              &$|$& $\litm\lambda~ \ell ~\litm@~ e$ & Obs. Abstraction
+\\              &$|$& $e\litm[ e^+_,\litm/x^+_, \litm]$ & Explicit Obs. Substitution
+\\              &$|$& $e\litm[ e^+_,\litm/E^+_, \litm]$ & Explicit E-var. Substitution
+\\              &$|$& $e\litm[ p^+_,\litm/P^+_, \litm]$ & Explicit P-var. Substitution
+\\              &$|$& $e \litm= e$ & Equality
+\\              &$|$& $\litm\theta~ x ~[~\litm|~ p~]~ \litm@~ p$  & Definite Description
+\end{tabular}
+} 
+\def\PREDMATHSYNTAX{
+\begin{tabular}{lcl@{$\quad$}l}
+   $p \in Pred$ &$::=$& $\litm{True} | \litm{False}$ & Constant Predicates
+\\              &$|$& $e$ & Atomic Predicate (Boolean-valued Expr.)
+\\              &$|$& $e~\litm:~t$ & Type Assertion
+\\              &$|$& $\litm{\mathcal D}~e$ & Definedness Assertion.
+\\              &$|$& $\litm\lnot p$ & Negation
+\\              &$|$& $p~ \maltese q$ & Composites $\maltese \in \setof{\land,\lor,\implies,\equiv,\intchoice,\refinedby}$
+\\              &$|$& $P$ & Explicit Metavariable
+\\              &$|$& $\yen \ell ~[~\litm|~ p~]~ \litm@ p$ & Observation Quantifiers, $\yen \in \setof{\forall,\exists,\exists!}$
+\\              &$|$& $\yen \varrho \litm@ p$ & Predicate Quantifiers,$\yen \in \setof{\mathbf\forall,\mathbf\exists}$
+\\              &$|$& $\yen \varepsilon \litm@ p$ & Expression Quantifiers, $\yen \in \setof{\mathbf\forall,\mathbf\exists}$
+\\              &$|$& $\litm~[~p~ \litm]$ & Observation Universal Closure
+\\              &$|$& $\litm\Lambda~ \varepsilon \litm@ p$ & Expression Abstraction
+\\              &$|$& $\litm\Lambda~ \varrho \litm@ p$ & Predicate Abstraction
+\\              &$|$& $p~p^+$ & Pred-Pred Application
+\\              &$|$& $p~e^+$ & Pred-Expr Application
+\\              &$|$& $p\litm[ e^+_,/x^+_, \litm]$ & Explicit Obs. Substitution
+\\              &$|$& $p\litm[ e^+_,/E^+_, \litm]$ & Explicit Expr. Substitution
+\\              &$|$& $p\litm[ p^+_,/P^+_, \litm]$ & Explicit Pred. Substitution
+\\              &$|$& $p~ps$ & Pred-PredSet Application
+\\              &$|$& $p ~\litm\in~ ps$ & Predicate Set membership
+\\ $ps \in PredSet$
+   &$::=$& $S$ & Set Name
+\\ &$|$& $\litm\{~ p^*_, ~\litm\}$ & Enumeration
+\\ &$|$& $\litm\{~ P^+_, ~[~ \litm| ~p~ ]~ \litm@~ p ~\litm\}$ & Comprehension
+\\ &$|$& $ps ~\litm\bigcup~ ps$ & Union
+\end{tabular}
+}

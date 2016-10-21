@@ -1,0 +1,13 @@
+Windows Manifest
+
+UTP2.exe
+saoithin.sty
+wxc-msw2.8.10-0.11.1.2.dll
+README.txt
+INSTALL.txt
+MANIFEST.txt
+COPYING.txt
+WXWINDOWS-LICENCE.txt
+GPL2.txt
+PARSEC-LICENCE.txt
+jaza-COPYING.txt

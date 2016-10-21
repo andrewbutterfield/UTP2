@@ -1,0 +1,249 @@
+\section{Deferred Match Completion}\label{sec:nondet:matching}
+
+Deferred match completion takes the context,
+bindings and deferred matches from structural matching,
+and attempts to find a single binding that covers all the deferred
+matches, and is compatible with the structural binding.
+It returns the merge of both bindings as the final result.
+In addition to be compatible with the structural binding,
+we must also ensure that any side-conditions are also obeyed,
+so these are passed in
+(We use typewrite font for the $Deferred$ arguments
+as the correspond to actual Haskell code,
+so we are flagging that we are close to the actual implementation here):
+\begin{eqnarray*}
+   && completeM : Context \fun  (Side\times Side) \fun Bind \fun Deferred \fun (1 + Bind)
+\\ && completeM_{\Gamma}~(sc_T,sc_P)~\beta~(\texttt{qvms},\texttt{subms}) \defs \ldots
+\end{eqnarray*}
+
+Note that the name is a bit of a misnomer, as $completeM$ tries
+to find a suitable binding, but is not guaranteed to succeed,
+even if such a binding exists.
+
+This algorithm is basically a series of heuristic steps
+(9 in all)
+that transform process the deferred data,
+always looking for the earliest opportunity to fail,
+or succeed.
+
+
+\subsection{The search for completeness}
+
+
+We shall present some of these heuristic steps here,
+focussing on the deferred quantifier variable lists
+(the expr/variable lists deferred from substitution matching
+ follow along similar lines, with some extra complications
+ that space does not permit us to discuss).
+Also we have viewed the binding $\beta$ as monolithic,
+but in fact it is composed of a number of individual binding tables.
+Standard variables and meta-variables are bound to variables,expressions
+and predicates as appropriate,
+while list-variables, both generic and reserves are bound to lists of the
+appropriate tables.
+For this exposition we shall only consider three such tables:
+\begin{eqnarray*}
+   \texttt{ebind} &:& (Std)Var \ffun Expr
+\\ \texttt{qsbind} &:& (Std)Var \ffun Var
+\\ \texttt{qmbind} &:& (Lst)Var \ffun Var^*
+\end{eqnarray*}
+
+So our call looks like:
+\begin{eqnarray*}
+\lefteqn{completeM_{\Gamma}~(sc_T,sc_P)~(\texttt{ebind},\texttt{qsbind},\texttt{qmbind}\ldots)~(\texttt{qvms},\texttt{subms})}
+\\ ~&\defs&  \mbox{see sketch below}\ldots
+\end{eqnarray*}
+
+\begin{enumerate}
+
+\item
+
+\textbf{Rule out Expression Matches}\\
+ There may already be matches in \texttt{ebind} from pattern standard variables
+ to target variables --- these should be removed from \texttt{qvms}
+ and added into \texttt{qsbind}.
+ This can fail if there is any conflict with pre-existing
+ \texttt{qsbind} entries,
+ and so serves as an early way to weed out matches that must eventually fail.
+
+\item
+
+\textbf{Identify Feasible Quantifier-List Matches}\\
+  Argument \texttt{qvms} is a list of pairs, each pair of the form:
+  \begin{eqnarray*}
+   (~x_1,\ldots,x_k, \lst x_1,\ldots,\lst x_\ell
+   &,&
+     a_1,\ldots,a_n, \lst x_1,\ldots,\lst x_m~),
+   \\ \mbox{pattern}  &,& \mbox{target}
+  \end{eqnarray*}
+  were we have ordered each list standard-variable first.
+
+  From these we extract two tables, one for the standard pattern
+ variables ($x_i$),
+ the other for the pattern list-variables ($\lst x_j$)
+  showing the \emph{possible} binding targets:
+  \begin{eqnarray*}
+    x_i &\mapsto& \setof{a_1,\ldots,a_n}
+  \\ \lst x_j &\mapsto&
+    \left\{
+      \begin{array}{rc}
+        \setof{\lst a_1,\ldots,\lst a_m}, & n=k \\
+        \setof{a_1,\ldots,a_n, \lst a_1,\ldots,\lst a_m}, & n > k
+      \end{array}
+    \right.
+  \end{eqnarray*}
+  Entries for $x$ or $\lst x$
+  from different \texttt{qvms}-pairs
+  are merged by taking intersections of the relevant sets.
+
+\item
+
+\textbf{Prune Single Matches}\\
+  \label{enum:prune}
+  For every match of the form $x \mapsto \setof{a_1,\ldots,a_p}$
+  in the standard table:
+  \begin{enumerate}
+    \item If the set is empty then FAIL
+%    \item If $x$ is known, and $x \in \setof{a_1,\ldots,a_p}$
+%       then record $x$ as targetted
+%       and remove the mapping, else FAIL.
+    \item if $x \notin \texttt{qbind}$ do nothing.
+    \item if $\texttt{qbind}(x) = a$ then, if $a \in \setof{a_1,\ldots,a_2}$
+     then record $a$ as targetted, and remove the mapping,
+     otherwise FAIL.
+  \end{enumerate}
+  All targeted $a$s are removed
+  from the range sets of both tables
+  If any range set in the standard becomes empty, we FAIL.
+  At the completion of this stage, without failing,
+  then the standard table consists of pattern variables
+  that can be still be bound to more than one target single-variable.
+
+\item
+
+\textbf{Resolving via Side-Conditions} \\
+We have tables of the form:
+\begin{eqnarray*}
+  x_i &\mapsto& \setof{a_1,\ldots,a_n}
+\\ \lst x_j &\mapsto& \setof{a_1,\ldots,a_n,\lst a_1,\ldots,\lst a_m}
+\end{eqnarray*}
+We then look at each pattern side-condition: $V~\mathcal R~\fv P$,
+where $V=\setof{v_1,\ldots,v_n}$,
+$\mathcal R \in \setof{=,\supseteq,\DISJ}$,
+and $P$ is a standard pattern predicate meta-variable.
+We use the bindings so far to translate $P$ into the corresponding
+target predicate.
+We then determine the free-variables, giving a set $F$
+We then consider the relation $\mathcal R$  between pattern variables $V$
+and target free variables $F$, and use it to adjust the standard table,
+from which we get mappings of the form
+\begin{eqnarray*}
+ x  &\mapsto&  A, \mbox{ where } x \in V
+\end{eqnarray*}
+then we adjust the range set $A$ as follows:
+\begin{eqnarray*}
+   \mbox{if }\mathcal R = (\DISJ)      &,& A := A \setminus F
+\\ \mbox{if }\mathcal R = (=)          &,& A := A \cap F
+\\ \mbox{if }\mathcal R = (\subseteq)) &,& A \mbox{ unchanged}
+\end{eqnarray*}
+Again, we fail for the same circumstances that arise when pruning single matches.
+
+\item
+
+\textbf{Force Matches}
+At this stage we have used pruning and side-conditions
+to simplify as far as is practicable.
+We are now going to resolve any remaining non-determinism
+by basically forcing a final binding,
+and hoping for the best%
+\footnote{This is where incompleteness sneaks in.}%
+!
+We now invert both tables to get ones of the form:
+ \begin{eqnarray*}
+   a_i &\mapsto& \setof{x_{i1},\ldots,x_{in_i}, \lst x_{i1},\ldots,\lst x_{im_i}}
+ \\ \lst a_j &\mapsto& \setof{ \lst x_{j1},\ldots,\lst x_{jn_j}}
+ \end{eqnarray*}
+
+We then process the single inverted table to construct a mapping,
+that in some sense shows how ``popular'' a target standard variable
+is---more popular means there are more pattern list-variables
+that can include it in their binding list:
+\begin{eqnarray*}
+  a_i &\mapsto& n_i \qquad \mbox{number of $\lst x$}
+\end{eqnarray*}
+We use this mapping to sort the standard variable table range elements in ascending order.
+We then do a form of greedy process to assign standard target variables
+to pattern list variables, so we want to get the least popular done first.
+We process each entry in the single table,
+binding $x_i$ to the first entry ($a_{i1}$, greedy!) and then removing that entry
+from the ranges of both tables:
+
+For list-matching, simply working down the lists, binding each list variable
+to its full range and then removing that from the rest
+gives a bias towards alphabetically earlier list-variables.
+Unfortunately this greedy approach can often fail
+\\---e.g. trying to match lhs of axiom \AXorAllOScopeN:
+$$\AXorAllOScope.$$
+Ideally we should find choices that maximise the chance of side conditions
+being satisfied.
+
+We have developed a resolution mechanism
+that is parameterised by an resolution strategy.
+The idea is that we have a mapping of keys to lists of data items,
+where a data-item can be associated with multiple keys.
+We want to transform this into a mapping were each data item
+appears exactly once.
+Three strategies have been implemented,
+as way to parameterise this forcing phase:
+\begin{description}
+  \item[All to First Key] very greedy,
+  the first pattern list-variable is bound to everything,
+   and all the rest are bound to the empty-list.
+  \item[One Each, Rest to Last]
+    each pattern list-variable is bound to one target variable,
+    except the last which gets all that is leftover, if any.
+  \item[Round-Robin]
+    keep adding in one target variable to each pattern-list variable
+    in a cyclic fashion until all are accounted for.
+\end{description}
+Currently the round-robin strategy is hardwired in,
+but there are plans to allow the user change this.
+
+\item
+
+\textbf{Translate Law Side-Condition (In-Context) and Check}\\ % outer list
+At this point we now have finalised bindings,
+so what remains is to double-check that side conditions
+are satisfied.
+The bindings are used to transform pattern side-conditions
+into corresponding target ones,
+and a side-condition inference engine is used
+to check that the target side condition
+entails the translated pattern side-conditions.
+
+\end{enumerate} % outer list
+
+
+\subsection{Completion: a summary}
+
+Match completion is a non-trivial activity,
+and is by far the most complex part of \UTP2,
+both in terms of code size and conceptual difficulty.
+Experimentation with proofs shows that in fact most matching
+rarely needs to go beyond the pruning step (\ref{enum:prune}).
+Most matchings either succeed or fail at this point.
+
+This code has been largely developed by attempting to build
+a collection of theories from the ground up: propositional
+theorems, quantifier theorems, laws of equality, arithmetic,
+sets and lists, all followed by a generic base UTP theory
+with standard notions like non-deterministic choice, refinement
+and sequential composition.
+Each attempt to move up the theory ``tower'' has lead to further extensions
+of match completion, leading to the many phases we have just discussed,
+and more.
+What is becoming clear, however
+(apart from the growing unmanageability)
+is that there is a much simpler non-deterministic matcher,
+with set-theoretic constraints that underlies all of this.
+It is hoped that the nature of this will soon emerge.

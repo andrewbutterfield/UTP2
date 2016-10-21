@@ -1,0 +1,1650 @@
+v3.5
+^GSLogicFull ^1 ^_ROOT ^1 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^0 !MO
+^0 !MG
+^/= ^t !Tv
+^t !Tv
+^2 !TP
+!TB
+!TF
+^/\ !TB
+!TB
+^2 !TP
+!TB
+!TF
+^= ^t !Tv
+^t !Tv
+^2 !TP
+!TB
+!TF
+^== !TB
+!TB
+^2 !TP
+!TB
+!TF
+^=> !TB
+!TB
+^2 !TP
+!TB
+!TF
+^\/ !TB
+!TB
+^2 !TP
+!TB
+!TF
+^~ !TB
+!TB
+!TF
+^7 !MK
+^==-Assoc ^P !PV
+^Q !PV
+!PQ
+^R !PV
+!PQ
+^P !PV
+^Q !PV
+^R !PV
+!PQ
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^==-Comm ^P !PV
+^Q !PV
+!PQ
+^Q !PV
+^P !PV
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^==-Unit !PT
+^P !PV
+^P !PV
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^=>-Join ^P !PV
+^Q !PV
+!PI
+^P !PV
+^Q !PV
+^2 !PO
+^Q !PV
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^Excluded-Middle ^P !PV
+^P !PV
+!PN
+^2 !PO
+!CT
+^GSLogic !OS
+^False-def !PF
+!PT
+!PN
+!PQ
+!CT
+^GSLogic !OS
+^Golden-Rule ^P !PV
+^Q !PV
+^2 !PA
+^P !PV
+!PQ
+^Q !PV
+^P !PV
+^Q !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^Univ-Def ^P !PV
+!PU
+^x$ ^1 !QL
+^P !PV
+!PAl
+!PQ
+^xs ^1 ^P !CC
+^GSLogic !OS
+^\/-==-Distr ^P !PV
+^Q !PV
+^R !PV
+!PQ
+^2 !PO
+^P !PV
+^Q !PV
+^2 !PO
+^P !PV
+^R !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^\/-Assoc ^P !PV
+^Q !PV
+^2 !PO
+^R !PV
+^2 !PO
+^P !PV
+^Q !PV
+^R !PV
+^2 !PO
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^\/-Comm ^P !PV
+^Q !PV
+^2 !PO
+^Q !PV
+^P !PV
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^\/-Idem ^P !PV
+^P !PV
+^2 !PO
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^\/-rForall-Distr ^P !PV
+^x$ ^1 !QL
+^R !PV
+^Q !PV
+!PI
+!PAl
+^2 !PO
+^x$ ^1 !QL
+^R !PV
+^P !PV
+^Q !PV
+^2 !PO
+!PI
+!PAl
+!PQ
+^xs ^1 ^P !CP
+^GSLogic !OS
+^rExists-1Pt ^x ^x$ ^2 !QL
+^x !EV
+^e !EEV
+!E=
+!PE2
+^P !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^P !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PEx
+!PQ
+^x ^1 ^e !CE
+^GSLogic !OS
+^rExists-Def ^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^R !PV
+^P !PV
+!PN
+!PI
+!PAl
+!PN
+!PQ
+!CT
+^butrfeld !OU
+^rExists-Distr ^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^R !PV
+^Q !PV
+^2 !PA
+!PEx
+^2 !PO
+^x$ ^1 !QL
+^R !PV
+^P !PV
+^Q !PV
+^2 !PO
+^2 !PA
+!PEx
+!PQ
+!CT
+^GSLogic !OS
+^rExists-Empty ^x$ ^1 !QL
+!PF
+^P !PV
+!PI
+!PAl
+!PT
+!PQ
+!CT
+^GSLogic !OS
+^rExists-Nest ^x$ ^y$ ^2 !QL
+^R !PV
+^Q !PV
+^2 !PA
+^P !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^R !PV
+^y$ ^1 !QL
+^Q !PV
+^P !PV
+^2 !PA
+!PEx
+^2 !PA
+!PEx
+!PQ
+^ys ^1 ^R !CP
+^GSLogic !OS
+^rExists-Rng-Split ^x$ ^1 !QL
+^R !PV
+^S !PV
+^2 !PO
+^P !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^S !PV
+^P !PV
+^2 !PA
+!PEx
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^rExists-Swap ^x$ ^1 !QL
+^R !PV
+^y$ ^1 !QL
+^Q !PV
+^P !PV
+^2 !PA
+!PEx
+^2 !PA
+!PEx
+^y$ ^1 !QL
+^Q !PV
+^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+^2 !PA
+!PEx
+!PQ
+^ys ^1 ^R !CP
+^xs ^1 ^Q !CP
+^2 !CA
+^GSLogic !OS
+^rExists1-Def ^x ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!Pe1
+^x ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+^x ^y ^2 !QL
+^R !PV
+^R !PV
+^y !EV
+^1 ^x ^1 !QL
+!SE
+!PS
+^2 !PA
+^P !PV
+^P !PV
+^y !EV
+^1 ^x ^1 !QL
+!SE
+!PS
+^2 !PA
+^x !EV
+^y !EV
+!E=
+!PE2
+!PI
+!PI
+!PAl
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^rForall-1Pt ^x ^x$ ^2 !QL
+^x !EV
+^e !EEV
+!E=
+!PE2
+^P !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^P !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PAl
+!PQ
+^x ^1 ^e !CE
+^GSLogic !OS
+^rForall-Distr ^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^R !PV
+^Q !PV
+!PI
+!PAl
+^2 !PA
+^x$ ^1 !QL
+^R !PV
+^P !PV
+^Q !PV
+^2 !PA
+!PI
+!PAl
+!PQ
+!CT
+^GSLogic !OS
+^rForall-Empty ^x$ ^1 !QL
+!PF
+^P !PV
+!PI
+!PAl
+!PT
+!PQ
+!CT
+^GSLogic !OS
+^rForall-Nest ^x$ ^y$ ^2 !QL
+^R !PV
+^Q !PV
+^2 !PA
+^P !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^R !PV
+^y$ ^1 !QL
+^Q !PV
+^P !PV
+!PI
+!PAl
+!PI
+!PAl
+!PQ
+^ys ^1 ^R !CP
+^GSLogic !OS
+^rForall-Rng-Split ^x$ ^1 !QL
+^R !PV
+^S !PV
+^2 !PO
+^P !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^S !PV
+^P !PV
+!PI
+!PAl
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^rForall-Swap ^x$ ^1 !QL
+^R !PV
+^y$ ^1 !QL
+^Q !PV
+^P !PV
+!PI
+!PAl
+!PI
+!PAl
+^y$ ^1 !QL
+^Q !PV
+^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+!PI
+!PAl
+!PQ
+^ys ^1 ^R !CP
+^xs ^1 ^Q !CP
+^2 !CA
+^GSLogic !OS
+^rForall-Trading ^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+!PQ
+!CT
+^GSLogic !OS
+^~-==-Distr ^P !PV
+^Q !PV
+!PQ
+!PN
+^P !PV
+!PN
+^Q !PV
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^TRUE !PT
+!CT
+^GSLogic !OS
+^==-refl ^P !PV
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^~-==-Swap ^P !PV
+!PN
+^Q !PV
+!PQ
+^P !PV
+^Q !PV
+!PN
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^~-Invol ^P !PV
+!PN
+!PN
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^False-~ !PF
+!PN
+!PT
+!PQ
+!CT
+^GSLogic !OS
+^=/=-Def ^P !PV
+!PN
+^P !PV
+!PQ
+!PF
+!PQ
+!CT
+^GSLogic !OS
+^~-==~Comm ^P !PV
+^Q !PV
+!PQ
+!PN
+^Q !PV
+^P !PV
+!PQ
+!PN
+!PQ
+!CT
+^GSLogic !OS
+^~-==-Assoc ^P !PV
+^Q !PV
+!PQ
+!PN
+^R !PV
+!PQ
+!PN
+^P !PV
+^Q !PV
+^R !PV
+!PQ
+!PN
+!PQ
+!PN
+!PQ
+!CT
+^GSLogic !OS
+^~-==-Intchg ^P !PV
+^Q !PV
+!PQ
+!PN
+^R !PV
+!PQ
+^P !PV
+^Q !PV
+^R !PV
+!PQ
+!PN
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^\/-Zero ^P !PV
+!PT
+^2 !PO
+!PT
+!PQ
+!CT
+^GSLogic !OS
+^\/-Unit ^P !PV
+!PF
+^2 !PO
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^\/-\/-Distr ^P !PV
+^Q !PV
+^R !PV
+^2 !PO
+^2 !PO
+^P !PV
+^Q !PV
+^2 !PO
+^P !PV
+^R !PV
+^2 !PO
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^\/-==-Split ^P !PV
+^Q !PV
+^2 !PO
+^P !PV
+^Q !PV
+!PN
+^2 !PO
+!PQ
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^/\-Comm ^P !PV
+^Q !PV
+^2 !PA
+^Q !PV
+^P !PV
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^/\-Assoc ^P !PV
+^Q !PV
+^2 !PA
+^R !PV
+^2 !PA
+^P !PV
+^Q !PV
+^R !PV
+^2 !PA
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^/\-Idemp ^P !PV
+^P !PV
+^2 !PA
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^/\-Zero ^P !PV
+!PF
+^2 !PA
+!PF
+!PQ
+!CT
+^GSLogic !OS
+^/\-Unit ^P !PV
+!PT
+^2 !PA
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^/\-/\-Distr ^P !PV
+^Q !PV
+^R !PV
+^2 !PA
+^2 !PA
+^P !PV
+^Q !PV
+^2 !PA
+^P !PV
+^R !PV
+^2 !PA
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^Contradiction ^P !PV
+^P !PV
+!PN
+^2 !PA
+!PF
+!PQ
+!CT
+^GSLogic !OS
+^/\-\/-Absorb ^P !PV
+^P !PV
+^Q !PV
+^2 !PO
+^2 !PA
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^\/-/\-Absorb ^P !PV
+^P !PV
+^Q !PV
+^2 !PA
+^2 !PO
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^/\-~-\/-Absorb ^P !PV
+^P !PV
+!PN
+^Q !PV
+^2 !PO
+^2 !PA
+^P !PV
+^Q !PV
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^\/-~-/\-Absorb ^P !PV
+^P !PV
+!PN
+^Q !PV
+^2 !PA
+^2 !PO
+^P !PV
+^Q !PV
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^\/-/\-Distr ^P !PV
+^Q !PV
+^R !PV
+^2 !PA
+^2 !PO
+^P !PV
+^Q !PV
+^2 !PO
+^P !PV
+^R !PV
+^2 !PO
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^/\-\/-Distr ^P !PV
+^Q !PV
+^R !PV
+^2 !PO
+^2 !PA
+^P !PV
+^Q !PV
+^2 !PA
+^P !PV
+^R !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^DeMorgan-Nand ^P !PV
+^Q !PV
+^2 !PA
+!PN
+^P !PV
+!PN
+^Q !PV
+!PN
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^DeMorgan-Nor ^P !PV
+^Q !PV
+^2 !PO
+!PN
+^P !PV
+!PN
+^Q !PV
+!PN
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^GS3.48 ^P !PV
+^Q !PV
+^2 !PA
+^P !PV
+^Q !PV
+!PN
+^2 !PA
+!PQ
+^P !PV
+!PN
+!PQ
+!CT
+^GSLogic !OS
+^GS3.49 ^P !PV
+^Q !PV
+^R !PV
+!PQ
+^2 !PA
+^P !PV
+^Q !PV
+^2 !PA
+!PQ
+^P !PV
+^R !PV
+^2 !PA
+!PQ
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^GS3.50 ^P !PV
+^Q !PV
+^P !PV
+!PQ
+^2 !PA
+^P !PV
+^Q !PV
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^Replacement ^P !PV
+^Q !PV
+!PQ
+^R !PV
+^P !PV
+!PQ
+^2 !PA
+^P !PV
+^Q !PV
+!PQ
+^R !PV
+^Q !PV
+!PQ
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^==-def ^P !PV
+^Q !PV
+!PQ
+^P !PV
+^Q !PV
+^2 !PA
+^P !PV
+!PN
+^Q !PV
+!PN
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^Exclusive-Or ^P !PV
+^Q !PV
+!PQ
+!PN
+^P !PV
+!PN
+^Q !PV
+^2 !PA
+^P !PV
+^Q !PV
+!PN
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^GS3.55 ^P !PV
+^Q !PV
+^2 !PA
+^R !PV
+^2 !PA
+^P !PV
+^Q !PV
+!PQ
+^R !PV
+!PQ
+!PQ
+^P !PV
+^Q !PV
+^2 !PO
+^Q !PV
+^R !PV
+^2 !PO
+!PQ
+^R !PV
+^P !PV
+^2 !PO
+!PQ
+!PQ
+^P !PV
+^Q !PV
+^2 !PO
+^R !PV
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^=>-Def ^P !PV
+^Q !PV
+!PI
+^P !PV
+!PN
+^Q !PV
+^2 !PO
+!PQ
+!CT
+^GSLogic !OS
+^=>-Meet ^P !PV
+^Q !PV
+!PI
+^P !PV
+^Q !PV
+^2 !PA
+^P !PV
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^Contrapositive ^P !PV
+^Q !PV
+!PI
+^Q !PV
+!PN
+^P !PV
+!PN
+!PI
+!PQ
+!CT
+^GSLogic !OS
+^GS3.62 ^P !PV
+^Q !PV
+^R !PV
+!PQ
+!PI
+^P !PV
+^Q !PV
+^2 !PA
+!PQ
+^P !PV
+^R !PV
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^=>-==-Distr ^P !PV
+^Q !PV
+^R !PV
+!PQ
+!PI
+^P !PV
+^Q !PV
+!PI
+!PQ
+^P !PV
+^R !PV
+!PI
+!PQ
+!CT
+^GSLogic !OS
+^GS3.64 ^P !PV
+^Q !PV
+^R !PV
+!PI
+!PI
+^P !PV
+^Q !PV
+!PI
+^P !PV
+^R !PV
+!PI
+!PI
+!PQ
+!CT
+^GSLogic !OS
+^Shunting ^P !PV
+^Q !PV
+^2 !PA
+^R !PV
+!PI
+^P !PV
+^Q !PV
+^R !PV
+!PI
+!PI
+!PQ
+!CT
+^GSLogic !OS
+^GS3.66 ^P !PV
+^P !PV
+^Q !PV
+!PI
+^2 !PA
+^P !PV
+^Q !PV
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^GS3.67 ^P !PV
+^Q !PV
+^P !PV
+!PI
+^2 !PA
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^GS3.68 ^P !PV
+^P !PV
+^Q !PV
+!PI
+^2 !PO
+!PT
+!PQ
+!CT
+^GSLogic !OS
+^GS3.69 ^P !PV
+^Q !PV
+^P !PV
+!PI
+^2 !PO
+^Q !PV
+^P !PV
+!PI
+!PQ
+!CT
+^GSLogic !OS
+^GS3.70 ^P !PV
+^Q !PV
+^2 !PO
+^P !PV
+^Q !PV
+^2 !PA
+!PI
+^P !PV
+!PQ
+^Q !PV
+!PQ
+!CT
+^GSLogic !OS
+^=>-Refl ^P !PV
+^P !PV
+!PI
+!PT
+!PQ
+!CT
+^GSLogic !OS
+^=>-R-Zero ^P !PV
+!PT
+!PI
+!PT
+!PQ
+!CT
+^GSLogic !OS
+^=>-L-Unit !PT
+^P !PV
+!PI
+^P !PV
+!PQ
+!CT
+^GSLogic !OS
+^~-Def ^P !PV
+!PF
+!PI
+^P !PV
+!PN
+!PQ
+!CT
+^GSLogic !OS
+^=>-L-~-Zero !PF
+^P !PV
+!PI
+!PT
+!PQ
+!CT
+^GSLogic !OS
+^Weaken-Cnsq ^P !PV
+^P !PV
+^Q !PV
+^2 !PO
+!PI
+!CT
+^GSLogic !OS
+^Strengthen-Ante ^P !PV
+^Q !PV
+^2 !PA
+^P !PV
+!PI
+!CT
+^GSLogic !OS
+^=>-Wkn-Str ^P !PV
+^Q !PV
+^2 !PA
+^P !PV
+^Q !PV
+^2 !PO
+!PI
+!CT
+^GSLogic !OS
+^=>-Str2 ^P !PV
+^Q !PV
+^R !PV
+^2 !PA
+^2 !PO
+^P !PV
+^Q !PV
+^2 !PO
+!PI
+!CT
+^GSLogic !OS
+^=>-Wkn2 ^P !PV
+^Q !PV
+^2 !PA
+^P !PV
+^Q !PV
+^R !PV
+^2 !PO
+^2 !PA
+!PI
+!CT
+^GSLogic !OS
+^Modus-Ponens ^P !PV
+^P !PV
+^Q !PV
+!PI
+^2 !PA
+^Q !PV
+!PI
+!CT
+^GSLogic !OS
+^Ante-\/-Distr ^P !PV
+^R !PV
+!PI
+^Q !PV
+^R !PV
+!PI
+^2 !PA
+^P !PV
+^Q !PV
+^2 !PO
+^R !PV
+!PI
+!PQ
+!CT
+^GSLogic !OS
+^Cnsq-/\-Distr ^P !PV
+^R !PV
+!PI
+^P !PV
+!PN
+^R !PV
+!PI
+^2 !PA
+^R !PV
+!PQ
+!CT
+^GSLogic !OS
+^Mutual-Implication ^P !PV
+^Q !PV
+!PI
+^Q !PV
+^P !PV
+!PI
+^2 !PA
+^P !PV
+^Q !PV
+!PQ
+!PQ
+!CT
+^GSLogic !OS
+^=>-Anti-Symm ^P !PV
+^Q !PV
+!PI
+^Q !PV
+^P !PV
+!PI
+^2 !PA
+^P !PV
+^Q !PV
+!PQ
+!PI
+!CT
+^GSLogic !OS
+^=>-Trans ^P !PV
+^Q !PV
+!PI
+^Q !PV
+^R !PV
+!PI
+^2 !PA
+^P !PV
+^R !PV
+!PI
+!PI
+!CT
+^GSLogic !OS
+^==-=>-Trans ^P !PV
+^Q !PV
+!PQ
+^Q !PV
+^R !PV
+!PI
+^2 !PA
+^P !PV
+^R !PV
+!PI
+!PI
+!CT
+^GSLogic !OS
+^=>-==-Trans ^P !PV
+^Q !PV
+!PI
+^Q !PV
+^R !PV
+!PQ
+^2 !PA
+^P !PV
+^R !PV
+!PI
+!PI
+!CT
+^GSLogic !OS
+^rForall-SplitOff ^e !EEV
+^T !Tv
+!P:
+^x ^1 !QL
+^x !EV
+^T !Tv
+!P:
+^P !PV
+!PI
+!PAl
+^x ^1 !QL
+^x !EV
+^T !Tv
+!P:
+^P !PV
+!PI
+!PAl
+^P !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+^2 !PA
+!PQ
+!PI
+!CT
+^GSLogic !OS
+^rExists-SplitOff ^e !EEV
+^T !Tv
+!P:
+^x ^1 !QL
+^x !EV
+^T !Tv
+!P:
+^P !PV
+^2 !PA
+!PEx
+^x ^1 !QL
+^x !EV
+^T !Tv
+!P:
+^P !PV
+^2 !PA
+!PEx
+^P !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+^2 !PO
+!PQ
+!PI
+!CT
+^GSLogic !OS
+^rForall-Trading2 ^x$ ^1 !QL
+^Q !PV
+^R !PV
+^2 !PA
+^P !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^Q !PV
+^R !PV
+^P !PV
+!PI
+!PI
+!PAl
+!PQ
+!CT
+^GSLogic !OS
+^GS9.6 ^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+^P !PV
+^x$ ^1 !QL
+!PT
+^R !PV
+!PN
+!PI
+!PAl
+^2 !PO
+!PQ
+^xs ^1 ^P !CP
+^GSLogic !OS
+^/\-rForall-Distr ^x$ ^1 !QL
+!PT
+^R !PV
+!PN
+!PI
+!PAl
+!PN
+^P !PV
+^x$ ^1 !QL
+^R !PV
+^Q !PV
+!PI
+!PAl
+^2 !PA
+^x$ ^1 !QL
+^R !PV
+^P !PV
+^Q !PV
+^2 !PA
+!PI
+!PAl
+!PQ
+!PI
+^xs ^1 ^P !CP
+^GSLogic !OS
+^rForall-TRUE ^x$ ^1 !QL
+^R !PV
+!PT
+!PI
+!PAl
+!PT
+!PQ
+!CT
+^GSLogic !OS
+^==-rForall-Distr ^x$ ^1 !QL
+^R !PV
+^P !PV
+^Q !PV
+!PQ
+!PI
+!PAl
+^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^R !PV
+^Q !PV
+!PI
+!PAl
+!PQ
+!PI
+!CT
+^GSLogic !OS
+^rForall-Range-Strngthn ^x$ ^1 !QL
+^Q !PV
+^R !PV
+^2 !PO
+^P !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^Q !PV
+^P !PV
+!PI
+!PAl
+!PI
+!CT
+^GSLogic !OS
+^rForall-Body-Wkn ^x$ ^1 !QL
+^R !PV
+^Q !PV
+^P !PV
+^2 !PA
+!PI
+!PAl
+^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+!PI
+!CT
+^GSLogic !OS
+^rForall-Monotonic ^x$ ^1 !QL
+^R !PV
+^Q !PV
+^P !PV
+!PI
+!PI
+!PAl
+^x$ ^1 !QL
+^R !PV
+^Q !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+!PI
+!PI
+!CT
+^GSLogic !OS
+^rForall-Instantiation ^x ^x$ ^2 !QL
+!PT
+^P !PV
+!PI
+!PAl
+^x$ ^1 !QL
+!PT
+^P !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PI
+!PAl
+!PI
+!CT
+^GSLogic !OS
+^Gen-DeMorgan-1 ^x$ ^1 !QL
+^R !PV
+^P !PV
+!PN
+^2 !PA
+!PEx
+!PN
+^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+!PQ
+!CT
+^GSLogic !OS
+^Gen-DeMorgan-2 ^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+!PN
+^x$ ^1 !QL
+^R !PV
+^P !PV
+!PN
+!PI
+!PAl
+!PQ
+!CT
+^GSLogic !OS
+^Gen-DeMorgan-3 ^x$ ^1 !QL
+^R !PV
+^P !PV
+!PN
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^R !PV
+^P !PV
+!PI
+!PAl
+!PN
+!PQ
+!CT
+^GSLogic !OS
+^rExists-Trading ^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+!PT
+^R !PV
+^P !PV
+^2 !PA
+!PI
+!PAl
+!PQ
+!CT
+^GSLogic !OS
+^rExists-Trading-2 ^x$ ^1 !QL
+^Q !PV
+^R !PV
+^2 !PA
+^P !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^Q !PV
+^R !PV
+^P !PV
+^2 !PA
+!PI
+!PAl
+!PQ
+!CT
+^GSLogic !OS
+^/\-rExists-Distr ^P !PV
+^x$ ^1 !QL
+^R !PV
+^Q !PV
+^2 !PA
+!PEx
+^2 !PA
+^x$ ^1 !QL
+^R !PV
+^P !PV
+^Q !PV
+^2 !PA
+^2 !PA
+!PEx
+!PQ
+^xs ^1 ^P !CP
+^GSLogic !OS
+^GS9.22 ^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+^P !PV
+^x$ ^1 !QL
+!PT
+^R !PV
+^2 !PA
+!PEx
+^2 !PA
+!PQ
+^xs ^1 ^P !CP
+^GSLogic !OS
+^\/-rExists-Distr ^x$ ^1 !QL
+!PT
+^R !PV
+^2 !PA
+!PEx
+^P !PV
+^x$ ^1 !QL
+^R !PV
+^Q !PV
+^2 !PA
+!PEx
+^2 !PO
+^x$ ^1 !QL
+^R !PV
+^P !PV
+^Q !PV
+^2 !PO
+^2 !PA
+!PEx
+!PQ
+!PI
+^xs ^1 ^P !CP
+^GSLogic !OS
+^rExists-FALSE ^x$ ^1 !QL
+^R !PV
+!PF
+^2 !PA
+!PEx
+!PF
+!PQ
+!CT
+^GSLogic !OS
+^rExists-Range-Wkn ^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^Q !PV
+^R !PV
+^2 !PO
+^P !PV
+^2 !PA
+!PEx
+!PI
+!CT
+^GSLogic !OS
+^rExists-Body-Wkn ^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^R !PV
+^Q !PV
+^P !PV
+^2 !PO
+^2 !PA
+!PEx
+!PI
+!CT
+^GSLogic !OS
+^rExists-Monotonic ^x$ ^1 !QL
+^R !PV
+^Q !PV
+^P !PV
+!PI
+!PI
+!PAl
+^x$ ^1 !QL
+^R !PV
+^Q !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+!PI
+!PI
+!CT
+^GSLogic !OS
+^rExists-Introduction ^x$ ^1 !QL
+!PT
+^P !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+^2 !PA
+!PEx
+^x ^x$ ^2 !QL
+!PT
+^P !PV
+^2 !PA
+!PEx
+!PI
+!CT
+^GSLogic !OS
+^Quant-Interchange ^x$ ^1 !QL
+^R !PV
+^y$ ^1 !QL
+^Q !PV
+^P !PV
+!PI
+!PAl
+^2 !PA
+!PEx
+^y$ ^1 !QL
+^Q !PV
+^x$ ^1 !QL
+^R !PV
+^P !PV
+^2 !PA
+!PEx
+!PI
+!PAl
+!PI
+^xs ^1 ^Q !CP
+^ys ^1 ^R !CP
+^2 !CA
+^GSLogic !OS
+^119 !lM
+^0 !ML
+^0 !MT
+!@

@@ -1,0 +1,69 @@
+\section{Matching}\label{sec:matching}
+
+The matching algorithm implements a mechanism for implementing
+judgements of the form:
+\[
+\Gamma\vdash P \ddagger T | \beta
+\]
+which can be read as saying:
+\begin{quote}
+  ``
+  Target $T$ is an instance of pattern $P$, given matching context $\Gamma$,
+  as witnessed by binding $\beta$.
+  ''
+\end{quote}
+In effect,
+this is implemented as a function that accepts $\Gamma$, $T$ and $P$
+as inputs, along with side-conditions
+(the target side-conditions are those of the conjecture being proved)
+and either returns a failure indicator, or success along with a resulting
+binding:
+\begin{eqnarray*}
+  && match : Context \fun (Pred\times Side) \fun (Pred\times Side) \fun (1 + Bind)
+\\ && match_{\Gamma}~(T,sc_T)~(P,sc_P) \defs \ldots
+\end{eqnarray*}
+The context $\Gamma$ is essentially a stack of theories
+going downwards from where pattern $P$ is defined,
+refactored in ways that need not concern us here.
+Typically we match $T$ against a long list of $P$s,
+and each match is done by functional programming pattern-matching
+on the structure or each $P$, so it is most pragmatic for it to be the last argument
+of $match$.
+
+The following principles are key:
+\begin{description}
+  \item[Fail Early]
+    We typically match one $T$ against many $P$, so the quicker we
+    can detect failure and move on, the better.
+  \item[Bindings for All]
+    Known variables only match themselves, e.g. $ok$ in the Design theory
+    but we still require an explicit binding to be returned.
+    This is to facilitate building the replacement,
+    which uses the lack of bindings for any given variable to
+    detect that that variable did not appear on the matched side of an equation
+    but is only present on the replacement side.
+    Consider using law $P \lor (P \land Q) \equiv P$
+    as an expansion (right-to-left), with target $T$.
+    It matches the rhs with binding $P \mapsto T$,
+    but we have no binding from that match for $Q$.
+    in fact, $Q$ can be any predicate, and so we need a way to provide one.
+\end{description}
+The Bindings for All principle leads us to highlight
+the overall workflow in matching and apply a law in a proof:
+\begin{enumerate}
+  \item Match target $T$ against a list of $P$s.
+  \item Select successful match of interest, with binding $\beta$
+    and replacement $R$
+  \item If some variables are in $R$ and not in $\beta$
+      then prompt the user to supply suitable instances.
+  \item Replace target $T$ by result of using binding $\beta$
+   as a substitution for the variables in $R$
+\end{enumerate}
+
+We find that matching has to be split into two phases:
+initial structural matching, followed by a ``completion'' phase.
+
+In Section \ref{sec:struct:matching}
+we describe the structural matching, and why it has to be incomplete.
+Then, in Section \ref{sec:nondet:matching}
+ we then talk about how to automatically fill in the gaps.

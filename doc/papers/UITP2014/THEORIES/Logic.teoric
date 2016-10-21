@@ -1,0 +1,2690 @@
+v3.5
+^Logic ^0 ^_ROOT ^1 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^0 !MO
+^0 !MG
+^/= ^t !Tv
+^t !Tv
+^2 !TP
+!TB
+!TF
+^/\ !TB
+!TB
+^2 !TP
+!TB
+!TF
+^= ^t !Tv
+^t !Tv
+^2 !TP
+!TB
+!TF
+^== !TB
+!TB
+^2 !TP
+!TB
+!TF
+^=> !TB
+!TB
+^2 !TP
+!TB
+!TF
+^\/ !TB
+!TB
+^2 !TP
+!TB
+!TF
+^~ !TB
+!TB
+!TF
+^7 !MK
+^/\-=>-meet ^A !PV
+^B !PV
+^2 !PA
+^A !PV
+!PI
+!CT
+^Logic !OS
+^/\-=>-meet ^A !PV
+^B !PV
+^2 !PA
+^B !PV
+!PI
+!CT
+^Logic !OS
+^/\-\/-absorb-R.1 ^A !PV
+^A !PV
+^B !PV
+^2 !PO
+^2 !PA
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^/\-\/-absorb-R.2 ^A !PV
+^B !PV
+^A !PV
+^2 !PO
+^2 !PA
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^/\-\/-absorb-R.3 ^A !PV
+^B !PV
+^2 !PO
+^A !PV
+^2 !PA
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^/\-\/-absorb-R.4 ^B !PV
+^A !PV
+^2 !PO
+^A !PV
+^2 !PA
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^/\-\/-distr.1 ^B !PV
+^C !PV
+^2 !PO
+^A !PV
+^2 !PA
+^B !PV
+^A !PV
+^2 !PA
+^C !PV
+^A !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^/\-\/-distr.1 ^A !PV
+^B !PV
+^C !PV
+^2 !PO
+^2 !PA
+^A !PV
+^B !PV
+^2 !PA
+^A !PV
+^C !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^/\-\/-~-absorb.3 ^A !PV
+^A !PV
+!PN
+^B !PV
+^2 !PO
+^2 !PA
+^A !PV
+^B !PV
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^/\-\/-~-absorb.4 ^A !PV
+!PN
+^B !PV
+^2 !PO
+^A !PV
+^2 !PA
+^A !PV
+^B !PV
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^/\-as-<||>.1 ^A !PV
+^B !PV
+^2 !PA
+^B !PV
+^A !PV
+^B !PV
+!PC
+!PQ
+!CT
+^Logic !OS
+^/\-as-<||>.2 ^B !PV
+^A !PV
+^2 !PA
+^B !PV
+^A !PV
+^B !PV
+!PC
+!PQ
+!CT
+^Logic !OS
+^/\-assoc ^A !PV
+^B !PV
+^C !PV
+^2 !PA
+^2 !PA
+^A !PV
+^B !PV
+^2 !PA
+^C !PV
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^/\-comm ^A !PV
+^B !PV
+^2 !PA
+^B !PV
+^A !PV
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^/\-deMorgan ^A !PV
+!PN
+^B !PV
+!PN
+^2 !PA
+^A !PV
+^B !PV
+^2 !PO
+!PN
+!PQ
+!CT
+^Logic !OS
+^/\-forall-distr.1 ^x$ ^1 !QL
+^A !PV
+^B !PV
+^2 !PA
+!PAl
+^x$ ^1 !QL
+^A !PV
+!PAl
+^x$ ^1 !QL
+^B !PV
+!PAl
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^/\-forall-distr.2 ^x$ ^1 !QL
+^B !PV
+^A !PV
+^2 !PA
+!PAl
+^x$ ^1 !QL
+^A !PV
+!PAl
+^x$ ^1 !QL
+^B !PV
+!PAl
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^/\-idem ^A !PV
+^A !PV
+^2 !PA
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^/\-unit.1 ^A !PV
+!PT
+^2 !PA
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^/\-unit.2 !PT
+^A !PV
+^2 !PA
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^/\-zero.1 ^A !PV
+!PF
+^2 !PA
+!PF
+!PQ
+!CT
+^Logic !OS
+^/\-zero.2 !PF
+^A !PV
+^2 !PA
+!PF
+!PQ
+!CT
+^Logic !OS
+^<|false|> !PF
+^A !PV
+^B !PV
+!PC
+^B !PV
+!PQ
+!CT
+^Logic !OS
+^<|true|> !PT
+^A !PV
+^B !PV
+!PC
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^<||>-L-distr ^Q !PV
+^P !PV
+^A !PV
+^B !PV
+!PC
+^C !PV
+!PC
+^P !PV
+^Q !PV
+^A !PV
+^C !PV
+!PC
+^Q !PV
+^B !PV
+^C !PV
+!PC
+!PC
+!PQ
+!CT
+^Logic !OS
+^<||>-R-distr ^P !PV
+^A !PV
+^Q !PV
+^B !PV
+^C !PV
+!PC
+!PC
+^Q !PV
+^P !PV
+^A !PV
+^B !PV
+!PC
+^P !PV
+^A !PV
+^C !PV
+!PC
+!PC
+!PQ
+!CT
+^Logic !OS
+^<||>-alt.1 ^C !PV
+^A !PV
+^B !PV
+!PC
+^C !PV
+^A !PV
+!PI
+^C !PV
+!PN
+^B !PV
+!PI
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^<||>-alt.2 ^C !PV
+^A !PV
+^B !PV
+!PC
+^C !PV
+!PN
+^B !PV
+!PI
+^C !PV
+^A !PV
+!PI
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^<||>-nest ^P !PV
+^B !PV
+^C !PV
+!PC
+^A !PV
+^D !PV
+!PC
+^P !PV
+^B !PV
+^A !PV
+^D !PV
+!PC
+^C !PV
+^A !PV
+^D !PV
+!PC
+!PC
+!PQ
+!CT
+^Logic !OS
+^==-alt1.1 ^A !PV
+^B !PV
+!PQ
+^A !PV
+^B !PV
+^2 !PA
+^A !PV
+^B !PV
+^2 !PO
+!PN
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^==-alt1.2 ^A !PV
+^B !PV
+!PQ
+^B !PV
+^A !PV
+^2 !PA
+^A !PV
+^B !PV
+^2 !PO
+!PN
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^==-alt2 ^A !PV
+^B !PV
+!PQ
+^A !PV
+!PN
+^B !PV
+!PN
+!PQ
+!PQ
+!CT
+^Logic !OS
+^==-assoc ^A !PV
+^B !PV
+^C !PV
+!PQ
+!PQ
+^A !PV
+^B !PV
+!PQ
+^C !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^==-comm ^A !PV
+^B !PV
+!PQ
+^B !PV
+^A !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^==-diff.1 ^A !PV
+^A !PV
+!PN
+!PQ
+!PF
+!PQ
+!CT
+^Logic !OS
+^==-diff.2 ^A !PV
+!PN
+^A !PV
+!PQ
+!PF
+!PQ
+!CT
+^Logic !OS
+^==-false ^A !PV
+!PF
+!PQ
+^A !PV
+!PN
+!PQ
+!CT
+^Logic !OS
+^==-same ^A !PV
+^A !PV
+!PQ
+!PT
+!PQ
+!CT
+^Logic !OS
+^==-true ^A !PV
+!PT
+!PQ
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^=>-/\-distr ^C !PV
+^A !PV
+^B !PV
+^2 !PA
+!PI
+^C !PV
+^A !PV
+!PI
+^C !PV
+^B !PV
+!PI
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^=>-\/-join ^A !PV
+^A !PV
+^B !PV
+^2 !PO
+!PI
+!CT
+^Logic !OS
+^=>-\/-join ^B !PV
+^A !PV
+^B !PV
+^2 !PO
+!PI
+!CT
+^Logic !OS
+^=>-alt1 ^A !PV
+^B !PV
+!PI
+^A !PV
+^B !PV
+!PN
+^2 !PA
+!PN
+!PQ
+!CT
+^Logic !OS
+^=>-alt2 ^A !PV
+^B !PV
+!PI
+^B !PV
+!PN
+^A !PV
+^2 !PA
+!PN
+!PQ
+!CT
+^Logic !OS
+^=>-alt2.1 ^A !PV
+^B !PV
+!PI
+^A !PV
+^A !PV
+^B !PV
+^2 !PA
+!PQ
+!PQ
+!CT
+^Logic !OS
+^=>-alt2.2 ^A !PV
+^B !PV
+!PI
+^A !PV
+^B !PV
+^A !PV
+^2 !PA
+!PQ
+!PQ
+!CT
+^Logic !OS
+^=>-alt2.3 ^A !PV
+^B !PV
+!PI
+^A !PV
+^B !PV
+^2 !PA
+^A !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^=>-alt2.4 ^A !PV
+^B !PV
+!PI
+^B !PV
+^A !PV
+^2 !PA
+^A !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^=>-alt3.1 ^B !PV
+^A !PV
+!PI
+^A !PV
+^A !PV
+^B !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^=>-alt3.2 ^B !PV
+^A !PV
+!PI
+^A !PV
+^B !PV
+^A !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^=>-alt3.3 ^B !PV
+^A !PV
+!PI
+^A !PV
+^B !PV
+^2 !PO
+^A !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^=>-alt3.4 ^B !PV
+^A !PV
+!PI
+^B !PV
+^A !PV
+^2 !PO
+^A !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^=>-cases.1 ^A !PV
+^B !PV
+!PI
+^A !PV
+!PN
+^C !PV
+!PI
+^2 !PA
+^A !PV
+^B !PV
+^2 !PA
+^A !PV
+!PN
+^C !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^=>-cases.2 ^A !PV
+!PN
+^C !PV
+!PI
+^A !PV
+^B !PV
+!PI
+^2 !PA
+^A !PV
+^B !PV
+^2 !PA
+^A !PV
+!PN
+^C !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^=>-cases.3 ^A !PV
+^B !PV
+!PI
+^A !PV
+!PN
+^C !PV
+!PI
+^2 !PA
+^A !PV
+!PN
+^C !PV
+^2 !PA
+^A !PV
+^B !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^=>-cases.4 ^A !PV
+!PN
+^C !PV
+!PI
+^A !PV
+^B !PV
+!PI
+^2 !PA
+^A !PV
+!PN
+^C !PV
+^2 !PA
+^A !PV
+^B !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^=>-exists-distr ^x$ ^1 !QL
+^A !PV
+^B !PV
+!PI
+!PEx
+^x$ ^1 !QL
+^A !PV
+!PAl
+^x$ ^1 !QL
+^B !PV
+!PEx
+!PI
+!PQ
+!CT
+^Logic !OS
+^=>-false ^A !PV
+!PF
+!PI
+^A !PV
+!PN
+!PQ
+!CT
+^Logic !OS
+^=>-merge.1 ^A !PV
+^B !PV
+^C !PV
+!PI
+!PI
+^A !PV
+^B !PV
+^2 !PA
+^C !PV
+!PI
+!PQ
+!CT
+^Logic !OS
+^=>-merge.2 ^A !PV
+^B !PV
+^C !PV
+!PI
+!PI
+^B !PV
+^A !PV
+^C !PV
+!PI
+!PI
+!PQ
+!CT
+^Logic !OS
+^=>-neg ^A !PV
+^A !PV
+!PN
+!PI
+^A !PV
+!PN
+!PQ
+!CT
+^Logic !OS
+^=>-neg.1 ^A !PV
+^B !PV
+!PI
+!PN
+^A !PV
+^B !PV
+!PN
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^=>-neg.2 ^A !PV
+^B !PV
+!PI
+!PN
+^B !PV
+!PN
+^A !PV
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^=>-self ^A !PV
+^A !PV
+!PI
+!PT
+!PQ
+!CT
+^Logic !OS
+^=>-true ^A !PV
+!PT
+!PI
+!PT
+!PQ
+!CT
+^Logic !OS
+^=>:exists-=>-exists:=> ^x$ ^1 !QL
+^A !PV
+!PEx
+^x$ ^1 !QL
+^B !PV
+!PEx
+!PI
+^x$ ^1 !QL
+^A !PV
+^B !PV
+!PI
+!PEx
+!PI
+!CT
+^Logic !OS
+^DEF-<||>.1 ^C !PV
+^A !PV
+^B !PV
+!PC
+^C !PV
+^A !PV
+^2 !PA
+^C !PV
+!PN
+^B !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^DEF-<||>.2 ^C !PV
+^A !PV
+^B !PV
+!PC
+^A !PV
+^C !PV
+^2 !PA
+^C !PV
+!PN
+^B !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^DEF-<||>.3 ^C !PV
+^A !PV
+^B !PV
+!PC
+^C !PV
+^A !PV
+^2 !PA
+^B !PV
+^C !PV
+!PN
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^DEF-<||>.4 ^C !PV
+^A !PV
+^B !PV
+!PC
+^A !PV
+^C !PV
+^2 !PA
+^B !PV
+^C !PV
+!PN
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^DEF-<||>.5 ^C !PV
+^A !PV
+^B !PV
+!PC
+^C !PV
+!PN
+^B !PV
+^2 !PA
+^C !PV
+^A !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^DEF-<||>.6 ^C !PV
+^A !PV
+^B !PV
+!PC
+^C !PV
+!PN
+^B !PV
+^2 !PA
+^A !PV
+^C !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^DEF-<||>.7 ^C !PV
+^A !PV
+^B !PV
+!PC
+^B !PV
+^C !PV
+!PN
+^2 !PA
+^C !PV
+^A !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^DEF-<||>.8 ^C !PV
+^A !PV
+^B !PV
+!PC
+^B !PV
+^C !PV
+!PN
+^2 !PA
+^A !PV
+^C !PV
+^2 !PA
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^DEF-== ^A !PV
+^B !PV
+!PQ
+^A !PV
+^B !PV
+!PI
+^B !PV
+^A !PV
+!PI
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^DEF-=>.1 ^A !PV
+^B !PV
+!PI
+^A !PV
+!PN
+^B !PV
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^DEF-=>.2 ^A !PV
+^B !PV
+!PI
+^B !PV
+^A !PV
+!PN
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^Golden-Rule.1 ^A !PV
+^B !PV
+!PQ
+^A !PV
+^B !PV
+^2 !PA
+^A !PV
+^B !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^Golden-Rule.2 ^A !PV
+^B !PV
+!PQ
+^B !PV
+^A !PV
+^2 !PA
+^A !PV
+^B !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^Golden-Rule.3 ^A !PV
+^B !PV
+!PQ
+^A !PV
+^B !PV
+^2 !PO
+^A !PV
+^B !PV
+^2 !PA
+!PQ
+!PQ
+!CT
+^Logic !OS
+^Golden-Rule.4 ^A !PV
+^B !PV
+!PQ
+^A !PV
+^B !PV
+^2 !PO
+^B !PV
+^A !PV
+^2 !PA
+!PQ
+!PQ
+!CT
+^Logic !OS
+^Golden-Rule.5 ^B !PV
+^A !PV
+!PQ
+^A !PV
+^B !PV
+^2 !PA
+^A !PV
+^B !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^Golden-Rule.6 ^B !PV
+^A !PV
+!PQ
+^B !PV
+^A !PV
+^2 !PA
+^A !PV
+^B !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^Golden-Rule.7 ^B !PV
+^A !PV
+!PQ
+^A !PV
+^B !PV
+^2 !PO
+^A !PV
+^B !PV
+^2 !PA
+!PQ
+!PQ
+!CT
+^Logic !OS
+^Golden-Rule.8 ^B !PV
+^A !PV
+!PQ
+^A !PV
+^B !PV
+^2 !PO
+^B !PV
+^A !PV
+^2 !PA
+!PQ
+!PQ
+!CT
+^Logic !OS
+^P-as-<||> ^A !PV
+!PT
+!PF
+!PC
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^\/-/\-absorb-R.1 ^A !PV
+^A !PV
+^B !PV
+^2 !PA
+^2 !PO
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^\/-/\-absorb-R.2 ^A !PV
+^B !PV
+^A !PV
+^2 !PA
+^2 !PO
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^\/-/\-absorb-R.3 ^A !PV
+^B !PV
+^2 !PA
+^A !PV
+^2 !PO
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^\/-/\-absorb-R.4 ^B !PV
+^A !PV
+^2 !PA
+^A !PV
+^2 !PO
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^\/-/\-distr.1 ^A !PV
+^B !PV
+^C !PV
+^2 !PA
+^2 !PO
+^A !PV
+^B !PV
+^2 !PO
+^A !PV
+^C !PV
+^2 !PO
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^\/-/\-distr.2 ^B !PV
+^C !PV
+^2 !PA
+^A !PV
+^2 !PO
+^B !PV
+^A !PV
+^2 !PO
+^C !PV
+^A !PV
+^2 !PO
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^\/-/\-~-absorb.1 ^A !PV
+^A !PV
+!PN
+^B !PV
+^2 !PA
+^2 !PO
+^A !PV
+^B !PV
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^\/-/\-~-absorb.2 ^A !PV
+!PN
+^B !PV
+^2 !PA
+^A !PV
+^2 !PO
+^A !PV
+^B !PV
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^\/-==-distr.1 ^A !PV
+^B !PV
+^C !PV
+!PQ
+^2 !PO
+^A !PV
+^B !PV
+^2 !PO
+^A !PV
+^C !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^\/-==-distr.2 ^B !PV
+^C !PV
+!PQ
+^A !PV
+^2 !PO
+^A !PV
+^B !PV
+^2 !PO
+^A !PV
+^C !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^\/-==-distr.3 ^A !PV
+^B !PV
+^C !PV
+!PQ
+^2 !PO
+^B !PV
+^A !PV
+^2 !PO
+^C !PV
+^A !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^\/-==-distr.4 ^B !PV
+^C !PV
+!PQ
+^A !PV
+^2 !PO
+^B !PV
+^A !PV
+^2 !PO
+^C !PV
+^A !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^\/-=>-distr ^A !PV
+^B !PV
+^2 !PO
+^C !PV
+!PI
+^A !PV
+^C !PV
+!PI
+^B !PV
+^C !PV
+!PI
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^\/-as-<||>.1 ^A !PV
+^B !PV
+^2 !PO
+^A !PV
+^A !PV
+^B !PV
+!PC
+!PQ
+!CT
+^Logic !OS
+^\/-as-<||>.2 ^B !PV
+^A !PV
+^2 !PO
+^A !PV
+^A !PV
+^B !PV
+!PC
+!PQ
+!CT
+^Logic !OS
+^\/-assoc ^A !PV
+^B !PV
+^C !PV
+^2 !PO
+^2 !PO
+^A !PV
+^B !PV
+^2 !PO
+^C !PV
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^\/-comm ^A !PV
+^B !PV
+^2 !PO
+^B !PV
+^A !PV
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^\/-deMorgan ^A !PV
+!PN
+^B !PV
+!PN
+^2 !PO
+^A !PV
+^B !PV
+^2 !PA
+!PN
+!PQ
+!CT
+^Logic !OS
+^\/-exists-distr.1 ^x$ ^1 !QL
+^A !PV
+^B !PV
+^2 !PO
+!PEx
+^x$ ^1 !QL
+^A !PV
+!PEx
+^x$ ^1 !QL
+^B !PV
+!PEx
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^\/-exists-distr.2 ^x$ ^1 !QL
+^B !PV
+^A !PV
+^2 !PO
+!PEx
+^x$ ^1 !QL
+^A !PV
+!PEx
+^x$ ^1 !QL
+^B !PV
+!PEx
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^\/-idem ^A !PV
+^A !PV
+^2 !PO
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^\/-unit.1 ^A !PV
+!PF
+^2 !PO
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^\/-unit.2 !PF
+^A !PV
+^2 !PO
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^\/-zero.1 ^A !PV
+!PT
+^2 !PO
+!PT
+!PQ
+!CT
+^Logic !OS
+^\/-zero.2 !PT
+^A !PV
+^2 !PO
+!PT
+!PQ
+!CT
+^Logic !OS
+^\/:forall-=>-forall:\/.1 ^x$ ^1 !QL
+^A !PV
+!PAl
+^x$ ^1 !QL
+^B !PV
+!PAl
+^2 !PO
+^x$ ^1 !QL
+^A !PV
+^B !PV
+^2 !PO
+!PAl
+!PI
+!CT
+^Logic !OS
+^\/:forall-=>-forall:\/.2 ^x$ ^1 !QL
+^A !PV
+!PAl
+^x$ ^1 !QL
+^B !PV
+!PAl
+^2 !PO
+^x$ ^1 !QL
+^B !PV
+^A !PV
+^2 !PO
+!PAl
+!PI
+!CT
+^Logic !OS
+^bool-join.1 ^A !PV
+!PN
+^B !PV
+^2 !PO
+^A !PV
+^B !PV
+^2 !PO
+^B !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-join.2 ^B !PV
+^A !PV
+!PN
+^2 !PO
+^A !PV
+^B !PV
+^2 !PO
+^B !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-join.3 ^A !PV
+!PN
+^B !PV
+^2 !PO
+^B !PV
+^A !PV
+^2 !PO
+^B !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-join.4 ^B !PV
+^A !PV
+!PN
+^2 !PO
+^B !PV
+^A !PV
+^2 !PO
+^B !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-join.5 ^A !PV
+!PN
+^B !PV
+^2 !PO
+^B !PV
+^A !PV
+^B !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-join.6 ^B !PV
+^A !PV
+!PN
+^2 !PO
+^B !PV
+^A !PV
+^B !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-join.7 ^A !PV
+!PN
+^B !PV
+^2 !PO
+^B !PV
+^B !PV
+^A !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-join.8 ^B !PV
+^A !PV
+!PN
+^2 !PO
+^B !PV
+^B !PV
+^A !PV
+^2 !PO
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-meet.1 ^A !PV
+!PN
+^B !PV
+^2 !PO
+^A !PV
+^B !PV
+^2 !PA
+^A !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-meet.2 ^B !PV
+^A !PV
+!PN
+^2 !PO
+^A !PV
+^B !PV
+^2 !PA
+^A !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-meet.3 ^A !PV
+!PN
+^B !PV
+^2 !PO
+^B !PV
+^A !PV
+^2 !PA
+^A !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-meet.4 ^B !PV
+^A !PV
+!PN
+^2 !PO
+^B !PV
+^A !PV
+^2 !PA
+^A !PV
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-meet.5 ^A !PV
+!PN
+^B !PV
+^2 !PO
+^A !PV
+^A !PV
+^B !PV
+^2 !PA
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-meet.6 ^B !PV
+^A !PV
+!PN
+^2 !PO
+^A !PV
+^A !PV
+^B !PV
+^2 !PA
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-meet.7 ^A !PV
+!PN
+^B !PV
+^2 !PO
+^A !PV
+^B !PV
+^A !PV
+^2 !PA
+!PQ
+!PQ
+!CT
+^Logic !OS
+^bool-meet.8 ^B !PV
+^A !PV
+!PN
+^2 !PO
+^A !PV
+^B !PV
+^A !PV
+^2 !PA
+!PQ
+!PQ
+!CT
+^Logic !OS
+^contradiction.1 ^A !PV
+^A !PV
+!PN
+^2 !PA
+!PF
+!PQ
+!CT
+^Logic !OS
+^contradiction.2 ^A !PV
+!PN
+^A !PV
+^2 !PA
+!PF
+!PQ
+!CT
+^Logic !OS
+^contrapositive ^A !PV
+^B !PV
+!PI
+^B !PV
+!PN
+^A !PV
+!PN
+!PI
+!PQ
+!CT
+^Logic !OS
+^excluded-middle.1 ^A !PV
+^A !PV
+!PN
+^2 !PO
+!PT
+!PQ
+!CT
+^Logic !OS
+^excluded-middle.2 ^A !PV
+!PN
+^A !PV
+^2 !PO
+!PT
+!PQ
+!CT
+^Logic !OS
+^exist-bv ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PEx
+!CT
+^Logic !OS
+^exist-nbv ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+!PEx
+!CT
+^Logic !OS
+^exists-1-pt.1 ^x ^x$ ^2 !QL
+^x !EV
+^e !EEV
+!E=
+!PE2
+^A !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^A !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PEx
+!PQ
+^x ^1 ^e !CE
+^Logic !OS
+^exists-1-pt.2 ^x ^x$ ^2 !QL
+^e !EEV
+^x !EV
+!E=
+!PE2
+^A !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^A !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PEx
+!PQ
+^x ^1 ^e !CE
+^Logic !OS
+^exists-1-pt.3 ^x ^x$ ^2 !QL
+^A !PV
+^x !EV
+^e !EEV
+!E=
+!PE2
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^A !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PEx
+!PQ
+^x ^1 ^e !CE
+^Logic !OS
+^exists-1-pt.4 ^x ^x$ ^2 !QL
+^A !PV
+^e !EEV
+^x !EV
+!E=
+!PE2
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^A !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PEx
+!PQ
+^x ^1 ^e !CE
+^Logic !OS
+^exists-alpha ^x ^x$ ^2 !QL
+^A !PV
+!PEx
+^y ^xs$ ^2 !QL
+^A !PV
+^y !EV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PEx
+!PQ
+^y ^1 ^A !CP
+^Logic !OS
+^exists-bv-/\.2 ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+!PEx
+!PQ
+!CT
+^Logic !OS
+^exists-bv-<== ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+!PI
+!PEx
+!PT
+!PQ
+!CT
+^Logic !OS
+^exists-bv-===.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+^A !PV
+!PQ
+!PEx
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+!PN
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^exists-bv-===.2 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+^A !PV
+!PQ
+!PEx
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+!PN
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^exists-bv-==> ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+^A !PV
+!PI
+!PEx
+!PT
+!PQ
+!CT
+^Logic !OS
+^exists-bv-\/.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+^A !PV
+^2 !PO
+!PEx
+!PT
+!PQ
+!CT
+^Logic !OS
+^exists-bv-\/.2 ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+^2 !PO
+!PEx
+!PT
+!PQ
+!CT
+^Logic !OS
+^exists-comm ^x$ ^1 !QL
+^y$ ^1 !QL
+^A !PV
+!PEx
+!PEx
+^y$ ^1 !QL
+^x$ ^1 !QL
+^A !PV
+!PEx
+!PEx
+!PQ
+!CT
+^Logic !OS
+^exists-deMorgan ^x$ ^1 !QL
+^A !PV
+!PEx
+!PN
+^x$ ^1 !QL
+^A !PV
+!PN
+!PAl
+!PQ
+!CT
+^Logic !OS
+^exists-gen ^A !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+^x ^1 !QL
+^A !PV
+!PEx
+!PI
+!CT
+^Logic !OS
+^exists-idem ^x ^1 !QL
+^x1 ^1 !QL
+^A !PV
+!PEx
+!PEx
+^x ^1 !QL
+^A !PV
+!PEx
+!PQ
+!CT
+^Logic !OS
+^exists-nbv-/\.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+^A !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+!PEx
+!PQ
+!CT
+^Logic !OS
+^exists-nbv-/\.2 ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+!PN
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+!PEx
+!PQ
+!CT
+^Logic !OS
+^exists-nbv-<== ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+!PN
+!PI
+!PEx
+!PT
+!PQ
+!CT
+^Logic !OS
+^exists-nbv-===.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+^A !PV
+!PQ
+!PEx
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+!PN
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^exists-nbv-===.2 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+^A !PV
+!PQ
+!PEx
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+!PN
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+^2 !PO
+!PQ
+!CT
+^Logic !OS
+^exists-nbv-==> ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+^A !PV
+!PI
+!PEx
+!PT
+!PQ
+!CT
+^Logic !OS
+^exists-nbv-\/.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+^A !PV
+^2 !PO
+!PEx
+!PT
+!PQ
+!CT
+^Logic !OS
+^exists-nbv-\/.2 ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+!PN
+^2 !PO
+!PEx
+!PT
+!PQ
+!CT
+^Logic !OS
+^exists-vac ^x ^1 !QL
+^A !PV
+!PEx
+^A !PV
+!PQ
+^x ^1 ^A !CP
+^Logic !OS
+^exists-vac' ^x ^x$ ^2 !QL
+^A !PV
+!PEx
+^x$ ^1 !QL
+^A !PV
+!PEx
+!PQ
+^x ^1 ^A !CP
+^Logic !OS
+^exists:/\-=>-/\:exists.1 ^x$ ^1 !QL
+^A !PV
+^B !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^A !PV
+!PEx
+^x$ ^1 !QL
+^B !PV
+!PEx
+^2 !PA
+!PI
+!CT
+^Logic !OS
+^exists:/\-=>-/\:exists.2 ^x$ ^1 !QL
+^B !PV
+^A !PV
+^2 !PA
+!PEx
+^x$ ^1 !QL
+^A !PV
+!PEx
+^x$ ^1 !QL
+^B !PV
+!PEx
+^2 !PA
+!PI
+!CT
+^Logic !OS
+^exists:forall-swap ^y$ ^1 !QL
+^x$ ^1 !QL
+^A !PV
+!PAl
+!PEx
+^x$ ^1 !QL
+^y$ ^1 !QL
+^A !PV
+!PEx
+!PAl
+!PI
+!CT
+^Logic !OS
+^false !PF
+!PT
+!PN
+!PQ
+!CT
+^Logic !OS
+^false-=> !PF
+^A !PV
+!PI
+!PT
+!PQ
+!CT
+^Logic !OS
+^forall-1-pt.1 ^x ^x$ ^2 !QL
+^x !EV
+^e !EEV
+!E=
+!PE2
+^A !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^A !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PAl
+!PQ
+^x ^1 ^e !CE
+^Logic !OS
+^forall-1-pt.2 ^x ^x$ ^2 !QL
+^e !EEV
+^x !EV
+!E=
+!PE2
+^A !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^A !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PAl
+!PQ
+^x ^1 ^e !CE
+^Logic !OS
+^forall-=>-exists ^x$ ^1 !QL
+^A !PV
+!PAl
+^x$ ^1 !QL
+^A !PV
+!PEx
+!PI
+!CT
+^Logic !OS
+^forall-alpha ^x ^x$ ^2 !QL
+^A !PV
+!PAl
+^y ^xs$ ^2 !QL
+^A !PV
+^y !EV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PAl
+!PQ
+^y ^1 ^A !CP
+^Logic !OS
+^forall-alpha' ^x ^x$ ^2 !QL
+^A !PV
+^x !EV
+^1 ^z ^1 !QL
+!SE
+!PS
+!PAl
+^y ^xs$ ^2 !QL
+^A !PV
+^y !EV
+^1 ^z ^1 !QL
+!SE
+!PS
+!PAl
+!PQ
+^x ^y ^2 ^A !CP
+^Logic !OS
+^forall-bv ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PAl
+!PF
+!PQ
+!CT
+^Logic !OS
+^forall-bv-/\.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+^A !PV
+^2 !PA
+!PAl
+!PF
+!PQ
+!CT
+^Logic !OS
+^forall-bv-/\.2 ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+^2 !PA
+!PAl
+!PF
+!PQ
+!CT
+^Logic !OS
+^forall-bv-<== ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+!PI
+!PAl
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+!PN
+!PQ
+!CT
+^Logic !OS
+^forall-bv-===.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+^A !PV
+!PQ
+!PAl
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+!PN
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^forall-bv-===.2 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+^A !PV
+!PQ
+!PAl
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+!PN
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^forall-bv-==> ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+^A !PV
+!PI
+!PAl
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+!PQ
+!CT
+^Logic !OS
+^forall-bv-\/.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+^A !PV
+^2 !PO
+!PAl
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+!PQ
+!CT
+^Logic !OS
+^forall-bv-\/.2 ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+^2 !PO
+!PAl
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+!PQ
+!CT
+^Logic !OS
+^forall-comm ^x$ ^1 !QL
+^y$ ^1 !QL
+^A !PV
+!PAl
+!PAl
+^y$ ^1 !QL
+^x$ ^1 !QL
+^A !PV
+!PAl
+!PAl
+!PQ
+!CT
+^Logic !OS
+^forall-deMorgan ^x$ ^1 !QL
+^A !PV
+!PAl
+!PN
+^x$ ^1 !QL
+^A !PV
+!PN
+!PEx
+!PQ
+!CT
+^Logic !OS
+^forall-idem ^x ^1 !QL
+^x1 ^1 !QL
+^A !PV
+!PAl
+!PAl
+^x ^1 !QL
+^A !PV
+!PAl
+!PQ
+!CT
+^Logic !OS
+^forall-nbv ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+!PAl
+!PF
+!PQ
+!CT
+^Logic !OS
+^forall-nbv-/\.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+^A !PV
+^2 !PA
+!PAl
+!PF
+!PQ
+!CT
+^Logic !OS
+^forall-nbv-/\.2 ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+!PN
+^2 !PA
+!PAl
+!PF
+!PQ
+!CT
+^Logic !OS
+^forall-nbv-<== ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+!PN
+!PI
+!PAl
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+!PN
+!PQ
+!CT
+^Logic !OS
+^forall-nbv-===.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+^A !PV
+!PQ
+!PAl
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+!PN
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^forall-nbv-===.2 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+^A !PV
+!PQ
+!PAl
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+!PN
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+^2 !PA
+!PQ
+!CT
+^Logic !OS
+^forall-nbv-==> ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+^A !PV
+!PI
+!PAl
+^A !PV
+!EF
+^1 ^b ^1 !QL
+!SE
+!PS
+!PQ
+!CT
+^Logic !OS
+^forall-nbv-\/.1 ^b ^xs$ ^2 !QL
+^b !EV
+!PE2
+!PN
+^A !PV
+^2 !PO
+!PAl
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+!PQ
+!CT
+^Logic !OS
+^forall-nbv-\/.2 ^b ^xs$ ^2 !QL
+^A !PV
+^b !EV
+!PE2
+!PN
+^2 !PO
+!PAl
+^A !PV
+!ET
+^1 ^b ^1 !QL
+!SE
+!PS
+!PQ
+!CT
+^Logic !OS
+^forall-spec ^x ^1 !QL
+^A !PV
+!PAl
+^A !PV
+^e !EEV
+^1 ^x ^1 !QL
+!SE
+!PS
+!PI
+!CT
+^Logic !OS
+^forall-vac ^x ^1 !QL
+^A !PV
+!PAl
+^A !PV
+!PQ
+^x ^1 ^A !CP
+^Logic !OS
+^forall-vac' ^x ^x$ ^2 !QL
+^A !PV
+!PAl
+^x$ ^1 !QL
+^A !PV
+!PAl
+!PQ
+^x ^1 ^A !CP
+^Logic !OS
+^forall:=>-=>-=>:forall ^x$ ^1 !QL
+^A !PV
+^B !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^A !PV
+!PAl
+^x$ ^1 !QL
+^B !PV
+!PAl
+!PI
+!PI
+!CT
+^Logic !OS
+^free-/\-exists-distr'.1 ^x$ ^1 !QL
+^N !PV
+^B !PV
+^2 !PA
+!PEx
+^N !PV
+^x$ ^1 !QL
+^B !PV
+!PEx
+^2 !PA
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-/\-exists-distr'.2 ^x$ ^1 !QL
+^B !PV
+^N !PV
+^2 !PA
+!PEx
+^N !PV
+^x$ ^1 !QL
+^B !PV
+!PEx
+^2 !PA
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-/\-forall-distr'.1 ^x$ ^1 !QL
+^N !PV
+^B !PV
+^2 !PA
+!PAl
+^N !PV
+^x$ ^1 !QL
+^B !PV
+!PAl
+^2 !PA
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-/\-forall-distr'.2 ^x$ ^1 !QL
+^B !PV
+^N !PV
+^2 !PA
+!PAl
+^N !PV
+^x$ ^1 !QL
+^B !PV
+!PAl
+^2 !PA
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-\/-exists-distr'.1 ^x$ ^1 !QL
+^N !PV
+^B !PV
+^2 !PO
+!PEx
+^N !PV
+^x$ ^1 !QL
+^B !PV
+!PEx
+^2 !PO
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-\/-exists-distr'.2 ^x$ ^1 !QL
+^B !PV
+^N !PV
+^2 !PO
+!PEx
+^N !PV
+^x$ ^1 !QL
+^B !PV
+!PEx
+^2 !PO
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-\/-forall-distr'.1 ^x$ ^1 !QL
+^N !PV
+^B !PV
+^2 !PO
+!PAl
+^N !PV
+^x$ ^1 !QL
+^B !PV
+!PAl
+^2 !PO
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-\/-forall-distr'.2 ^x$ ^1 !QL
+^B !PV
+^N !PV
+^2 !PO
+!PAl
+^N !PV
+^x$ ^1 !QL
+^B !PV
+!PAl
+^2 !PO
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-ante-exists-distr' ^x$ ^1 !QL
+^N !PV
+^B !PV
+!PI
+!PEx
+^N !PV
+^x$ ^1 !QL
+^B !PV
+!PEx
+!PI
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-ante-forall-distr' ^x$ ^1 !QL
+^N !PV
+^B !PV
+!PI
+!PAl
+^N !PV
+^x$ ^1 !QL
+^B !PV
+!PAl
+!PI
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-cnsq-exists-distr' ^x$ ^1 !QL
+^A !PV
+^N !PV
+!PI
+!PEx
+^x$ ^1 !QL
+^A !PV
+!PAl
+^N !PV
+!PI
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-cnsq-forall-distr' ^x$ ^1 !QL
+^A !PV
+^N !PV
+!PI
+!PAl
+^x$ ^1 !QL
+^A !PV
+!PEx
+^N !PV
+!PI
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-cond-exists-distr' ^x$ ^1 !QL
+^N !PV
+^A !PV
+^B !PV
+!PC
+!PEx
+^N !PV
+^x$ ^1 !QL
+^A !PV
+!PEx
+^x$ ^1 !QL
+^B !PV
+!PEx
+!PC
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^free-cond-forall-distr' ^x$ ^1 !QL
+^N !PV
+^A !PV
+^B !PV
+!PC
+!PAl
+^N !PV
+^x$ ^1 !QL
+^A !PV
+!PAl
+^x$ ^1 !QL
+^B !PV
+!PAl
+!PC
+!PQ
+^x$ ^1 ^N !CP
+^Logic !OS
+^neg-=> ^A !PV
+!PN
+^A !PV
+!PI
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^true !PT
+!PF
+!PN
+!PQ
+!CT
+^Logic !OS
+^true-=> !PT
+^A !PV
+!PI
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^~-as-<||> ^A !PV
+!PN
+^A !PV
+!PF
+!PT
+!PC
+!PQ
+!CT
+^Logic !OS
+^~~-idem ^A !PV
+!PN
+!PN
+^A !PV
+!PQ
+!CT
+^Logic !OS
+^216 !lM
+^0 !ML
+^0 !MT
+!@

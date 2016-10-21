@@ -1,0 +1,14 @@
+Given a free-variable set-expression,
+we will want to reduce it to towards ground form,
+using hints gleaned from side-conditions.
+In particular we want to make explicit the
+connection between $\isFresh x$ and $P \DISJ \setof x$
+for all predicate meta-variables $P$.
+
+At the top-level, we simply reduce set-conditions,
+and discard any that evaluate to empty.
+\begin{eqnarray*}
+  reduce_S\left(\bigcup\setof{c_1,\ldots,c_n}\right)
+  &=&
+  \bigcup\left\{reduce_C(c_1), \ldots, reduce_C(c_n)\right\}
+\end{eqnarray*} 

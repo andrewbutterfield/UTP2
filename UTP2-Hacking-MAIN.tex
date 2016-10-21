@@ -1,0 +1,63 @@
+\documentclass[fleqn]{report}
+%\documentclass[twoside]{report}
+\usepackage[a4paper, margin=1.1in]{geometry}
+\usepackage{amssymb,amsmath}
+\usepackage{mathpartir}
+\usepackage{listings}
+\usepackage{lstlhs}
+\usepackage{verbatim}
+\usepackage{doc/saoithin}
+\usepackage{tikz}
+\usetikzlibrary{arrows,matrix}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{listings}
+
+\def\includepicture#1{\includegraphics{#1.eps}}
+
+\parindent=0pt % I hate first line indentation
+\parskip=3pt   % I like a visual white gap between paragraphs
+
+
+\input{doc/UTP2ConcreteSyntaxDefs}
+
+\author{
+  Andrew Butterfield%
+  }
+\title{\UTP2
+  Hacker's Guide
+}
+
+\def\TODO#1{%
+  \textbf{ToDo: }
+  \textit{#1}
+}
+
+
+
+\begin{document}
+
+\bibliographystyle{alpha}
+
+\maketitle
+\tableofcontents
+
+\chapter{Introduction}
+
+\input{doc/WhatIsUTP2}
+\input{doc/HackIntro}
+\input{doc/Gotchas}
+
+\chapter{Program Structure}
+
+\input{doc/Prog-Structure}
+
+\chapter{Odds and Ends}
+
+\input{doc/ParserHacking}
+\newpage
+\input{doc/screenshots/OSXRename.lhs}
+
+\bibliography{doc/SAOITHIN}
+
+\end{document}

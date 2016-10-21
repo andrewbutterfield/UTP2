@@ -1,0 +1,79 @@
+\documentclass[fleqn]{report}
+%\documentclass[twoside]{report}
+\usepackage{amssymb,amsmath}
+\usepackage{mathpartir}
+\usepackage{verbatim}
+\usepackage{doc/saoithin}
+\usepackage{tikz,tikz-cd}
+\usetikzlibrary{arrows,matrix}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+
+\def\includepicture#1{\includegraphics{#1.eps}}
+
+\parindent=0pt % I hate first line indentation
+\parskip=3pt   % I like a visual white gap between paragraphs
+
+
+\input{doc/UTP2LogicDefs}
+\input{doc/UTP2MathSyntaxDefs}
+\input{doc/UTP2ConcreteSyntaxDefs}
+%\input{doc/UTP2FreeVarDefs}
+\input{doc/formal/UTP2MatchingRules}
+
+
+\author{
+  Andrew Butterfield%
+  }
+\title{\UTP2
+  Reference Manual
+}
+
+\def\TODO#1{%
+  \textbf{ToDo: }
+  \textit{#1}
+}
+
+
+
+\begin{document}
+
+\bibliographystyle{alpha}
+
+\maketitle
+\tableofcontents
+
+\chapter{Introduction}
+
+\input{doc/WhatIsUTP2}
+\input{doc/RefIntro}
+
+\chapter{The Logic of \UTP2}
+
+\input{doc/UTP2Logic}
+
+\chapter{Conventions}
+
+\chapter{Proof and Model Theory}
+
+I guess this'll have to be done at some point---sigh!
+
+
+\bibliography{doc/SAOITHIN}
+
+%\appendix
+%\chapter{Appendix}
+
+%\input{doc/BA_Handbook_Logic}
+
+%\input{doc/DOC-STUFF}
+%
+%\input{doc/Issues}
+%\newpage
+%\input{doc/Foundations}
+%\newpage
+%\input{doc/Background}
+%\newpage
+%\input{doc/Miscellany}
+
+\end{document}

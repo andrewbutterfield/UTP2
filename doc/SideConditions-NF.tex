@@ -1,0 +1,60 @@
+We shall define a normal form  for side-conditions as follows:
+\begin{itemize}
+  \item
+    $\TRUE$ and $\FALSE$ are normal forms
+    (and this is the only way in which they can arise in a normal form)
+  \item
+    $\bigwedge S$ is a normal form if each element of $S$
+    is a \emph{single-MV normal-form}, each over a distinct meta-variable.
+  \item
+    A single-MV normal-form over meta-variable $M$
+    either has the form $\isFresh M$,
+    or is a \emph{minimal} conjunction over terms of the following forms:
+     $\isCond M,~~M \DISJ V,~~M=V,~~M \subseteq V$,
+     subject to the following constraints:
+     \begin{itemize}
+       \item
+         the terms are consistent
+         (otherwise the top-level normal form should simply be $\FALSE$).
+       \item
+         the terms are minimal in the sense that no one term implies another,
+         and indeed terms are merged to the greatest extent possible.
+     \end{itemize}
+\end{itemize}
+Terms can be inconsistent/merged in a variety of ways:
+\begin{eqnarray*}
+   M=V_1 \land M=V_2  &\equiv& M = V_1 \cond{V_1 = V_2} \FALSE
+\\ M=V_1  \land M \subseteq V_2 &\equiv& M = V_1 \cond{V_1 \subseteq V_2} \FALSE
+\\ M=V_1  \land M \DISJ V_2 &\equiv& M = V_1 \cond{V_1 \DISJ V_2} \FALSE
+\\ M \subseteq V_1  \land M \subseteq V_2 &\equiv& M \subseteq V_1 \cap V_2
+\\ M \subseteq \emptyset  &\equiv& M = \emptyset
+\\ M \subseteq V_1  \land M \DISJ V_2 &\equiv& M \subseteq (V_1 \setminus V_2)
+\\ M \DISJ V_1 \land M \DISJ V_2 &\equiv& M \DISJ (V_1 \cup V_2)
+\end{eqnarray*}
+We see that terms of the form $M = V_i$ subsume all others,
+because we can always evaluate a consistency condition over
+other $V_i$ present.
+Terms of the form $M \subseteq V_i$ can be merged using set intersection
+over the $V_i$ whilst $M \DISJ V_i$ can be merged with set union.
+Also a term of the form $M \subseteq V_1$ subsumes
+any term of the form $M \DISJ V_2$, if $V_1$ and $V_2$ are disjoint.
+\emph{In fact $M \subseteq V$ can always be tweaked to subsume $M \DISJ U$
+(simply replace it with $M \subseteq (V \setminus U)$).
+}
+We also look at the interaction between $\isCond M$
+and the above forms:
+\begin{eqnarray*}
+   M=V\land \isCond M &\equiv&  M=V \cond{\isCond V} \FALSE
+\\ M \subseteq V\land \isCond M &\equiv& M \subseteq V\!|_{\isCond{\_}}
+\\ S\!|_p &\defs& \setof{x | x \in S \land p(x)}
+\\ M \DISJ V\land \isCond M &\equiv& M \DISJ V\land \isCond M
+\end{eqnarray*}
+So, a single-MV normal form can have one of the following configurations:
+$M = V, \quad M \subseteq V, \quad M \DISJ V$
+each possibly conjoined with $\isCond M$.
+
+Freshness is very strict and rules out a lot:
+\begin{eqnarray*}
+   \isFresh V  &\implies& V\DISJ M  \mbox{ for any } M
+\end{eqnarray*}
+Here we assume $V$ is non-empty.

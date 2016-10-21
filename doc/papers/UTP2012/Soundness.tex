@@ -1,0 +1,38 @@
+\section{Soundness}\label{sec:soundness}
+
+\PLAN{What basis does anyone have for trusting the output of \UTP2?}
+
+Is \UTP2\ sound?
+For now, the simple answer is no,
+due mainly to two reasons.
+
+Firstly, users can add their own laws (axioms),
+and this always leads to the risk of defining a theory that is inconsistent.
+As we consider the typical user to be a UTP practitioner with experience in logic
+and axiomatics, developing foundational theories,
+we feel it is reasonable to expect such (power) users
+to be able to use their judgement to avoid such pitfalls.
+Having said that, it will probably make sense in future versions
+of the tool to support users at different levels of experience,
+with the more advanced and dangerous features disabled for novices.
+
+Secondly, the underlying proof engine is very complex,
+reflecting the complexity of the logic required.
+At present we are not in a position to guarantee soundness of every action
+that can be invoked. However, in mitigation, we do point out that
+the outcome of each basic proof step is highly visible in the tool's GUI.
+It is clear that eventually we will have to pay serious attention
+to ensuring the prover is sound (modulo any inconsistencies introduced
+via user-defined axioms). We envisage two possible approaches:
+\begin{enumerate}
+  \item
+    Identifying a very small core from which the whole logic can be developed
+    conservatively, and producing a small piece of prover kernel code
+    that can then be verified. This is the LCF approach adopted for prover systems
+    like HOL\cite{books/sp/NipkowPW02} and Coq\cite{tr:Coq:manual:08}.
+  \item
+    Developing an encoding of the \UTP2\ logic into the logic of a system
+    with a verified kernel, such as HOL or CoQ, and using those systems
+    to do automated proof checks, possibly even for each proof step as it is
+    done.
+\end{enumerate}

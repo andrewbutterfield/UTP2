@@ -1,0 +1,16 @@
+We reduce each set-condition,
+discarding any that evaluate to true,
+and keeping those that we cannot reduce to ground form,
+but returning an overall result of nothing
+if any ground test reduces to false,
+as the set-condition list is conjunctive.
+\begin{eqnarray*}
+  \lefteqn{reduce_{MS}\left(\bigwedge\setof{m_1,\ldots,m_n}\right)}
+\\&=&
+  \left\{\begin{array}{l@{,~~}l}
+    \False & reduce_M(m_i) \equiv \False, \textbf{ any } i \\
+    \True & reduce_M(m_i) \equiv \True, \textbf{ all } i \\
+    \bigwedge\setof{reduce_M(m_1),\ldots,reduce_M(m_n)} & \textbf{otherwise}
+  \end{array}\right.
+\end{eqnarray*} 
+Any $reduce_M(m_i) \equiv \True$ are dropped.

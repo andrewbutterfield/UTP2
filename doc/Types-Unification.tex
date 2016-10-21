@@ -1,0 +1,40 @@
+We give here, for reference, a (general) unification algorithm from Wikipedia,
+rewritten in our notation:
+\begin{eqnarray*}
+   x \in Var   && (given)
+\\ f \in Fun      && (given)
+\\ t \in Term     &::=&  x | f(t_1,\ldots,t_n), \quad n \geq 0
+\\ e \in Eqn      &::=&  t = t
+\\ M \in Eqns     &::=& \setof{e_1,\ldots,e_k}
+\\
+\\ Vars &:& Term \fun \power Var
+\\ Vars(x) &\defs& \setof x
+\\ Vars(f(t_1,\ldots,t_n)) &\defs& Vars(t_1) \cup \ldots \cup Vars(t_n)
+\\
+\\ Vars &:& Eqns \fun \power Var
+\\ Vars\setof{} &\defs& \setof{}
+\\ Vars(M \cup \setof{t_1=t_2}) 
+  &\defs& 
+  Vars(t_1) \cup Vars(t_2) \cup Vars(M \setminus \setof{t_1=t_2})
+\end{eqnarray*}
+
+\begin{eqnarray*}
+   unify &:& Eqns \pfun (Var \pfun Term)
+\\ \lefteqn{unify(M\cup\setof{t=t})}
+\\ &\defs& unify(M)
+\\ \lefteqn{unify(M\cup \setof{f(s_1,\ldots,s_k)=f(t_1,\ldots,t_k)} )}
+\\ &\defs& unify(M\cup\setof{s_1=t_1,\ldots,s_k=t_k})
+\\ \lefteqn{ unify(M\cup \setof{f(s_1,\ldots,s_j)=g(t_1,\ldots,t_k)} )}
+\\ &\defs& \bot, 
+   \quad f \neq g \lor j \neq k
+\\ \lefteqn{ unify(M\cup \setof{f(s_1,\ldots,s_k)=x} )}
+\\ &\defs& unify(M\cup\setof{x=f(s_1,\ldots,s_k)})
+\\ \lefteqn{ unify(M\cup \setof{x=t} )}
+\\ &\defs& unify(M[t/x] \cup \setof{x=t}), 
+   \quad x \in Vars(M) \land x \notin Vars(t)
+\\ \lefteqn{ unify(M\cup \setof{x=f(t_1,\ldots,t_k)} )}
+\\ &\defs& \bot,
+   \quad x \in Vars(f(t_1,\ldots,t_k))
+\end{eqnarray*}
+We are doing a bit of type punning here: $Eqns$ can be mapped to $Var \pfun Term$
+if all the lhs terms are distinct variables.

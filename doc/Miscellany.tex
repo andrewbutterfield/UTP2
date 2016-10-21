@@ -1,0 +1,219 @@
+\section{Proof Miscellany}
+
+\subsection{Substitution}
+
+We present a brief theory of substitution to allow us
+to have a small calculus for combining same.
+We take a simple expression language with components and binders:
+\begin{eqnarray*}
+   u,v \in Var && \mbox{unbounded set of variables}
+\\ e \in Expr &::=& v | (e~e) | \lambda v @ e
+\end{eqnarray*}
+We define a substitution as an variable to expression
+functional map:
+\begin{eqnarray*}
+   \sigma,\tau \in Subs &=& Var \pfun Expr
+\end{eqnarray*}
+We now define the outcome of a substitution:
+\begin{eqnarray*}
+   \_ ! \_ &:& Expr \times Subs \fun Expr
+\\ v ! \sigma
+   &\defs& \sigma(v) \cond{v \in \sigma} v
+\\ (e_1~e_2) ! \sigma &\defs& ((e_1 ! \sigma)~(e_2 ! \sigma))
+\\ (\lambda v @ e) ! \sigma
+   &\defs&
+   \lambda v @ (e ! \sigma \hide \setof v)
+\end{eqnarray*}
+Note that we do not address the notion of variable capture here
+---
+this is a ``raw'' substitution operator.
+We now present a number of laws, with proofs.
+The first characterise identity substitutions:
+\begin{eqnarray*}
+   e ! \mapof{} &=& e
+\\\textsf{Proof} && trivial~induction~on~e \qed
+\end{eqnarray*}
+\begin{eqnarray*}
+   e ! \mapof{u \to u} &=& e
+\\\textsf{Proof} && trivial~induction~on~e \qed
+\end{eqnarray*}
+In general we say that substitutions are equivalent
+if they have the same effect on all expressions:
+\begin{eqnarray*}
+ \sigma_1 \simeq \sigma_2
+  &\defs&
+  \forall e @ e ! \sigma_1 = e ! \sigma_2
+\end{eqnarray*}
+We can ignore identity substitutions:
+\begin{eqnarray*}
+   \sigma \cup \mapof{u \to u} &\simeq& \sigma
+\\\textsf{Proof} && induction~on~e
+\\\textsf{Base} && v!(\sigma \cup \mapof{u \to u})=v!\sigma
+\\ v!(\sigma \cup \mapof{u \to u})
+   &=& (\sigma \cup \mapof{u \to u})(v)
+       \cond{v \in \sigma \cup \mapof{u \to u}}
+       v
+\\ &=& (\sigma \cup \mapof{u \to u})(v)
+\\  && \cond{ v \in \sigma}
+\\  && ( (\sigma \cup \mapof{u \to u})(v)
+         \cond{v \in \mapof{u \to u}}
+         v )
+\\ &=& \sigma(v)
+       \cond{ v \in \sigma}
+       ( (\sigma \cup \mapof{u \to u})(v)
+         \cond{v =u}
+         v )
+\\ &=& \sigma(v)
+       \cond{ v \in \sigma}
+       ( \mapof{u \to u}(v)
+         \cond{v=u}
+         v )
+\\ &=& \sigma(v)
+       \cond{ v \in \sigma}
+       ( u \cond{v=u} v )
+\\ &=& \sigma(v) \cond{ v \in \sigma} v
+\\ &=& v!\sigma \qquad (note~indep.~of~\sigma)
+\\\textsf{Step 1} && e = e_1~e_2, \quad trivial
+\\\textsf{Step 2} && e = \lambda v @ e_b
+\\ (\lambda v @ e_b)!(\sigma \cup \mapof{u \to u})
+   &=& \lambda v @ (e_b ! (\sigma \cup \mapof{u \to u})\hide\setof v)
+\\\textsf{Case 2.1} && u=v, ~v \not\in \sigma
+\\ \lambda v @ (e_b ! (\sigma \cup \mapof{u \to u})\hide\setof v)
+   &=& \lambda v @ (e_b ! \sigma)
+\\ &=& \lambda v @ (e_b ! (\sigma \hide\setof v))
+\\ &=& (\lambda v @ e_b) ! \sigma
+\\\textsf{Case 2.2} && u \neq v
+\\ \lambda v @ (e_b ! (\sigma \cup \mapof{u \to u})\hide\setof v)
+   &=& \lambda v @ (e_b ! ((\sigma\hide\setof v) \cup \mapof{u \to u}))
+\\ &=& \lambda v @ (e_b ! (\sigma\hide\setof v)) \qquad (hyp.~with~diff.~\sigma)
+\\ &=& (\lambda v @ e_b) ! \sigma
+\\ \qed
+\end{eqnarray*}
+We define substitution composition as follows:
+$\sigma_1;\sigma_2$ is the substitution that satisfies, for any $e$,
+the identity:
+$$
+  e!(\sigma_1;\sigma_2) = (e!\sigma_1)!\sigma_2
+$$
+Let $\tau = \sigma_1;\sigma_2$.
+We can attempt to derive an expression for $\tau$ in terms of $\sigma_1$ and $\sigma_2$
+by doing a proof of the identity above, using induction on $e$:
+\begin{eqnarray*}
+   P(e) &\defs& e!\tau = (e!\sigma_1)!\sigma_1)
+\end{eqnarray*}
+We start with the base-case:
+\begin{eqnarray*}
+   v!\tau &=& (v!\sigma_1)!\sigma_2
+\\ \tau(v) \cond{v \in \tau} v
+   &=&
+   (\sigma_1(v) \cond{v \in \sigma_1} v)!\sigma_2
+\\ &=&
+   \sigma_1(v)!\sigma_2 \cond{v \in \sigma_1} v!\sigma_2
+\\ &=&
+   \sigma_1(v)!\sigma_2 \cond{v \in \sigma_1} (\sigma_2(v) \cond{v \in \sigma_2} v)
+\\ &=&
+   (\sigma_1(v)!\sigma_2 \cond{v \in \sigma_1} \sigma_2(v))
+   \cond{v \in \sigma_1 \lor v \in \sigma_2}
+   v
+\end{eqnarray*}
+From this we can identify the following identities:
+\begin{eqnarray*}
+   v \in \tau &\equiv& v \in \sigma_1 \lor v \in \sigma_2
+\\ \tau(v) &=& \sigma_1(v)!\sigma_2 \cond{v \in \sigma_1} \sigma_2(v)
+\end{eqnarray*}
+These suggest the following definition:
+\begin{eqnarray*}
+ \sigma_1;\sigma_2 &\defs& (id \pfun \lambda e @ e!\sigma_2)\sigma_1 \cup (\sigma_2\hide\sigma_1)
+\end{eqnarray*}
+We can check this, by proving
+$P(e) \defs e!(\sigma_1;\sigma_2) = (e!\sigma_1)!\sigma_2$,
+by induction on $e$.
+Expanding the definition of $;$ means we show:
+$$
+ e!((id \pfun \lambda e @ e!\sigma_2)\sigma_1 \cup (\sigma_2\hide\sigma_1))
+ =
+ (e!\sigma_1)!\sigma_2
+$$
+\begin{eqnarray*}
+   && \textsf{Base Case : } e = v
+\\ \lefteqn{v!((id \pfun \lambda e @ e!\sigma_2)\sigma_1 \cup (\sigma_2\hide\sigma_1))}
+\\ &=& ((id \pfun \lambda e @ e!\sigma_2)\sigma_1 \cup (\sigma_2\hide\sigma_1))(v)
+\\  && \quad \cond{v \in ((id \pfun \lambda e @ e!\sigma_2)\sigma_1 \cup (\sigma_2\hide\sigma_1))}
+             v
+\\ &=& (((id \pfun \lambda e @ e!\sigma_2)\sigma_1)(v)
+         \cond{v \in \sigma_1}
+         \sigma_2(v))
+\\  && \quad \cond{v \in \sigma_1 \lor v \in \sigma_2}
+             v
+\\ &=& (\sigma_1(v))!\sigma_2
+       \cond{v \in \sigma_1}
+       (( \sigma_2(v)) \cond{v \in \sigma_2} v )
+\\ &=& (\sigma_1(v))!\sigma_2
+       \cond{v \in \sigma_1}
+       v!\sigma_2
+\\ &=& (\sigma_1(v) \cond{v \in \sigma_1} v)!\sigma_2
+\\ &=& (v!\sigma_1)!\sigma_2
+\\ && \textsf{Induction Step 1 : }  e = e_1~e_2
+\\ \lefteqn{(e_1~e_2)!((id \pfun \lambda e @ e!\sigma_2)\sigma_1 \cup (\sigma_2\hide\sigma_1))}
+\\ &=& (e_1!((id \pfun \lambda e @ e!\sigma_2)\sigma_1 \cup (\sigma_2\hide\sigma_1)))
+\\  && (e_2!((id \pfun \lambda e @ e!\sigma_2)\sigma_1 \cup (\sigma_2\hide\sigma_1)))
+\\ &=& ((e_1!\sigma_1)!\sigma_2)~((e_2!\sigma_1)!\sigma_2) \qquad ind.~hyp.
+\\ &=& ((e_1!\sigma_1)~(e_2!\sigma_1))!\sigma_2
+\\ &=& ((e_1~e_2)!\sigma_1)!\sigma_2
+\\ && \textsf{Induction Step 2 : }  e = \lambda v @ e_b
+\\ \lefteqn{(\lambda v @ e_b)!((id \pfun \lambda e @ e!\sigma_2)\sigma_1 \cup (\sigma_2\hide\sigma_1))}
+\\ &=& \lambda v @ e_b!(((id \pfun \lambda e @ e!\sigma_2)\sigma_1 \cup (\sigma_2\hide\sigma_1))\hide v)
+\\ &=& \lambda v @ e_b!( ((id \pfun \lambda e @ e!\sigma_2)\sigma_1)\hide v \cup (\sigma_2\hide\sigma_1)\hide v)
+\\ &=& \lambda v @ e_b!( ((id \pfun \lambda e @ e!\sigma_2)(\sigma_1\hide v)) \cup ((\sigma_2\hide v)\hide(\sigma_1\hide v)) )
+\end{eqnarray*}
+This fails --- we cannot define substitution composition for a
+raw-substitution example!
+E.g. take
+\begin{eqnarray*}
+   \sigma_1 &=& \mapof{x \to 3y, y \to 2+x}
+\\ \sigma_2 &=& \mapof{x \to 10y}
+\\ \sigma_1;\sigma_2 &=& \mapof{x \to 3y, y \to 2+10y}
+\\  && (\lambda x @ (x,y))!\sigma_1!\sigma_2
+\\ &=& \lambda x @ (x,y)!\sigma_1\hide x ! \sigma_2 \hide x
+\\ &=& \lambda x @ (x,2+x) ! \sigma_2 \hide x
+\\ &=& \lambda x @ (x,2+x)
+\\ &\not=& (\lambda x @ (x,y))!(\sigma_1;\sigma_2)
+\\ &=& \lambda x @ (x,y)!((\sigma_1;\sigma_2)\hide x)
+\\ &=& \lambda x @ (x,2+10y)
+\end{eqnarray*}
+We can make it work for a substitution algorithm that
+$\alpha$-renames with fresh variables to avoid capture:
+\begin{eqnarray*}
+    && (\lambda x @ (x,y))!\sigma_1!\sigma_2
+\\ &=& \lambda a @ (a,y)!\sigma_1!\sigma_2
+\\ &=& \lambda a @ (a,2+x)!\sigma_2
+\\ &=& \lambda a @ (a,2+10y)
+\\ &=& (\lambda x @ (x,y))!(\sigma_1;\sigma_2)
+\\ &=& \lambda a @ (a,y) ! (\sigma_1;\sigma_2)
+\\ &=& \lambda a @ (a,2+10y)
+\end{eqnarray*}
+
+
+\newpage
+\subsection{Matching Normal Forms}
+
+We want to be able to match predicates like
+$P\land(P\lor Q)$,
+$P\land(Q\lor P)$,
+$(Q\lor P)\land P$,
+and $(P\lor Q)\land P$,
+against the single, representative pattern $A \land (A \lor B)$ (say).
+Can we find a ``normal form'' that does not depend
+on ordering by Pvar names?
+
+Laws needing this treatment typically have conjunction and/or disjunction,
+with some kind of side-condition.
+Such laws include:
+\begin{eqnarray*}
+   A \land (A \lor B) &\equiv& A
+\\ A \lor (A \land B) &\equiv& A
+\\ \exists x_i,y_j @ \bigwedge(x_i=e_i) \land A
+   &\equiv&
+   \exists y_j @ A[e_i/x_i]
+   \qquad i \in I, j \in J, x_i \notin e_{i'}
+\end{eqnarray*}

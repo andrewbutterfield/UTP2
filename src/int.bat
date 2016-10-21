@@ -1,0 +1,1 @@
+ghci -H1024  -fglasgow-exts -package wx UTP2.lhs

@@ -1,0 +1,51 @@
+\subsubsection{Determining $\alpha$-Equivalence}
+
+Variables are equivalent if identical and neither is bound,
+or they are both in their respective bound sets,
+in which case they can be mapped:
+\begin{eqnarray*}
+   \alfBndVarL  &\defs& \alfBndVarR  \qquad \alfBndVarN
+\\ \alfBndLstVL  &\defs& \alfBndLstVR  \qquad \alfBndLstVN
+\\ \alfFreeVarL &\defs& \alfFreeVarR \qquad \alfFreeVarN
+\\ \alfFreeLstVL &\defs& \alfFreeLstVR \qquad \alfFreeLstVN
+\end{eqnarray*}
+For composites, we recurse down,
+and then merge the resulting bindings,
+which may fail:
+\begin{eqnarray*}
+   \alfCompL &\defs& \alfCompR, \qquad \alfCompN
+\end{eqnarray*}
+When we descend through a binder
+we extend the bound variable sets,
+(which should always have the same cardinality),
+and we then take the returned mappings,
+merge with the possible bijections
+and finally remove any entries not mentioned in either of the original bound sets:
+\begin{eqnarray*}
+   \lefteqn{\alfQuantL, \qquad \alfQuantN}
+\\ &\defs& \alfQuantR
+\\ && \WHERE
+        \alfQuantS, \mbox{ also respecting Std/Lst distinction}
+\end{eqnarray*}
+We define a map restriction  ($|$) that removes any maplet
+if neither of its components are in the correspond set in the specified pair,
+as a lifting of the following pointwise definition:
+
+\ALFMAPRESTRICT
+
+Any (predicate/expression) meta-variables must match themselves,
+with an exception for regular variables
+which can match expression meta variables of the same name
+provided they are not known or bound
+\begin{eqnarray*}
+   \alfFreeMVarL &\defs& \alfFreeMVarR, \qquad \alfFreeMVarN
+\end{eqnarray*}
+Substitutions can be viewed as complex composites,
+where we expect ordering of substitutions to matter (for now):
+\begin{eqnarray*}
+   \lefteqn{\alfSubL, \qquad \alfSubN}
+\\ &\defs&
+   \alfSubR
+\\ && \WHERE
+        \alfSubS, \mbox{ also respecting Std/Lst distinction}
+\end{eqnarray*}

@@ -1,0 +1,254 @@
+v3.5
+^MATCH-TEST ^12 ^0 ^0 !MK
+^k ^42 !EN
+^1 !ME
+^equa ^equa !EV
+^ev ^f ^x !EV
+!EA
+^2 !ME
+^PQUA ^PQUA !PV
+^PV ^P !PV
+^Q !PV
+^2 !PO
+^2 !MP
+^kn ^BadVar.1:BadVar.1:BadVar.1:BadVar.1:BadVar.1:NonVariable:? !cM
+!TB
+!o2
+^kn' ^BadVar.1:BadVar.1:BadVar.1:BadVar.1:BadVar.1:NonVariable:? !cM
+!TB
+!o2
+^x ^NullVariable !cS
+!TZ
+!o2
+^x$ ^NullVariable !cM
+!TB
+!o2
+^x$' ^NullVariable !cM
+!TB
+!o2
+^x' ^NullVariable !cS
+!TZ
+!o2
+^y ^NullVariable !cS
+!TZ
+!o2
+^y' ^NullVariable !cS
+!TZ
+!o2
+^8 !MV
+^!!!! ^80 ^0 !p
+^*** ^50 ^1 !p
+^|- ^190 ^0 !p
+^3 !MO
+^|- ^&32;P&32;|-&32;P&32; ^1 !MG
+^*** ^t1 !Tv
+^t2 !Tv
+^2 !TP
+^t3 !Tv
+!TF
+^1 !MK
+^tst ^A !PV
+^B !PV
+^2 !PA
+^B !PV
+^A !PV
+^2 !PA
+!PQ
+!CT
+^GSLogic !OS
+^ROOT !OS
+^2 !OP
+^XXX ^= ^220 ^!!!! ^80 ^e !EV
+!PE2
+!"P
+^f !EV
+!PE2
+!"P
+^2 !'0
+^!!!! !'T
+!'0
+^3 !PL
+!"P
+^!!!! ^80 ^f !EV
+!PE2
+!"P
+^e !EV
+!PE2
+!"P
+^2 !'0
+^!!!! !'T
+!'0
+^3 !PL
+!"P
+^2 !'0
+^= !'T
+!'0
+^3 !PL
+!CT
+^butrfeld !OU
+^test ^*** ^50 ^e !EV
+^f !EV
+!EB
+^*** ^50 ^f !EV
+^e !EV
+!EB
+!E=
+!PE2
+!CT
+^butrfeld !OU
+^kn-proper ^kn !EV
+!PE2
+^a ^1 !QL
+^a !EV
+!PE2
+!PEx
+^2 !PO
+^b ^1 !QL
+^b !EV
+!PE2
+!PN
+!PEx
+^2 !PO
+!CT
+^butrfeld !OU
+^kn-overuse ^kn !EV
+!PE2
+^kn ^1 !QL
+^kn !EV
+!PE2
+!PEx
+^2 !PO
+^kn ^1 !QL
+^kn !EV
+!PE2
+!PN
+!PEx
+^2 !PO
+!CT
+^butrfeld !OU
+^DEF&32;|- ^|- ^0 ^P0 !PV
+!"P
+^P1 !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^_UNINT !PV
+!PQ
+!CT
+^butrfeld !OD
+^6 !lM
+^kn-fail ^b !EV
+!PE2
+^kn ^1 !QL
+^kn !EV
+!PE2
+!PEx
+^2 !PO
+^kn ^1 !QL
+^kn !EV
+!PE2
+!PN
+!PEx
+^2 !PO
+!CT
+!L
+^kn-suceed ^kn !EV
+!PE2
+^x ^1 !QL
+^x !EV
+!PE2
+!PEx
+^2 !PO
+^y ^1 !QL
+^y !EV
+!PE2
+!PN
+!PEx
+^2 !PO
+!CT
+!L
+^test ^|- ^190 ^A !PV
+!"P
+^B !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^|- ^190 ^B !PV
+!"P
+^A !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PQ
+!CT
+!L
+^test2 ^*** ^50 ^1 !EN
+^3 !EN
+!EB
+!PE2
+!CT
+!L
+^4 !ML
+^tst ^MATCH-TEST ^tst ^A !PV
+^B !PV
+^2 !PA
+^B !PV
+^A !PV
+^2 !PA
+!PQ
+!CT
+!PT
+!RE
+^0 !mre
+^_ROOT$0$Ax-==-id ^ROOT !OS
+!Il
+^P ^B !PV
+^A !PV
+^2 !PA
+^1 !MP
+^0 !ME
+^0 !MK
+^0 !MQ
+!B4
+!j
+^B !PV
+^A !PV
+^2 !PA
+^B !PV
+^A !PV
+^2 !PA
+!PQ
+!s
+!AJ
+!RE
+^1 ^1 !mre
+^GSLogicFull$1$/\-Comm ^GSLogic !OS
+!Il
+^P ^B !PV
+^Q ^A !PV
+^2 !MP
+^0 !ME
+^0 !MK
+^0 !MQ
+!B4
+!j
+^A !PV
+^B !PV
+^2 !PA
+^B !PV
+^A !PV
+^2 !PA
+!PQ
+!s
+!AJ
+^2 !X
+!?R
+^$T ^_PLT_tst ^MATCH-TEST ^GSLogicFull ^_ROOT ^4 ^vcqsfgck !!
+^1 !MT
+!@

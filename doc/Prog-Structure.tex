@@ -1,0 +1,131 @@
+\section{Overview}
+
+The sources  for \UTP2 comprise a very large collection of \LaTeX\ sources, and Haskell Literate Scripts,
+which are themselves also valid \LaTeX.
+
+The directory/folder structure has been designed to support ease of
+development for the main development environment, namely WinEdt/MikTeX/ghci
+on Windows (currently Windows 8).
+
+\section{Directory Structure}
+
+The top-level contains all the \LaTeX\ master documents,
+currently including:
+\begin{description}
+  \item[UTP2-MAIN.tex] \UTP2\ sources and documentation
+  \item[UTP2-Hacking-MAIN.tex] This document
+  \item[UTP2-Reference-MAIN.tex] Reference manual
+  \item[UTP2-User-Manual-MAIN.tex] User Guide.
+\end{description}
+Almost all other files present at this level should be considered
+as junk, even if tracked by Mercurial. This will be tidied up at some
+future date.
+
+\newpage
+Subdirectories are organised as follows:
+\begin{description}
+  \item[src]~\\
+     Haskell source files, as well as MS-DOS batch files (.bat)
+     for building under Windows.
+  \item[doc]~\\
+     Mainly \LaTeX\ files giving documentation of various forms,
+     as well as text files to do with installation.
+     It has a couple of sub-directories to manage certain types of documentation:
+     \begin{description}
+       \item[formal] mainly formal definitions of aspects of the logic
+       \item[images] images (obviously!)
+       \item[papers] sources for conference/journal papers about \UTP2
+       \item[styles] \LaTeX\ style files (currently ignored).
+       \item[screenshots] screen shots of the tool in action,
+           arranged in topic sub-directories
+     \end{description}
+  \item[batch]~\\
+     Created by someone from a unix background, to hold .bat files.
+     \\(Deprecated, unused, will probably disappear).
+  \item[licence]~Licensing files.
+  \item[orphans]~unwanted and unloved --- also likely to vanish.
+  \item[resource]~mainly sound and help files.
+    \\The help file (with the long unpronounceable name)
+     has been subsumed into the relevant code,
+     and is no longer required.
+  \item[test]~\\
+     test stuff, currently unused,
+     but we will probably flesh this out at some stage.
+  \item[thlib]~\\
+     This is where we build \UTP2\ theories to drive and test the development,
+     and most of which will become part of a standard theory library release.
+  \item[www]~\\
+     Stuff for the (release) website.
+\end{description}
+\section{Literate File Structure}
+
+All the Haskell source files are literate scripts
+(.lhs extension) that are themselves valid \LaTeX\ files,
+in which the Haskell source is enclosed in
+\verb"\begin{code}" \ldots \verb"\end{code}" environments.
+The \texttt{code} environment is defined in the style file \texttt{doc/saoithin.sty}.
+
+We do not use ``bird-tracks'' or \texttt{lhs2tex},
+nor do we use Hackage/Haddock in any way.
+
+\newpage
+\begin{haskell}
+An example of some .lhs source is below:
+\subsection{\UTP2 Source Example}
+
+\begin{code}
+module Example where
+import Utilities
+\end{code}
+
+\subsubsection{Intro}
+
+We can have a suitably mathematical comment:
+$\sigma \circ \sigma = \mathsf{id}$
+and then some code:
+\begin{code}
+sigma = negate
+\end{code}
+\end{haskell}
+When typeset, this results in:
+
+\subsection{\UTP2 Source Example}
+
+\begin{code}
+module Example where
+import Utilities
+\end{code}
+
+\subsubsection{Intro}
+
+We can have a suitably mathematical comment:
+$\sigma \circ \sigma = \mathsf{id}$
+and then some code:
+\begin{code}
+sigma = negate
+\end{code}
+
+\section{\UTP2\ Distribution Structure}
+
+At present Unix and Mac OS X users have to build from source,
+and at present we do not have proper makefiles or install scripts.
+
+For windows users we package up a binary release.
+
+Below are listing of all the relevant installation text files.
+
+\newpage
+\subsection{README.txt}
+\verbatiminput{doc/README.txt}
+
+\newpage
+\subsection{COPYING.txt}
+\verbatiminput{licence/COPYING.txt}
+
+\newpage
+\subsection{INSTALL.txt}
+\verbatiminput{doc/INSTALL.txt}
+
+\newpage
+\subsection{MANIFEST.txt}
+\verbatiminput{doc/MANIFEST.txt}

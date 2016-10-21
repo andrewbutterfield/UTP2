@@ -1,0 +1,206 @@
+----------------------- REVIEW 1 ---------------------
+PAPER: 4
+TITLE: The Logic of UTP2
+AUTHORS: Andrew Butterfield
+
+OVERALL RATING: 1 (weak accept)
+
+Content Description: In my view, what this paper presents is a high-level informal 
+specification of a theorem prover called U(TP)2, whose main objective is to support 
+interactive development of novel UTP theories.  There is no claim of soundness or 
+powerful automation facilities, but of a style of interaction akin to that adopt in 
+pen-and-paper UTP proofs.
+
+Technical Correctness: I have found no serious problems.
+
+Relevance to UTP: The question with this line of work is the rationale for 
+construction of yet another theorem prover.  In the spirit of supporting prototyping 
+of UTP theories, and I think it is a valid relevant contribution to the UTP community. 
+The present paper gives a good overview of the internal workings of the theorem prover 
+in implementing the high-order logic used in the UTP.
+
+Quality of the presentation:  The use of English is very good. The descriptions are 
+clear, with nice examples. There are quite a few typos.
+
+Other Remarks: The novelty of the work is moderate.
+
+Minor points:
+
+The use of "-" throughout the paper is inadequate. Careful proofreading is required to 
+sort this out.
+
+The use of a descriptive remark at the beginning of each section is strange.  It reads 
+like left-over notes from a draft.
+
+Introduction, line 2: caclulus -> calculus  --  please, spell check the paper.
+
+page 1, line -3 (3 from the bottom): remove comma before that; l-2: tools -> tool; 
+l-1: interfaced -> interface
+
+The use of the equivalence symbol for a relation between two bindings that do not map 
+the same variable to different things is strange: the equivalence symbol raises strong 
+expectation as to what is being defined, and it is not this
+
+Do not use abbreviations like "don't" and others.
+
+Do not give an exercise.
+
+The problem of rewriting introduced by a law like e + 0 = e is not solved just by 
+typing.  The point, it seems,  is that no automated attempt is made to apply such laws 
+arbitrarily, other termination would be an issue if it could be used from right to 
+left.
+
+page 7; l-2: of same?  It does not read right.
+
+p8, after items: define -> defining; l3: assignment (V := E) has just been given as an 
+infix operator with an entry in lang. This is confusion.
+
+S4.2,ll0: were -> where
+
+p8; l-2: ... treat THE substitution ...
+
+p9: refereed -> referred; " before ordinary; spurious S after y_j?  Is the binding of 
+a quantifier variable xs nondeterministic? What happens if you have forall ;xs1,xs2 @ 
+p to match to forall x, y, z?
+
+p10,l4: were -> where
+
+p10, first inference rule: does it have an empty binding?  Is this allowed?
+
+p10,l-2: introduceD
+
+p13,l4: of same?
+
+S6,definition of While: explain where a more general treatment of program variables is 
+provided, since it is just below.
+
+S6.1: I believe the view that we need "dynamism" in the number and names of program 
+variables is mistaken. The point is that the theory of designs, for instance, is 
+actually not "the" theory, but a collection of theories: one for each alphabet.  So, 
+we do not need dynamism, but generality.
+
+Also, I do not believe that it is essential for the pre and postconditions of a design 
+not to refer to ok and ok' (even though this is claimed in [HH98]). So some 
+simplification is possible in your tool.
+
+p15, paragraph after definition of Skip: it finishes by posing a problem that is then 
+not solved or further discussed.
+
+p15,l-7: should f be e?
+
+S6.2,l4: model variables were just ok and ok' before.  This is confusing.
+
+S6.3,l3: of same?
+
+S8,l8: designED; l10: compete -> complete
+
+There is an encoding of Circus and the UTP in Isabelle. You may want to refer to it as 
+well in Section 8.
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 4
+TITLE: The Logic of UTP2
+AUTHORS: Andrew Butterfield
+
+OVERALL RATING: 3 (strong accept)
+
+Content Description:
+
+The paper sketches the features needed for at least one scheme to construct a theorem 
+prover for UTP, "U.(TP)^2".  In particular, the paper carefully considers the details 
+which are usually implicitly considered by human provers but which need to be 
+explicitly programmed into an automated theorem prover.
+
+Technical Correctness:
+
+The paper appears to be technically correct.
+
+There is one oddity: the syntax for expressions at the start of 3.1 does not seem to 
+allow the application of an arbitrary (function) expression to an expression, but only 
+application of a function name to to an expression.
+
+Relevance to UTP:
+
+High!
+
+Significance to UTP:
+
+To be of industrial use any method needs good tool support.  U.(TP)^2 is a first tiny 
+step towards this (a tool for UTP-theory developers), and so significant for the 
+future utilisation of the UTP.
+
+Quality of the presentation:
+
+The presentation seems a bit rushed (like this review) but readable.
+
+There are a number of places where the first subsection header is towards the end of a 
+section; this reads oddly.
+
+There are a slew of typographic errors.  These are the ones I found:
+Section 2, para 1.  "refer such" --> "refer to such"
+Section 3.1, para beginning "The mechanism as described...": "can defined" --> "can be 
+defined"
+Section 4.2, proof of associativity of sequential composition needs careful formatting 
+to get it within the margins.
+                  There are two missing "bullet" symbols between bound variables and 
+                  bodies on lines 6 & 7.
+Section 4.2, para beginning "To achieve this..."represent list" --> "represent lists"; 
+"``ordinary" --> "``ordinary"; "y_{j}S" --> "y_{j}".
+Section 5, para beginning "The first step..": "...which in this case is identical to 
+we can deduce..." --> ???? (a large missing chunk of text?)
+Section 5, para beginning "The structural matching rule...": "check is a variable" --> 
+"check if a variable"
+Section 5.1, para 1: "of same" --> "of such"; "adding in tables into" --> "adding in 
+tables to"
+Section 6, last formula before Subsection 6.1: "whl" --> "{}\whl{}" ?
+Section 6.2, para 1: "need to" --> "needs to"; "required" --> "requires".
+Section 7, para beginning "Secondly, the underlying...": "tools" --> "tool's".
+
+Other Remarks:
+
+None.
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 4
+TITLE: The Logic of UTP2
+AUTHORS: Andrew Butterfield
+
+OVERALL RATING: 2 (accept)
+
+Content Description & Technical Correctness:
+
+This paper shows the framework and the workflow of U(TP)^2 -- an interactive proof 
+assistant, designed to support UTP development. It mainly presents the logic of 
+U(TP)^2, which is based on the first-order equational logic. It illustrates the 
+features of some key operators (i.e., sequential composition), and designs. And it 
+also gives U(TP)^2 semantics for programs written in "While" language. This paper not 
+only presents precise formal definitions about their framework, but also interprets 
+the usefulness and soundness of their framework.
+
+
+Relevance to UTP & Significance to UTP:
+
+This paper is very related to UTP. UTP is constructed as one of "components" in 
+U(TP)^2. Their work provides a theorem prover for UTP which can help UTP users easily 
+define a UTP theory and experiment key proofs. It may help UTP to be applied more 
+widely.
+
+
+Quality of the presentation:
+
+The motivation of work is clear, and this paper is well organized and written to 
+present their work and contribution. However, I think the authors can elaborate more 
+to help the general audience (not just UTP experts) be more aware of the work's 
+importance and significance.
+
+
+Other Remarks:
+
+In section 7, I think it would be better to give some more evidences about the 
+soundness of U(TP)^2. Moreover, I also think it would be more direct to illustrate the 
+usefulness of U(TP)^2 by a case study.
+
+
+Over all, I enjoy reading this paper and I am looking forward to their further work.

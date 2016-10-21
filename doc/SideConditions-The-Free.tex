@@ -1,0 +1,14 @@
+Are variables precisely the free ones of a predicates ($V = P$)~?
+\\If we only have free variables this is straightforward,
+or if there are no such, and only a single predicate meta-variable.
+Other cases are complicated and the relevant condition cannot be
+expressed in our current side-condition notation.
+If we cannot answer in the negative,
+then we insist that all meta-variables have the same free variables,
+equal to those required.
+\begin{eqnarray*}
+  V = \setof{v_1,\ldots,v_n} &\equiv& \mbox{the obvious!}
+\\ V = ( P \setminus H ) &\impliedby & V = P \land P \DISJ H
+\\ V = ( ms \sthen c ) && \textrm{Cannot say without } \rho.
+\\ V = ( m \ssthen r ) && \textrm{Cannot say without } \rho.
+\end{eqnarray*} 

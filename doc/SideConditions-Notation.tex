@@ -1,0 +1,43 @@
+A table showing side-condition abstract,
+mathematical and concrete syntaxes:
+
+\begin{tabular}{|l|l|l|}
+  \hline
+  \texttt{SideCond} & Math & ASCII
+  \\\hline
+  \texttt{SCtrue} & $True$ & \texttt{true}
+  \\\hline
+  \texttt{SCisCond PredM "Q"} & $Q \mbox{ a condition}$
+  & \texttt{CND Q}
+  \\\hline
+  \texttt{SCisCond ExprM "e"} & $e \mbox{ un-dashed}$
+  & \texttt{cnd e}
+  \\\hline
+  \texttt{SCnotFreeIn PredM ["x","y"] "Q"} & $x,y \notin {Q}$
+  & \texttt{Q \#\# x,y}
+  \\\hline
+  \texttt{SCnotFreeIn ExprM ["x","y"] "e"} & $x,y \notin {e}$
+  & \texttt{e \# x,y}
+  \\\hline
+  \texttt{SCareTheFreeOf PredM ["x","y"] "Q"} & $x,y = {Q}$
+  & \texttt{Q == x,y}
+  \\\hline
+  \texttt{SCareTheFreeOf ExprM ["x","y"] "E"} & $x,y = {e}$
+  & \texttt{e = x,y}
+  \\\hline
+  \texttt{SCcoverTheFreeOf PredM ["x","y"] "Q"} & $x,y \supseteq {Q}$
+  & \texttt{Q << x,y}
+  \\\hline
+  \texttt{SCcoverTheFreeOf ExprM ["x","y"] "e"} & $x,y \supseteq {e}$
+  & \texttt{e < x,y}
+  \\\hline
+  \texttt{SCfresh PredM ["Q","R"]} & $Q, R \mbox{ fresh}$
+  & \texttt{FRSH Q,R}
+  \\\hline
+  \texttt{SCfresh ExprM ["x","y"]} & $x, y \mbox{ fresh}$
+  & \texttt{frsh x,y}
+  \\\hline
+  \texttt{SCAnd [sc1,sc2]} & $sc_1 \land sc_2$
+  & \texttt{sc1 ; sc2}
+  \\\hline
+\end{tabular}

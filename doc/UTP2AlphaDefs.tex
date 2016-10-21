@@ -1,0 +1,90 @@
+%
+% This document provides a single place for definitions
+% that will appear in multiple locations,
+% and so ensures they are kept consistent.
+%
+% This does not generate any typeset output.
+%
+
+
+\def\alfBndVarL{x_1 \balfeqv{B_1 \cup \setof{x_1}}{B_2\cup\setof{x_2}} x_2}
+\def\alfBndVarR{(\mapof{x_1 \to x_2},\emptyset,\emptyset)}
+\def\alfBndVarN{\LNAME{$\alpha$BndVar}}
+\def\alfBndVar{\alfBndVarL \defs \alfBndVarR}
+
+
+\def\alfBndLstVL{\lst x_1 \balfeqv{B_1 \cup \setof{\lst x_1}}{B_2\cup\setof{\lst x_2}} \lst x_2}
+\def\alfBndLstVR{(\mapof{\lst x_1 \to \lst x_2},\emptyset,\emptyset)}
+\def\alfBndLstVN{\LNAME{$\alpha$BndLstV}}
+\def\alfBndLstV{\alfBndLstVL \defs \alfBndLstVR}
+
+
+\def\alfFreeVarL{x \balfeqv{B_1 \setminus \setof{x}}{B_2 \setminus\setof{x}} x}
+\def\alfFreeVarR{(\mapof{},\emptyset,\emptyset)}
+\def\alfFreeVarN{\LNAME{$\alpha$FreeVar}}
+\def\alfFreeVar{\alfFreeVarL \defs \alfFreeVarR, \quad \alfFreeVarS}
+
+
+\def\alfFreeLstVL{\lst x \balfeqv{B_1 \setminus \setof{\lst x}}{B_2 \setminus\setof{\lst x}} \lst x}
+\def\alfFreeLstVR{(\mapof{},\emptyset,\emptyset)}
+\def\alfFreeLstVN{\LNAME{$\alpha$FreeLstV}}
+\def\alfFreeLstV{\alfFreeLstVL \defs \alfFreeLstVR, \quad \alfFreeLstVS}
+
+
+\def\alfCompL{(P_1 \land Q_1) \balfeqv{B_1}{B_2} (P_2 \land Q_2)}
+\def\alfCompR{
+   (P_1 \balfeqv{B_1}{B_2} P_2)
+   \uplus
+   (Q_1 \balfeqv{B_1}{B_2} Q_2)
+}
+\def\alfCompN{\LNAME{$\alpha$Comp}}
+\def\alfComp{\alfCompL \defs \alfCompR, \quad \alfCompS}
+
+
+\def\alfQuantL{(\exists \vec x_1 @ P_1) \balfeqv{B_1}{B_2} (\exists \vec x_2 @ P_2)}
+\def\alfQuantR{
+   \left(
+     (P_1 \balfeqv{B_1 \cup \setof{\vec x_1}}{B_2\cup\setof{\vec x_2}} P_2)
+     \uplus
+     (\theta,\elems~\vec x_1,\elems~\vec x_2)
+   \right)
+   |_{(B_1,B_2)}
+}
+\def\alfQuantS{\#(B_1 \cup \setof{\vec x_1}) = \#(B_2\cup\setof{\vec x_2})}
+\def\alfQuantN{\LNAME{$\alpha$Quant}}
+\def\alfQuant{\alfQuantL \defs \alfQuantR, \quad \alfQuantS}
+
+
+\def\alfFreeMVarL{M \balfeqv{B_1\setminus\setof M}{B_2\setminus\setof M} M}
+\def\alfFreeMVarR{(\mapof{},\emptyset,\emptyset)}
+\def\alfFreeMVarN{\LNAME{$\alpha$FreeMVar}}
+\def\alfFreeMVar{\alfFreeMVarL \defs \alfFreeMVarR}
+
+\def\alfSubL{P_1[\vec e/\vec x] \balfeqv{B_1}{B_2} P_2[\vec f/\vec y]}
+\def\alfSubR{
+  (P_1 \balfeqv{B_1}{B_2} P_2)
+   \uplus
+   \biguplus_{i \in \len~\vec x}(e_i\balfeqv{B_1}{B_2} f_i )
+   \uplus
+   \biguplus_{i \in \len~\vec x}(x_i\balfeqv{B_1}{B_2} y_i )
+}
+\def\alfSubS{\len~\vec x = \len~\vec y}
+\def\alfSubN{\LNAME{$\alpha$Sub}}
+\def\alfSub{\alfSubL \defs \alfSubR, \quad \alfSubS}
+
+\def\ALFMAPRESTRICT{
+\begin{eqnarray*}
+   \_|\_ &:& BIJ \times \power Var \fun 1 + BIJ
+\\ \mapof{u \to v} | (B_1,B_2)
+   &\defs&
+   \mapof{}, \IF  u \notin B_1 \land v \notin B_2
+\\&& \mapof{u \to v}, \IF u \in B_1 \land v \in B_2
+\\&& \bot, \textbf{otherwise}
+\end{eqnarray*}
+}
+%% Template
+%\def\alfXXXL{lhs}
+%\def\alfXXXR{rhs}
+%\def\alfXXXS{sc}
+%\def\alfXXXN{\LNAME{$\alpha$XXX}}
+%\def\alfXXX{\alfXXXL \defs \alfXXXR, \quad \alfXXXS}

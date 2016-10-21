@@ -1,0 +1,20 @@
+To reduce a conditional set we first reduce the condition,
+and then, if not false, we reduce the atom.
+\begin{eqnarray*}
+  reduce_C(a) &=& reduce_A(a)
+\\ reduce_C(\bigwedge(m_i) \sthen c)
+  &=&
+  \left\{\begin{array}{l@{,~~}l}
+    \emptyset & \lnot reduce_{MS}(\bigwedge(m_i)) \\
+    reduce_C(c) & \textbf{all } \True \\
+    reduce_{MS}(\bigwedge(m_i)) \sthen reduce_C(c) & \textbf{otherwise}
+  \end{array}
+  \right.
+\\ reduce_C(m \ssthen r)
+  &=&
+  \left\{\begin{array}{l@{,~~}l}
+    \emptyset & \lnot reduce_M(m) \\
+    reduce_M(m) \ssthen r & \textbf{otherwise}
+  \end{array}
+  \right.
+\end{eqnarray*}

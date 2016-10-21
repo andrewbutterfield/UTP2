@@ -1,0 +1,229 @@
+\subsection{Classical 2nd-Order Logic (Prawitz 1956)}
+
+This is a summary of key results from \cite{Prawitz56}.
+The notation has been re-worked, and key definitions
+formalised in a more modern functional style.
+
+\subsubsection{Syntax (I\S1)}
+
+Symbol Categories:
+\begin{eqnarray*}
+   x,y,z &:& Var \mbox{ --- variables: only occur bound}
+\\ a,b,c &:& Par \mbox{ --- parameters: only occur free}
+\\ p^n,q^n,p,q &:& Pred.\nat \mbox{ --- Predicates with Arity}
+\\ \setof{\F,\land,\lor,\implies,\forall,\exists} &=& LCon \mbox{ --- Logical Constants}
+\\ J,K &:& Const \mbox{ --- Individual Constants}
+\\ F,G,H &:& Opn.\nat \mbox{ --- Operation Constants with arity}
+\\ P,Q,P^n,Q^n &:& PCon.\nat \mbox{ --- Predicate Constants with Arity}
+\end{eqnarray*}
+
+Terms:
+\begin{eqnarray*}
+    t,u \in Term &::=& a ~|~ K ~|~ F.n(t_1, \ldots, t_n)
+\end{eqnarray*}
+
+Formulae:
+\begin{eqnarray*}
+   \alpha \in AtomicF &::=& \F ~|~ p.n(t_1, \ldots t_n) ~|~ P.n(t_1, \ldots t_n)
+\\ A,B,C \in Formula &::=& \alpha ~|~ A \land B ~|~ A \lor B ~|~ A \implies B
+\\ && {} ~|~ \forall x @ A ~|~ \forall x @ A^x_a ~|~ \exists x @ A ~|~ \exists x @ A^x_a
+\\ A^x_a \in Formula^x_a &\defs& \setof{ A[x/a] | A \in Formula }
+\\ \Delta,\Gamma &\in& \power Formula
+\end{eqnarray*}
+
+Pseudo-Terms and Pseudo-Formulas:
+\begin{eqnarray*}
+    \pseudo t,\pseudo u \in pTerm &::=& x ~|~ t
+\\ Term &\subset& pTerm
+\\ \pseudo \alpha \in pAtomicF &::=& \F ~|~ p.n(\pseudo t_1, \ldots \pseudo t_n)
+                                ~|~ P.n(\pseudo t_1, \ldots \pseudo t_n)
+\\ \pseudo A \in pFormula &::=& \pseudo \alpha
+                            ~|~ \pseudo A \land \pseudo B
+                            ~|~ \pseudo A \lor \pseudo B
+                            ~|~ \pseudo A \implies \pseudo B
+\\                    && {} ~|~ \forall x @ \pseudo A
+                            ~|~ \exists x @ \pseudo A
+\\ \pseudo A^x_a \in pFormula^x_a &\defs& \setof{ \pseudo A[x/a] | \pseudo A \in pFormula }
+\\ Formula &\subset& pFormula
+\end{eqnarray*}
+
+\newpage
+
+Definitions (incomplete, but enough to get the drift \ldots):
+\begin{eqnarray*}
+   degree &:& pFormula \fun \nat
+\\ degree(\pseudo A) &\defs& \mbox{no. of occurrences of logical constants (except \F)}
+\\ principalSign &:& (pFormula \hide pAtomicF) \fun LCon
+\\ principalSign(\pseudo A \land \pseudo B) &\defs& \land
+\\ \ldots
+\\ principalSign(\exists x @ \pseudo A) &\defs& \exists
+\\ scope &:& LCon \times pFormula \pfun \power pFormula
+\\ scope(\land,\pseudo A \land \pseudo B) &\defs& \setof{\pseudo A,\pseudo B}
+\\ \ldots
+\\ scope(\exists,\exists x @ \pseudo A) &\defs& \setof{\pseudo A}
+\\ FV,BV  &:& pFormula \fun \power Var
+\\ FV(Formula) &=& \setof\emptyset
+\\ univClosure,existClosure &:& Formula \times \power Par \fun Formula
+\\ univClosure(A,\setof{a_1,\ldots,a_n})
+   &\defs&
+   \forall x_1,\ldots,x_n @ A[a_1,\ldots,a_n/x_1,\ldots,x_n]
+\\ isSentence &:& Formula \fun Bool
+\\ isSentence(A) &\defs& A \mbox{ has no parameters}
+\\ subFormula &:& Formula \rel Formula
+\\ &\infer& subFormula(A,A)
+\\ subFormula(B \land C,A) &\infer& subFormula(B,A), subFormula(C,A)
+\\ subFormula(\forall x @ B,A) &\infer& subFormula(B[t/x],A)
+\end{eqnarray*}
+Measure $degree$ is clearly intended to provide a well-founded relation
+on formula for use in inductive proofs.
+
+Substitutions
+\begin{eqnarray*}
+   A[x/t] && \mbox{substitute $x$ for term $t$ in $A$}
+\\ A[u/t] && \mbox{substitute term $u$ for term $t$ in $A$}
+\\ \pre A[x/t]
+  &\defs&
+  \mbox{$t$ not in scope of $\forall x$ or $\exists x$ in A (capture avoidance)}
+\\ \pseudo A[t/x] && \mbox{substitute term $t$ for free $x$ in $\pseudo A$}
+\end{eqnarray*}
+
+Defined Signs:
+\begin{eqnarray*}
+   \lnot A &\defs& A \implies \F
+\\ A \equiv B &\defs& (A \implies B) \land (B \implies A)
+\end{eqnarray*}
+
+\newpage
+\subsubsection{Deduction (I\S2)}
+
+If we have deduction:
+$$
+\INFER{A_1, \ldots ,A_n}{B}
+$$
+we can write this as $\setof{A_1,\ldots,A_n} \infer B$,
+or more simply as $A_1, \ldots , A_n \infer B$.
+
+Four ways to discharge assumptions:
+\begin{enumerate}
+  \item Given $\Gamma,A \infer B$, deduce $A \implies B$, discharge  $A$
+  \item Given $\Gamma,\lnot A \infer \F$, deduce $A$, discharge $\lnot A$
+  \item Given $A \lor B$; $\Gamma_1,A \infer C$; and $\Gamma_2,B \infer C$,
+        deduce $C$, discharge $A$ in 2nd deduction, and $B$ in 3rd.
+  \item Given $\exists x @ A$ and $\Gamma,A[a/x] \infer B$,
+        deduce $B$, discharge $A[a/x]$,
+        provided $a$ not in $\exists x @ A$, $B$ or any assumption
+        other than $A[a/x]$ on which $B$ depends in this deduction.
+\end{enumerate}
+In more modern notation:
+\begin{enumerate}
+  \item $$\INFER{\Gamma,A \infer B}{\Gamma \infer A \implies B}$$
+  \item $$\INFER{\Gamma,\lnot A \infer \F}{\Gamma \infer A}$$
+  \item $$\INFER{\Gamma_0 \infer A \lor B \qquad \Gamma_1,A \infer C \qquad \Gamma_2,B \infer C}{\Gamma_0,\Gamma_1,\Gamma_2 \infer C}$$
+  \item $$\INFER{\Gamma_0 \infer \exists x @ A \qquad \Gamma,A[a/x] \infer B}{\Gamma_0,\Gamma \infer B},~a \mbox{ fresh}$$
+\end{enumerate}
+
+\newpage
+Deduction laws, modern style (almost, let $\Gamma_i = \Gamma$ for all $i$ to get
+the more typical presentation):
+$$\begin{array}{rcl}
+   \INFERN%
+     {\Gamma_1 \infer A \qquad \Gamma_2 \infer B}%
+     {\Gamma_1,\Gamma_2 \infer A \land B}%
+     {\INTRO{$\land$}}
+&& \INFERN%
+     {\Gamma_0 \infer A \lor B \qquad \Gamma_1,A \infer C \qquad \Gamma_2,B \infer C}%
+     {\Gamma_0,\Gamma_1,\Gamma_2 \infer C}%
+     {\ELIM{$\lor$}}
+\\
+\\ \INFERN%
+     {\Gamma \infer A \land B}%
+     {\Gamma \infer A}%
+     {\ELIM{l$\land$}}
+&& \INFERN%
+     {\Gamma \infer B}%
+     {\Gamma \infer A \lor B}%
+     {\INTRO{l$\lor$}}
+\\
+\\ \INFERN%
+     {\Gamma \infer A \land B}%
+     {\Gamma \infer B}%
+     {\ELIM{r$\land$}}
+&& \INFERN%
+     {\Gamma \infer A}%
+     {\Gamma \infer A \lor B}%
+     {\INTRO{r$\lor$}}
+\\
+\\ \INFERN%
+     {\Gamma,A \infer B}%
+     {\Gamma \infer A \implies B}%
+     {\INTRO{$\implies$}}
+&& \INFERN%
+     {\Gamma_1 \infer A \qquad \Gamma_2 \infer A \implies B}%
+     {\Gamma_1,\Gamma_2 \infer B}%
+     {\ELIM{$\implies$}}
+\\
+\\ \INFERN%
+     {\Gamma \infer A}%
+     {\Gamma \infer \forall x @ A[x/a]}%
+     {\INTRO{$\forall$}},~a \not\in \Gamma
+&& \INFERN%
+     {\Gamma \infer \forall x @ A}%
+     {\Gamma \infer A[t/x]}%
+     {\ELIM{$\forall$}}
+\\
+\\ \INFERN%
+     {\Gamma \infer A[t/x]}%
+     {\Gamma \infer \exists x @ A}%
+     {\INTRO{$\exists$}}
+&& \INFERN%
+     {\Gamma_0 \infer \exists x @ A \qquad \Gamma,A[a/x] \infer B}%
+     {\Gamma_0,\Gamma \infer B}%
+     {\ELIM{$\exists$}},
+\\ && ~a \not\in \exists x@A,\Gamma
+\\
+\\ \INFERN%
+     {\Gamma \infer \F}%
+     {\Gamma \infer A}%
+     {\LNAME{\F--i}}
+&& \INFERN%
+     {\Gamma,\lnot A \infer \F}%
+     {\Gamma \infer A}%
+     {\LNAME{\F--c}}
+\\
+\\ \multicolumn{3}{c}{\mbox{Gentzen's rules for negation}}
+\\ \INFERN%
+     {\Gamma,A \infer \F}%
+     {\Gamma \infer \lnot A}%
+     {\INTRO{$\lnot$}}
+&& \INFERN%
+     {\Gamma_1 \infer A \qquad \Gamma_2 \infer \lnot A}%
+     {\Gamma_1,\Gamma_2 \infer \F}%
+     {\ELIM{$\lnot$}}
+\\ (\mbox{instance of }\INTRO{$\implies$})
+&& (\mbox{instance of }\ELIM{$\implies$})
+\end{array}$$
+\begin{itemize}
+  \item Minimal logic: drop \LNAME{\F--i},\LNAME{\F--c}.
+  \item Intuitionistic logic: drop \LNAME{\F--c}.
+  \item Classical logic: keep all.
+\end{itemize}
+
+
+
+\subsubsection{Propositional Connectives}
+
+
+\subsubsection{Axioms}
+
+
+\subsubsection{Inference Rules}
+
+
+\subsubsection{Derived Rules}
+
+
+\subsubsection{Valuations}
+
+
+\subsubsection{Meta-theorems}
+

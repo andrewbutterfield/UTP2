@@ -1,0 +1,72 @@
+We have a pattern, where w.l.o.g., we have the standard variables first
+($u_1,\ldots,u_k$) and the list-variables last ($ \lst v_1,\ldots,\lst v_\ell$),
+and the expressions substituting for the list-variables are themselves
+list variables%
+\footnote{We require this restriction for now. We could be more liberal
+and allow expressions to substitute for list variables ($\lst v_i$),
+but then that list variable must match a single variable.}
+ ($\lst f_1,\ldots,\lst f_\ell$):
+$$
+ [ e_1,\ldots,e_k , \lst f_1,\ldots,\lst f_\ell
+ /
+   u_1,\ldots,u_k ,  \lst v_1,\ldots,\lst v_\ell ]
+ , \quad k+\ell \geq 1
+$$
+and test:
+$$
+ [ g_1,\ldots,g_n , \lst h_1,\ldots,\lst h_m
+ /
+   a_1,\ldots,a_n ,  \lst b_1,\ldots,\lst b_m ]
+ , \quad m+n \geq 1
+$$
+The $e_i$ and $g_i$ are expressions,
+while all the others are variables.
+Matching must take into account:
+\begin{itemize}
+  \item First of all, $n \geq k$, or no match is possible.
+  \item If $n > k$, or $m > 1$ then we must have $\ell > 1$.
+  \item We have already matched matched elsewhere some of the $e_i$ and $u_i$
+        against some $k$ of the $g_i$ and $a_i$.
+        The resulting bindings are of the form:
+        $$
+          \begin{array}{ccc}
+             e_i & \ddagger & g_i
+          \\ u_j & \mapsto & a_j
+          \end{array}
+        $$
+  \item We are then left with pattern:
+        $$
+        [  \lst f_1,\ldots,\lst f_\ell
+        /
+           \lst v_1,\ldots,\lst v_\ell ]
+        $$
+        and test, where w.l.o.g., we assume the first $k$ were matched:
+        $$
+         [ g_{k+1},\ldots,g_n , \lst h_1,\ldots,\lst h_m
+         /
+         a_{k+1},\ldots,a_n ,  \lst b_1,\ldots,\lst b_m ]
+         , \quad m+n \geq 1
+        $$
+        If $\ell=0$ and $m+n > 0$ we fail,
+        otherwise we simply return additional bindings
+        consistent with any side-conditions
+        $$
+         \begin{array}{l@{\mapsto}l}
+            \lst f_i & \seqof{g_j,\lst h_j}
+         \\ \lst v_i & \seqof{a_j,\lst b_j}
+         \end{array}
+        $$
+\end{itemize}
+The bindings for $e_i$ are normal expression match bindings,
+those for $u_i$ are \texttt{Var} expression variant
+and for $\lst v_k$ we have standard \texttt{QVar} bindings.
+The bindings for the $\lst f$ are in general a pair of lists,
+one of expressions, the other of variables.
+We store these two lists as  a \texttt{Seq} expression variant
+with the variables wrapped up as \texttt{Var}s.
+
+The match  must satisfy
+$$
+  n \geq k \land ((n \neq k \lor m > 0) \implies \ell > 0)
+$$
+in order for it to be feasible.

@@ -1,0 +1,24 @@
+\section{Syntax Changes}\label{sec:syntax:change}
+
+Note: there have been some key notation changes in the area
+of variable naming conventions, and the structure of quantifier and substitution.
+The key changes from \cite{conf/utp/Butterfield12} are as follows:
+\begin{itemize}
+  \item
+    The distinction between Standard and List variables was originally done
+    positionally in a quantifier list, with the `$\qsep$` character separating the
+    lists. What was
+    $ \forall x,y\qsep zs @ P $
+    now becomes
+    $ \forall x,y,\lst z @ P $.
+    Annotating list variables directly turns out to be much simpler that relying
+    on which of two sub-lists they are found, and avoids dangerously confusing
+    possibilities to overload one variable name, \emph{e.g.:}
+    $ \forall x \qsep x @ P$, \emph{c.f:} $\forall x,\lst x @ P$.
+  \item
+    We use much shorter names for the reserved list-variables,
+    so $Obs$ becomes
+    $\OBS$, for example.
+    Note that reserved list-variables do not have trailing $\lst{}$
+    (the postfix is superfluous here).
+\end{itemize}

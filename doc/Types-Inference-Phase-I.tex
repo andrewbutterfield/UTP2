@@ -1,0 +1,11 @@
+The first phase involves a recursive descent through an expression,
+generating unique type variables, and building up two tables:
+\begin{itemize}
+  \item $vt : VT = \texttt{Var} \pfun \texttt{Tvar}^+$
+   \\ mapping variables to a normalised list of\texttt{Tvar}s,
+      all deemed to be the same.
+      (Note: we treat \texttt{Evar}s the same as \texttt{Tvar}s for type-checking).
+  \item $tt: TT =  \texttt{TVar} \pfun \texttt{Type}^+$
+    \\ mapping Tvars to normalised list of types,
+     also all deemed to be the same.
+\end{itemize}

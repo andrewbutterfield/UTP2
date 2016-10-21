@@ -1,0 +1,11 @@
+Is a predicate a pre-condition ($\isCond~P$)~?
+\\It is if all its free variables are undashed,
+and any predicate meta-variables are themselves pre-conditions.
+We ignore any membership predicates or subtracted sets,
+so getting a conservative result.
+\begin{eqnarray*}
+  \isCond\setof{v_1,\ldots,v_n} &\equiv& \forall i @ \isCond v_i
+\\\isCond(P \setminus vs) &\impliedby& \isCond P
+\\\isCond(ms \sthen c) &\impliedby& \isCond c
+\\\isCond(m \ssthen r) && \textrm{Cannot say without } \rho.
+\end{eqnarray*} 

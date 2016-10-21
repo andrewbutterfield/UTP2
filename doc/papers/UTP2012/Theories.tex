@@ -1,0 +1,80 @@
+\section{Theories}\label{sec:theories}
+
+\PLAN{Where we talk about the similarities and differences between UTP theories
+and \UTP2\ ``Theory''s.}
+
+A UTP theory is a coherent collection of the following items:
+an alphabet defining the observations that can be made;
+a set of healthiness conditions that characterise predicates that describe
+realistic/feasible systems;
+a signature that defines the abstract syntax of the language being defined;
+definitions of the language constructs as healthy predicates;
+and
+laws that relate the behaviours of the various language components.
+In \UTP2\ we use the term ``\texttt{Theory}'' to refer to
+such collections, along with various other pieces of ancillary information,
+as well as subsets of a full theory.
+The ancillary information includes components to support
+language parsing, local and temporary definitions,
+as well as proof support in the form of conjectures, theorems and laws.
+In effect a UTP theory may be constructed in \UTP2\ as
+a layering of \texttt{Theory} ``slices'', each looking at a small part of the whole.
+
+As an example, consider Figure \ref{fig:hier-of-theory}.
+\begin{figure}[tb]
+  \centering
+    \begin{tikzpicture}[>=stealth,->,shorten >=2pt,looseness=.5,auto]
+     \matrix[matrix of nodes,
+             nodes={rectangle,draw,minimum size=4mm},
+             column sep={1cm,between origins},
+             row sep={1cm,between origins}]
+      {              & |(X)|\texttt{Circus}  \\
+        |(W)|\texttt{While} &              & |(C)|\texttt{CSP}                 \\
+                     & |(D)|\texttt{Design} &              & |(R)|\texttt{Reactive}  \\
+                     &              & |(u)|\texttt{UTP}              \\
+                     &              & |(b)|\texttt{Base}                   \\
+                     &              & |(r)|\texttt{\_ROOT}                 \\
+      };
+      \draw(X) -- (W) ; \draw (X) -- (C) ;
+      \draw(W) -- (D) ; \draw (C) -- (D) ; \draw (C) -- (R) ;
+      \draw (D) -- (u) ; \draw (R) -- (u) ;
+      \draw (u) -- (b) ;
+      \draw (b) -- (r) ;
+    \end{tikzpicture}
+  \caption{A Hierarchy of \texttt{Theory}s}
+  \label{fig:hier-of-theory}
+\end{figure}
+Here we see theory slices organised as an acyclic directed graph,
+where each slice inherits material from those below it.
+At the bottom we have the \texttt{\_ROOT Theory} (slice),
+which is hardwired in%
+\footnote{
+\texttt{\_ROOT} is the only thing hardwired---all other slices and their hierarchy
+can be custom-built to suit the user.
+}%
+, and simply contains just the axioms of the underlying logic.
+On top of this a full set of laws of predicate calculus are built
+(by positing conjectures and proving them), as well as useful theories about equality,
+and various datatypes, such as numbers, sets and sequences.
+In \UTP2\ these are presented as a layer of \texttt{Theory} slices,
+but here we simply imagine them all encapsulated into the \texttt{Base Theory},
+that sits on top of \texttt{\_ROOT}.
+On top of this we construct a slice (\texttt{UTP}) that presents the language constructs
+that are common to most UTP theories,
+e.g. sequential composition, and non-deterministic choice.
+We then branch: a theory of Designs is implemented
+by building a \texttt{Design Theory} slice on top of \texttt{UTP},
+and hence incorporating \texttt{Base} and \texttt{\_ROOT}.
+Similarly, we can define, independently of \texttt{Design},
+a \texttt{Reactive Theory} slice over \texttt{UTP}.
+It is this ability to re-use common material that motivates
+the splitting of UTP theories into \UTP2\ Theory slices.
+Figure \ref{fig:hier-of-theory} also shows how further slices
+allow us to build a theory of a simple imperative language (\texttt{While}) on top of \texttt{Design},
+as well as fusing \texttt{Design} and \texttt{Reactive} to get \texttt{CSP} \cite{Roscoe1997}.
+A similar fusing of \texttt{While} with \texttt{CSP} gives \texttt{Circus}\cite{journals/fac/OliveiraCW09}.
+
+In the sequel we shall no longer distinguish between ``proper'' UTP theories
+and \UTP2's \texttt{Theory} slices, simply referring to them all as ``theories''.
+We do not give details of the contents of a theory here,
+but instead elucidate these details as we go through the paper.

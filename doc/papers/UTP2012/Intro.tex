@@ -1,0 +1,84 @@
+\section{Introduction}\label{sec:intro}
+
+\PLAN{An introduction to the paper as a rolling case-study.}
+
+Unifying Theories of Programming (UTP) \cite{UTP-book},
+is a framework that uses alphabetised predicates to define language
+semantics in a relational calculus style, in a way that facilitates
+the unification of otherwise disjoint semantic theories,
+either by merging them, or using special linking predicates
+that form a Galois connection. The framework is designed
+to cover the spectrum from abstract specifications
+all the way down to near-machine level descriptions,
+and as a consequence the notion of refinement plays a key role.
+
+Typically the development of a UTP theory involves determining the
+key observational variables, so fixing the alphabet,
+then defining healthiness conditions to characterise the predicates
+that describe feasible behaviour, introducing the language under study
+as a signature, and giving meaning to that signature using healthy predicates.
+Algebraic laws of the language can then be developed.
+
+In \cite{conf/utp/Butterfield10}
+we gave an overview of the Unifying Theories of Programming Theorem Prover
+(\UTP2)
+that we are developing to support such theory development work%
+\footnote{%
+In that paper it was called \STHN, but the name has since changed to \UTP2
+}%
+.
+The prover is an interactive tool, with a graphical user-interface,
+designed to make it easy to define a UTP theory and to experiment
+and perform the key foundational proofs.
+The motivation for developing this tool,
+rather than using an existing one has been discussed in some detail
+in \cite{conf/utp/Butterfield10}.
+We do not repeat it here in the introduction,
+but this paper effectively gives a technical underpinning to that motivation.
+In this paper we describe the logic behind \UTP2,
+starting from 1st-order equational logic \cite{journals/logcom/Tourlakis01},
+and gradually exposing the extensions required to facilitate the kind
+of reasoning we require for foundational work.
+In effect this paper explores the proof infrastructure needed
+to reason about a theory of a simple imperative language ($While$),
+built upon a theory of ``Designs'',
+itself layered on top of a generic UTP base theory.
+We start at the bottom looking at the logic and work up until
+we can see what is needed for the $While$ language.
+
+This paper assumes that the reader is familiar
+with the basic ideas behind UTP, and does not give an introduction
+to the subject. A good introduction is the key textbook written
+by C.A.R. Hoare and He Jifeng \cite{UTP-book},
+which is free to download from \texttt{unifyingtheories.org}.
+
+In the rest of this paper, we use the term ``user'' to
+refer to a UTP practitioner  involved in the development
+of new UTP theories, and not a software developer
+who might want to employ a formal method whose underlying semantics
+derive from UTP.
+
+\subsection{Structure of this paper}
+
+Section \ref{sec:theories} talks about theories,
+and gives a visual outline of much of this paper
+in Figure \ref{fig:hier-of-theory}.
+Section \ref{sec:logic} introduces the logic of \UTP2,
+and
+Section \ref{sec:utp} gives us an introduction to definitions
+common to most theories.
+In
+Section \ref{sec:designs},
+and
+Section \ref{sec:programs},
+we describe how \texttt{Theory}s can be layered up to present
+a UTP Theory of Designs, as well as a theory for a simple While programming
+language built as an extension on top of Designs.
+Section \ref{sec:soundness}
+and
+Section \ref{sec:exploitation} discuss issues to do with the trustworthiness
+and usefulness of \UTP2,
+and finally,
+Section \ref{sec:conclusions} concludes.
+A collection of relevant rules can be found in
+Appendix \ref{sec:rules}.

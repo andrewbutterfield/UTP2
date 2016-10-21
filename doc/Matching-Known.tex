@@ -1,0 +1,39 @@
+Matching needs more than just the pattern and test:
+it also requires a matching context ($\Gamma$)
+that supplies information about various variables in order to
+determine how they match.
+The basic idea is that a pattern variable $v$ matches any corresponding
+object, unless that variable is ``known'' ($v \in \Gamma$).
+If a variable is known, then what it matches is governed
+by what is known about it ($\Gamma(v)$).
+
+It should be remembered that a pattern variable that is known
+may occur in a pattern underneath a quantifier binding that variable,
+in which case that instance of the variable is not known,
+and is free to match any corresponding object.
+A pattern variable in a quantifier binding list 
+is not ``known'', but is restricted to matching only other
+binding list variables.
+
+\subsubsection{Known Names}
+
+We supply as a context the following trie lists:
+\begin{itemize}
+  \item observation variables
+  \item type variables denoting types
+  \item variables denoting constants
+  \item e-variables denoting expressions
+  \item p-variables denoting predicates
+\end{itemize}
+the first being observation variables,
+whilst the rest are the known (named) 
+types/variables/expressions/predicates in each context.
+A pattern variable not listed as known, matches anything of the corresponding type:
+\begin{itemize}
+  \item \texttt{Tvar}: any \texttt{Type}
+  \item \texttt{Var}: any \texttt{Var}
+  \item \texttt{Evar}: any \texttt{Expr}
+  \item \texttt{Pvar}: any \texttt{Pred}
+\end{itemize}
+If a \emph{pattern} variable is defined (indicates a known entity),
+it only matches itself, or what it is defined to be.

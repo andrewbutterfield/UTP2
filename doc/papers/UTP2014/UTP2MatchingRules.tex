@@ -1,0 +1,53 @@
+
+\def\MRKnownVN{\LNAME{Known-V-Match}}
+\def\MRKnownVAnte{x \in \Gamma}
+\def\MRKnownVCons{\Gamma \wefind x \matches x \withbind \setof{x \to x}}
+\def\MRKnownV{\inferrule\MRKnownVAnte\MRKnownVCons}
+
+\def\MRUnknownVN{\LNAME{Unknown-V-Match}}
+\def\MRUnknownVAnte{x \notin \Gamma}
+\def\MRUnknownVCons{\Gamma \wefind x \matches e \withbind\setof{ x \to e}}
+\def\MRUnknownV{\inferrule\MRUnknownVAnte\MRUnknownVCons}
+
+\def\MROrN{\LNAME{Or-Match}}
+\def\MROrAnte{
+  \Gamma\wefind P_1 \matches T_1  \withbind \beta_1
+  \\
+  \Gamma\wefind P_2 \matches T_2  \withbind \beta_2
+  \\
+  \beta_1 \cong \beta_2
+}
+\def\MROrCons{\Gamma \wefind P_1 \lor P_2 \matches T_1 \lor T_2 \withbind \beta_1 \uplus \beta_2}
+\def\MROr{\inferrule\MROrAnte\MROrCons}
+
+
+\def\MRAllN{\LNAME{All-Match}}
+\def\MRAllAnte
+{ P \matches Q  \withbind \beta_1 
+  \\ u_1,\ldots,u_p \matches v_1,\ldots,v_t \withbind \beta_2 
+  \\ \beta_1 \cong \beta_2
+}
+\def\MRAllCons{\forall u_1,\ldots,u_p @ P \matches \forall v_1,\ldots,v_t @ Q \withbind \beta_1 \uplus \beta_2}
+\def\MRAll{\inferrule\MRAllAnte\MRAllCons}
+
+\def\MRNullAllN{\LNAME{NullAll-Match}}
+\def\MRNullAllAnte{P \matches Q \withbind \beta \\ \beta \cong \setof{ \lst x_i \to \nil}}
+\def\MRNullAllCons{
+  \forall  \lst x_1,\ldots,\lst x_n @ P \matches Q
+  \withbind \beta \uplus \setof{ \lst x_i \to \nil}
+}
+\def\MRNullAll{\inferrule\MRNullAllAnte\MRNullAllCons, i \in 1\ldots n}
+
+
+\def\MRSubstN{\LNAME{Subst-Match}}
+\def\MRSubstAnte{
+  P \matches Q \withbind \beta_1
+  \\\\
+  (e_1,u_1),\ldots,(e_p,u_p) \matches (f_1,v_1),\ldots,(f_t,v_t) \withbind \beta_2
+}
+\def\MRSubstCons{
+  P[e_1,\ldots,e_p/u_1,\ldots,u_p] \matches Q[f_1,\ldots,f_t/v_1,\ldots,v_t]
+  \\\\
+  \withbind \beta_1 \uplus \beta_2
+}
+\def\MRSubst{\inferrule\MRSubstAnte\MRSubstCons}

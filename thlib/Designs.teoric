@@ -1,0 +1,347 @@
+v3.6
+^Designs ^1 ^0 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^ok ^ok !cM
+!TB
+!o2
+^ok' ^ok' !cM
+!TB
+!o2
+^2 !MV
+^|- ^40 ^0 !p
+^1 !MO
+^|- ^&32;P&32;|-&32;P&32; ^1 !MG
+^0 !MK
+^export-pre ^|- ^40 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^|- ^40 ^P !PV
+!"P
+^P !PV
+^Q !PV
+^2 !PA
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PQ
+!CT
+^butrfeld !OU
+^ROOT !OS
+^2 !OP
+^DEF&32;|- ^|- ^40 ^P0 !PV
+!"P
+^P1 !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^ok !EV
+!PE2
+^P0 !PV
+^2 !PA
+^ok' !EV
+!PE2
+^P1 !PV
+^2 !PA
+!PI
+!PQ
+!CT
+^butrfeld !OU
+^2 !lM
+^0 !ML
+^export-pre ^Designs ^export-pre ^|- ^40 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^|- ^40 ^P !PV
+!"P
+^P !PV
+^Q !PV
+^2 !PA
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PQ
+!CT
+^|- ^40 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!RE
+^0 !mre
+^Designs$0$DEF&32;|- ^butrfeld !OU
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!s
+!AJ
+!RE
+^2 ^1 !mre
+^LogicLaws$94$/\-comm ^ROOT !OS
+^1 !OP
+!Il
+^A ^ok' !EV
+!PE2
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+!PI
+!s
+!AJ
+!RE
+^0 !mre
+^PropLogic$87$Shunting ^ROOT !OS
+^1 !OP
+!Il
+^P ^ok !EV
+!PE2
+^R ^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+!PI
+!PI
+!s
+!AJ
+!RE
+^2 ^1 !mre
+^LogicLaws$94$=>-export ^ROOT !OS
+^1 !OP
+!Il
+^B ^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^P !PV
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !PA
+!PI
+!PI
+!s
+!AJ
+!RE
+^0 !mle
+^PropLogic$87$Shunting ^ROOT !OS
+^1 !OP
+!Il
+^P ^ok !EV
+!PE2
+^R ^P !PV
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !PA
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^P !PV
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !PA
+!PI
+!s
+!AJ
+!RE
+^2 ^1 !mre
+^LogicLaws$94$/\-assoc ^ROOT !OS
+^1 !OP
+!Il
+^C ^ok' !EV
+!PE2
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^P !PV
+^Q !PV
+^2 !PA
+^ok' !EV
+!PE2
+^2 !PA
+!PI
+!s
+!AJ
+!RE
+^2 ^1 !mle
+^PropLogic$87$/\-Comm ^ROOT !OS
+^1 !OP
+!Il
+^P ^ok' !EV
+!PE2
+^Q ^P !PV
+^Q !PV
+^2 !PA
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^P !PV
+^Q !PV
+^2 !PA
+^2 !PA
+!PI
+!s
+!AJ
+!RE
+^0 !mle
+^Designs$0$DEF&32;|- ^butrfeld !OU
+!Il
+^P1 ^P !PV
+^Q !PV
+^2 !PA
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^ok ^ok ^ok' ^ok' ^2 !MU
+^0 !MVL
+!B9
+!j
+^|- ^40 ^P !PV
+!"P
+^P !PV
+^Q !PV
+^2 !PA
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!s
+!AJ
+^8 !X
+!?r
+^$T ^_PLT_export-pre ^Designs ^UTP-Base ^PropLogic ^LogicLaws ^_ROOT ^6 ^vcqsfgck !!
+^1 !MT
+!@

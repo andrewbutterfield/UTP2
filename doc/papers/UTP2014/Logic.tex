@@ -1,0 +1,64 @@
+\section{Logic}\label{sec:logic}
+
+The logic of \UTP2\ is an adaptation of the first-order equational logic
+described by Tourlakis \cite{journals/logcom/Tourlakis01},
+that fully formalises the logic of Dijkstra, Gries and Schneider \cite{gries.93}.
+For this paper, we simply present the syntax and axioms of
+a small first-order subset of
+the whole logic,
+sufficient to motivate and explain the required behaviour of the matcher.
+
+We define our logic syntax
+over a collection of given sets characterising different name-spaces:
+\RLEQNS{
+   x,y,z \in Var && (given) & \mbox{Variables}
+\\ k \in Const && (given) & \mbox{Constants}
+\\ f,g,h \in Name && (given) & \mbox{(Function) Names}
+\\ E,F,G \in EName && (given) & \mbox{Expression Metavariable Names}
+\\ P,Q,R \in PName && (given) & \mbox{Predicate Metavariable Names}
+}
+Constants and function names are as one would expect
+in a logic with associated equational theories,
+but we also have explicit meta-variables%
+\footnote{Cover the role of ``schematic'' variables in some other logic presentations}
+ for expressions
+and predicates, in the object logic, as many UTP laws
+are expressed using such.
+Variables need special treatment, discussed further in Sec. \ref{sec:variables}.
+
+Expressions denote values in the ``world of discourse'' (observations)
+and are implicitly typed:
+\RLEQNS{
+   b,e \in Expr &::=& k | x  & \mbox{Expressions}
+\\              &|& f~e & \mbox{Applications}
+\\              &|& E & \mbox{Explicit Metavariable}
+\\              &|& e[ e/x ] & \mbox{Explicit Obs. Substitution}
+}
+Expressions whose type is boolean ($b \in Expr$)
+form the class
+of \emph{atomic predicates}.
+Predicates are defined much as expected:
+\RLEQNS{
+   p,q,r \in Pred &::=& \False & \mbox{Constant Predicates}
+\\              &|& b & \mbox{Atomic Predicate}
+\\              &|& p~ \lor q & \mbox{Disjunction}
+\\              &|& P & \mbox{Explicit Metavariable}
+\\              &|& \forall x,\ldots,x @ p & \mbox{Universal Quantifier}
+\\              &|& p[ e,\ldots,e/x,\ldots,x ] & \mbox{Explicit Obs. Substitution}
+}
+One point to note is that the syntax includes explicit substitutions,
+as these feature prominently in many UTP theories
+(e.g. laws regarding assignment and sequential composition,
+of the reactive healthiness condition \RR2).
+
+We define a Law to be a pair,
+consisting of a predicate and an associated side-condition ($Side$).
+Side-conditions are a conjunction of zero or more basic conditions,
+which typically capture relationships between given variables and
+the free variables ($\fv$) of given predicates or expressions.
+\begin{eqnarray*}
+   sc \in Side &::=&  x \notin \fv.P
+         | \setof{x,y,\ldots} = \fv.P
+         | \setof{x,y,\ldots} \supseteq \fv.P
+\\ Law &=& Pred \times Side
+\end{eqnarray*}

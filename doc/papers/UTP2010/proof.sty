@@ -1,0 +1,46 @@
+%
+% proof.sty
+%
+% Gries/Dijkstra Proof Style suitable for  eqnarray* environments
+%
+\def\coz#1{\quad\textrm{`` #1 ''}}
+\def\mcoz#1{\coz{\ensuremath{#1}}}
+\def\overleaf{\\&& \mbox{see overleaf\ldots}}
+\def\COZ#1{\\&&\coz{#1}}
+\def\EQ#1{\\&=&\coz{#1}}
+\def\NEQ#1{\\&\neq&\coz{#1}}
+\def\IMP#1{\\&\implies&\coz{#1}}
+\def\PMI#1{\\&\impliedby&\coz{#1}}
+\def\REF#1{\\&\refines&\coz{#1}}
+\def\EQV#1{\\&\equiv&\coz{#1}}
+\def\EQm#1{\\&=&\mcoz{#1}}
+\def\IMPm#1{\\&\implies&\mcoz{#1}}
+\def\PMIm#1{\\&\impliedby&\mcoz{#1}}
+\def\REFm#1{\\&\refines&\mcoz{#1}}
+\def\EQVm#1{\\&\equiv&\mcoz{#1}}
+%
+\def\EQDEFN#1{\EQ{defn. \ensuremath{#1}}}
+\def\EQVDEFN#1{\EQV{defn. \ensuremath{#1}}}
+\def\EQCASE#1{\EQ{Case Split: \ensuremath{#1}}}
+\def\EQVCASE#1{\EQV{Case Split: \ensuremath{#1}}}
+\def\EQBETA{\EQ{$\beta$-reduction}}
+\def\EQETA{\EQ{$\eta$-reduction}}
+\def\EQSETTH{\EQ{set theory}}
+\def\EQVSETTH{\EQV{set theory}}
+\def\PROPC{\EQV{prop. calc.}}
+\def\REFL{\EQV{refl.}}
+\def\TRUE{\\&& \True}
+\def\tRUE{\\&& true}
+\def\ALERT#1{\\&!!&\coz{#1}}
+%
+\def\infer{\vdash}
+\def\INFER#1#2{\frac{\textstyle {#1}}{\textstyle {#2}}}
+\def\Infer#1#2{\frac{\scriptstyle {#1}}{\scriptstyle {#2}}}
+\def\IRULE#1{\ensuremath{\textstyle[\texttt{#1}]}}
+\def\Irule#1{\ensuremath{\scriptstyle[\texttt{#1}]}}
+%
+\def\eqnname#1{[\textsf{#1}]}
+\def\elabel#1{\eqnname{#1}\label{#1}}
+\def\eref#1{\eqnname{#1}:p\pageref{#1}}
+\def\ecite#1{\eqnname{#1}}
+\def\prfref#1#2{\ecite{#1}:p\pageref{#2}}

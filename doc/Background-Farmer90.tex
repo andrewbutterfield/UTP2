@@ -1,0 +1,253 @@
+
+\subsection{\textbf{PF} (Farmer 1990)}
+
+This is the \textbf{PF} logic of William M. Farmer \cite{Farmer90},
+with modernised notation.
+
+\subsubsection{Formal Language of PF}
+
+\paragraph{Types}
+$$\begin{array}{rcl@{\qquad}r}
+   \alpha,\beta  \in T &::=& \iota | b | \beta \fun \alpha & \iota, *, (\alpha\beta)
+\\ \alpha_\iota  \in T_\iota &::=& \iota | \beta \pfun \alpha_\iota
+\\ \alpha_b  \in T_b &::=& b | \beta \fun \alpha_b
+\\ T &=& T_\iota \cup T_b
+\end{array}$$
+
+\paragraph{Primitive Symbols}
+
+for all $\alpha \in T$:
+$$\begin{array}{rcl@{\qquad}r}
+   f_\alpha,
+   g_\alpha,
+   h_\alpha,
+   \ldots,
+   x_\alpha,
+   y_\alpha,
+   z_\alpha &:& \alpha & \mbox{typed variables} (V)
+\\ =        &:& \alpha \fun \alpha \fun b & \mbox{logical constant} (C)
+\\ c_\alpha &:& \alpha & \mbox{non-logical constants} (C)
+\end{array}$$
+
+
+\paragraph{Expressions and Formulas}
+
+$$\begin{array}{rcl@{\qquad}r}
+   A_\alpha, \ldots Z_\alpha
+   &::=& x_\alpha | c_\alpha
+\\ &|& F_{\beta \fun \alpha}A_\beta & \mbox{application}
+\\ A_{\beta\fun\alpha}
+   &::\!\!+& \lambda x_\beta @ M_\alpha & \lambda\mbox{-expression}
+\\ A_b  &&& \mbox{formula}
+\\ A_\alpha[B_1,\ldots, B_n/x_1,\ldots,x_n]
+  && type(B_i)=type(x_i) & A_\alpha[{x_1 \over B_1}{\cdots\over\cdots}{x_n \over B_n}]
+\end{array}$$
+
+\subsubsection{Semantics of PF}
+
+\begin{description}
+  \item[Principle 1]
+    $A_\iota$ may denote partial function
+  \item[Principle 2]
+    $A_b$ always denotes a standard truth-value
+  \item[Principle 3]
+    $x_\alpha,\;c_\alpha$ and $\lambda x_\alpha @ M_\beta$ always denote.
+  \item[Principle 4]
+    $F_{\beta\fun\alpha}A_\beta$ denotes iff $F$ and $A$ do ($f$ and $a$ resp.),
+    and $f$ is defined at $a$.
+  \item[Principle 5]
+    $P_{\alpha\fun b}A_\alpha$ is false if $A$ is non-denoting.
+\end{description}
+
+\paragraph{Frames}
+
+\def\D{\mathcal{D}}
+\def\F{\textsc{f}}
+\def\T{\textsc{t}}
+\begin{eqnarray*}
+  \mbox{frame} && \setof{ \alpha \in T | \D_\alpha }
+\\ \D_b &=& \setof{ \T,\F }, \quad ( \T \neq \F )
+\\ \alpha \in T_\iota &\implies& D_{\beta\fun\alpha} = \D_{\beta} \pfun \D_\alpha
+\\ \alpha \in T_b &\implies& D_{\beta\fun\alpha} = \D_{\beta} \fun \D_\alpha
+\end{eqnarray*}
+There is no disjointness requirement between $\D_\alpha$ and $\D_\beta$,
+e.g. the everywhere undefined function can be a member of all functional
+domains over $T_\iota$.
+
+blah about interpretations, etc.
+
+\subsubsection{The Logic}
+
+\def\TT{\mathbf{T}}
+\def\FF{\mathbf{F}}
+
+\paragraph{Abbreviations}
+
+$$\begin{array}{l@{\mbox{~~~for~~~}}l}
+    A = B & =_{\alpha\fun\alpha\fun b}A_\alpha B_\alpha
+\\  \TT_b & (=_{b \fun b \fun b}) = (=_{b \fun b \fun b})
+\\  \FF_b & (\lambda x_b @ \TT) = (\lambda x_b @ x_b)
+\\ \FF_{\alpha\fun\beta} & \lambda x_\alpha @ \FF_\beta, \quad \beta \in T_b
+\\ \Pi & =(\lambda x_\alpha \TT_b)
+\\ \forall x_\alpha @ A_b & \Pi (\lambda x_\alpha @ A_b)
+\\ \land & \lambda x,y @ (\lambda g @ g\;\TT\;\TT) = (\lambda g @ g\;x\;y)
+\\ A \land B & \land A\;B
+\\ \implies & \lambda x,y @ x = x \land y
+\\ A \implies B & \implies A\;B
+\\ \lnot & = \FF
+\\ \lor & \lambda x,y @ \lnot(\lnot x \land \lnot y)
+\\ A \lor B & \lor A\;B
+\\ \exists x_\alpha @ A_b & \lnot(\forall x_\alpha @ \lnot A_b)
+\\ A \neq B & \lnot(A = B)
+\\ A_\downarrow & (\lambda x @ \TT) A
+\\ A_\uparrow & \lnot(A\downarrow)
+\\ A \simeq B & (A\downarrow \lor B\downarrow) \implies A=B
+\end{array}$$
+
+\paragraph{Axioms}
+
+\def\LN#1{\mbox{[\textsc{#1}]}}
+
+$$\begin{array}{rrcl@{\qquad}r}
+   1& (g\;\TT \land g\;\FF) &=& \forall x @ g\;x &\LN{Truth Values}
+\\ 2& x=y &\implies& h_b(x) = h_b(y) &\LN{Liebniz}
+\\ 3& f=g &=& \forall x @ (f\;x \simeq g\;x) & \LN{Extensionality}
+\\ 4& A\downarrow
+   &\implies&
+   (\lambda x @ B)A \simeq B[A/x], \quad A \mbox{ free for }x\mbox{ in }B &\LN{$\beta$-Reduction}
+\\ 5& A_\alpha\downarrow && \mbox{where }\alpha \in T_b
+   &\LN{Formulas Denote}
+\\ 6& x_\alpha\downarrow && \mbox{where }x \in V
+   &\LN{Variables Denote}
+\\ 7& c_\alpha\downarrow && \mbox{where }c \in C
+   &\LN{Constants Denote}
+\\ 8& (\lambda x@A)\downarrow &&
+   &\LN{Lambdas Denote}
+\\ 9& (A_{\beta\fun\alpha}\;B)\downarrow
+   &\implies
+   & A\downarrow \land B\downarrow, \quad \alpha \in T_\iota
+   &\LN{Propagate Divg.}
+\\ 10& B\uparrow &\implies& A_{\beta\fun\alpha}\;B = \FF, \quad \alpha \in T_b
+   &\LN{Divg. Predicate}
+\end{array}$$
+
+\paragraph{Inference}
+
+Rule $R$:
+$$
+\INFER%
+  {A_\alpha \simeq B_\alpha \\ C_b}
+  {C_b[A_\alpha \mapsto B_\alpha]}
+$$
+Here we simply do a replace of one instance
+of $A_\alpha$ (no consideration of free/bound etc),
+(except we don't replace a binding occurrence !).
+
+Proof of $A_b$ in \textbf{PF} is
+$$
+  A_0,A_1,\ldots,A_{n-1},A_n
+$$
+where $A_n$ is $A_b$ and for $i \in 0\ldots n$, $A_i$ is an axiom,
+or obtained by applying rule $R$ to some of $A_0,\ldots,A_{i-1}$.
+
+We now define
+$$
+ C_b[A_\alpha / B_\alpha]
+ \mbox{ as }
+ C_b[A_\alpha \mapsto B_\alpha]
+$$
+but where replaced $A_\alpha$ does not occur in $C_b$ within
+a $\lambda x @ D$, where $x$ free in $\Gamma$ and $A_\alpha \simeq B_\alpha$.
+
+Proof of $A_b$ in \textbf{PF} from $\Gamma$ ($\Gamma \infer A_b$)is:
+\begin{eqnarray*}
+  \mathcal{F}_1 \frown \mathcal{F}_2
+\\ \mbox{where}
+   && \mathcal{F}_1 \mbox{ is a proof in \textbf{PF}}
+\\ &\mbox{and}& last(\mathcal{F}_2) \mbox{ is } A_b
+\\ &\mbox{and}& \mbox{for each } D_b  \mbox{ in } \mathcal F_2
+\\ && \qquad        D_b \in \Gamma
+\\ && \quad {} \lor D_b \in \mathcal F_1
+\\ && \quad {} \lor D_b \mbox{ is } C_b[A_\alpha / B_\alpha],
+                    \quad C_b,(A_\alpha \simeq B_\alpha) \in \mathcal F_2
+\end{eqnarray*}
+
+
+
+Rule $R'$:
+$$
+\INFER%
+   {\Gamma \infer A_\alpha \simeq B_\alpha \\ \Gamma \infer C_b}
+   {\Gamma \infer C_b[A_\alpha / B_\alpha]}
+$$
+
+Tautology Theorem:
+\INFER%
+ {A_1 \land \ldots \land A_n \implies B ~ \Gamma \infer {A_i}}
+ {\Gamma \infer B}
+
+Relation $ A \approx_\Gamma B$ which holds iff $\Gamma \infer A \simeq B$,
+is an equivalence relation.
+
+Universal Generalisation:
+\INFER%
+  {\Gamma \infer A \\ x \notin \Gamma}
+  {\Gamma \infer \forall x @ A}
+
+Qualified Generalisation:
+\INFER%
+  {\Gamma \infer A \implies B \\ x \notin A,\Gamma}
+  {\Gamma \infer A \implies \forall x @ B}
+
+Universal Instantiation:
+\INFER%
+  {\Gamma \infer \forall x @ B
+   \\
+   \Gamma \infer A\downarrow
+   \\
+   A \mbox{ free for }x\mbox{ in }B}
+  {\Gamma \infer B[A/x]}
+
+Deduction Theorem:
+\INFER%
+  {\Gamma,A \infer B}
+  {\Gamma \infer A \implies B}
+
+Quasi-Equal (Strong) Argument Theorem:
+\INFER%
+  {\Gamma \infer B \simeq C}
+  {\Gamma \infer A\;B \simeq A\;C}
+
+Quasi-Equal (Strong) Function Theorem:
+\INFER%
+  {\Gamma \infer A \simeq B}
+  {\Gamma \infer A\;C \simeq B\;C}
+
+Extensionality:
+\INFER%
+  {\Gamma \infer A\downarrow
+   \\
+   \Gamma \infer B\downarrow
+   \\
+   \Gamma \infer A\;x \simeq B\;x
+  }
+  {\Gamma \infer A = B}
+
+
+
+\subsubsection{Propositional Connectives}
+
+
+\subsubsection{Axioms}
+
+
+\subsubsection{Inference Rules}
+
+
+\subsubsection{Derived Rules}
+
+
+\subsubsection{Valuations}
+
+
+\subsubsection{Meta-theorems}

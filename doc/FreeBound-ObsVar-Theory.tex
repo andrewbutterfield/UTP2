@@ -1,0 +1,459 @@
+In determining free observation variables we have to deal with the
+presence of meta-variables denoting arbitrary predicates and expressions,
+as well as the presence of explicit substitutions, and quantifier list-variables
+that can denote lists of variables or expressions.
+This means that the free variables of a predicate or expression
+are contingent on not just the meta/list-variables,
+but whether or not certain observation variables are free/present in (any
+instantiation of) those meta/list-variables.
+
+We shall use the lambda calculus to illustrate the consequences
+of having explicit substitution and quantifier-list matching in our logic.
+
+We start with the untyped lamdba-calculus ($L_0$) where we have an unbounded set of variables ($v \in V$):
+\begin{eqnarray*}
+   v,w,x \in V && \mbox{Given.}
+\\ e,f \in L_0 & ::=& v | e~e| \lambda v @ e
+\end{eqnarray*}
+with $\lambda x_1,x_2,\ldots,x_n @ e$
+as syntactic sugar for
+$\lambda x_1 @ \lambda x_2 @ \ldots \lambda x_n @ e$,
+itself often shortened to $\lambda \vec x @ e$.
+
+Notation aside: We shall assume that $\vec a$ is shorthand for $a_1,\ldots,a_n$,
+for $n \geq 0$, and $a_i$ will refer to the $i$th component, or indicate
+an iteration $i \in 1\ldots n$, depending on context.
+
+The free variables for $L_0$ are defined in the usual way:
+\begin{eqnarray*}
+   S_0 &=& \power V
+\\ \fv,\fv_0 &:& L_0 \fun S_0
+\\ \fv(v) &\defs& \setof v
+\\ \fv(f~e) &\defs& \fv(f) \union \fv(e)
+\\ \fv(\lambda v @ e) &\defs& \fv(e) \setminus \setof v
+\end{eqnarray*}
+
+So is substitution:
+\begin{eqnarray*}
+   \_[\_:=\_] &:& L_0 \fun V \times L_0 \fun L_0
+\\ v[x:=e] &\defs&  e \cond{x=v} v
+\\ (f~e)[x:=e] &\defs& (f[x:=e])~(e[x:=e])
+\\ (\lambda v @ f)[x:=e]
+   &\defs&
+   \left\{
+     \begin{array}{ll}
+       \lambda v @ f, & x=v \\
+       \lambda v @ f[x:=e], & x\neq v \land v \notin \fv(e)  \\
+       \lambda w @ f[v:=w][x:=e], & x\neq v \land v \in \fv(e) \land \mbox{new}~w
+     \end{array}
+   \right.
+\end{eqnarray*}
+This extends to simultaneous substitutions as follows
+(here $\vec x$ has no duplicates):
+\begin{eqnarray*}
+   \_[\_:=\_] &:& L_0 \fun (V^n \times (L_0)^n) \fun L_0
+\\ e[\nil:=\nil] &\defs& e, \mbox{ the empty case}
+\\ v[\vec x:=\vec e] &\defs&  e_i \cond{v=x_i} v, \mbox{ for some }i
+\\ (f~e)[\vec x:=\vec e] &\defs& (f[\vec x:=\vec e])~(e[\vec x:=\vec e])
+\\ (\lambda v @ f)[\vec x:=\vec e]
+   &\defs&
+   \left\{
+     \begin{array}{ll}
+       \lambda w @ f[v:=w][\vec x\setminus x_i:=\vec e\setminus e_i], & v=x_i\\
+       \lambda w @ f[v:=w][\vec x:=\vec e], & v\notin\vec x\\
+     \end{array}
+   \right. \mbox{new}~w
+\end{eqnarray*}
+This then leads to key theorems regarding free variables and substitution:
+\begin{eqnarray}
+   \fv(e[x:=f])
+   &=&
+   \fv(e)\setminus\setof x \cup (\fv(f) \cond{x \in \fv(e)} \emptyset)
+\\ \fv(e[\vec x:=\vec e])
+   &=&
+   \fv(e)\setminus\vec x
+   \cup
+   \bigcup_i\setof{\fv(e_i) \cond{x_i \in \fv(e)} \emptyset}
+\end{eqnarray}
+The first is provable, with care, by induction on $e$
+(even the base-case is non-trivial !).
+
+We then extend our language to include explicit expression meta-variables ($E \in M$)
+and explicit simultaneous substitutions:
+\begin{eqnarray*}
+   E \in M && \mbox{Given.}
+\\ e,f \in L_1 &::\!\!+&  E | e[\vec f/\vec x]
+\end{eqnarray*}
+Here it is understood that vectors $\vec f$ and $\vec x$ are of the same length
+and the latter has no duplicates.
+
+We now extend the notion of free variables, but note that we cannot ``expand'' the
+application of $\fv$ to $E$.
+The effect of this is that we no longer can return a set of variables, but must instead
+return an expression ($s \in S_1$) denoting such a set as a function of its explicit meta-variables:
+\begin{eqnarray*}
+  s \in S_1 &::=& \setof{\vec v} | E | s \setminus s | \bigcup \setof{\vec s} | v \in s \sthen s
+\end{eqnarray*}
+The last construction is a conditional: for $v \in s_0 \sthen s_1$,
+if the condition holds, then it denotes $s_1$, otherwise it denotes the empty set.
+
+There are obvious injections $L^{01}$ and $S^{01}$ that embed $e_0 : L_0$  and $s_0 : S_0$
+into $L_1$ and $S_1$ respectively.
+
+Given an environment ($\rho_M$) mapping $E$ to values from $L_0$,
+we can then map both $L_1$ to $L_0$ and $S_1$ to $S_0$ as follows
+(where we drop ${}_M$ in most cases as it is obvious from context):
+\begin{eqnarray*}
+   \rho_M &:& M \fun L_0
+\\ L^{10} &:& (M \fun L_0) \fun  L_1 \fun L_0
+\\ L^{10}_\rho(v) &\defs& v
+\\ L^{10}_\rho(f~e) &\defs& (L^{10}_\rho(f))~(L^{10}_\rho(e))
+\\ L^{10}_\rho(\lambda v @ e) &\defs& \lambda v @ (L^{10}_\rho(e))
+\\ L^{10}_\rho(E) &\defs& \rho(E)
+\\ L^{10}_\rho(e[\vec f/\vec x]) &\defs& (L^{10}_\rho(e))[\vec x:=\vec f]
+\\
+\\ S^{10} &:& (M \fun L_0) \fun S_1 \fun S_0
+\\ S^{10}_\rho(\setof{\vec v}) &\defs& \setof{\vec v}
+\\ S^{10}_\rho(E) &\defs& \fv_0(\rho(E))
+\\ S^{10}_\rho(s_1 \setminus s_2) &\defs& S^{10}_\rho(s_1) \setminus S^{10}_\rho(s_2)
+\\ S^{10}_\rho(\bigcup\setof{\vec s}) &\defs&  \bigcup\setof{\vec{S^{10}_\rho(s)}}
+\\ S^{10}_\rho(v \in s_0 \sthen s_1)
+    &\defs&
+     S^{10}_\rho(s_1)
+    \cond{v \in S^{10}_\rho(s_0)}
+     \emptyset
+\end{eqnarray*}
+
+We can extend $\fv$ to $L_1$ as follows:
+\begin{eqnarray*}
+   \fv,\fv_1 &:& L_1 \fun S_1
+\\ \fv(x) &\defs& \setof x
+\\ \fv(e_1~e_2) &\defs& \bigcup( \fv e_1,\fv e_2 )
+\\ \fv(\lambda x @ e) &\defs& (\fv e) \setminus \setof x
+\\ \fv(E) &\defs& E
+\\ \fv (e[\vec f/\vec x])
+   &\defs&
+   \fv(e)\setminus\setof{\vec x}
+   \cup
+   \bigcup_i \setof{ x_i \in \fv(e) \sthen \fv(f_i)}
+\end{eqnarray*}
+For a substitution, we see that the presence of the free variables
+of a replacement expression ($e_i$) is contingent
+on the presence of the corresponding \emph{target} variable ($x_i$)
+in the free variables of the \emph{base} expression ($e$).
+If the base expression is a meta-variable, then we get the following
+instantiation of the last law:
+\begin{eqnarray*}
+   \fv(E)[e_1,\ldots,e_n/x_1,\ldots,x_n]
+   &=& E\setminus\setof{x_1,\ldots,x_n}
+       \union
+       \bigcup \setof{  x_i \in  E @ \sthen e_i }
+\end{eqnarray*}
+We cannot either perform the set difference operation,
+nor evaluate any of the conditionals.
+In effect, in order to give an accurate description of the free variables
+of this language we need to return a (variable-set valued) expression
+that describes how the resulting set of variables is contingent
+upon the (yet to be determined) free variables of the meta-variables.
+This is the motivation for the $\sthen$ construct in $S_1$.
+
+
+
+We now find that we can construct the following diagram relating the $L_i$ and $S_i$:
+\begin{center}
+ \begin{tikzcd}[row sep=4em,column sep=4em]
+     L_1 \rar{\fv_1} \dar[bend left]{L^{10}_\rho}
+ &   S_1 \dar[bend left]{S^{10}_\rho}
+ \\
+     L_0 \rar[swap]{\fv_0} \uar[hook,bend left]{L^{01}}
+  &  S_0 \uar[hook,bend left]{S^{01}}
+ \\
+ \end{tikzcd}
+\end{center}
+From this we can immediately suggest a few lemmas/theorems:
+\begin{eqnarray}
+   L^{10}_\rho(L^{01}(e_0)) &=& e_0, \mbox{ for all }\rho
+\\ S^{10}_\rho(S^{01}(s_0)) &=& s_0, \mbox{ for all }\rho
+\\ \fv_1(L^{01}(e_0)) &=& S^{01}(\fv_0(e_0))
+\\ S^{10}_\rho(\fv_1(e_1)) &=& \fv_0(L^{10}_\rho(e_1)), \mbox{ for all }\rho
+\end{eqnarray}
+Proofs of these are by induction over the leftmost $e_i$ in each case,
+and are best done in the order given above.
+The following is an easy consequence of the above:
+\begin{eqnarray*}
+   && S^{10}_\rho(\fv_1(L^{01}(e_0)))
+\\ &=& S^{10}_\rho(S^{01}(\fv_0(e_0)))
+\\ &=& \fv_0(e_0)
+\end{eqnarray*}
+
+At this point we need to extend the language further to have explicit
+quantifier meta-variables that stand for lists of ordinary variables
+or corresponding lists of expressions:
+\begin{eqnarray*}
+  \lst q,\lst r \in Q && \mbox{Given.}
+\end{eqnarray*}
+We then extend our language again (where $\lstvec q$, like $\vec x$, has no duplicates):
+\begin{eqnarray*}
+   e,f \in L_2 &::\!\!+& \lambda \vec v,\lstvec q @ e | e[\vec f,\lstvec r/\vec x,\lstvec q]
+\end{eqnarray*}
+As before, there is an obvious injection $L^{12} : L_1 \fun L_2$,
+as well as $L^{02} : L_0 \fun L_2$,
+and the syntactic sugar $\lambda \vec x @ e$  is now a proper part of $L_2$.
+In effect the $L_2$ extensions subsume the lambda and substitution
+constructs of $L_1$.
+
+The $\lst q$ and $\lst r$ are intended to denote lists (possibly empty)
+of ordinary variables ($\vec v$) and expressions ($\vec f$) respectively.
+To this end we introduce two new environments:
+\begin{eqnarray*}
+   \rho_V &:& Q \fun V^*
+\\ \rho_E &:& Q \fun L_1^*
+\end{eqnarray*}
+We can use these to define the conversion
+$$L^{21}_{(\rho_V,\rho_E)} : L_2 \fun L_1,$$
+and coupled with $\rho_M$, we can then get
+$$L^{20}_{(\rho_V,\rho_E,\rho_M)} : L_2 \fun L_0.$$
+In the sequel we shall often use $\rho$ to denote one of the above
+when it is  obvious from context,
+or to denote the entire tuple-parameter of a conversion: i.e. $L^{20}_\rho$.
+
+We can now define the conversion:
+\begin{eqnarray*}
+   L^{21} &:& (Q \fun V^*) \times(Q \fun L_1^*) \fun  L_2 \fun L_1
+\\ L^{21}_\rho(v) &\defs& v
+\\ L^{21}_\rho(f~e) &\defs& (L^{21}_\rho(f))~(L^{21}_\rho(e))
+\\ L^{21}_\rho(E) &\defs& E
+\\ L^{21}_\rho(\lambda \vec v,\lstvec q @ e)
+   &\defs&
+   \lambda \vec v\cat\vec{\rho_V(\lst q)} @ (L^{21}_\rho(e))
+\\ L^{21}_\rho(e[\vec f,\lstvec r/\vec x,\lstvec q])
+   &\defs&
+   (L^{21}_\rho(e))
+     [ \vec{L^{21}(f)}\cat\vec{\rho_E(\lst r)}
+       /
+       \vec x \cat \vec{\rho_V(\lst q)}
+     ]
+\end{eqnarray*}
+Inbuilt here, are assumptions about the lengths of various lists matching
+up in $[\vec f,\lstvec r/\vec x,\lstvec q]$:
+\begin{eqnarray*}
+   \len\vec f &=& \len\vec x
+\\ \len\lstvec r &=& \len\lstvec q
+\\ \len(\rho_E(\lst r_i)) &=& \len(\rho_V(\lst q_i))
+\end{eqnarray*}
+
+We now need to extend the variable set language to cope with the $Q$ extensions
+(again we have $S_2$ subsuming one $S_1$ component, and adding a new one:
+\begin{eqnarray*}
+   s \in S_2 &::\!\!+& \setof{\vec v,\lstvec q} | \lst q \in s \ssthen \lst r
+\end{eqnarray*}
+Here we introduce the $\ssthen$ symbol,
+similar to $\sthen$,
+but note that the contents
+and meaning are different: $\lst q$ will denote a list of variables ($\vec v$),
+and $\lst r$ will denote a list of sets ($\vec s$), of the same length.
+The overall value will be merging all $s_i$ where $v_i$ is in $s$.
+Again,the embedding $S^{12} : S_1 \fun S_2$ should be obvious.
+
+Now, the opposite conversion:
+\begin{eqnarray*}
+   S^{21} &:& (Q \fun V^*) \times(Q \fun L_1^*) \fun S_2 \fun S_1
+\\ S^{21}_\rho(\setof{\vec v,\lstvec q}) &\defs& \setof{\vec v\cat\vec{\rho_V(\lst q)}}
+\\ S^{21}_\rho(E) &\defs& E
+\\ S^{21}_\rho(s_1 \setminus s_2) &\defs& S^{21}_\rho(s_1) \setminus S^{21}_\rho(s_2)
+\\ S^{21}_\rho(\bigcup\setof{\vec s}) &\defs&  \bigcup\setof{\vec{S^{21}_\rho(s)}}
+\\ S^{21}_\rho(v \in s_0 \sthen s_1)
+   &\defs&
+   v \in S^{21}_\rho(s_0) \sthen S^{21}_\rho(s_1)
+\\ S^{21}_\rho(\lst q \in s \ssthen \lst r)
+    &\defs&
+    \bigcup_i
+    \setof{  \rho_V(\lst q)_i \in S^{21}_\rho(s) \sthen \fv_1(\rho_E(\lst r)_i) }
+\end{eqnarray*}
+
+We are now in a position to define free variables over $L_2$:
+\begin{eqnarray*}
+   \fv,\fv_2 &:& L_2 \fun S_2
+\\ \fv(x) &\defs& \setof x
+\\ \fv(e_1~e_2) &\defs& \bigcup( \fv e_1,\fv e_2 )
+\\ \fv(\lambda \vec x,\lstvec q @ e) &\defs& (\fv e) \setminus \setof{\vec x,\lstvec q}
+\\ \fv(E) &\defs& E
+\\ \fv (e[\vec f,\lstvec r/\vec x,\lstvec q])
+   &\defs&
+   \fv(e)\setminus \setof{\vec x,\lstvec q}
+\\ && {} \cup
+   \bigcup_i
+   \setof{
+     x_i \in \fv(e) \sthen \fv(f_i)
+   }
+\\ && {} \cup
+   \bigcup_j
+   \setof{
+     \lst q_j \in \fv(e) \ssthen \lst r_j
+   }
+\end{eqnarray*}
+
+Once more, we have a commuting square:
+\begin{center}
+ \begin{tikzcd}[row sep=4em,column sep=4em]
+     L_2 \rar{\fv_2} \dar[bend left]{L^{21}_\rho}
+ &   S_2 \dar[bend left]{S^{21}_\rho}
+ \\
+     L_1 \rar[swap]{\fv_1} \uar[hook,bend left]{L^{12}}
+  &  S_1 \uar[hook,bend left]{S^{12}}
+ \\
+ \end{tikzcd}
+\end{center}
+and corresponding theorems:
+\begin{eqnarray}
+   L^{21}_\rho(L^{12}(e_1)) &=& e_1, \mbox{ for all }\rho
+\\ S^{21}_\rho(S^{12}(s_1)) &=& s_1, \mbox{ for all }\rho
+\\ \fv_2(L^{12}(e_1)) &=& S^{12}(\fv_1(e_1))
+\\ S^{21}_\rho(\fv_2(e_2)) &=& \fv_1(L^{21}_\rho(e_2)), \mbox{ for all }\rho
+\end{eqnarray}
+
+At this point we consider normal forms for free-variable
+set expressions, which require three further
+language extensions:
+we extend membership to include conjunction,
+and introduce a shorthand for the empty conjunction (true).
+We also allow explicit subtractions on the rhs of $\ssthen$:
+$$\begin{array}{rcll}
+  m \in Member  & ::= & v \in s | \lst q \in s | \lst q \in \lst r & \mbox{Element Membership}
+\\              &  |  & \bigwedge (m_1,\ldots,m_n) & \mbox{Conjunction}
+\\ \top &\defs& \bigwedge()
+\\ s \in S_3 &::\!\!+& m \ssthen \lst r \setminus \setof{\vec v,\lstvec q}
+\end{array}$$
+Note that we also allow a membership predicate of the form $\lst q \in s$
+to appear in $\sthen$, with a different semantics to the same thing in $\ssthen$:
+\begin{eqnarray*}
+   S^{21}_\rho(\lst q \in s_1 \sthen s_2)
+    &\defs&
+    \bigcup_i
+    \setof{  \rho_V(\lst q)_i \in S^{21}_\rho(s_1) \sthen s_2 }
+\end{eqnarray*}
+In addition we allow $\lst q \in \lst r$ to appear in $\ssthen$,
+where we break the need for corresponding indices of $\lst q$ and $\lst r_1$ to match,
+but retain it between $\lst q_i$ and $(\lst r_2)_i$:
+\begin{eqnarray*}
+   S^{21}_\rho(\lst q \in \lst r_1 \ssthen \lst r_2)
+    &\defs&
+    \bigcup_i
+    \setof{  \rho_V(\lst q)_i \in\fv_1(\rho_E(\lst r_1)) \sthen \fv_1(\rho_E(\lst r_2)_i) }
+\end{eqnarray*}
+
+We also introduce
+a form of conjunction for membership predicates in $\sthen$
+and the notion of  a naked $Q$ variable $\lst r$ denoting a list of expressions:
+\begin{eqnarray*}
+   s \in S_3 &::\!\!+& m \sthen s |  \lst r
+\end{eqnarray*}
+Embedding $S^{23} : S_2 \fun S_3$ is obvious,
+whilst the conversion in the opposite direction is less so:
+\begin{eqnarray*}
+   S^{32} &:& S_3 \fun S_2
+\\ S^{32}(\bigwedge () \sthen s)
+   &\defs&
+   s
+\\ S^{32}(\bigwedge (m_1,\ldots,m_n) \sthen s)
+   &\defs&
+   m_1 \sthen (m_2 \sthen \ldots (m_n \sthen s)\ldots)
+\\ S^{32}(\lst r) &\defs& \lst q \in \setof \lst q \ssthen \lst r
+\end{eqnarray*}
+
+So, we can use $\fv_2$ to get the desired free-variable set for any instance of $L_2$,
+as a member of $S_2$,
+and then embed into $S_3$ for normalisation and reasoning.
+
+\newpage
+At this point it is worth writing out $S_3$ explicitly (as $S$),
+and fine-tuning the syntax of membership:
+\begin{eqnarray*}
+   s \in S &::=& \setof{\vec v,\lstvec q}
+\\ &|& E
+\\ &|& s \setminus s
+\\ &|&  \bigcup \setof{\vec s}
+\\ &|&  m \sthen s
+\\ &|&  \lst q \in s \ssthen \lst r \setminus \setof{\vec v,\lstvec q}
+\\ &|&  \lst r
+\\ m \in Mmbr  & ::= & v \in s | \lst q \in s  | \bigwedge (m_1,\ldots,m_n)
+\end{eqnarray*}
+It is worth stressing how the constructs $\lst r$, $\sthen$ and $\ssthen$ should be interpreted:
+\begin{itemize}
+  \item As a standalone,
+        $\lst r$ denotes the union of the free-variables of the list of expressions given by $\rho_E$.
+        $$\sem{\lst r} = \bigcup_i\setof{\fv(\rho_E(\lst r)_i)}$$
+  \item
+     The construct $(v|\lst q) \in s \sthen t$ equals $t$ if all of $v$ or $\lst q$ is contained in $s$.
+     If either $s$ or $t$ is an instance of $\lst r$ then it is viewed as per the previous bullet-point.
+     \begin{eqnarray*}
+        \sem{v \in s \sthen t} &=& \sem{t} \cond{v \in \sem{s}} \emptyset
+     \\\sem{\lst q \in s \sthen t} &=& \sem{t} \cond{\lst q \subseteq \sem{s}} \emptyset
+     \end{eqnarray*}
+  \item The construct $\lst q \in s \ssthen \lst r \setminus \setof{\vec v,\lstvec q}$ is well-formed only if $\len\rho_V(\lst q)=\len\rho_E(\lst r)$,
+     and basically determines its result on a component-wise examination of the elements
+     of $\lst q$.
+     \begin{eqnarray*}
+        \sem{\lst q \in s \ssthen \lst r\setminus \setof{\vec v,\lstvec q}}
+        &=&
+        \bigcup_{i=1}^{\len~\lst q}\setof{ \fv(\rho_E(\lst r)_i) \cond{\rho_V(\lst q)_i \in \sem{s}} \emptyset} \setminus \setof{\vec v,\lstvec q}
+     \\ &=&
+        \bigcup_{i=1}^{\len~\lst q}\setof{ \rho_V(\lst q)_i \in s \sthen \fv(\rho_E(\lst r)_i)} \setminus \setof{\vec v,\lstvec q}
+     \end{eqnarray*}
+     If $s$ is an instance of $\lst r$ then we use the interpretation in the first bullet point.
+     The case $v \in s \ssthen \lst r$ is only valid if $\len\rho_E(\lst r)=1$.
+\end{itemize}
+In effect $\sthen$ is a global conditional, while $\ssthen$ works pointwise
+on corresponding members of $\lst q$ and $\lst r$.
+
+Note that if $\lst q$ and $\lst r$ have length one, then $\lst q \in s \sthen \lst r$ and $\lst q \in s \ssthen \lst r$
+are the same.
+
+\newpage
+A conditional expression $m \sthen s$ is \emph{upfront}
+if $s$ does not itself contain any conditionals,
+noting that $m \ssthen \lst r$ are always up-front by construction.
+A set-expression is \emph{atomic} if it has one of the
+following forms ($a$ is $v$ or $\lst q$):
+$$
+  \setof{ a_1, \ldots, a_n}
+  \qquad\qquad
+  E \setminus \setof{ a_1 , \ldots, a_n }, ~  n \geq 0
+  \qquad\qquad \lst r\setminus \setof{ a_1 , \ldots, a_n }, ~  n \geq 0
+$$
+We define our normal form to be a union of upfront conditional set-expressions
+whose set components are atomic.
+We convert to normal-form by repeatedly applying the following equivalences
+left-to-right,
+designed to bring union and conditional to the top
+\begin{eqnarray*}
+   m_1 \sthen (m_2 \sthen s) &=& \bigwedge(m_1,m_2) \sthen s
+\\ (m \sthen s) \setminus \setof{a_i} &=& m \sthen (s \setminus \setof{a_i})
+\\ m \sthen \bigcup( s_i ) &=& \bigcup( m \sthen s_i )
+\\ m \sthen \setof{} &=& \setof{}
+\\ \lst q \in (v \in s_0 \sthen s_1) \ssthen \lst r
+   &=&
+   v \in s_0 \sthen ( \lst q \in s_1 \ssthen \lst r)
+\\ \lst q_1 \in (\lst q_2 \in s_2 \ssthen \lst r_2) \ssthen \lst r_1
+   &=&
+   \bigwedge(\lst q_1 \in \lst r_2,\lst q_2 \in s_2) \ssthen \lst r_1
+\\ \bigwedge( m_i, a \in (m \sthen s_1) )\sthen s_2
+   &=& \bigwedge( m_i, a \in s_1, m ) \sthen s_2
+\\ \bigwedge( m_i, a \in \setof{a_i}, a \in \setof{a_j} )\sthen s_3
+   &=& \bigwedge( m_i, a \in (\setof{a_i}\cap\setof{a_j}), m ) \sthen s_3
+\\ \bigwedge( m_i, a \in \setof{} ) \sthen s &=& \setof{}
+\\ a \in N \setminus \setof{a_i}
+   &=& a \in N, \qquad a \notin \setof{a_i}
+\\ &=& a \in \setof {}, \qquad a \in \setof{a_i}
+\\ \bigwedge( m_i, a \in \bigcup( s_i ) )\sthen s
+   &=& \bigcup( \bigwedge( m_i, a \in s_i ) \sthen s)
+\\ \bigcup( s_i ) \setminus \setof{ a_i }
+   &=&
+   \bigcup( s_i \setminus \setof{ a_i} )
+\\ (s \setminus \setof{ a_i} ) \setminus \setof{ a_j }
+   &=&
+   s \setminus \setof{ a_i, a_j }
+\\ s &=& \bigcup( \top \sthen s )
+\end{eqnarray*}
+We assume that nested unions and conjunctions are flattened on-the-fly.
+

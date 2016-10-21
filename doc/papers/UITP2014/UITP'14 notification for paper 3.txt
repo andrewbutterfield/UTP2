@@ -1,0 +1,149 @@
+From: "UITP'14" <uitp2014@easychair.org>
+Subject: UITP'14 notification for paper 3
+Date: 24 May 2014 18:55:18 IST
+To: Andrew Butterfield <andrew.butterfield@cs.tcd.ie>
+
+Dear Andrew Butterfield,
+
+Congratulations! Your paper "UTP2: Higher-Order Equational Reasoning by Pointing" was accepted for UITP'14!
+
+The reviews are attached. Please take the comments of the reviewers into account when preparing the 
+final version of your paper. The deadline for submission of the final version has been extended to the 
+4th of June.
+
+Please register for the workshop using the registration system of the Vienna Summer of Logic 
+(http://vsl2014.at/registration/). Early registration goes until the 8th of June.
+
+The workshop schedule (http://vsl2014.at/meetings/UITP-program.html) will be available in a few days. 
+
+We thank you for your contribution and we look forward to seeing you at UITP'14 on the 17th of July!
+
+Christoph Benzmüller and Bruno Woltzenlogel Paleo
+UITP Workshop Chairs
+
+
+----------------------- REVIEW 1 ---------------------
+PAPER: 3
+TITLE: UTP2: Higher-Order Equational Reasoning by Pointing
+AUTHORS: Andrew Butterfield
+
+OVERALL EVALUATION: 1 (weak accept)
+REVIEWER'S CONFIDENCE: 5 (expert)
+
+----------- REVIEW -----------
+The paper presents and interface for U.(TP)^2, a prover for the Unifying Theories of Programming.
+The interface is specially tuned for beginners. 
+In that respect, a system that shares many similar concern and could be worth looking at is 
+Jape : http://japeforall.org.uk/
+It would be worth mentioning in the conclusion some more facts about the interface
+how big it is, how many man-months it represents.
+This system is worth being presented at the workshop.
+
+Typos
+
+Page 1 
+
+"was has discussed in" -> has been discussed in
+
+"was been further elaborated" -> have been further elaborated
+
+Page 2 
+
+Coq or CoQ
+
+"Set, Equality, Logic and ROOT" 
+
+ in the figure we don't have Set but Sets 
+
+ all the name are postfixed with $0. Why?
+
+Page 3
+
+ depedning -> depending
+
+ that convert -> converts
+
+ was matches   -> was matched
+
+Page 4 "we have to supply these"
+
+   this seems a bit weird, the variable "x" is bounded why do we need to give a name to it
+
+Page 5   oaf -> of
+
+Page 6 
+
+ in his authors -> in its authors
+
+ experiementation -> experimentation
+
+ his authors -> their authors
+
+ are step -> steps
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 3
+TITLE: UTP2: Higher-Order Equational Reasoning by Pointing
+AUTHORS: Andrew Butterfield
+
+OVERALL EVALUATION: 1 (weak accept)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- REVIEW -----------
+This paper proposes a user interface for conjectures that have been chosen in advance, using rewriting laws that are selected automatically.  The use of the mouse is restricted to choosing entries from menus, and no attention has been devoted to selected directly positions in the goals directly by using the mouse.  Instead users still have to navigate using arrow keys.
+
+This paper is badly written, with many sentences have many verbs to choose from.
+
+I still choose for weak acceptance because people working in this area need to meet together, but this paper is really lacking on the side of originality.
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 3
+TITLE: UTP2: Higher-Order Equational Reasoning by Pointing
+AUTHORS: Andrew Butterfield
+
+OVERALL EVALUATION: 1 (weak accept)
+REVIEWER'S CONFIDENCE: 4 (high)
+
+----------- REVIEW -----------
+The paper presents a new prover and interface to support reasoning on foundational issues of
+the unifying theories of programming. The paper advocates for an equational reasoning style
+with subformula/subterm rewriting and supported graphically by a technique similar to 
+proof by pointing. It also suggests that existing proof assistants are missing that feature. 
+This is true to some extend as it is not present in existing/still supported provers, but that does not mean that it was never present or existed. Indeed there is a series of provers and
+technologies in the 1990s and early 2000 which had such feature (one being the proof
+by pointing of Bertot, as mentioned), but many others existed. Also it has been set on
+solid foundations for type theories. I provide a list of references to system I'm aware
+of further below. As a consequence the paper is a bit of a déjà-vu. However, I believe 
+this is an important feature and would like to encourage the authors to have a closer look
+at what existed already and see how they can extend this in their future work. On the other hand
+the question arises that systems with similar features existed before and which are no longer
+maintained/available, what were the reasons why that didn't workout and nowadays we have 
+mostly declarative/procedural script-based interactive provers? 
+
+There a few sentences and formulations with grammatical problems in the paper that need be corrected.
+
+
+References
+
+[1] Dieter Hutter , Claus Sengler. The Graphical User Interface of INKA, Proceedings 
+   International Workshop on User Interfaces for Theorem Provers UITP-96, 1996
+
+[2] Mark Staples. Window Inference in Isabelle. In Proceedings of the First Isabelle Users 
+   Workshop. University of Cambridge Computer Laboratory,Technical Report No. 379, 
+   pp. 191-205, 1995.
+
+[3] Jörg Siekmann , Stephan M. Hess , Christoph Benzmüller , Lassaad Cheikhrouhou , Armin 
+   Fiedler , Helmut Horacek , Michael Kohlhase , Karsten Konrad , Andreas Meier , Erica Melis , 
+   Martin Pollet , Volker Sorge . LOmegaUI: Lovely OMEGA User Interface (1998), Formal Aspects 
+   of Computing, 1999
+
+[4] David A. Basin. Generalized Rewriting in Type Theory, Elektronische 
+   Informationsverarbeitung und Kybernetik, 30:5/6, pp. 249-259, 1994. 
+
+   And newer work on that topics in 2009/2010
+
+[5] Serge Autexier, The Core Calculus, Automated Deduction – CADE-20, 
+   Lecture Notes in Computer Science Volume 3632, 2005, pp 84-98
+

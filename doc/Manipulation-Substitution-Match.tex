@@ -1,0 +1,49 @@
+\textbf{Find all possible Substitution Matches (II)}\\
+  Argument \texttt{subm} is a pair of the form:
+  \begin{eqnarray*}
+   (~(a_1,f_1),\ldots,(a_n,f_n), (\lst a_1,\lst f_1),\ldots,(\lst a_m,\lst f_m)
+   &,&
+     (x_1,e_1),\ldots,(x_k,e_k), (\lst x_1,\lst e_1),\ldots,(\lst x_\ell,\lst e_\ell)~)
+  \\ \mbox{test}  &,& \mbox{pattern}, \quad n \geq k \land ((n \neq k \lor m > 0) \implies \ell > 0)
+  \end{eqnarray*}
+If $k=0$ we are done, with no changes,
+otherwise we try matching every single-pattern against every single-test.
+In effect, we get a 2-dim grid showing which
+tests and pattern match:
+$$
+\begin{array}{c|c|c|c|}
+    & af_1 & \ldots & af_n
+\\\hline
+ xe_1 &  \beta_{11}  & \ldots   & \beta_{1n}
+\\\hline
+ \vdots & \vdots   & \ddots   & \vdots
+\\\hline
+ xe_k &  \beta_{k1}  &  \ldots  & \beta_{kn}
+\\\hline
+\end{array}
+,\qquad n \geq k
+$$
+where $\beta_{ij}$ can be a valid binding, or a failure indicator.
+If any row has only failure indicators,
+then the entire match fails.
+It is clear we construct this table by matching each standard
+pattern in turn against all standard tests, failing immediately
+if a pattern fails to match.
+
+Otherwise, we know a solution is possible,
+so we then try to construct a list of valid bindings where every pattern
+occurs in exactly one binding, and every test in at most one.
+
+If successful, we return the bindings,
+and, as we have selected a matching of every $(x_i,e_i)$
+  against an equal number of $(a_j,f_j)$,
+  we are left us with the
+  following situation (w.l.o.g.) still to be resolved:
+  \begin{eqnarray*}
+   (~(a_{k+1},f_{k+1}),\ldots,(a_n,f_n), (\lst a_1,\lst f_1),\ldots,(\lst a_m\lst f_m)
+   &,&
+     (\lst x_1,\lst e_1),\ldots,(\lst x_\ell,\lst e_\ell)~)
+  \\ \mbox{test}  &,& \mbox{pattern}, \quad n \geq k \land ((n \neq k \lor m > 0) \implies \ell > 0)
+  \end{eqnarray*}
+  We return this ``leftover'' pair.
+

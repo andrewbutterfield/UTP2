@@ -1,0 +1,639 @@
+%
+% This document provides a single place for definitions
+% that will appear in multiple locations,
+% and so ensures they are kept consistent.
+%
+% This does not generate any typeset output.
+%
+
+%% Structural Matching
+
+\def\MRKnownVN{\LNAME{Known-V-Match}}
+\def\MRKnownVAnte{x \in \Gamma}
+\def\MRKnownVCons{\Gamma \wefind x \matches x \withbind \setof{}}
+\def\MRKnownV{\inferrule\MRKnownVAnte\MRKnownVCons}
+
+\def\MRKnownEN{\LNAME{Known-E-Match}}
+\def\MRKnownEAnte{x \in \Gamma \\ x \defs e}
+\def\MRKnownECons{\Gamma \wefind x \matches e \withbind\setof{ x \to e}}
+\def\MRKnownE{\inferrule\MRKnownEAnte\MRKnownECons}
+
+\def\MRUnknownVN{\LNAME{Unknown-V-Match}}
+\def\MRUnknownVAnte{x \notin \Gamma}
+\def\MRUnknownVCons{\Gamma \wefind x \matches v \withbind\setof{ x \to v}}
+\def\MRUnknownV{\inferrule\MRUnknownVAnte\MRUnknownVCons}
+
+\def\MRUnknownEN{\LNAME{Unknown-E-Match}}
+\def\MRUnknownEAnte{x \notin \Gamma}
+\def\MRUnknownECons{\Gamma \wefind x \matches e \withbind\setof{ x \to e}}
+\def\MRUnknownE{\inferrule\MRUnknownEAnte\MRUnknownECons}
+
+\def\MRCompositeN{\LNAME{Composite-Match}}
+\def\MRCompositeAnte{
+  \Gamma\wefind P_i \matches T_i  \withbind \beta_i
+  \\
+  \beta_1 \cong \beta_2
+  \\ \otimes \in \setof{\lor,\land,\implies,\equiv,\ldots}}
+\def\MRCompositeCons{\Gamma \wefind P_1 \otimes P_2 \matches T_1 \otimes T_2 \withbind \beta_1 \uplus \beta_2}
+\def\MRComposite{\inferrule\MRCompositeAnte\MRCompositeCons}
+
+\def\MRQuantN{\LNAME{Quant-Match}}
+\def\MRQuantAnte{P \matches Q  \withbind \beta_1 \\ xs \matches ys \withbind \beta_2 \\ \beta_1 \cong \beta_2}
+\def\MRQuantCons{\forall xs @ P \matches \forall ys @ P \withbind \beta_1 \uplus \beta_2}
+\def\MRQuant{\inferrule\MRQuantAnte\MRQuantCons}
+
+\def\MRNullQuantZN{\LNAME{NullQuant-Match$\ast$}}
+\def\MRNullQuantZAnte{P \matches Q \withbind \beta \\ \beta \cong \setof{ \lst x_i \to \nil}}
+\def\MRNullQuantZCons{
+  \forall  \lst x_1,\ldots,\lst x_n @ P \matches Q
+  \withbind \beta \uplus \setof{ \lst x_i \to \nil}
+}
+\def\MRNullQuantZ{\inferrule\MRNullQuantZAnte\MRNullQuantZCons}
+
+\def\MRNullQuantZN{\LNAME{NullQuant-Match${}^\ast$}}
+\def\MRNullQuantZAnte{
+  P \matches Q \withbind \beta
+  \\
+  \beta \cong \setof{ \lst x_i \to \nil}_{i\in 1\ldots n}
+}
+\def\MRNullQuantZCons{
+  \forall  \lst x_1,\ldots,\lst x_n @ P \matches Q
+  \withbind
+  \beta \uplus \setof{ \lst x_i \to \nil}_{i\in 1\ldots n}
+}
+\def\MRNullQuantZ{\inferrule\MRNullQuantZAnte\MRNullQuantZCons}
+
+\def\MRNullQuantON{\LNAME{NullQuant-Match${}^+$}}
+\def\MRNullQuantOAnte{
+   P \matches Q \withbind \beta
+   \\
+   \beta \cong \maplet{\lst x_0}{\nu} \extend \setof{ \lst x_i \to \nil}_{i\in 1\ldots n}
+   \\
+   \nu \neq \nil
+}
+\def\MRNullQuantOCons{
+  \forall  \lst x_0,\ldots,\lst x_n @ P \matches Q
+  \withbind
+  \beta \uplus \maplet{\lst x_0}{\nu} \uplus \setof{ \lst x_i \to \nil}_{i\in 1\ldots n}
+}
+\def\MRNullQuantO{\inferrule\MRNullQuantOAnte\MRNullQuantOCons}
+
+\def\MRUnivN{\LNAME{Univ-Match}}
+\def\MRUnivAnte{
+  F = \fv p \cup \fv q
+  \\
+  \Gamma \setminus F \wefind P \matches Q  \withbind \beta
+}
+\def\MRUnivCons{\Gamma \wefind [p] \matches [q] \withbind \beta}
+\def\MRUniv{\inferrule\MRUnivAnte\MRUnivCons}
+
+\def\MRSTRUCT{
+\begin{eqnarray*}
+   \MRKnownVN   && \MRKnownV
+\\
+\\ \MRKnownEN   && \MRKnownE
+\\
+\\ \MRUnknownVN && \MRUnknownV
+\\
+\\ \MRUnknownEN && \MRUnknownE
+\\
+\\ \MRCompositeN && \MRComposite
+\\
+\\ \MRQuantN && \MRQuant
+\\
+\\ \MRNullQuantZN && \MRNullQuantZ
+\\
+\\ \MRNullQuantON && \MRNullQuantO
+\\
+\\ \MRUnivN && \MRUniv
+\end{eqnarray*}
+}
+
+
+%% Decoration Matching
+
+\def\MRAbstractPreN{\LNAME{Pre-Match}}
+\def\MRAbstractPreAnte{(x,Pre) \notin \Gamma}
+\def\MRAbstractPreCons{\Gamma \wefind (x,Pre) \matches (v,*)
+                       \withbind \setof{ (x,Pre) \to (v,*)} }
+\def\MRAbstractPre{\inferrule\MRAbstractPreAnte\MRAbstractPreCons}
+
+\def\MRAbstractPostN{\LNAME{Post-Match}}
+\def\MRAbstractPostAnte{(x,Post) \notin \Gamma}
+\def\MRAbstractPostCons{\Gamma \wefind (x,Post) \matches (v,Post)
+                        \withbind \setof{ (x,Post) \to (v,Post)}}
+\def\MRAbstractPost{\inferrule\MRAbstractPostAnte\MRAbstractPostCons}
+
+\def\MRAbstractScrptN{\LNAME{Script-Match}}
+\def\MRAbstractScrptAnte{(x,Script) \notin \Gamma}
+\def\MRAbstractScrptCons{\Gamma \wefind (x,Script) \matches (v,Script)
+                        \withbind \setof{ (x,Script) \to (v,Script)}}
+\def\MRAbstractScrpt{\inferrule\MRAbstractScrptAnte\MRAbstractScrptCons}
+
+\def\MRAbstractSbscrN{\LNAME{Sbscr-Match}}
+\def\MRAbstractSbscrAnte{(x,Subscript) \notin \Gamma}
+\def\MRAbstractSbscrCons{\Gamma \wefind (x,Subscript) \matches (v,*)
+                       \withbind\setof{ (x,Subscript) \to (v,*)}}
+\def\MRAbstractSbscr{\inferrule\MRAbstractSbscrAnte\MRAbstractSbscrCons}
+
+\def\MRDECOR{
+\begin{eqnarray*}
+   \MRAbstractPreN && \MRAbstractPre
+\\
+\\ \MRAbstractPostN && \MRAbstractPost
+\\
+\\ \MRAbstractScrptN && \MRAbstractScrpt
+\\
+\\ \MRAbstractSbscrN && \MRAbstractSbscr
+\end{eqnarray*}
+}
+% List-Variable Matching
+
+\def\alsoObsScrMdl{similarly for $O$, $S$, $M$}
+\def\alsoObsScrMdlS{\blacktriangle}
+\def\alsoScrMdl{similarly for $S$, $M$}
+\def\alsoScrMdlS{\blacktriangledown}
+\def\alsoObsDashScrMdl{similarly for $O'$, $S$, $M$}
+\def\alsoObsDashScrMdlS{\blacklozenge}
+\def\alsoObsDashSub{similarly for $O'$, $O_s$}
+\def\alsoObsDashSubS{\blacksquare}
+\def\alsoSwap{also if $M$, $S$ swapped}
+\def\alsoSwapS{\ltimes}
+\def\alsoScrDash{similarly for  $S'$}
+\def\alsoScrDashS{\bigstar}
+
+% General List-Variable Matching
+
+\def\MRLVarSelfN{\LNAME{LVar-Self}}
+\def\MRLVarSelfAnte{~}
+\def\MRLVarSelfCons{\Gamma \wefind  \lst v \matches  \lst v
+                     \withbind \setof{\lst v \to \lst v}}
+\def\MRLVarSelf{\inferrule\MRLVarSelfAnte\MRLVarSelfCons\alsoObsScrMdlS}
+
+\def\MRLVarListN{\LNAME{LVar-List}}
+\def\MRLVarListAnte{~}
+\def\MRLVarListCons{\Gamma \wefind  \lst v \matches  v_1,\ldots,v_n
+                     \withbind \setof{\lst v \to v_1,\ldots,v_n}}
+\def\MRLVarList{\inferrule\MRLVarListAnte\MRLVarListCons}
+
+\def\MRGENVAR{
+\begin{eqnarray*}
+   \MRLVarSelfN && \MRLVarSelf
+\\ \MRLVarListN && \MRLVarList
+\end{eqnarray*}
+}
+
+% Reserved "O" Matching
+
+\def\MRLVarSubsN{\LNAME{Obs-Subs-Self}}
+\def\MRLVarSubsAnte{~}
+\def\MRLVarSubsCons{\Gamma \wefind  O_a \matches  O_b
+                     \withbind
+                     \setof{O_a \to O_b, M_a \to M_b, S_a \to S_b}}
+\def\MRLVarSubs{\inferrule\MRLVarSubsAnte\MRLVarSubsCons\alsoScrMdlS}
+
+\def\MRLVarObsN{\LNAME{Obs-Expand}}
+\def\MRLVarObsAnte{O(\Gamma)=\setof{o_1,\ldots,o_n}}
+\def\MRLVarObsCons{\Gamma \wefind  O \matches \setof{o_1,\ldots,o_n}
+                    \withbind \setof{O \to \setof{o_1,\ldots,o_n}}}
+\def\MRLVarObs{\inferrule\MRLVarObsAnte\MRLVarObsCons\alsoObsDashScrMdlS}
+
+\def\MRLVarObsSubsN{\LNAME{Obs-Subs-Expand}}
+\def\MRLVarObsSubsAnte{
+  M(\Gamma)=\setof{m, \ldots}
+  \\
+  S(\Gamma)=\setof{s, \ldots}
+}
+\def\MRLVarObsSubsCons{
+  \Gamma
+  \wefind
+    O_x \matches \setof{m_y, \ldots, s_y, \ldots}
+  \\\\
+  \withbind
+    \setof{
+      O_x \to \setof{m_y, \ldots, s_y, \ldots}
+      ,M_x \to \setof{m_y, \ldots}
+      ,S_x \to \setof{s_y, \ldots}
+    }
+}
+\def\MRLVarObsSubs{\inferrule\MRLVarObsSubsAnte\MRLVarObsSubsCons\alsoScrMdlS}
+
+\def\MRLVarOMSN{\LNAME{Obs-OMS}}
+\def\MRLVarOMSAnte{~}
+\def\MRLVarOMSCons{\Gamma \wefind  O \matches  \setof{M,S}
+                   \withbind \setof{O \to \setof{M,S}}}
+\def\MRLVarOMS{\inferrule\MRLVarOMSAnte\MRLVarOMSCons\alsoObsDashSubS}
+
+\def\MRLVarOvsMN{\LNAME{Obs-Obs-vs-M}}
+\def\MRLVarOvsMAnte{S(\Gamma)=\setof{v_1,\ldots,v_n}}
+\def\MRLVarOvsMCons{\Gamma \wefind  O \matches \setof{v_1,\ldots,v_n,M}
+                    \withbind \setof{O \to \setof{v_1,\ldots,v_n,M}}}
+\def\MRLVarOvsM{\inferrule\MRLVarOvsMAnte\MRLVarOvsMCons\alsoObsDashSubS\alsoSwapS}
+
+\def\MRObsLessN{\LNAME{Obs-Less-Var}}
+\def\MRObsLessAnte{O(\Gamma) = \setof{x_1,\ldots,x_n,y_1,\ldots,y_k}}
+\def\MRObsLessCons{
+  \Gamma \wefind  (O\less{x_1,\ldots,x_n})
+  \matches \setof{y_1,\ldots,y_k}
+  \\\\
+  \qquad   \withbind \setof{(O\less{x_1,\ldots,x_n}) \to  \setof{y_1,\ldots,y_k}}
+}
+\def\MRObsLess{\inferrule\MRObsLessAnte\MRObsLessCons\alsoScrMdlS}
+
+\def\MRRSVOBS{
+\begin{eqnarray*}
+   \MRLVarSubsN && \MRLVarSubs
+\\
+\\ \MRLVarObsN && \MRLVarObs
+\\
+\\ \MRLVarObsSubsN && \MRLVarObsSubs
+\\ \MRLVarOMSN && \MRLVarOMS
+\\
+\\ \MRLVarOvsMN && \MRLVarOvsM
+\\
+\\ \MRObsLessN && \MRObsLess
+\end{eqnarray*}
+}
+
+% Reserved "S" matching
+
+\def\MRScrLessObsN{\LNAME{Scr-Less-Obs}}
+\def\MRScrLessObsAnte{
+  S(\Gamma) = \setof{x_1,\ldots,x_n,y_1,\ldots,y_k}
+  \\
+  n+k \geq 1
+}
+\def\MRScrLessObsCons{
+  \Gamma \wefind  (S\less{x_1,\ldots,x_n})
+  \matches \setof{y_1,\ldots,y_k}
+  \\\\
+  \qquad   \withbind \setof{(S\less{x_1,\ldots,x_n}) \to  \setof{y_1,\ldots,y_k}}
+}
+\def\MRScrLessObs{\inferrule\MRScrLessObsAnte\MRScrLessObsCons
+    \alsoScrDashS\alsoSwapS}
+
+
+\def\MRScrLessUnkN{\LNAME{Scr-Less-Unknown}}
+\def\MRScrLessUnkAnte{
+  v \notin S(\Gamma) = \setof{x_1,\ldots,x_n}
+  \\
+  n \geq 1
+  \\
+  k \in 1 \ldots n
+}
+\def\MRScrLessUnkCons{
+  \Gamma \wefind  (S\less v)
+  \matches \setof{x_1,\ldots,x_{k-1},x_{k+1},x_n}
+  \\\\
+  \qquad
+  \withbind
+  \setof{
+     (S\less v) \to  \setof{x_1,\ldots,x_{k-1},x_{k+1},x_n}
+    , v \to x_k
+  }
+}
+\def\MRScrLessUnk{\inferrule\MRScrLessUnkAnte\MRScrLessUnkCons
+    \alsoScrDashS\alsoSwapS}
+
+
+\def\MRScrLessUnksN{\LNAME{Scr-Less-Unknowns}}
+\def\MRScrLessUnksAnte{
+  v \notin S(\Gamma) = \setof{x_1,\ldots,x_n}
+  \\
+  n \geq 1
+  \\
+  k \in 0 \ldots n
+}
+\def\MRScrLessUnksCons{
+  \Gamma \wefind  (S\less{\lst v})
+  \matches \setof{x_1,\ldots,x_k}
+  \\\\
+  \qquad
+  \withbind
+  \setof{
+     (S\less{\lst v}) \to  \setof{x_1,\ldots,x_k}
+    , \lst v \to \setof{x_{k+1},\ldots,x_n}
+  }
+}
+\def\MRScrLessUnks{\inferrule\MRScrLessUnksAnte\MRScrLessUnksCons
+    \alsoScrDashS\alsoSwapS}
+
+
+\def\MRRSVSCR{
+\begin{eqnarray*}
+   \MRScrLessObsN && \MRScrLessObs
+\\
+\\ \MRScrLessUnkN && \MRScrLessUnk
+\\
+\\ \MRScrLessUnksN && \MRScrLessUnks
+\end{eqnarray*}
+}
+
+\def\MRLISTVAR{
+\MRGENVAR
+$\alsoObsScrMdlS$ : \alsoObsScrMdl.
+\MRRSVOBS
+$\alsoObsDashScrMdlS$ : \alsoObsDashScrMdl;
+\\$\alsoScrMdlS$ : \alsoScrMdl;
+\\$\alsoObsDashSubS$ : \alsoObsDashSub;
+\\$\alsoSwapS$ : \alsoSwap.
+\MRRSVSCR
+\\$\alsoScrDashS$ : \alsoScrDash.
+}
+
+% non-Reserved List-variable vs. Single item partial matches
+% TODO
+
+% Reserved List-variable vs. Single item partial matches
+
+
+\def\MRLSnglRsvStdN{\LNAME{LSngl-Rsv-Std}}
+\def\MRLSnglRsvStdAnte{
+ V \ominus X = \sem{L^d \less{D}}_\Gamma
+ \\
+ v \in V
+}
+\def\MRLSnglRsvStdCons{
+  \Gamma \wefind  L^d \less{D} \matches v \withbind \setof{L^d \less{D} \to v}
+}
+\def\MRLSnglRsvStd{\inferrule\MRLSnglRsvStdAnte\MRLSnglRsvStdCons}
+
+
+\def\MRLSnglRsvLstN{\LNAME{LSngl-RsvLst}}
+\def\MRLSnglRsvLstAnte{~}
+\def\MRLSnglRsvLstCons{
+  \Gamma \wefind  L^d \less{D} \matches \lst x \withbind \setof{L^d \less{D} \to \lst x}
+}
+\def\MRLSnglRsvLst{\inferrule\MRLSnglRsvLstAnte\MRLSnglRsvLstCons}
+
+
+
+\def\MRLSnglRsvRsvN{\LNAME{LSngl-Rsv-Rsv}}
+\def\MRLSnglRsvRsvAnte{
+ V_i \ominus X_i = \sem{L^d_i \less{D_i}}_\Gamma
+ \\
+ F = V_1 \setminus V_2
+ \\\\ V_1 = \emptyset
+     \lor X_2 = \emptyset \land \#X_1 \geq \#F
+     \lor  \#X_1 > \#F
+}
+\def\MRLSnglRsvRsvCons{\Gamma \wefind  L^d_1 \less{D_1} \matches L^d_2 \less{D_2}
+                   \withbind \setof{L^d_1 \less{D_1} \to L^d_2 \less{D_2}}}
+\def\MRLSnglRsvRsv{\inferrule\MRLSnglRsvRsvAnte\MRLSnglRsvRsvCons}
+
+
+\def\MRRSVSINGLE{
+\begin{eqnarray*}
+   \MRLSnglRsvStdN && \MRLSnglRsvStd
+\\
+\\ \MRLSnglRsvRsvN && \MRLSnglRsvRsv
+\\
+\\ \MRLSnglRsvLstN && \MRLSnglRsvLst
+\end{eqnarray*}
+}
+
+
+
+% 2-Place Predicate List Variable Matching
+
+\def\MRTwoPlaceOneN{\LNAME{2Place-One}}
+\def\MRTwoPlaceOneAnte{~}
+\def\MRTwoPlaceOneCons{
+  \Gamma \wefind p(\lst x,\lst y)
+         \matches p(\lst a,\lst b)
+         \withbind \mapof{\lst x \to \seqof{\lst a}, \lst y \to \seqof{\lst b}}
+}
+\def\MRTwoPlaceOne{\inferrule\MRTwoPlaceOneAnte\MRTwoPlaceOneCons}
+
+\def\MRTwoPlaceOneRsvN{\LNAME{2Place-One-Rsv}}
+\def\MRTwoPlaceOneRsvAnte{R_1,R_2 \mbox{ have same \texttt{RsvRoot}}}
+\def\MRTwoPlaceOneRsvCons{
+  \Gamma \wefind p(\lst x,\lst y)
+         \matches p(R_1,R_2)
+         \withbind \mapof{\lst x \to \seqof{R_1}, \lst y \to \seqof{R_2}}
+}
+\def\MRTwoPlaceOneRsv{\inferrule\MRTwoPlaceOneRsvAnte\MRTwoPlaceOneRsvCons}
+
+\def\MRTwoPlaceManyN{\LNAME{2Place-Many}}
+\def\MRTwoPlaceManyAnte{~}
+\def\MRTwoPlaceManyCons{
+ \Gamma \wefind p(\lst x,\lst y) \matches \bigwedge_{i \in 1\ldots n}p(e_i,f_i)
+     \withbind \setof{ \lst x \to \seqof{e_i}, \lst y \to \seqof{f_i} }
+}
+\def\MRTwoPlaceMany{\inferrule\MRTwoPlaceManyAnte\MRTwoPlaceManyCons}
+
+\def\MRTwoPlaceLessN{\LNAME{2Place-Less}}
+\def\MRTwoPlaceLessAnte{
+         L_i \in \setof{O,M,S} \mbox{ plus decor.}
+         \\\\
+         L_1(\Gamma)=\setof{u_i, v_j}
+         \quad
+         L_2(\Gamma)=\setof{x_m, y_j}
+}
+\def\MRTwoPlaceLessCons{\Gamma \wefind p( L_1\less{\setof{u_i}}
+                       , L_2\less{\setof{x_m}})
+                       \matches \bigwedge_{j \in 1\ldots n}p(v_j,y_j)
+       \\\\ \withbind \setof{L_1\less{\setof{u_i}} \to \seqof{v_j},
+               L_2\less{\setof{x_m}} \to \seqof{y_j}}}
+\def\MRTwoPlaceLess{\inferrule\MRTwoPlaceLessAnte\MRTwoPlaceLessCons}
+
+\def\MRTWOPLACE{
+\begin{eqnarray*}
+   \MRTwoPlaceOneN && \MRTwoPlaceOne
+\\
+\\ \MRTwoPlaceOneRsvN && \MRTwoPlaceOneRsv
+\\
+\\ \MRTwoPlaceManyN && \MRTwoPlaceMany
+\\
+\\ \MRTwoPlaceLessN && \MRTwoPlaceLess
+\end{eqnarray*}
+}
+
+% Operator Matching
+
+\def\MRArbOpN{\LNAME{Arb-Op-Match}}
+\def\MRArbOpAnte{\Gamma(\oplus)=\setof{}
+                 \\ \Gamma \wefind e_i \matches f_i \withbind \beta_i
+                 \\ \beta_1 \cong \beta_2}
+\def\MRArbOpCons{\Gamma \wefind e_1 \oplus e_2 \matches f_1 \otimes f_2
+                \withbind \beta_1 \uplus \beta_2 \uplus \mapof{\oplus \to \otimes}}
+\def\MRArbOp{\inferrule\MRArbOpAnte\MRArbOpCons}
+
+\def\MRTypOpN{\LNAME{Typ-Op-Match}}
+\def\MRTypOpAnte{\Gamma(\oplus)=\setof{T_1 \times T_2 \fun T_3}
+                 \\ \Gamma \wefind e_i \matches f_i \withbind \beta_i
+                 \\ \beta_1 \cong \beta_2}
+\def\MRTypOpCons{\Gamma \wefind e_1 \oplus e_2 \matches f_1 \oplus f_2
+                 \withbind \beta_1 \uplus \beta_2}
+\def\MRTypOp{\inferrule\MRTypOpAnte\MRTypOpCons}
+
+\def\MRLogOpN{\LNAME{Log-Op-Match}}
+\def\MRLogOpAnte{\Gamma(\oplus)=\setof{P \oplus P}
+                 \quad \otimes \in \setof{\land,\lor,\implies,\equiv,\ldots}
+                 \\
+                \Gamma \wefind P_i \matches Q_i \withbind \beta_i
+                \\ \beta_1 \cong \beta_2}
+\def\MRLogOpCons{\Gamma \wefind P_1 \oplus P_2 \matches Q_1 \otimes Q_2
+                 \withbind \beta_1 \uplus \beta_2 \uplus \mapof{\oplus \to \otimes}}
+\def\MRLogOp{\inferrule\MRLogOpAnte\MRLogOpCons}
+
+\def\MRDefPOpN{\LNAME{DefPOp-Match}}
+\def\MRDefPOpAnte{\Gamma(\oplus)=\setof{P \oplus P,DEF}
+                \\ \Gamma \wefind P_i \matches Q_i \withbind \beta_i
+                \\ \beta_1 \cong \beta_2}
+\def\MRDefPOpCons{\Gamma \wefind P_1 \oplus P_2 \matches Q_1 \oplus Q_2
+               \withbind \beta_1 \uplus \beta_2 }
+\def\MRDefPOp{\inferrule\MRDefPOpAnte\MRDefPOpCons}
+
+\def\MRArbEOpN{\LNAME{ArbEOp-Match}}
+\def\MRArbEOpAnte{\Gamma(\oplus)=\setof{E\oplus E}
+                \\ \Gamma \wefind e_i \matches f_i \withbind \beta_i
+                \\ \beta_1 \cong \beta_2}
+\def\MRArbEOpCons{\Gamma \wefind e_1 \oplus e_2 \matches f_1 \otimes f_2
+                \withbind \beta_1 \uplus \beta_2 \uplus \mapof{\oplus \to \otimes}}
+\def\MRArbEOp{\inferrule\MRArbEOpAnte\MRArbEOpCons}
+
+\def\MRTypEOpN{\LNAME{TypEOp-Match}}
+\def\MRTypEOpAnte{\Gamma(\oplus)=\setof{E\oplus E,T_1 \times T_2 \fun T_3}
+                  \\  \otimes : T_1 \times T_2 \fun T_3
+                 \\\\ \Gamma \wefind e_i \matches f_i \withbind \beta_i
+                  \\ \beta_1 \cong \beta_2}
+\def\MRTypEOpCons{\Gamma \wefind e_1 \oplus e_2 \matches f_1 \otimes f_2
+               \withbind \beta_1 \uplus \beta_2 \uplus \mapof{\oplus \to \otimes}}
+\def\MRTypEOp{\inferrule\MRTypEOpAnte\MRTypEOpCons}
+
+\def\MRDefEOpN{\LNAME{DefEOp-Match}}
+\def\MRDefEOpAnte{\Gamma(\oplus)=\setof{E\oplus E,DEF,T_1 \times T_2 \fun T_3}
+               \\ \Gamma \wefind e_i \matches f_i \withbind \beta_i
+               \\ \beta_1 \cong \beta_2}
+\def\MRDefEOpCons{\Gamma \wefind e_1 \oplus e_2 \matches f_1 \oplus f_2
+                \withbind \beta_1 \uplus \beta_2}
+\def\MRDefEOp{\inferrule\MRDefEOpAnte\MRDefEOpCons}
+
+\def\MRBINOP{
+\begin{eqnarray*}
+   \MRArbOpN && \MRArbOp
+\\
+\\ \MRTypOpN && \MRTypOp
+\\
+\\ \MRLogOpN && \MRLogOp
+\\
+\\ \MRDefPOpN && \MRDefPOp
+\\
+\\ \MRArbEOpN && \MRArbEOp
+\\
+\\ \MRTypEOpN && \MRTypEOp
+\\
+\\ \MRDefEOpN && \MRDefEOp
+\end{eqnarray*}
+}
+
+
+\def\MRTBoolN{\LNAME{TM-Bool}}
+\def\MRTBoolAnte{~}
+\def\MRTBoolCons{B \matches B \withbind \theta}
+\def\MRTBool{\inferrule\MRTBoolAnte\MRTBoolCons}
+
+\def\MRTIntN{\LNAME{TM-Int}}
+\def\MRTIntAnte{~}
+\def\MRTIntCons{Z \matches Z \withbind \theta}
+\def\MRTInt{\inferrule\MRTIntAnte\MRTIntCons}
+
+\def\MRTVarN{\LNAME{TM-Var}}
+\def\MRTVarAnte{~}
+\def\MRTVarCons{t  \matches \tau \withbind \{ t \to \tau \} }
+\def\MRTVar{\inferrule\MRTVarAnte\MRTVarCons}
+
+\def\MRTArbN{\LNAME{TM-Arb}}
+\def\MRTArbAnte{~}
+\def\MRTArbCons{? \matches \tau \withbind \theta}
+\def\MRTArb{\inferrule\MRTArbAnte\MRTArbCons}
+
+\def\MRTSetN{\LNAME{TM-Set}}
+\def\MRTSetAnte{\rho \matches \tau \withbind \beta}
+\def\MRTSetCons{\power\rho \matches \power\tau \withbind \beta}
+\def\MRTSet{\inferrule\MRTSetAnte\MRTSetCons}
+
+\def\MRTListN{\LNAME{TM-List}}
+\def\MRTListAnte{\rho \matches \tau \withbind \beta}
+\def\MRTListCons{\rho^* \matches \tau^* \withbind \beta}
+\def\MRTList{\inferrule\MRTListAnte\MRTListCons}
+
+\def\MRTProdN{\LNAME{TM-Prod}}
+\def\MRTProdAnte{\rho_1 \matches \tau_1 \withbind \beta_1
+                 \\ \rho_2 \matches \tau_2 \withbind \beta_2}
+\def\MRTProdCons{\rho_1 \times \rho_2 \matches \tau_1 \times \tau_2
+                  \withbind \beta_1 \uplus \beta_2}
+\def\MRTProd{\inferrule\MRTProdAnte\MRTProdCons}
+
+\def\MRTFunN{\LNAME{TM-Fun}}
+\def\MRTFunAnte{\rho_1 \matches \tau_1 \withbind \beta_1
+                 \\ \rho_2 \matches \tau_2 \withbind \beta_2}
+\def\MRTFunCons{\rho_1 \fun \rho_2 \matches \tau_1 \fun \tau_2
+                \withbind \beta_1 \uplus \beta_2}
+\def\MRTFun{\inferrule\MRTFunAnte\MRTFunCons}
+
+\def\MRTVarRN{\LNAME{TM-VarR}}
+\def\MRTVarRAnte{~}
+\def\MRTVarRCons{\rho \matches t \withbind \{ t \to \rho \} }
+\def\MRTVarR{\inferrule\MRTVarRAnte\MRTVarRCons}
+
+\def\MRTArbRN{\LNAME{TM-ArbR}}
+\def\MRTArbRAnte{~}
+\def\MRTArbRCons{\rho \matches ? \withbind \theta}
+\def\MRTArbR{\inferrule\MRTArbRAnte\MRTArbRCons}
+
+\def\MRTYPE{
+$$\begin{array}{r@{\qquad}l}
+   \MRTBoolN & \MRTBool
+\\ \MRTIntN  & \MRTInt
+\\ \MRTVarN  & \MRTVar
+\\ \MRTArbN  & \MRTArb
+\\
+\\ \MRTSetN & \MRTSet
+\\
+\\ \MRTListN & \MRTList
+\\
+\\ \MRTProdN & \MRTProd
+\\
+\\ \MRTFunN & \MRTFun
+\end{array}$$
+}
+
+\def\MRPUnInstN{\LNAME{PM-UNINST}}
+\def\MRPUnInstAnte{}
+\def\MRPUnInstCons{\_UNIST \not{\!\matches\,} p}
+\def\MRPUnInst{\inferrule\MRPUnInstAnte\MRPUnInstCons}
+
+\def\MRPKnownN{\LNAME{PM-Known}}
+\def\MRPKnownAnte{\Gamma(P)=q}
+\def\MRPKnownCons{
+  \Gamma \wefind P \matches P \withbind \setof{}
+  \\\\
+  \Gamma \wefind P \matches q \withbind \maplet P q
+}
+\def\MRPKnown{\inferrule\MRPKnownAnte\MRPKnownCons}
+
+\def\MRPUnKnownN{\LNAME{PM-UnKnown}}
+\def\MRPUnKnownAnte{P \notin \Gamma}
+\def\MRPUnKnownCons{\Gamma \wefind P \matches q \withbind \maplet P q}
+\def\MRPUnKnown{\inferrule\MRPUnKnownAnte\MRPUnKnownCons}
+
+\def\MRPSubstN{\LNAME{PM-PSubst}}
+\def\MRPSubstAnte{
+  p \matches q \withbind \beta
+  \\
+  p_i \matches q_i \withbind \beta_i
+  \\
+  u_i \matches v_i \withbind \gamma_i
+}
+\def\MRPSubstCons{
+  p[p_i/u_i] \matches q[q_i/v_i]
+  \withbind \beta\uplus \biguplus(\beta_i \uplus \gamma_i)
+}
+\def\MRPSubst{\inferrule\MRPSubstAnte\MRPSubstCons}
+
+\def\MRxxxxN{\LNAME{Xxxx}}
+\def\MRxxxxAnte{antecedent}
+\def\MRxxxxCons{consequent}
+\def\MRxxxx{\inferrule\MRxxxxAnte\MRxxxxCons}

@@ -1,0 +1,387 @@
+\chapter{Issues}
+
+The entries here are being linked to file TODO.txt, most recent
+in each category on top.
+Each entry is identified by a letter
+(\textbf{S},\textbf{C},\textbf{U},\textbf{D}) and number,
+most recent being highest.
+
+\section{Soundness}
+
+\section{Completeness}
+
+\subsection*{C--1 Need to support alphabets properly (0.85$\alpha$5)}
+
+Let's present a proof that illustrates the issues that need to be tackled
+to handle alphabets properly.
+We shall prove the associativity of sequential composition
+in a general settings
+(i.e. suitable for many theories with different homogenous alphabets).
+
+Definitions and Laws:
+\begin{eqnarray*}
+  \elabel{DEF-;} &&
+   P;Q
+   \defs
+   \exists \qsep Obs_m @ P[Obs_m/\qsep Obs'] \land Q[Obs_m/\qsep Obs], \mbox{ fresh }m
+\\ \elabel{and-E-distr} &&
+   N \land (\exists  \qsep xs @ P)
+   =
+   (\exists \qsep xs @ N \land P), ~xs \notin N
+\end{eqnarray*}
+The proof (ignoring ACI rearrangements)
+\begin{eqnarray*}
+  && A ; ( B ; C )
+\EQ{\ecite{DEF-;}, $m$ is fresh}
+\\&& A ; (\exists \qsep Obs_m @ B[Obs_m/\qsep Obs'] \land C[Obs_m/\qsep Obs])
+\EQ{\ecite{DEF-;}, $n$ is fresh}
+\\&& \exists \qsep Obs_n @ A[Obs_n/\qsep Obs']
+     \land (\exists \qsep Obs_m @ B[Obs_m/\qsep Obs'] \land C[Obs_m/\qsep Obs])[Obs_n/\qsep Obs]
+\EQ{perform substitution, $Obs_n \neq Obs_m$}
+\\&& \exists \qsep Obs_n @ A[Obs_n/\qsep Obs']
+     \land \exists \qsep Obs_m @ B[Obs_m/\qsep Obs'][Obs_n/\qsep Obs] \land C[Obs_m/\qsep Obs][Obs_n/\qsep Obs]
+\EQ{compose substitutions, $Obs_n \neq Obs_m$}
+\\&& \exists \qsep Obs_n @ A[Obs_n/\qsep Obs']
+     \land \exists \qsep Obs_m @ B[Obs_m,Obs_n/\qsep Obs',Obs] \land C[Obs_m/\qsep Obs]
+\EQ{\ecite{and-E-distr}, $Obs_m \notin A[Obs_n/\qsep Obs']$}
+\\&& \exists \qsep Obs_n,Obs_m @ A[Obs_n/\qsep Obs']
+     \land B[Obs_m,Obs_n/\qsep Obs',Obs] \land C[Obs_m/\qsep Obs]
+\EQ{\ecite{and-E-distr}, $Obs_n \notin C[Obs_m/\qsep Obs]$}
+\\&& \exists \qsep Obs_m @
+       (\exists \qsep Obs_n @ A[Obs_n/\qsep Obs'] \land B[Obs_m,Obs_n/\qsep Obs',Obs])
+        \land C[Obs_m/\qsep Obs]
+\EQ{de-compose substitutions, $Obs_n \neq Obs_m$}
+\\&& \exists \qsep Obs_m @
+       (\exists \qsep Obs_n @ A[Obs_n/\qsep Obs'][Obs_m/\qsep Obs']
+           \land B[Obs_n/\qsep Obs][Obs_m/\qsep Obs'])
+        \land C[Obs_m/\qsep Obs]
+\EQ{undo substitution, $Obs_n \neq Obs_m$}
+\\&& \exists \qsep Obs_m @
+       (\exists \qsep Obs_n @ A[Obs_n/\qsep Obs']
+           \land B[Obs_n/\qsep Obs])[Obs_m/\qsep Obs']
+        \land C[Obs_m/\qsep Obs]
+\EQ{\ecite{;-def}}
+\\&& \exists \qsep Obs_m @ (A ; B )[Obs_m/\qsep Obs'] \land C[Obs_m/\qsep Obs]
+\EQ{\ecite{;-def}}
+\\&& (A ; B ) ; C
+\end{eqnarray*}
+In practise we expect this to be done using the strategy of reducing
+both sides to the same thing, with the addition of
+some $\alpha$-equivalence at the end.
+
+Now we look at some proof-steps in detail
+and comment on how this might be implemented.
+
+The first step
+\begin{eqnarray*}
+  && A ; ( B ; C )
+\EQ{\ecite{DEF-;}, $m$ is fresh}
+\\&& A ; (~\exists \qsep  Obs_m @ B[Obs_m/\qsep Obs'] \land C[Obs_m/\qsep Obs]~)
+\end{eqnarray*}
+matches goal $B;C$ against definition law
+\begin{equation*}
+  P;Q
+   ~~\defs~~
+   \exists \qsep Obs_m @ P[Obs_m/\qsep Obs'] \land Q[Obs_m/\qsep Obs], \mbox{ fresh }m
+\end{equation*}
+The pattern matching of $(B;C)$ against $(P;Q)$ succeeds with binding
+$\setof{P \mapsto B, Q \mapsto C}$.
+During instantiation the requirement to instantiate $Obs_m$
+is met by choosing a fresh $m$ as required and then building the
+rhs of the definition using the bindings. The root $\qsep Obs$
+is left unchanged.
+
+The second step is similar,
+except that as $m$ is no longer fresh, we find a different value
+instead, here denoted as $n$.
+
+The third step
+\begin{eqnarray*}
+  && \exists \qsep Obs_n @ A[Obs_n/\qsep Obs']
+     \land (\exists \qsep Obs_m @ B[Obs_m/\qsep Obs'] \land C[Obs_m/\qsep Obs])[Obs_n/\qsep Obs]
+\EQ{perform substitution, $Obs_n \neq Obs_m$}
+\\&& \exists \qsep Obs_n @ A[Obs_n/\qsep Obs']
+     \land \exists \qsep Obs_m @ B[Obs_m/\qsep Obs'][Obs_n/\qsep Obs] \land C[Obs_m/\qsep Obs][Obs_n/\qsep Obs]
+\end{eqnarray*}
+is a (built-in) application of the following law of substitutions:
+\begin{equation*}
+ (\exists \qsep xs @ P)[es/\qsep ys]
+ =
+ (\exists \qsep xs @ P[es/\qsep ys]), ~ ys \neq xs
+\end{equation*}
+which is the usual one generalised to work with $\qsep xs$ variables.
+
+Step four
+\begin{eqnarray*}
+  && \exists \qsep Obs_n @ A[Obs_n/\qsep Obs']
+     \land \exists \qsep Obs_m @ B[Obs_m/\qsep Obs'][Obs_n/\qsep Obs] \land C[Obs_m/\qsep Obs][Obs_n/\qsep Obs]
+\EQ{compose substitutions, $Obs_n \neq Obs_m$}
+\\&& \exists \qsep Obs_n @ A[Obs_n/\qsep Obs']
+     \land \exists \qsep Obs_m @ B[Obs_m,Obs_n/\qsep Obs',Obs] \land C[Obs_m/\qsep Obs]
+\end{eqnarray*}
+is also part of the builtin substitution mechanism
+implementing the following laws of substitution:
+\begin{eqnarray*}
+  E[es/\qsep xs][fs/\qsep ys] &=& E[es,fs/\qsep xs,ys], \quad xs \DISJ ys \land ys \DISJ es
+\\ E[es/\qsep xs][fs/\qsep xs] &=& E[es/\qsep xs], \quad xs \notin es
+\end{eqnarray*}
+Given our intended interpretation of $\qsep Obs_x$ we have the laws
+\RLEQNS{
+   Obs &\DISJ& Obs'
+\\ Obs &\DISJ& Obs_x, & \textrm{any}~x
+\\ Obs' &\DISJ& Obs_x, & \textrm{any}~y
+\\ Obs_x &\DISJ& Obs_y, & x \neq y
+}
+
+In the fifth step
+\begin{eqnarray*}
+  && \exists \qsep Obs_n @ A[Obs_n/\qsep Obs']
+     \land \exists \qsep Obs_m @ B[Obs_m,Obs_n/\qsep Obs',Obs] \land C[Obs_m/\qsep Obs]
+\EQ{\ecite{and-E-distr}, $Obs_m \notin A[Obs_n/\qsep Obs']$}
+\\&& \exists \qsep Obs_n,Obs_m @ A[Obs_n/\qsep Obs']
+     \land B[Obs_m,Obs_n/\qsep Obs',Obs] \land C[Obs_m/\qsep Obs]
+\end{eqnarray*}
+we match goal interior
+\begin{equation*}
+   A[Obs_n/\qsep Obs']
+   \land \exists \qsep Obs_m @ B[Obs_m,Obs_n/\qsep Obs',Obs] \land C[Obs_m/\qsep Obs]
+\end{equation*}
+ against the lefthand side of the law
+\begin{equation*}
+N \land (\exists  \qsep xs @ P)
+   ~~=~~
+   (\exists \qsep xs @ N \land P), \quad xs \notin N
+\end{equation*}
+with initial bindings
+\begin{eqnarray*}
+  N &\mapsto& A[Obs_n/\qsep Obs']
+\\ \qsep xs &\mapsto& \qsep Obs_m
+\\ P &\mapsto& B[Obs_m,Obs_n/\qsep Obs',Obs] \land C[Obs_m/\qsep Obs]
+\end{eqnarray*}
+with an evaluation of the instantiated side condition
+$(\qsep Obs_m \notin A[Obs_n/\qsep Obs'])$.
+The law for free variables of a substitution is
+\begin{equation*}
+ \fv.(A[es/\qsep xs])
+ =
+ (\fv.A \setminus xs)
+ \union
+ \bigcup_{i \in \#xs}\left\{\fv.e_i\cond{x_i \in fv.A}\emptyset\right\}
+\end{equation*}
+We need to be able to conclude that:
+\begin{itemize}
+  \item $Obs_m \DISJ Obs_n$, which is straightforward.
+  \item $Obs_m \DISJ \fv.A$, but we seem to be stymied, because
+  we know nothing about the free variables of $A$.
+  We could have had this information specified as a side-condition
+  of the original goal, i.e. something like $\fv.A \subseteq \setof{\qsep Obs,Obs'}$.
+  Instead, however,  we exploit the fact that $n$ is \emph{fresh},
+  and use a key assumption, that no fresh variable is free in any
+  original meta-variable like $A$.
+  This means that the freshness requirement for $\qsep Obs_x$
+  has to be handled carefully and consistently.
+\end{itemize}
+
+
+\section{Useability}
+
+\section{Documentation}
+
+\section{old issues}
+
+\textbf{All of this material will be reorganised and indexed
+from TODO.txt}
+
+\subsection{Live --- Autumn 2009}
+
+
+\begin{description}
+  \item[Butterfield, 2009-10-15]
+    Induction strategy may need to check user supplied induction variable
+    for freshness.
+  \item[Butterfield, 2009-10-15]
+    Automate full LaTeX generation of a Theory
+    --- with proofs in individual files, as appendices,
+    and cross-referencing.
+  \item[Butterfield, 2009-10-09]
+    We need to be very careful with partial function definitions.
+    The following set of laws (Theory \texttt{Lists}) are inconsistent:
+    \begin{eqnarray*}
+       (1) && (x:xs) \neq \nil
+    \\ (2) && \seqof x = x : \nil
+    \\ (3) && front \seqof x = \nil
+    \\ (4) && front (x:xs) = x : front (xs)
+    \end{eqnarray*}
+    Demonstration:
+    \begin{eqnarray*}
+      && \nil
+    \EQ{ (3) backwards}
+    \\&& front\seqof x
+    \EQ{ (2) }
+    \\&& front(x : \nil)
+    \EQ{ (4) }
+    \\&& x: front\nil
+    \\&& \coz{we now contradict (1), with $xs$ instantiated by $front\nil$}
+    \end{eqnarray*}
+    The solution is to rewrite (4) as either (4a) or (4b):
+    \begin{eqnarray*}
+       (4a) && xs \neq \nil \implies front(x:xs) = x:front(xs)
+    \\ (4b) && front(x:y:ys) = x:front(y:ys)
+    \end{eqnarray*}
+    We need to ensure that functions defined pattern matching style as
+    above have either mutually exclusive cases, or agree on overlaps
+  \item[Butterfield, 2009-09-23]
+    \texttt{tlequiv} treats all \texttt{Tvar}s as equivalent
+    \\ should check \texttt{Tvar} bindings for consistency on each side
+    \\ \textbf{We need tMatch for types}
+  \item[Bhandal 2009-07-27]
+     Law reduce to allow substitutions
+     \textit{
+       Looking into it \ldots
+     }
+\end{description}
+
+
+
+\subsection{Open}
+
+Refactoring the \LaTeX\ parsing and pretty-printing code:
+\begin{enumerate}
+  \item
+    First, identify all the \LaTeX-ASCII translation tables:
+    \begin{itemize}
+       \item
+         \texttt{LaTeXSetup.laTeXRefToMathMap},
+         used in \texttt{LaTeXSetup.stdLaTeXLayout};
+         itself used in \texttt{LaTeXPretty} and \texttt{SAOITHIN}.
+       \item
+         \texttt{LaTeXSetup.latexASciiMapping},
+         used in \texttt{LaTeXSetup.latex2asciiTrie};
+         not used anywhere else !
+       \item
+         \texttt{LaTeXSetup.laTeXTokens}
+         used in {LaTeXLexer}.
+    \end{itemize}
+\end{enumerate}
+
+
+\subsubsection{Fundamental}
+
+\begin{description}
+  \item[Invoking definedness on \texttt{Obs} predicate]
+   For conjecture Builtin\$0\$offset-pfx, namely that $ s \leq s\cat(tr'-tr) = tr \leq tr'$,
+   we cannot get definedness to apply.
+   The issue seems to be that we need a way to check laws that don't mention
+   definedness, in order to add it in if needed.
+   We don't want to have to have a law:
+   \begin{eqnarray*}
+     \ecite{pfx-cat} && s \le s \cat t \defs \Defd(s) \land \Defd(t)
+   \end{eqnarray*}
+   Instead we prefer the terser:
+   \begin{eqnarray*}
+     \ecite{pfx-cat} && s \le s \cat t \defs True
+   \end{eqnarray*}
+   And rely on something else to catch, in the following case, that
+   $s \le s \cat (tr'-tr)$ needs to have $tr \le tr'$ as a side-condition.
+   This would also obviate the need for Builtin laws
+   saying, for example that $\Defd(a+b) = \Defd(a) \land \Defd(b)$.
+   All of this could be inferred (what about non-strict funtions/operators ?).
+  \item[Genericity]
+    we need to carefully explore generic theory issues,
+    such as reactive algebra, parameterised over types and predicates,
+    or generic laws across all theories such as healthy idempotence.
+    (See \texttt{Design} module).
+    \\
+    We will need a formal notation to describe how theories interrelate,
+    so RD (reactive designs) can inherit from
+    \texttt{R}, \texttt{RAlg} and \texttt{Design}, for instance (Zeyda work?).
+  \item[H-overloading]
+    We may need to break \H{}-overloading, distinguishing \mkH{} from \isH{}.
+\end{description}
+
+
+\subsubsection{I want it now !}
+
+\begin{description}
+  \item[prime matching]
+    It would be nice to have variable patterns that specify matching
+    against pre-, post- or both types of observation variable,
+    to allow us to encode laws like:
+    $$
+      (P \land b');Q \equiv P;(b \land Q)
+    $$
+    or
+    $$
+     (b \land P);Q \equiv b \land (P;Q)
+    $$
+    \\
+    \textit{
+      We need a convention for qvars that matches any,
+      or just pre- or post-variables.
+      We also need to ensure that replacement/instantiation is correct.
+      If we match $tr'$ against $x'$ (say), and the replacement q-var
+      in the law is $x$, then we need to instantiate it as $tr$.
+      For compatibility with existing laws, we retain $x$ as matching
+      anything and use $`x$ and $x`$ to match pre- and post
+      variables respectively.
+      \\
+      Will be covered by new meta-matching scheme.
+    }
+  \item[Substitution Composition]~
+     $$(P[s,s\cat(tr'-tr)/tr,tr'])[tr/s] \equiv P[tr,tr\cat(tr'-tr)/s,tr']$$,
+     but given that $s$ is not free in $P$ we should be able to get
+     $P[tr\cat(tr'-tr)/tr']$.
+  \item[Error Wrapper]
+    We want a predicate function that signals a "should never happen error",
+    but which is defined as identity, so application makes it disappear.
+    \\\textit{
+      partially in place, but not sure about it now.
+    }
+  \item[Focus within substitutions]
+    For proofs (particularly involving \RR2) we need to be able
+    to focus on individual expressions within substitutions.
+  \item[Law Variants]
+    Laws like $A \land (A \lor B) \equiv A$,
+    should occur in commutative variants as well.
+  \item[Law Combinations]
+    Merging splitting with other laws would be useful.
+    \\
+    \textit{Idea, manually applying a law, but where the law
+    uses context-based transformations like splitting to prepare the predicate
+    for matching against the law --- perhaps we define a "normal-form"
+    for expressing these rules}
+  \item[Simultaneous one-point law]
+    We would like the one-point law to work with a number of simultaneous
+    equalities (think $STET$).
+  \item[ACI handling]
+    We need an effective way to handle assoc./comm./idem. manipulation,
+    particularly the ability to single out sub-terms according to some criteria.
+  \item[Pvar conflict, matching and building]
+    Matching $RH$ gets a hit on law $\CSP1(RH)\equiv RH$,
+    but the substitution when the law is applied binds $CSP1$
+    to its expansion --- perhaps should suppress this.
+    Interestingly, the ``Replacement'' shown in the Match window
+    does not have the expansion applied~!
+    \\
+    Also, this law is ranked very poorly as it is a TREqv instance
+    --- perhaps it should only be ranked this way if the trivial rhs
+    is a Pvar not in the predicate table (introduce a better context-sensitive
+    ranking scheme for matches).
+  \item[Undefinedness for Expressions]
+    We want laws for handling the issue of undefinedness.
+\end{description}
+
+\subsubsection{Ma\~nana}
+
+\begin{description}
+  \item[Alphabetised Predicates]
+    What UTP is really about~!
+    \\\textit{Developing the use of meta-variables to make this implicit}
+  \item[Display Options and Enhancements]
+    Nice display, pretty printed, of predicates.
+    \\\textit{
+      Karen Forde did this for on-screen in a separate branch,
+      yet to be integrated. We have a \LaTeX\ pretty-printer (Simon Dardis)
+    }
+\end{description}
+

@@ -1,0 +1,69 @@
+\documentclass[fleqn]{report}
+%\documentclass[twoside]{report}
+\usepackage{amssymb,amsmath}
+\usepackage{mathpartir}
+\usepackage{verbatim}
+\usepackage{doc/saoithin}
+\usepackage{tikz,tikz-cd}
+\usetikzlibrary{arrows,matrix}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+
+\def\includepicture#1{\includegraphics{#1.eps}}
+
+\parindent=0pt % I hate first line indentation
+\parskip=3pt   % I like a visual white gap between paragraphs
+
+
+
+\author{
+  Andrew Butterfield%
+  }
+\title{\UTP2
+  User Manual
+}
+
+\def\TODO#1{%
+  \textbf{ToDo: }
+  \textit{#1}
+}
+
+
+\input{doc/UTP2LogicDefs}
+\input{doc/UTP2MathSyntaxDefs}
+\input{doc/UTP2ConcreteSyntaxDefs}
+%\input{doc/UTP2FreeVarDefs}
+\input{doc/formal/UTP2MatchingRules}
+
+
+\begin{document}
+
+\bibliographystyle{alpha}
+
+\maketitle
+\tableofcontents
+
+
+\chapter{Introduction}
+
+\input{doc/WhatIsUTP2}
+\input{doc/UserIntro}
+\newpage
+\input{doc/SyntaxGuide}
+
+
+
+\bibliography{doc/SAOITHIN}
+
+\appendix
+\chapter{Appendices}
+
+%\input{doc/UTP2Logic}
+%\newpage
+%\input{doc/DisplayLogicDefs}
+%\newpage
+%\input{doc/DisplayFreeVarDefs}
+
+
+
+\end{document}

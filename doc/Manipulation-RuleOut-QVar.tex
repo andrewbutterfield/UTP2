@@ -1,0 +1,14 @@
+Assume we have well-formed $(us,vs)$ as a deferred match.
+Now consider a standard V-V match in $\beta$, such as $u \mapsto v$.
+We have the following possibilities and outcomes:
+\begin{eqnarray*}
+   u \notin us  && (us,vs)
+\\ v \notin us, u \in us && \mbox{fail}
+\\ v \in us, u \in us && (us \setminus u, vs \setminus v)
+\end{eqnarray*}
+Another possibility is a list V-VS match, like $\lst u \mapsto ws$.
+\begin{eqnarray*}
+   \lst u \notin us  && (us,vs)
+\\ ws \not\subseteq us, \lst u \in us && \mbox{fail}
+\\ ws \subseteq us, \lst u \in us && (us \setminus \lst u, vs \setminus ws)
+\end{eqnarray*}

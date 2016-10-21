@@ -1,0 +1,395 @@
+\subsection{Partial Logics --- Uniform Notation}
+
+Here we build up a collection of uniform material
+on naming schemes for
+axioms, inference rules, derived laws, and meta-theorems,
+and valuations.
+The presentation of all the background material is then given
+using this notation throughout,
+with a brief discussion in each section of any differences.
+
+In general we follow the notation and style of the logics
+used to present UTP and Z.
+
+\subsubsection{Syntax}
+
+Terms and expressions are built over variables and constants
+using function and operator terms, all of which are typed:
+\RLEQNS{
+   a,b,c,\ldots &\in& Constant      & \elabel{Constant:decl}
+\\ \ldots v,w,x,y,z &\in& Variable  & \elabel{Variable:decl}
+\\ \ldots X,Y,Z \in VarSet &\defs& \power Variable
+   & \elabel{VarSet:def}
+\\ f,g,h,\ldots &\in& Function      & \elabel{Function:decl}
+\\ +,-,\oplus,\ominus,\ldots &\in& Operator & \elabel{Operator:decl}
+}
+We do not annotate constants, functions and operators
+with types but assume these can be looked up.
+Variable types are often inferred:
+\RLEQNS{
+  e,t \in Expr
+  &::=& c | x | f(e_1,\ldots,e_n) | e_1 \oplus e_2
+  & \elabel{Expr:def}
+}
+The usual rules about bracketing and precedence apply.
+We assume that the constants include the two boolean values,
+and that three versions of equality
+(existential,weak and strong) are available:
+\RLEQNS{
+   \setof{True,False} &\subseteq& Constant & \elabel{Constant:bool}
+\\ \setof{=_e,=_w,=_s} &\subseteq& Operator & \elabel{Operator:equal}
+}
+
+Atomic formulas are simply applications of boolean-result
+functions or operators to non-boolean arguments%
+\footnote{rather, at least one argument should be non-boolean,
+and the boolean arguments must be constants or variables}%
+.
+\RLEQNS{
+ A,B,C, \ldots &\in& AtomicPred \subseteq Expr
+ & \elabel{Atomic:decl}
+}
+
+We then define a standard predicate syntax,
+except that quantifier variables have type
+annotations:
+\RLEQNS{
+   P,Q,R \in Predicate
+   &::=&
+   A | \lnot P | P \land Q | P \lor Q
+\\&& {} | P \implies Q | P \equiv Q
+\\&& {} | \forall \vec x: \vec T @ P
+        | \exists \vec x: \vec T @ P
+   & \elabel{Predicate:def}
+}
+Here $\vec x$ denotes a non-empty vector of variables
+The type annotations may be omitted if determinable
+from context.
+
+We say very little about types but expect them at least
+to have (the usual) basic types, as well as function (total \& partial)
+and tuple types:
+\RLEQNS{
+   \mathbb{T} \in BasicType
+    &::=&
+    \Bool | \num | \ldots
+    & \elabel{Basic:decl}
+\\ T \in Type
+    &::=&
+    \mathbb{T} | T_1 \times T_2 | T_1 \fun T_2| T_1 \pfun T_2
+    & \elabel{Type:def}
+}
+
+\subsubsection{Syntax Functions}
+
+We shall write certain key syntactical functions
+using sans-serif fonts, i.e.
+\fv, \bv\ (free and bound variables).
+We shall also overload notation, so that, for instance,
+\fv\ can be applied to $Expr$, $AtomicPred$ and $Predicates$,
+and we shall use the type $WFE$ (Well-Formed Expression)
+to refer to any of these three.
+
+Free and Bound variables are standard and we do not give
+any further details.
+\RLEQNS{
+   \fv &:& WFE \fun \power Variable & \elabel{fv:sig}
+\\ \fv~P &\defs& \mbox{the usual}   & \elabel{fv:def}
+\\ \bv &:& WFE \fun \power Variable & \elabel{bv:sig}
+\\ \bv~P &\defs& \mbox{the usual}   & \elabel{bv:def}
+}
+In the event that an operator or function is partial,
+we provide a syntactical function
+that builds a predicate that characterizes the requisite pre-condition:
+\RLEQNS{
+   \fpre &:& Function \times Variable \fun Predicate
+&  \elabel{ppred:sig}
+\\ \fpre(f,v) &\defs& \mbox{appropriate } P \mbox{ where } \fv~P \subseteq \setof v
+&  \elabel{ppred:def}
+\\ \opre &:& Variable \times Operator \times Variable \fun Predicate
+&  \elabel{ppred:sig}
+\\ \opre(u,\oplus,v) &\defs& \mbox{appropriate } P \mbox{ where } \fv~P \subseteq \setof{u,v}
+&  \elabel{opred:def}
+}
+We define the notion of substitution:
+\RLEQNS{
+   Substn &\defs& Variable \pfun Expr &\elabel{Subs:sig}
+\\ \_[\_] &:& Expr \times Substn \fun Expr & \elabel{Subs:expr:sig}
+\\ e[\theta] &\defs& \mbox{usual notion of substitution} & \elabel{Subs:expr:def}
+}
+We also define a predicate that checks if a substitution under a set of binders
+avoids free-variable capture:
+\RLEQNS{
+   \nocapture &:& Substn \times \power Variable \fun Bool & \elabel{nocapture:sig}
+\\ \nocapture~\theta~X &\defs& \fv(\bigcup(rng~\theta)) \cap X = \emptyset
+}
+
+\subsubsection{Basic Semantic Domains}
+
+We assume boolean, three-valued and number domains:
+\RLEQNS{
+   Bool &\defs& \setof{T,F} & \elabel{Bool:def}
+\\ Three &\defs& Bool \union\setof{U} & \elabel{Three:def}
+\\ Nat &\defs& \setof{0,1,2,\ldots} & \elabel{Nat:def}
+\\ Int &\defs& \setof{\ldots,-2,-1,0,1,2,\ldots} & \elabel{Int:def}
+}
+Here $Bool$ is a classical 2-value logic domain
+with classical operations defined upon it.
+$Three$ is for three-valued logic,
+and we will standardise the names for all
+the different extensions there are from 2- to 3-valued
+logic operators.
+
+\subsubsection{General Semantic Functions}
+
+Key semantic functions are given using roman fonts,
+e.g. \ctype\ (Constant Type)
+
+We associate type information with every ``constant'',
+i.e.  value from $Constant$, $Function$ and $Operator$
+\RLEQNS{
+   \ctype &:& Constant \fun Type & \elabel{ctype:sig}
+\\ \ctype~c &\defs& \mbox{as appropriate for a theory}
+   &\elabel{ctype:def}
+}
+We also have meta-predicates on types that
+asserts true if they denote a non-functional type
+or a partial function (at the top level):
+\RLEQNS{
+   \isbasic &:& Type \fun Bool & \elabel{isbasic:sig}
+\\ \isbasic(T_1 \fun T_2) &\defs& F & \elabel{isbasic:fun}
+\\ \isbasic(T_1 \pfun T_2) &\defs& F & \elabel{isbasic:pfun}
+\\ \isbasic(\_) &\defs& T & \elabel{isbasic:other}
+\\ \ispartial &:& Type \fun Bool & \elabel{ispartial:sig}
+\\ \ispartial~\mathbb{T} &\defs& F & \elabel{ispartial:basic}
+\\ \ispartial(T_1 \times T_2) &\defs& F & \elabel{ispartial:prod}
+\\ \ispartial(T_1 \fun T_2) &\defs& \ispartial~T_2 & \elabel{ispartial:fun}
+\\ \ispartial(T_1 \pfun T_2) &\defs& \isbasic~T_2 & \elabel{ispartial:pfun}
+}
+We have a relationship that must hold between \ctype, \ispartial\
+and \fpre\ and/or \opre: the function/operator type
+being partial is equivalent to its pre-condition being non-trivial,
+(i.e. not equal to $True$)
+\RLEQNS{
+  \ispartial(\ctype f)
+  &\equiv&
+  \fpre(f,\_) \neq True
+  &\elabel{partial:f:consistency}
+\\ \ispartial(\ctype \oplus)
+  &\equiv&
+  \opre(\_,\oplus,\_) \neq True
+  &\elabel{partial:o:consistency}
+}
+
+
+\subsubsection{Propositional Connectives}
+
+We first present here the 2-valued propositional connectives.
+
+\begin{itemize}
+%
+\item Negation $\lnot : Bool \fun Bool$
+\elabel{Bool:not:sig}
+$$\begin{array}{|c|c|}
+  \hline
+  P & \lnot P \\\hline
+  F & T       \\\hline
+  T & F       \\\hline
+\end{array}
+\qquad \elabel{Bool:not:def}
+$$
+%
+\item Conjunction $\_\land\_ : Bool\times Bool \fun Bool$
+\elabel{Bool:and:sig}
+$$\begin{array}{|c||c|c|}
+  \hline
+  \land & F & T \\\hline\hline
+  F     & F & F \\\hline
+  T     & F & T \\\hline
+\end{array}
+\qquad \elabel{Bool:and:def}
+$$
+%
+\item Disjunction $\_\lor\_ : Bool\times Bool \fun Bool$
+\elabel{Bool:or:sig}
+$$\begin{array}{|c||c|c|}
+  \hline
+  \lor  & F & T \\\hline\hline
+  F     & F & T \\\hline
+  T     & T & T \\\hline
+\end{array}
+\qquad \elabel{Bool:or:def}
+$$
+%
+\item Implication $\_\implies\_ : Bool\times Bool \fun Bool$
+\elabel{Bool:implies:sig}
+$$\begin{array}{|c||c|c|}
+  \hline
+  \implies & F & T \\\hline\hline
+  F        & T & T \\\hline
+  T        & F & T \\\hline
+\end{array}
+\qquad \elabel{Bool:implies:def}
+$$
+%
+\item Equivalence $\_\equiv\_ : Bool\times Bool \fun Bool$
+\elabel{Bool:equiv:sig}
+$$\begin{array}{|c||c|c|}
+  \hline
+  \land & F & T \\\hline\hline
+  F     & T & F \\\hline
+  T     & F & T \\\hline
+\end{array}
+\qquad \elabel{Bool:equiv:def}
+$$
+\end{itemize}
+
+We now describe the  variety of ways in which a 2-valued
+propositional connective can be expanded to the 3-valued world.
+We only show the new 3-valued entries, as the 2-valued core is unchanged.
+
+\begin{itemize}
+\item whatever $\_?\_ : Three\times Three \fun Three$
+\elabel{Three:??:sig}
+$$\begin{array}{|c||c|c|c|}
+  \hline
+  ?     & \bot & F    & T    \\\hline\hline
+  \bot  & X    & X    & X    \\\hline
+  F     & X    & -    & -    \\\hline
+  T     & X    & -    & -    \\\hline
+\end{array}
+\qquad \elabel{Three:??:def}
+$$
+\end{itemize}
+
+\subsubsection{Equality and Definedness}
+We present the different definitions of equality,
+whose inputs may be total or partial,
+and whose result may be boolean or three-valued.
+In what follows, $a$, $b$ and $\bot$ all denote distinct
+elements of some domain type $T$, with $\bot$, if present,
+denoting undefinedness.
+We also present undefinedness predicates here,
+as they and equality are closely linked.
+
+\begin{itemize}
+\item Equals $\_=\_ : T\times T \fun Bool$
+\elabel{equals:sig}
+$$\begin{array}{|c||c|c|}
+  \hline
+  \land & a & b \\\hline\hline
+  a     & T & F \\\hline
+  b     & F & T \\\hline
+\end{array}
+\qquad \elabel{equals:def}
+$$
+%
+\item Existential Equality\cite{CMR99} $\_=_e\_ : T_\bot\times T_\bot \fun Bool$
+\elabel{eequals:sig}
+$$\begin{array}{|c||c|c|c|}
+  \hline
+  =_e   & \bot & a & b \\\hline\hline
+  \bot  & F & F & F \\\hline
+  a     & F & - & - \\\hline
+  b     & F & - & - \\\hline
+\end{array}
+\qquad \elabel{eequals:def}
+$$
+%
+\item Strong Equality\cite{CMR99} $\_=_s\_ : T_\bot\times T_\bot \fun Bool$
+\elabel{sequals:sig}
+$$\begin{array}{|c||c|c|c|}
+  \hline
+  =_s   & \bot & a & b \\\hline\hline
+  \bot  & T & F & F \\\hline
+  a     & F & - & - \\\hline
+  b     & F & - & - \\\hline
+\end{array}
+\qquad \elabel{sequals:def}
+$$
+Strong equality is just standard equality on the underlying
+semantic domain, viewed as flat.
+%
+\item Weak Equality\cite{CMR99} $\_=_w\_ : T_\bot\times T_\bot \fun Bool$
+\elabel{wequals:sig}
+$$\begin{array}{|c||c|c|c|}
+  \hline
+  =_w   & \bot & a & b \\\hline\hline
+  \bot  & T & T & T \\\hline
+  a     & T & - & - \\\hline
+  b     & T & - & - \\\hline
+\end{array}
+\qquad \elabel{wequals:def}
+$$
+%
+\item Definedness $\_\defined : T_\bot \fun Bool$
+\elabel{defined:sig}
+\RLEQNS{
+  c \defined &\defs& \lnot( c =_s \bot ) & \elabel{defined:def}
+}
+\end{itemize}
+
+\subsubsection{Axioms}
+
+Here we present a list of all axioms encountered,
+with unique names.
+This is simply a collection and does not form a coherent
+or consistent whole.
+Note also that definitions of certain formulas and terms
+as abbreviations for others are considered here as axioms.
+
+Abbreviations:
+\RLEQNS{
+   e\defined &\defs& e =_e e & \elabel{abrv:defd:eeq}
+\\ e =_w e' &\defs& (e\defined \land e'\defined) \implies e =_e e'
+   & \elabel{abrv:weq:eeq}
+\\ e =_s e' &\defs& (e\defined \lor e'\defined) \implies e =_e e'
+   & \elabel{abrv:seq:eeq}
+\\ e =_w e' &\defs& (e\defined \land e'\defined) \implies e =_s e'
+   & \elabel{abrv:weq:seq}
+\\ e =_e e' &\defs& e\defined \implies e =_s e'
+   & \elabel{abrv:eeq:seq}
+\\ e =_e e' &\defs& e\defined \land e'\defined \land e =_w e'
+   & \elabel{abrv:eeq:weq:defd}
+\\ e =_s e' &\defs& (e\defined \lor e'\defined)
+                    \implies
+                    e\defined \land e'\defined \land e =_w e'
+   & \elabel{abrv:seq:weq:defd}
+\\ \lnot P &\defs& P \implies False & \elabel{abrv:not:implies:F}
+\\ P \lor Q &\defs& \lnot(\lnot P \land \lnot Q) & \elabel{abrv:or:deMorgan}
+\\ P \equiv Q &\defs& (P \implies Q) \land (Q \implies P)
+  & \elabel{abrv:equiv:bi-implies}
+\\ \exists x @ P &\defs& \lnot(\forall x @ \lnot P) & \elabel{abrv:exists:deMorgan}
+}
+Derivation Axioms:
+
+\subsubsection{Inference Rules}
+
+Here we present a list of all inference rules encountered,
+with unique names.
+This is simply a collection and does not form a coherent
+or consistent whole.
+
+\subsubsection{Derived Rules}
+
+Here we present a list of all derived rules encountered,
+with unique names.
+This is simply a collection and does not form a coherent
+or consistent whole.
+
+
+\subsubsection{Valuations/Satisfaction}
+
+Here we present a list of all valuations
+and satisfaction relationships encountered,
+with unique names.
+This is simply a collection and does not form a coherent
+or consistent whole.
+
+
+\subsubsection{Meta-theorems}
+
+Here we present a list of all meta-theorems encountered,
+with unique names.
+This is simply a collection and does not form a coherent
+or consistent whole.

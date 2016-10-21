@@ -1,0 +1,177 @@
+\section{Programs}\label{sec:programs}
+
+\PLAN{We now use Designs to develop a simple imperative language,
+where our need to handle explicit substitutions becomes even more apparent.}
+
+To get concrete, we are now going to define the semantics
+for a simple imperative programming language (a.k.a. $While$),
+as a UTP Design.
+To keep things simple for now,
+we assume the language has exactly three program variables:
+ \texttt{x}, \texttt{y}, and \texttt{z}
+(we look at the issue of many variables below in Section \ref{ssec:skip-n-assign}).
+\RLEQNS{
+   u,w \in While &::=& Skip & \mbox{do nothing}
+\\              &|& v:=e & \mbox{Assignment, } v \in  \setof{x,y,z}, \fv.e \subseteq \setof{x,y,z}
+\\              &|& u \comp w & \mbox{Sequential Composition}
+\\              &|& u \cond c w & \mbox{Conditional, } \fv.c \subseteq \setof{x,y,z}
+\\              &|& c \circledast w & \mbox{While-loop, } \fv.c \subseteq \setof{x,y,z}
+}
+The alphabet of this theory now contains $x,y,z,x',y',z'$
+in addition to $ok,ok'$ inherited from the Design theory.
+Also inherited are the definitions of $\comp$ and $\cond c$,
+where now $Obs$ can bind to $ok,x,y,z,ok',x',y',z'$
+in pattern matching.
+We can use the language specification facility to introduce the syntax
+to \UTP2, so in $While.lang$ we have:
+\begin{eqnarray*}
+   Skip & \mapsto & \texttt{Skip}
+\\ :=  & \mapsto & \texttt{V := E}
+\\ whl & \mapsto & \texttt{E ** P}
+\end{eqnarray*}
+
+\subsection{The \UTP2\ semantics of $Skip$ and $x:=e$}
+\label{ssec:skip-n-assign}
+
+We start to define the semantics of $Skip$,
+and we could immediately write:
+\begin{eqnarray*}
+  Skip &\defs& True \design x'=x \land y'=y \land z'=z
+\end{eqnarray*}
+While correct, we may worry about what happens if the number of variables
+increases, or if we want to have some dynamism regarding the number and
+names of program variables. While we discuss another possible approach
+to program variables later, for now let's see what we can do to improve things.
+We could try to use special list variable $Obs$,
+to get
+\begin{eqnarray*}
+  Skip &\defs?& True \design Obs' = Obs
+\end{eqnarray*}
+but this is not satisfactory, as $Obs$ ($Obs'$) includes $ok$ ($ok'$)
+and these cannot occur in the design predicates, as per the side-condition
+used in the Design theory.
+
+The solution here is realise that in many UTP theories
+we actually have two classes of observations: those associated with
+the values of variables in the program text under consideration (here $x$, $y$ and $z$),
+and those that capture overall program properties, independent of any program variable
+(here $ok$ and $ok'$, denoting termination).
+We shall refer to the former as script variables and the latter as model variables,
+and add in two new special list-variables called $Scr$ and $Mdl$
+to match against the two classes.
+So in this theory, $Scr$ can match $x,y,z$, while $Mdl$ matches $ok$.
+Also $Obs$ can now match $Scr,Mdl$, or combinations such as $Scr,ok$.
+This requires us to modify the $obs$ table in a theory slightly
+as we must now record observation class, as well as its type:
+\begin{eqnarray*}
+Theory &=& \textbf{record} \ldots
+\\ && obs : Name \pfun Type \times OClass
+\\ && \ldots \textbf{end}
+\\ OClass &::=& Model | Script
+\end{eqnarray*}
+So, for example, in theory \texttt{Design} we have $obs(ok) = (\Bool,Model)$,
+while in theory \texttt{While} we have $obs(x) = (t,Script)$, where $t$ is some type.
+We can now define the semantics of $Skip$ as:
+\begin{eqnarray*}
+  Skip &\defs& True \design Scr'=Scr
+\end{eqnarray*}
+This definition will now work in a range of theories,
+provided the observations are classified appropriately.
+However it does also require a further extension
+of the law matching algorithm.
+This has to be modified to allow a pattern like $Scr'=Scr$,
+given bindings $Scr \mapsto x,y,z$ and $Scr' \mapsto x',y',z'$,
+to match against a predicate fragment like $x'=x \land y'=y \land z'=z$.
+This feature is quite easily implemented as part of the structural matcher.
+
+We now turn our attention to the definition of assignment.
+The following is \emph{not} satisfactory:
+\begin{eqnarray*}
+  x:=e &\defs?& True \design x' = e \land Scr'=Scr
+\end{eqnarray*}
+First, as $x$ is known, this rule will only match assignments whose
+variable is $x$, so we would need a different definition for each program
+variable---not a good idea!
+Secondly, $Scr'=Scr$ will match $x'=x \land y'=y \land z'=z$
+as already described, and so we can match $x'=e \land x'=x$
+which reduces to $x=e$, and then probably $False$.
+We could try to make the matching of $Scr'=Scr$ against
+$x'=x \land y'=y \land z'=z$ ``context sensitive'',
+only matching an equality if both sides do not appear ``elsewhere'',
+but it is currently very unclear if this is at all feasible.
+Instead, we extend the list-variable notation to allow modifiers,
+so we can write the following satisfactory definition for assignment:
+\begin{eqnarray*}
+  v:=e &\defs& True \design v' = e \land (Scr'\setminus v')=(Scr\setminus v)
+\end{eqnarray*}
+The law/pattern variable $v$ is not known, so it will match any of $x$, $y$ or $z$,
+and even $ok$.
+However as $ok$ cannot appear in the predicates in a design,
+any matching of $v$ to $ok$ will lead to a proof that eventually freezes
+up because the side-condition defining $\design$ won't be satisfiable.
+Imagine we are matching the righthand side of the above definition
+with $y'=f \land x'=x \land z'=z$.
+The matching algorithm will attempt match $y'$ against $v'$,
+returning a binding $v' \mapsto y'$.
+This binding gives us enough information
+to be able to match
+$(Scr'\setminus v')=(Scr\setminus v)$
+against $x'=x \land z'=z$.
+
+A further complication arises when we try to prove laws such
+as:
+\begin{eqnarray*}
+   (v:=e \comp v:=f ) &\equiv&( v := f[e/v])
+\\ (u:=e \comp v:=f) &\equiv& (v := f[e/u] \comp u := e),
+    \quad v \notin \fv.e
+\end{eqnarray*}
+We will not elaborate on details here,
+but we find the need to use special list variables like $Scr$ and $Scr'$
+in substitutions, so the matching algorithm needs to handle those cases as well.
+
+\subsection{Merging program variables}
+
+Another way to handle program variables
+is to group them together into an environment,
+a mapping from variable names to values:
+\begin{eqnarray*}
+% \nonumber to remove numbering (before each equation)
+  \rho \in Env &=& Var \pfun Val
+\end{eqnarray*}
+We can then introduce $Model$ variables
+called $state$ and $state'$.
+This simplifies the alphabet handling, as it is now fixed,
+and we can model variable declarations with map extensions.
+In effect we have no script variables, just model ones,
+with the consequence that the theory of the alphabet is now
+independent of the program script.
+The added complexity now emerges in the type system,
+because $Val$ needs to include all types in $Type$,
+and the definition of assignment now requires an $eval$
+function of type $Env \fun Expr \pfun Val$
+(here $\oplus$ denotes map override):
+\begin{eqnarray*}
+  v:=e &\defs& True \design state'=state \oplus \setof{v \mapsto eval(state)(e)}
+\end{eqnarray*}
+\UTP2\ can support either style of program variable handling,
+although the environment-based approach requires a theory
+of finite maps, and laws defining $eval$ for every expression construct,
+with an added complication of having to handle explicit expression \emph{syntax} in laws.
+However, the provision of such an $eval$ function is not quite as onerous as it sounds
+as laws providing the meaning of all expression constructs
+are required in any case.
+
+
+%\subsection{The \UTP2\ semantics of $c \circledast w$}
+
+We are not going to elaborate too much on how to give
+a semantics to the while-loop construct here,
+apart from noting that it requires a fixpoint construct
+in the logic syntax, and an appropriate axiomatisation of fixpoint theory.
+Then the loop can be defined as the least fixed point of
+the appropriate functional.
+\begin{eqnarray*}
+   p,q,r \in Pred &::=& \ldots
+\\              &|& \mu P @ F(P) \qquad \mbox{Fixpoint Operator}
+\\ c \circledast w &\defs& \mu W @ (w \comp W) \cond c Skip
+\end{eqnarray*}

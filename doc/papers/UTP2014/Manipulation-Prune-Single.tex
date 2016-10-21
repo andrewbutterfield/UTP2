@@ -1,0 +1,17 @@
+\textbf{Prune Single Matches}\\
+  For every match of the form $x \mapsto \setof{a_1,\ldots,a_p}$ in \texttt{sngltab}:
+  \begin{enumerate}
+    \item If the set is empty then FAIL
+%    \item If $x$ is known, and $x \in \setof{a_1,\ldots,a_p}$
+%       then record $x$ as targetted
+%       and remove the mapping, else FAIL.
+    \item if $x \notin \texttt{qbind}$ do nothing.
+    \item if $\texttt{qbind}(x) = a$ then, if $a \in \setof{a_1,\ldots,a_2}$
+     then record $a$ as targetted, and remove the mapping,
+     otherwise FAIL.
+  \end{enumerate}
+  All targeted $a$s are removed
+  from the range sets of both \texttt{sngltab} and \texttt{multtab}.
+  If any range set in \texttt{sngltab} becomes empty, we FAIL.
+  At this stage \texttt{sngltab} consists of single pattern variables
+  that can be still be bound to more than one test single-variable.

@@ -1,0 +1,24 @@
+We look up the meta-variable,
+and then handle the various cases
+\begin{eqnarray*}
+  reduce^v_H (P \setminus H |_{sc})
+  &=& \False, \quad v \in H
+\\reduce^w_H (P \setminus H |_{\isCond P})
+  &=& \False, \quad isPost(v)
+\\reduce^v_H (P \setminus H |_{P = V})
+  &=& a \in V \setminus H
+\\reduce^v_H (P \setminus H |_{P \subseteq V})
+  &=&
+   \left\{\begin{array}{l@{~,~}l}
+     \False & v \notin V' \\
+     v \in P \setminus (H \cap V') & \textbf{otherwise}
+   \end{array}\right.
+\\ && \WHERE V' = V \setminus F
+\\reduce^v_H (P \setminus H |_{P \DISJ V})
+  &=&
+   \left\{\begin{array}{l@{~,~}l}
+     \False & v \in V' \\
+     v \in P \setminus (H \setminus V') & \textbf{otherwise}
+   \end{array}\right.
+\\ && \WHERE V' = V \cup F
+\end{eqnarray*} 

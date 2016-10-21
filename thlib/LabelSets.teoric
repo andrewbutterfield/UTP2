@@ -1,0 +1,2077 @@
+v3.6
+^LabelSets ^4 ^0 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^= ^220 ^0 !p
+^\ ^260 ^1 !p
+^intsct ^270 ^1 !p
+^union ^260 ^1 !p
+^4 !MO
+^Lexchg ^&32;E&32;--&32;E&32;++&32;E&32; ^1 !MG
+^= ^t !Tv
+^t !Tv
+^2 !TP
+!TB
+!TF
+^\ ^t !Tv
+!TS
+^t !Tv
+!TS
+^2 !TP
+^t !Tv
+!TS
+!TF
+^in ^t !Tv
+^t !Tv
+!TS
+^2 !TP
+!TB
+!TF
+^intsct ^t !Tv
+!TS
+^t !Tv
+!TS
+^2 !TP
+^t !Tv
+!TS
+!TF
+^union ^t !Tv
+!TS
+^t !Tv
+!TS
+^2 !TP
+^t !Tv
+!TS
+!TF
+^5 !MK
+^exchg-compose ^union ^260 ^\ ^260 ^union ^260 ^\ ^260 ^s !EV
+^r1 !EV
+!EB
+^a1 !EV
+!EB
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+^union ^260 ^\ ^260 ^s !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Sets !OS
+^INorm !OS
+^ITidy !OS
+^ROOT !OS
+^4 !OP
+^remove-trim ^union ^260 ^\ ^260 ^s !EV
+^r !EV
+!EB
+^a !EV
+!EB
+^union ^260 ^\ ^260 ^s !EV
+^\ ^260 ^r !EV
+^a !EV
+!EB
+!EB
+^a !EV
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Sets !OS
+^ROOT !OS
+^2 !OP
+^DEF&32;Lexchg ^Lexchg ^150 ^s !EV
+!"E
+^r !EV
+!"E
+^a !EV
+!"E
+^3 !'0
+^-- !'T
+^++ !'T
+!'0
+^4 !PL
+^union ^260 ^\ ^260 ^s !EV
+^r !EV
+!EB
+^a !EV
+!EB
+!PE2
+!PQ
+!CT
+^butrfeld !OU
+^3 !lM
+^0 !ML
+^exchg-compose ^LabelSets ^exchg-compose ^union ^260 ^\ ^260 ^union ^260 ^\ ^260 ^s !EV
+^r1 !EV
+!EB
+^a1 !EV
+!EB
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+^union ^260 ^\ ^260 ^s !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!E=
+!PE2
+!CT
+!PT
+!RE
+^0 !mal
+^PropLogic$87$==-refl ^ROOT !OS
+^1 !OP
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+!PT
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 !mre
+^_ROOT$0$Ax-==-id ^ROOT !OS
+!Il
+^Q ^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+!PN
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^3 !PA
+^3 !PO
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+!PN
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^3 !PA
+^3 !PO
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+!PN
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^3 !PA
+^3 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 ^DNF !IN
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+!PN
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^3 !PA
+^3 !PO
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+^2 !PO
+!PN
+^2 !PA
+^3 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 ^2 ^DNF !IN
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^2 !PO
+^2 !PA
+^2 !PO
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+^2 !PO
+!PN
+^2 !PA
+^3 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 ^2 !rT
+!IT
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+^2 !PO
+!PN
+^2 !PA
+^3 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 !rT
+!IT
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+^2 !PO
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 ^1 ^1 ^1 ^5 !mle
+^Sets$15$in-setdiff ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s1 ^s ^s2 ^r1 ^3 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^\ ^260 ^s !EV
+^r1 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+^2 !PO
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 ^1 ^4 !mle
+^Sets$15$in-setdiff ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s1 ^a1 ^s2 ^r2 ^3 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^\ ^260 ^s !EV
+^r1 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+^2 !PO
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 ^3 !mle
+^Sets$15$in-union ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s1 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^1 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s2 ^a2 ^2 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^\ ^260 ^s !EV
+^r1 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+^2 !PO
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!PE2
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^1 ^2 ^1 ^5 !mle
+^Sets$15$in-union ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s1 ^r1 ^s2 ^r2 ^3 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^\ ^260 ^s !EV
+^r1 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!PE2
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^1 ^3 !mle
+^Sets$15$in-setdiff ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s2 ^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+^1 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s1 ^s ^2 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^\ ^260 ^s !EV
+^r1 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^\ ^260 ^s !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!PE2
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 !mle
+^Sets$15$in-union ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s1 ^\ ^260 ^s !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+^s2 ^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+^2 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^1 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^\ ^260 ^s !EV
+^r1 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^a1 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^s !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!EB
+!PE2
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 ^1 ^1 ^4 !mle
+^Sets$15$in-union ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s1 ^\ ^260 ^s !EV
+^r1 !EV
+!EB
+^1 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s2 ^a1 ^2 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^s !EV
+^r1 !EV
+!EB
+^a1 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^r2 !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^s !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!EB
+!PE2
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 ^1 ^3 !mle
+^Sets$15$in-setdiff ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s1 ^union ^260 ^\ ^260 ^s !EV
+^r1 !EV
+!EB
+^a1 !EV
+!EB
+^1 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s2 ^r2 ^2 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^\ ^260 ^union ^260 ^\ ^260 ^s !EV
+^r1 !EV
+!EB
+^a1 !EV
+!EB
+^r2 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^a2 !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^s !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!EB
+!PE2
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 ^2 !mle
+^Sets$15$in-union ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s1 ^\ ^260 ^union ^260 ^\ ^260 ^s !EV
+^r1 !EV
+!EB
+^a1 !EV
+!EB
+^r2 !EV
+!EB
+^1 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s2 ^a2 ^2 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^union ^260 ^\ ^260 ^s !EV
+^r1 !EV
+!EB
+^a1 !EV
+!EB
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^s !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!EB
+!PE2
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^0 !mle
+^Sets$15$set-extensionality ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s1 ^union ^260 ^\ ^260 ^union ^260 ^\ ^260 ^s !EV
+^r1 !EV
+!EB
+^a1 !EV
+!EB
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+^s2 ^union ^260 ^\ ^260 ^s !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+^2 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^x ^x ^1 !MU
+^0 !MVL
+!B9
+!j
+^union ^260 ^\ ^260 ^union ^260 ^\ ^260 ^s !EV
+^r1 !EV
+!EB
+^a1 !EV
+!EB
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+^union ^260 ^\ ^260 ^s !EV
+^union ^260 ^r1 !EV
+^r2 !EV
+!EB
+!EB
+^union ^260 ^\ ^260 ^a1 !EV
+^r2 !EV
+!EB
+^a2 !EV
+!EB
+!EB
+!E=
+!PE2
+!s
+!AJ
+^16 !X
+!?R
+^$T ^_PLT_exchg-compose ^LabelSets ^Sets ^Equality ^NonPropLogic ^PropLogic ^_ROOT ^7 ^vcqsfgck !!
+^remove-trim ^LabelSets ^remove-trim ^union ^260 ^\ ^260 ^s !EV
+^r !EV
+!EB
+^a !EV
+!EB
+^union ^260 ^\ ^260 ^s !EV
+^\ ^260 ^r !EV
+^a !EV
+!EB
+!EB
+^a !EV
+!EB
+!E=
+!PE2
+!CT
+!PT
+!RE
+^0 !mle
+^_ROOT$0$Ax-all-x-scope ^ROOT !OS
+!Il
+^P !PT
+^1 !MP
+^0 !MRL
+^0 !ME
+^x$ ^x ^1 ^y$ ^0 ^2 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+!PT
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 !mre
+^_ROOT$0$Ax-==-id ^ROOT !OS
+!Il
+^Q ^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 ^3 !mle
+^PropLogic$87$\/-/\-Absorb ^ROOT !OS
+^1 !OP
+!Il
+^P ^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^Q ^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^2 !PA
+^2 !PO
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 ^2 ^4 !mre
+^PropLogic$87$/\-Comm ^ROOT !OS
+^1 !OP
+!Il
+^P ^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^Q ^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PA
+^2 !PO
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 ^3 !mre
+^_ROOT$0$Ax-\/-symm ^ROOT !OS
+!Il
+^P ^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^Q ^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PA
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 !mle
+^_ROOT$0$Ax-\/-assoc ^ROOT !OS
+!Il
+^P ^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^Q ^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PA
+^R ^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^3 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PA
+^2 !PO
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^1 ^3 !mle
+^PropLogic$87$/\-\/-Distr ^ROOT !OS
+^1 !OP
+!Il
+^P ^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^Q ^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^R ^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^3 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^1 ^2 ^2 ^5 !mle
+^PropLogic$87$~-Invol ^ROOT !OS
+^1 !OP
+!Il
+^P ^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+!PN
+!PN
+^2 !PO
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^1 ^2 ^4 !mle
+^PropLogic$87$DeMorgan-Nand ^ROOT !OS
+^1 !OP
+!Il
+^P ^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+^Q ^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+!PN
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+!PN
+^2 !PA
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^1 ^2 ^1 ^5 !mle
+^Sets$15$in-setdiff ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s1 ^r ^s2 ^a ^3 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^\ ^260 ^r !EV
+^a !EV
+!EB
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^1 ^3 !mle
+^Sets$15$in-setdiff ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s2 ^\ ^260 ^r !EV
+^a !EV
+!EB
+^1 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s1 ^s ^2 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^\ ^260 ^s !EV
+^\ ^260 ^r !EV
+^a !EV
+!EB
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 !mle
+^Sets$15$in-union ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s1 ^\ ^260 ^s !EV
+^\ ^260 ^r !EV
+^a !EV
+!EB
+!EB
+^1 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s2 ^a ^2 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^s !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^r !EV
+!EB
+!PE2
+!PN
+^2 !PA
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^s !EV
+^\ ^260 ^r !EV
+^a !EV
+!EB
+!EB
+^a !EV
+!EB
+!EB
+!PE2
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 ^1 ^3 !mle
+^Sets$15$in-setdiff ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s1 ^s ^s2 ^r ^3 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^\ ^260 ^s !EV
+^r !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^a !EV
+!EB
+!PE2
+^2 !PO
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^s !EV
+^\ ^260 ^r !EV
+^a !EV
+!EB
+!EB
+^a !EV
+!EB
+!EB
+!PE2
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 ^2 !mle
+^Sets$15$in-union ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s1 ^\ ^260 ^s !EV
+^r !EV
+!EB
+^1 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s2 ^a ^2 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^s !EV
+^r !EV
+!EB
+^a !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^union ^260 ^\ ^260 ^s !EV
+^\ ^260 ^r !EV
+^a !EV
+!EB
+!EB
+^a !EV
+!EB
+!EB
+!PE2
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^0 !mle
+^Sets$15$set-extensionality ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s1 ^union ^260 ^\ ^260 ^s !EV
+^r !EV
+!EB
+^a !EV
+!EB
+^s2 ^union ^260 ^\ ^260 ^s !EV
+^\ ^260 ^r !EV
+^a !EV
+!EB
+!EB
+^a !EV
+!EB
+^2 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^x ^x ^1 !MU
+^0 !MVL
+!B9
+!j
+^union ^260 ^\ ^260 ^s !EV
+^r !EV
+!EB
+^a !EV
+!EB
+^union ^260 ^\ ^260 ^s !EV
+^\ ^260 ^r !EV
+^a !EV
+!EB
+!EB
+^a !EV
+!EB
+!E=
+!PE2
+!s
+!AJ
+^15 !X
+!?R
+^$T ^0 ^vcqsfgck !!
+^2 !MT
+!@

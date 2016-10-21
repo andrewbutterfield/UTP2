@@ -1,0 +1,26 @@
+\textbf{Identify Feasible \texttt{QVar} Matches}\\
+  Argument \texttt{qvms} is a list of pairs, each pair of the form:
+  \begin{eqnarray*}
+   (~a_1,\ldots,a_n, \lst a_1,\ldots,\lst a_m
+   &,&
+     x_1,\ldots,x_k, \lst x_1,\ldots,\lst x_\ell~),
+     \quad n \geq k \land ((n \neq k \lor m > 0) \implies \ell > 0)
+  \\ \mbox{test}  &,& \mbox{pattern}
+  \end{eqnarray*}
+
+  From these we extract two tables, one (\texttt{sngltab}) for the pattern
+  single-variables ($x_i$), the other (\texttt{multtab}) for the pattern list-variables ($\lst x_j$)
+  showing the possible binding targets:
+  \begin{eqnarray*}
+    x_i &\mapsto& \setof{a_1,\ldots,a_n}
+  \\ \lst x_j &\mapsto&
+    \left\{
+      \begin{array}{rc}
+        \setof{\lst a_1,\ldots,\lst a_m}, & n=k \\
+        \setof{a_1,\ldots,a_n, \lst a_1,\ldots,\lst a_m}, & n > k
+      \end{array}
+    \right.
+  \end{eqnarray*}
+  Entries for $x$ or $\lst x$
+  from different \texttt{qvms}-pairs
+  are merged by taking intersections of the relevant sets.

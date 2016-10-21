@@ -1,0 +1,15 @@
+Types have an ASCII syntax as well,
+as exemplified by this example:
+\begin{equation*}
+ \Int \cross \power (\tau^*) \fun \Bool
+ \qquad
+ \verb"Z x P t* -> B"
+\end{equation*}
+We can introduce types into a UTP textfile using a TYPES section,
+so for example, from a theory of arithmetic, we might have:
+\begin{haskell}
+TYPES
+ * : (Z x Z) -> Z .
+ + : (Z x Z) -> Z .
+ neg : Z -> Z
+\end{haskell}

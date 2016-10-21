@@ -1,0 +1,246 @@
+\section{Matching}
+\label{sec:match:foundation}
+
+\REVIEW2{(OPEN)\\
+3) A minimal axioms for the built assumptions for the matcher
+and how, if at all, the theory of matching used compares to
+"unification in a theory" (i.e. unification in the presence of
+a background theory of operators, such as
+associative-commutative unification). Here there is also an
+opportunity to compare the matching strategies used in other
+proof assistants such as Isabell, Mizer or the B-tool.
+}
+
+\DRAFT{
+ Reading \cite{wkshp/IWU/BL98}.
+ Looks like we do simple syntactic matching,
+ not even unification.
+}
+%
+% Presents the matching of  Saoithin with an emphasis on foundations
+%
+
+The basic idea behind law application in \STHN\ is that
+the goal focus is matched against one or many laws.
+Those matches that succeed return a binding and a replacement template,
+and the user can then select which successful match to apply.
+The focus is replaced by the template, instantiated using the bindings.
+\NEW{
+  The matching we perform is basic structural matching
+  of one test predicate against another treated as a pattern,
+  with success returning a binding that matches pattern variables
+  to test sub-predicates.
+  We are not performing unification, either in isolation,
+  or w.r.t. to some equational theory \cite{wkshp/IWU/BL98}.
+  This is in contrast to Isabelle, for example,
+  which uses higher-order unification \cite{tr:Isabelle:Paulson88}.
+}
+However, we do not simply match $F$ against all of $L$
+---if $L$ has certain forms, we can match against part of the law,
+offerring another part as a replacement:
+\begin{description}
+  \item[$L$ is  $P \equiv Q$]:
+    If the law is an equivalence we look for matches against the LHS and RHS
+    separately, offering the other side as a replacement.
+%    Some laws have the form $F(M) \equiv M$,
+%    for some meta-variable $M$.
+%    Such laws will always succeed in matching their RHS against any focus predicate,
+%    so to avoid vast numbers of spurious matches they are handled separately.
+  \item[$L$ is $A \implies C$]:
+    Given an implication law, a partial match against either the antecedent
+    or consequent is still useful.
+    Using equational reasoning, a match against $A$ can offer $A \land C$
+    as a replacement, whilst a match against $C$ can be replaced by $C \lor A$.
+%    If doing inequational reasoning we can have a transformation
+%    linked by the appropriately ordered implication relation,
+%    provided the focus is in a clear positive or negative position
+%    in the overall goal.
+\end{description}
+So the upshot is that we can get a number of different types of matches
+against laws with a certain structure.
+We now proceed to discuss the process of matching.
+
+\subsection{Basic Matching}
+
+The first phase of matching is a basic structural comparison
+of a test predicate $Q$ (the goal focus) against a pattern predicate $P$ (part of a law),
+which either fails,
+or succeeds and returns an incomplete binding,
+mapping pattern meta-variables to corresponding fragments of the test predicate.
+%If we denote a matching as $Q \approx P$, then some obvious matching outcomes
+%are illustrated here:
+%  \begin{eqnarray*}
+%     \True \approx \True &\defs& \mapof{}
+%  \\ Q_1 \land Q_2 \approx P_1 \land P_2
+%    &\defs&
+%    (Q_1 \approx P_1) \uplus (Q_2 \approx P_2)
+%  \\ Q \approx M &\defs& \mapof{M \to Q}, M \mbox{ not known}
+%  \\ M \approx M &\defs& \mapof{M \to M}
+%  \\ Q \approx M &\defs& \mapof{M \to Q}, preddef(M) = Q
+%  \end{eqnarray*}
+A key feature to note is that pattern variables and meta-variables
+match anything of the appropriate class (expr/type/predicate),
+provided they are not ``known''.
+Remember, a name is ``known'' if it appears in any of the following theory
+tables: $obs$, $typedef$, $exprdef$ or $preddef$.
+A known name can only match against either itself
+or its definition as found in those tables.
+
+None of the above gives any clue as to why basic matching
+returns an incomplete binding.
+The reason for this lie in three areas: our use of
+explicit substitutions, the fact that ordering is not important
+in substitutions or quantifier lists,
+and our desire to support a lot of flexibility in matching quantifiers.
+The motivation for the latter stems from the fact that \STHN\ is designed
+to support foundational work in the UTP,
+and so we want to be able to derive very general laws.
+For example, we want to have general laws like:
+$$
+  (\forall x,x_1,\ldots,x_n @ P )
+  \equiv
+  (\forall x_1,\ldots,x_n @ P ), \quad x \notin P
+$$
+where we can somehow specify that $n \geq 0$ and avoid listing the $x_i$.
+Also, given the above law
+and the axiom
+$$
+  (\exists x_1,\ldots,x_n @ P)
+  \equiv
+  \lnot (\forall x_1,\ldots,x_n @ \lnot P )
+$$
+we would like to be able to prove
+$$
+  (\exists x,x_1,\ldots,x_n @ P )
+  \equiv
+  (\exists x_1,\ldots,x_n @ P ), \quad x \notin P
+$$
+To this end, the syntax of quantifiers in the logic of \STHN\ is in fact
+more complex than suggested so far.
+Instead we view a quantifier as being followed by
+two comma-separated lists of variables,
+with a semicolon separating the two lists:
+  $$\begin{array}{lc@{\qquad}l}
+     \forall x_1,\ldots,x_m~; xs_1,\ldots,xs_n @ P
+     && m \mbox{ s-qvars, } n \mbox{ m-qvars}
+  \\ \forall x_1,\ldots,x_m @ P
+     && m \mbox{ s-qvars, } 0 \mbox{ m-qvars}
+  \\ \forall ~~;xs_1,\ldots,xs_n @ P
+     && 0 \mbox{ s-qvars, } n \mbox{ m-qvars}
+  \end{array}$$
+Either list may be empty.
+The first list is of so-called ``single'' quantifier variables (\emph{s-qvars}),
+each of which corresponds to a conventional quantifier variable,
+and, when occurring in a pattern predicate, are required to match
+distinct s-qvars from the test predicate.
+The second list is of ``multiple'' quantifier variables (\emph{m-qvars}),
+which are intended to represent many quantifier variables.
+A m-qvar in a pattern can match any mixture of s-qvars and m-qvars,
+including none.
+Matching is now complicated by the fact that the ordering
+of s-qvars, m-qvars  is irrelevant,
+so in principle we have to try every possible permutation.
+Basic matching  will succeed for simple cases, basically
+those with only one pattern qvar,
+but otherwise will return a deferred match in the form of
+a test-qvars/pattern-qvars pair,
+in addition to any bindings
+from the quantifier bodies.
+The basic matching is then followed by two phases,
+one that tries to resolve the deferred matches,
+and then a step to check the side-conditions.
+Both of these phases need to know about the free variables of the goal.
+
+\subsection{Free Variables}
+\label{ssec:free-vars}
+
+Many laws have side-conditions attached,
+all of which are conditions regarding the free-variables.
+However, the presence of explicit meta-variables and substitution
+ complicates the calculation of the free variables of a predicate.
+To see this, we first present some clauses of the definition of free variables
+of a predicate:
+  \begin{eqnarray*}
+     \fv e &=& \mbox{all variables free in }e
+  \\ \fv (P_1 \land P_2) &=& (\fv P_1) \cup (\fv P_2)
+  \\ \fv (\forall \lst v @ e) &=& (\fv e) \setminus \lst v
+  \\ \fv M &=& \fv.M
+  \\ \fv P[e_1,\ldots,e_n/v_1,\ldots,v_n]
+     &=& (\fv P)\setminus\setof{v_1,\ldots,v_n}
+  \\ && {} \union
+         \bigcup \setof{ i : 1 \ldots n | v_i \in \fv P @ \fv e_i }
+  \end{eqnarray*}
+We see that for meta-variables we need to return the fact that computation
+of their free variables needs to be held until
+they are instantiated at some later point in time.
+With substitution, we see that the resulting set is contingent
+upon the freeness or otherwise in $P$
+of the substitution target variables ($v_1,\ldots,v_n$).
+The upshot of all this is that we need to represent the free-variables
+of predicates using a free-variable set-expression, rather than
+just a simple variable enumeration.
+The required syntax of such expressions is as follows:
+  $$\begin{array}{rcll}
+     s \in SetExpr & ::= & \setof{ v_1, \ldots, v_n} & \mbox{Enumeration, }n \geq 0
+  \\               &  |  & \fv.M & \mbox{Meta free-variables}
+  \\               &  |  & s_2 \setminus \setof{ v_1, \ldots , v_n}
+                        & \mbox{Set Difference, } n \geq 0
+  \\               &  |  & \bigcup (s_1,\ldots,s_n) & \mbox{Union, }n \geq 0
+  \\               &  |  & m \sthen s & \mbox{Conditional Set}
+  \\ m \in Member  & ::= & a \in s & \mbox{Element Membership}
+  \\              &  |  & \bigwedge (m_1,\ldots,m_n) & \mbox{Conjunction, }n \geq 2
+  \end{array}$$
+Most are self explanatory, except conditional set membership
+$m \sthen s$, which denotes set $s$ if $m$ is true, otherwise is empty.
+
+A further complication arises with the user-defined language constructs.
+The free variables of these can only be established by expanding out their
+definitions.
+If we were simply to report ``cannot tell'' for the free variables
+of such constructs,
+then we would be unable to match any law involving
+a user-construct that had a side-condition,
+and would be forced to expand them out as an explicit proof step in any case.
+As one of the aims of UTP is to support laws at the language level,
+without always having to expand out the underlying predicate form,
+this is not a viable solution.
+
+Accordingly, the algorithm for computing free variables
+expands language definitions on-the-fly, to get to a predicate form
+to establish its free-variables.
+This is why every language construct has to have defining laws
+with the name and form described in \S\ref{sec:language:foundation}.
+This on-the-fly activity is invisible to the user, occurring behind the scenes.
+This explains why the language definition laws cannot be mutually recursive,
+otherwise this procedure could not be guaranteed to terminate.
+
+
+\subsection{Match Completion}
+\label{ssec:match:completion}
+
+Once a basic match is done,
+we want to try to complete it by using context information
+to figure out a suitable qvar matching.
+The context information we use includes the bindings already obtained,
+some which may pre-determine how qvars should match,
+as well as any information regarding the free variables of
+the focus, as well as side-conditions for both the goal and the relevant law.
+This process is quite complex and we omit any further details,
+apart form noting that in complicated cases it may fail to find a valid matching
+even if one exists.
+However there is a work-around by using other proof steps
+to re-organise quantifiers until matching does work.
+For a similar reason, the checking of $\alpha$-equivalence
+used to terminate a proof is also incomplete and may fail to detect
+such an equivalence --- the same work-around can be used here as well.
+
+Finally, we check that the law side-condition, if any,
+when translated in terms of the goal using the bindings,
+is actually a consequence of the goal side-condition, if any:
+$sc_{law} \land sc_{goal} \equiv sc_{goal}$.
+\NEW{This is achieved by code that automatically
+evaluates/simplifies a side-condition
+using free-variable set-expressions
+and then establishes that the above equivalence holds.
+This is facilitated by the existence of a normal-form for side-conditions.
+}

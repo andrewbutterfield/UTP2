@@ -1,0 +1,102 @@
+Given a matching context $\Gamma$ we can calculate the denotation
+of a list-variable $L$:
+\begin{eqnarray*}
+   \sem{Scr}_\Gamma &=& \setof{ v | isScript(\Gamma(v))}
+\\ \sem{Mdl}_\Gamma &=& \setof{ v | isModel(\Gamma(v))}
+\\ \sem{Obs}_\Gamma &=& \sem{Scr}_\Gamma \cup \sem{Mdl}_\Gamma
+\\ \sem{L^d}_\Gamma &=& \setof{ v^d | v \in \sem{L}_\Gamma}
+\\ \sem{L?}_\Gamma &=& \sem{L}_\Gamma \cup \sem{L'}_\Gamma
+\\ \mathcal O &=& \Union_{d \in D}\sem{Obs^d}_\Gamma
+\end{eqnarray*}
+We can extend this to the case where we have subtractions
+of the relevant variable roots:
+\begin{eqnarray*}
+   \sem{L^d\setminus R}_\Gamma
+   &=&
+   \sem{L^d}_\Gamma \setminus R^d
+  , \qquad R \subseteq \sem{L}_\Gamma
+\end{eqnarray*}
+If $R$ contains other variables (not in $Obs$, $Obs'$),
+then these are pattern variables denoting arbitrary
+observation variables, and so we are unable to complete
+the denotation at this point in time.
+However we expect them implicitly, to have the same decoration
+as $L$.
+We expect them, in principle at least, to match elsewhere to
+known observation variables.
+So we return the denotation less the members of $R$
+that are known, and we also return those members of $R$
+that are such, currently unknown, pattern variables:
+\begin{eqnarray*}
+   \sem{L^d\setminus R}_\Gamma &\mapsto &
+   (\sem{L^d}_\Gamma \setminus R^d) \ominus (R \setminus \sem{Obs^d}_\Gamma )
+\end{eqnarray*}
+In effect the meaning of $L\setminus D$ is a pair $(V,X)$
+that we write as $V \ominus X$,
+where $V$ is the set of observations denoted by $L$
+less the observations contained in $R$, and $X$ is the set of non-observation
+variables in $R$, which should potentially
+get matched to observation variables at some future point.
+We also note that if $\Gamma$ contains no observation variable information
+that we get the first component as empty:
+\begin{eqnarray*}
+   \sem{L^d\setminus R}_\Gamma &\mapsto &
+   \emptyset \ominus R^d, \qquad \mbox{no obs-var in }\Gamma
+\end{eqnarray*}
+We also extend the semantic function to cover ordinary variables,
+which denote themselves, with nothing `subtracted`:
+\begin{eqnarray*}
+   \sem{v}_\Gamma &\mapsto &
+   \setof v \ominus  \emptyset
+\end{eqnarray*}
+
+Given this pair a further denotation is possible,
+assuming the existence of a binding $\mu : Decor \fun Var \fun Var$,
+that is the identity on observation variables of arbitrary decorations
+($\mathcal O$),
+and maps all other variables to such observations, decorated with $d$
+\begin{eqnarray*}
+   \mu_d(v^d) &\in& \mathcal O^d
+\\ v \in \mathcal O &\implies& \mu_d(v)=v
+\\ \sem{V \ominus X}_{\mu} &\defs& V \setminus \mu_d(X)
+\end{eqnarray*}
+So a complete semantics is now:
+\begin{eqnarray*}
+   \sem{L^d\setminus R}_{\Gamma}
+   &\defs &
+   (\sem{L^d}_\Gamma \setminus R^d) \ominus  (R \setminus\sem{Obs^d}_\Gamma)
+\\ \sem{V^d \ominus X}_{\mu}
+   &\defs& V^d \setminus \mu_d(X)
+\\ \sem{L^d\setminus R}^{\Gamma}_{\mu}
+   &= &
+   (\sem{L^d}_\Gamma \setminus R^d) \setminus  \mu_d(R \setminus\sem{Obs^d}_\Gamma)
+\\ &=&
+   (\sem{L^d}_\Gamma) \setminus (R^d \cup \mu_d(R))
+\\ &=&
+   (\sem{L^d}_\Gamma) \setminus \mu_d(R)
+\end{eqnarray*}
+The last line is justified by noting that $R^d = \mu R^d$
+and that $\sem{L^d} \subseteq \sem{Obs^d}$.
+
+
+Of interest is computing the union of such a semantics,
+given that $\mu$ is not known.
+When it is known, the outcome for a pair of variables is trivial:
+\begin{eqnarray*}
+  \sem{L_1^d\setminus R_1, L_2^e\setminus R_2}_{\mu}^{\Gamma}
+  &=& \sem{L_1^d\setminus R_1}_{\mu}^{\Gamma}
+      \cup
+      \sem{L_2^e\setminus R_2}_{\mu}^{\Gamma}
+\end{eqnarray*}
+When not known, but with disjoint decorations ($d\neq e$) we have"
+\begin{eqnarray*}
+  \sem{L_1^d\setminus R_1, L_2^e\setminus R_2}_{\Gamma}
+  &=& \sem{L_1^d}_{\Gamma} \ominus \mu_d(R_1)
+      \cup
+      \sem{L_2^e}_{\Gamma} \setminus \mu_e(R_2)
+\\ &=& (\sem{L_1^d}_{\Gamma}\cup\sem{L_2^e}_{\Gamma})
+       \setminus
+       (\mu_d(R_1)\cup \mu_e(R_2)),
+\end{eqnarray*}
+If we have the same decoration in each case,
+we really need to know what $\mu$ is.

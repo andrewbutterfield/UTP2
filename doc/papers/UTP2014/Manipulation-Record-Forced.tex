@@ -1,0 +1,28 @@
+Record Forced Single Matches \textbf{No Longer Used}\\
+  Having inverted the tables \texttt{sngltab} and \texttt{multtab}
+  to get two tables with entries of the form:
+  \begin{eqnarray*}
+    a_i &\mapsto& \setof{\ldots x \ldots; \ldots xs \ldots}
+  \\ as_j &\mapsto& \setof{; \ldots xs \ldots}
+  \end{eqnarray*}
+  We then proceed through the inverted \texttt{sngltab} table,
+  processing as follows:
+  \begin{itemize}
+    \item if we have $a_i \mapsto \emptyset$ we FAIL.
+    \item If we have $a_i \mapsto \setof{x_j}$,
+      we enter $x_j \mapsto a_i$ into the result bindings
+      (which may fail),
+      and then remove this entry
+      and $x_j$ from all the range sets of both inverted
+      tables.
+    \item
+      If we have $a_i \mapsto \setof{xs_k}$,
+      we enter $xs_k \mapsto a_i$ into the result bindings
+      (which will not fail),
+      and then remove this entry.
+    \item otherwise we skip this entry and move on.
+  \end{itemize}
+  Every time these tables change we repeat until a
+  pass results in no change.
+  We are then left with goal variables that still have
+  multiple possible bindings.

@@ -1,0 +1,290 @@
+%
+% This document provides a single place for definitions
+% that will appear in multiple locations,
+% and so ensures they are kept consistent.
+%
+% This does not generate any typeset output.
+%
+\def\LXvisibleN{visible}
+\def\LXvisibleDEF{\mbox{all visible (ASCII) characters}}
+\def\LXvisible{\LXvisibleN&=&\LXvisibleDEF}
+
+\def\LXwhiteN{white}
+\def\LXwhiteDEF{\mbox{all invisible (ASCII) characters}}
+\def\LXwhite{\LXwhiteN&=&\LXwhiteDEF}
+
+\def\LXalphaN{alpha}
+\def\LXalphaDEF{\setof{\lit a \ldots \lit z, \lit A \ldots \lit Z}}
+\def\LXalpha{\LXalphaN&=&\LXalphaDEF}
+
+\def\LXdigitN{digit}
+\def\LXdigitDEF{\setof{\lit0 \ldots \lit 9}}
+\def\LXdigit{\LXdigitN&=&\LXdigitDEF}
+
+\def\LXsymN{sym}
+\def\LXsymDEF{visible \setminus (alpha\cup digit)}
+\def\LXsym{\LXsymN&=&\LXsymDEF}
+
+
+\def\LXCHARACTERS{
+\begin{eqnarray*}
+   \LXvisible
+\\ \LXwhite
+\\ \LXalpha
+\\ \LXdigit
+\\ \LXsym
+\end{eqnarray*}
+}
+
+\def\LXTokN{Tok}
+\def\LXTokDEF{\LXNameN | \LXIdentN | \LXNumN | \LXSymbolN}
+\def\LXTok{\LXTokN&=&\LXTokDEF}
+
+\def\LXNameN{Name}
+\def\LXNameDEF{(alpha|\lit\_) ~ AlfDig^*}
+\def\LXName{\LXNameN&=&\LXNameDEF}
+
+\def\LXAlfDigN{AlfDig}
+\def\LXAlfDigDEF{alpha|digit}
+\def\LXAlfDig{\LXAlfDigN&=&\LXAlfDigDEF}
+
+\def\LXIdentN{Ident}
+\def\LXIdentDEF{Rsv | Gen}
+\def\LXIdent{\LXIdentN&=&\LXIdentDEF}
+
+\def\LXRsvN{Rsv}
+\def\LXRsvDEF{(\lit O | \lit M | \lit S) [\LXRsvSuffixN]}
+\def\LXRsv{\LXRsvN&=&\LXRsvDEF}
+
+\def\LXRsvSuffixN{RsvSuffix}
+\def\LXRsvSuffixDEF{Decor [ \lit\BS \LXRootsN ]}
+\def\LXRsvSuffix{\LXRsvSuffixN&=&\LXRsvSuffixDEF}
+
+
+\def\LXGenN{Gen}
+\def\LXGenDEF{Name \setminus \setof{\lit O,\lit M,\lit S} [\lit\$] \LXDecorN}
+\def\LXGen{\LXGenN&=&\LXGenDEF}
+
+\def\LXDecorN{Decor}
+\def\LXDecorDEF{\epsilon | \lit' | \lit\_ AlfDig^*}
+\def\LXDecor{\LXDecorN&=&\LXDecorDEF}
+
+\def\LXRootsN{Roots}
+\def\LXRootsDEF{((Name\setminus\setof{\lit O,\lit M,\lit S})[\lit\$],\lit:)^+}
+\def\LXRoots{\LXRootsN&=&\LXRootsDEF}
+
+\def\LXNumN{Num}
+\def\LXNumDEF{[\lit-] digit^+ [\lit. digit^+]}
+\def\LXNum{\LXNumN&=&\LXNumDEF}
+
+\def\LXSymbolN{Symbol}
+\def\LXSymbolDEF{\lit` | (sym\setminus\lit`)^+}
+\def\LXSymbol{\LXSymbolN&=&\LXSymbolDEF}
+
+\def\LXWhiteN{White}
+\def\LXWhiteDEF{\lit` | (sym\setminus\lit`)^+}
+\def\LXWhite{\LXWhiteN&=&\LXWhiteDEF}
+
+
+\def\LXTOKENS{
+\begin{eqnarray*}
+   \LXTok
+\\ \LXName
+\\ \LXAlfDig
+\\ \LXIdent
+\\ \LXRsv
+\\ \LXRsvSuffix
+\\ \LXGen
+\\ \LXDecor
+\\ \LXRoots
+\\ \LXNum
+\\ \LXSymbol
+\\ \LXWhite
+\end{eqnarray*}
+}
+
+\def\SNBinopI{\oplus \in Binop}
+\def\SNBinopP{\setof{ \lit{/\BS}, \lit+, \lit{<=} , \ldots }}
+\def\SNBinop{\SNBinopI &\supset& \SNBinopP}
+
+\def\SNNameI{n \in Name}
+\def\SNNameP{\setof{\lit{a},\lit{ab},\lit{a1}, \ldots}}
+\def\SNName{\SNNameI &\supset& \SNNameP}
+
+\def\SNVariableI{v \in Variable}
+\def\SNVariableP{\setof{\lit{y'},\lit{z\$}, \lit{O\$\BS x:y}, \ldots}}
+\def\SNVariable{\SNVariableI &\supset& \SNVariableP}
+
+\def\SNConstantI{c \in Constant}
+\def\SNConstantP{\setof{\litm{true},\litm{false},\lit\TLD,\litm 0,\litm 1,\litm 2,\ldots}}
+\def\SNConstant{\SNConstantI &\supset& \SNConstantP}
+\def\SNBinderI{Q \in Binder}
+\def\SNBinderP{
+  \lit\BS | \lit{the} | \lit{forall} | \lit{exists} | \lit{exists1}
+\\ && {} | \lit{Forall} | \lit{Exists} | \lit{\BS!} | \lit{!!}
+}
+\def\SNBinder{\SNBinderI &::=& \SNBinderP}
+
+
+\def\SNWORDS{
+  \begin{eqnarray*}
+     \SNBinop
+  \\ \SNName
+  \\ \SNVariable
+  \\ \SNConstant
+  \\ \SNBinder
+  \end{eqnarray*}
+}
+
+\def\SNPredExprI{pe \in PredExpr}
+\def\SNPredExprP{tm~ [ \lit{<|} ~pe~ \lit{|>} ~tm]}
+\def\SNPredExpr{\SNPredExprI &::=& \SNPredExprP}
+
+\def\SNTermI{tm \in Term}
+\def\SNTermP{f~ [~ \oplus~ tm~ ] \mbox{ ( with precedences)}}
+\def\SNTerm{\SNTermI &::=& \SNTermP}
+
+\def\SNFactorI{f \in Factor}
+\def\SNFactorP{b^+ |  Q~qs~[ \lit| ~pe ]\lit@~pe}
+\def\SNFactor{\SNFactorI &::=& \SNFactorP}
+
+\def\SNBaseI{b \in Base}
+\def\SNBaseP{c | n |  v  | se | le | de | he | \ell | \lit{|:}~T~\lit{:|}}
+\def\SNBase{\SNBaseI &::=& \SNBaseP}
+
+\def\SNSExprI{se \in SExpr}
+\def\SNSExprP{
+ \lit\{ (pe^*_, \lit\}
+ | \lit\{ qs~[ \lit| ~pe ]~[\lit@~pe~]~\lit\}
+ | \lit\{ me^*_, \lit\}
+}
+\def\SNSExpr{\SNSExprI &::=& \SNSExprP}
+
+\def\SNHExprI{he \in HExpr}
+\def\SNHExprP{
+  \lit{\{\{} pe^*_, \lit{\}\}}
+ | \lit{\{\{} v^*~[ \lit| ~pe ]~[\lit@~pe~]~\lit{\}\}}
+}
+\def\SNHExpr{\SNHExprI &::=& \SNHExprP}
+
+\def\SNLExprI{le \in LExpr}
+\def\SNLExprP{\lit[ pe^*_, \lit] | \lit[ sb \lit]}
+\def\SNLExpr{\SNLExprI &::=& \SNLExprP}
+
+\def\SNDExprI{de \in DExpr}
+\def\SNDExprP{\lit{[[} pe \lit{]]} | \lit( pe^+_, \lit)}
+\def\SNDExpr{\SNDExprI &::=& \SNDExprP}
+
+\def\SNLangI{\ell \in Lang}
+\def\SNLangP{\lit` \mbox{user-specified} \lit`}
+\def\SNLang{\SNLangI &::=& \SNLangP}
+
+\def\SNTypeI{T \in Type}
+\def\SNTypeP{\mbox{see elsewhere}}
+\def\SNType{\SNTypeI &::=& \SNTypeP}
+
+\def\SNQVarsI{qs \in QVars}
+\def\SNQVarsP{(n | v)_,^*}
+\def\SNQVars{\SNQVarsI &::=& \SNQVarsP}
+
+\def\SNMElemI{me \in MElem}
+\def\SNMElemP{pe \lit{|->} pe}
+\def\SNMElem{\SNMElemI &::=& \SNMElemP}
+
+\def\SNSubsI{sb \in Subs}
+\def\SNSubsP{e_,^* ( \lit{//} | \lit{///} )~qs, \quad n \ge 1}
+\def\SNSubs{\SNSubsI &::=& \SNSubsP}
+
+
+\def\TEPSYNTAX{
+\begin{eqnarray*}
+   \SNPredExpr
+\\ \SNTerm
+\\ \SNFactor
+\\ \SNBase
+\\ \SNSExpr
+\\ \SNHExpr
+\\ \SNLExpr
+\\ \SNDExpr
+\\ \SNLang
+\\ \SNType
+\\ \SNQVars
+\\ \SNMElem
+\\ \SNSubs
+\end{eqnarray*}
+}
+
+
+
+\def\LSNFactorI{f \in Factor}
+\def\LSNFactorP{b~[~f~]}
+\def\LSNFactor{\LSNFactorI &::=& \LSNFactorP}
+
+\def\LSNBaseI{b \in Base}
+\def\LSNBaseP{
+  c | n | v | \lit{[[}~pe~\lit{]]} | \lit(~pe^+_,~\lit)
+\\&& {} | \lit\{~se  | \lit[~le | \lit{\{\{}~he
+\\&& {} |  Q~qs ~[ \lit| ~pe ]~\lit@~pe
+\\&& {} | \lit{|:}~te~\lit{:|}
+\\&& {} | \ell
+}
+\def\LSNBase{\LSNBaseI &::=& \LSNBaseP}
+
+\def\LSNSExprI{se \in SExpr}
+\def\LSNSExprP{ \lit\} | pe~sec | q~[ \lit| ~pe ]~[\lit@~pe~]~\lit\} }
+\def\LSNSExpr{\LSNSExprI &::=& \LSNSExprP}
+
+\def\LSNSExprContI{sec \in SExprCont}
+\def\LSNSExprContP{ \lit\} | \lit, ~pe^+_,~ \lit\} |  \lit{|->}~pe~mec }
+\def\LSNSExprCont{\LSNSExprContI &::=& \LSNSExprContP}
+
+\def\LSNMExprContI{mec \in MExprCont}
+\def\LSNMExprContP{ \lit\} | \lit,~pe~\lit{|->}~pe~mec }
+\def\LSNMExprCont{\LSNMExprContI &::=& \LSNMExprContP}
+
+\def\LSNLExprI{le \in LExpr}
+\def\LSNLExprP{ pe^*_,~lec }
+\def\LSNLExpr{\LSNLExprI &::=& \LSNLExprP}
+
+\def\LSNLExprContI{lec \in LExprCont}
+\def\LSNLExprContP{
+ \lit] | \lit{//} ~qs ~\lit] | \lit{///} ~qs ~\lit]
+}
+\def\LSNLExprCont{\LSNLExprContI &::=& \LSNLExprContP}
+
+\def\LSNHExprI{he \in HExpr}
+\def\LSNHExprP{
+  \lit{\}\}}
+  | pe~hec
+  | v^*~[ \lit| ~pe ]~[\lit@~pe~]~\lit{\}\}}
+}
+\def\LSNHExpr{\LSNHExprI &::=& \LSNHExprP}
+
+\def\LSNHExprContI{hec \in HExprCont}
+\def\LSNHExprContP{  \lit{\}\}} | \lit,~pe^+_,~ \lit{\}\}} }
+\def\LSNHExprCont{\LSNHExprContI &::=& \LSNHExprContP}
+
+\def\TEPLSYNTAX{
+\begin{eqnarray*}
+   \SNPredExpr
+\\ \SNTerm
+\\ \LSNFactor
+\\ \LSNBase
+\\ \LSNSExpr
+\\ \LSNSExprCont
+\\ \LSNMExprCont
+\\ \LSNLExpr
+\\ \LSNLExprCont
+\\ \SNQVars
+\\ \LSNHExpr
+\\ \LSNHExprCont
+\\ \SNLang
+\end{eqnarray*}
+}
+
+\def\SNTEPI{tep \in TEP}
+\def\SNTEPP{\SNPredExprP}
+\def\SNTEP{\SNTEPI &::=& \SNTEPP}
+
+\def\PPredExprP{f~ [~ \oplus~ pe~ ] \mbox{ ( with precedences)}}
+\def\PPredExpr{\SNPredExprI &::=& \PPredExprP}

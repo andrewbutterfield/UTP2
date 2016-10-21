@@ -1,0 +1,17 @@
+We use special meta-list-variables to denote the observational
+variables of a theory, with a further classification of such
+variables as being either ``model'' or ``script'':
+\begin{description}
+  \item[Script] $Scr, Scr'$ --- observations of the values of script variables.
+  \item[Model] $Mdl, Mdl'$ --- observations of behaviour other than
+       the values of script variables.
+  \item[Observations] $Obs, Obs'$ --- all observation variables in a theory.
+    \begin{eqnarray*}
+       Obs = Mdl \cup Scr
+       &&
+       Mdl \cap Scr = \emptyset
+    \\ Obs' = Mdl' \cup Scr'
+       &&Mdl' \cap Scr' = \emptyset
+    \\ \alpha P = Obs \cup Obs', && \mbox{forall $P$ in the theory}
+    \end{eqnarray*}
+\end{description}

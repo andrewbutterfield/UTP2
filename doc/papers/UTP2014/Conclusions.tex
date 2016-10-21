@@ -1,0 +1,47 @@
+\section{Conclusions}\label{sec:conclusions}
+
+
+We have looked at how commonplace modes of reasoning in UTP
+have lead to the notions of having an object logic
+with explicit meta (schematic) variables, list-variables
+and explicit substition.
+The equational reasoning style is supported by a matcher
+that has to cope with the complexities that so arise,
+the most important being the need to match modulo any permutations
+in the ordering of variable lists.
+This has lead to the notion of matching being separated into an initial
+structural matching, deferring hard matching problems,
+followed by a phase that resolves the non-deterministic choices
+presented by the deferred material.
+We have describes some of the heurisitics used to try to get
+a usefully complete pattern matching facility.
+
+
+In effect \UTP2 has turned into a tool for discovering the nature of the
+underlying logic in common use for UTP.
+By trying to mechanise what is a fairly standard approach in the literature
+to writing and conducting UTP proofs,
+we have exposed a range of subtleties, largely around all the implicit
+information that is carried along in such proofs.
+
+
+\subsection{Future Work}
+
+Perhaps the most important thing that needs to be done
+is to get the tool to a state where the wider community can experiment with
+it and get feedback regarding its soundness and useability.
+It would be hoped that many UTP theories from the literature
+would get encoded for \UTP2, and that there could be a repository of these
+made available, similar to Isabelle/HOL's Archive of Formal Proofs (AFP).
+
+If a general non-deterministic matching framework emerges,
+with side-conditions and prior bindings as constraints,
+we would hope to see the matcher becoming much more simple.
+This would assist in a longer-term goal,
+to identify a minimal kernel logic, that might facilitate and LCF-style
+approach to giving a sound safe kernel, so proofs can be trusted.
+
+Other possibilities include links to other tools:
+perhaps match completion could be handled by an SMT-solver (modulo set-theory)?
+A facility to expert the logic, theories and proofs to a system like
+Isabelle/HOL would increase the security and utility of this work.

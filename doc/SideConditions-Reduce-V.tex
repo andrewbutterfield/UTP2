@@ -1,0 +1,26 @@
+We lookup meta-variable atoms in the side-conditions,
+and adjust assertions using the available freshness information
+($F$, the set of fresh variables)
+If we have an equality assertion
+then we replace the name by its set value,
+compute any difference, and return the appropriate (ground) enumeration,
+otherwise we simplify the named expression as much as we can.
+\begin{eqnarray*}
+   reduce_A(\setof{\vec v}) &=& \setof{\vec v}
+\\ reduce_A(E \setminus H) 
+   &=& 
+   \left\{
+     \begin{array}{l@{,~~}l}
+       V \setminus H &  P=V 
+     \\
+      \LET V' = V \setminus F \IN \emptyset \cond{V' \subseteq H} E \setminus (H\cap V')
+      & E\subseteq V 
+     \\
+      E \setminus (H \setminus (V\cup F)) & E \DISJ V
+     \\
+       E \setminus H & \textbf{otherwise}
+     \end{array}
+   \right.
+\\ reduce_A(r \setminus H) &=& r \setminus H
+\end{eqnarray*} 
+Again, we need \texttt{ebnds} and \texttt{qbnds} to do this properly.

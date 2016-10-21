@@ -1,0 +1,100 @@
+\section{Syntax Guide}
+
+\subsection{Mathematical Syntax Summary}
+
+\VARMATHSYNTAX
+
+\TYPEMATHSYNTAX
+
+\EXPRMATHSYNTAX
+
+\PREDMATHSYNTAX
+
+\newpage
+\subsection{Symbol Conversion Guide}
+
+The following table shows how various mathematical symbols are rendered using
+the ASCII syntax:
+
+\begin{center}
+\begin{tabular}{p{2in}p{2in}}
+$$
+\begin{array}{|c|c|}
+\hline   \emph{Math.} & \texttt{ASCII}
+\\\hline \multicolumn{2}{|c|}{Variables}
+\\\hline x            & \texttt{x}
+\\\hline x'            & \texttt{x'}
+\\\hline x_s            & \texttt{x\_s}
+\\\hline \lst x       & \texttt{x\$}
+\\\hline Obs, Mdl, Scr       & \texttt{O}, \texttt{M}, \texttt{S}
+\\\hline Obs\less{x,y}  &\texttt{ O\BS x:y}
+\\\hline \multicolumn{2}{|c|}{Types}
+\\\hline ?          & \texttt{?}
+\\\hline \Bool      & \texttt{B}
+\\\hline \Int       & \texttt{Z}
+\\\hline \tau       & \texttt{t}
+\\\hline \power     & \texttt{P}
+\\\hline \cross     & \texttt{x}
+\\\hline {}^*       & \texttt{*}
+\\\hline \fun       & \texttt{->}
+\\\hline \litm{Env} & \texttt{ENV }
+\\\hline \multicolumn{2}{|c|}{Expressions}
+\\\hline \lambda & \texttt{\BS\BS}
+\\\hline @       & \texttt{@}
+\\\hline /       & \texttt{//}  \quad (Expr)
+\\\hline =       & \texttt{=}
+\\\hline \theta  & \texttt{the}
+\\\hline
+\end{array}
+$$
+&
+$$
+\begin{array}{|c|c|}
+\hline   \emph{Math.} & \texttt{ASCII}
+\\\hline \multicolumn{2}{|c|}{Predicates}
+\\\hline True   & \texttt{TRUE}
+\\\hline False  & FALSE
+\\\hline :   &     \texttt{|:} \_ \texttt{:|}
+\\\hline \mathcal D   & \texttt{DEFD}
+\\\hline \lnot  &   \texttt{\TLD}
+\\\hline \land & \texttt{/\BS}
+\\\hline \lor       & \texttt{\BS/}
+\\\hline \implies   & \texttt{=>}
+\\\hline \equiv     & \texttt{==}
+\\\hline \intchoice & \texttt{|\TLD|}
+\\\hline \refinedby & \texttt{|=}
+\\\hline \forall    & \texttt{forall}
+\\\hline \exists    & \texttt{exists}
+\\\hline \exists!    & \texttt{exists1}
+\\\hline [              & \texttt{[}
+\\\hline ]              & \texttt{]}
+\\\hline \Lambda      & \texttt{\BS!} \quad (Expr)
+\\\hline \Lambda       & \texttt{!!} \quad(Pred)
+\\\hline \in          & \texttt{IN}   \quad{PredSet}
+\\\hline \{          & \texttt{\{\}}   \quad{PredSet}
+\\\hline \}          & \texttt{\}\}}   \quad{PredSet}
+\\\hline |            & \texttt{|}
+\\\hline \bigcup        & \texttt{U}
+\\\hline /       & \texttt{///}  (Pred)
+\\\hline
+\end{array}
+$$
+\end{tabular}
+\end{center}
+
+
+\newpage
+\subsection{Variables}
+
+\input{doc/VariableKinds}
+\input{doc/ListKinds}
+
+\newpage
+\subsection{Side Conditions}
+
+\input{doc/SideConditions-Notation}
+
+\newpage
+\subsection{Language Specifications}
+
+\input{doc/Language-Specification}

@@ -1,0 +1,119 @@
+\section{Matching Theory}
+
+\subsection{Matching Introduction}
+
+We want to infer matching statements of the form
+\begin{quote}
+``In context $\Gamma$, pattern $p$ matches test $t$
+with result binding $\beta$''
+\end{quote}
+which we write using the following notation:
+\[
+\Gamma \wefind p \matches t \withbind \beta
+\]
+Here both $p$ and $t$ are either terms of the same kind
+(Type, Expression, Predicate,
+Variable-list, Substitution)
+or $p$ is a variable of the kind that occurs terms like $t$.
+
+We overload $\matches$ for all these forms of matching,
+but when a match of one kind is defined in part using
+a match of a different kind
+(usually associated with a sub-component)
+then we (propose to) flag this by using $\smatches$.
+
+We use $\theta$ to denote an empty binding.
+
+\input{doc/Variable-Syntax}
+
+
+\subsubsection{\texttt{Matching.lhs}/\texttt{Matching-List-Motivation}}
+\input{doc/Matching-List-Motivation}
+
+\subsubsection{\texttt{Matching.lhs}/\texttt{VariableKinds}}
+\input{doc/VariableKinds}
+
+\subsection{``Simple'' Matching}
+
+\subsubsection{\texttt{Matching.lhs}/\texttt{Matching-Types}}
+\input{doc/Matching-Types}
+
+\subsubsection{\texttt{Matching.lhs}/\texttt{Matching-Structural}}
+\input{doc/formal/Matching-Structural}
+
+\subsubsection{\texttt{Matching.lhs}/\texttt{Matching-Infix}}
+\input{doc/formal/Matching-Infix}
+
+\subsubsection{``Complex'' Matching}
+
+\subsubsection{\texttt{Matching.lhs}/\texttt{Matching-Decoration}}
+\input{doc/formal/Matching-Decoration}
+
+\subsubsection{\texttt{Matching.lhs}/\texttt{Matching-List}}
+\input{doc/formal/Matching-List}
+
+\subsubsection{\texttt{Matching.lhs}/\texttt{Expr-Substitution-Matching}}
+\input{doc/Expr-Substitution-Matching}
+
+\newpage
+\subsection{Formal Array macros gathered}
+
+MRSTRUCT
+\MRSTRUCT
+
+MRDECOR
+\MRDECOR
+
+MRLISTVAR
+\MRLISTVAR
+
+MRRSVSINGLE
+\MRRSVSINGLE
+
+MRTWOPLACE
+\MRTWOPLACE
+
+MRBINOP
+\MRBINOP
+
+MRTYPE
+\MRTYPE
+
+\newpage
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-RuleOut-Expr}}
+%\input{doc/Manipulation-RuleOut-Expr}
+\input{doc/Manipulation-RuleOut-QVar}
+\input{doc/Manipulation-RuleOut-Subst}
+
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-Substitution-Matches}}
+\input{doc/Manipulation-Substitution-Matches}
+
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-Substitution-Match}}
+\input{doc/Manipulation-Substitution-Match}
+
+\newpage
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-Identify-Feasible-QVars}}
+\input{doc/Manipulation-Identify-Feasible-Qvars}
+
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-Identify-Feasible-Substn}}
+\input{doc/Manipulation-Identify-Feasible-Substn}
+
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-Prune-Single}}
+\input{doc/Manipulation-Prune-Single}
+
+\newpage
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-SideCond-Resolve}}
+\input{doc/Manipulation-SideCond-Resolve}
+
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-Record-Forced}}
+\input{doc/Manipulation-Record-Forced}
+
+\newpage
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-Force-Matches}}
+\input{doc/Manipulation-Force-Matches}
+
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-Translate-SideCond}}
+\input{doc/Manipulation-Translate-SideCond}
+
+\subsection{\texttt{Laws.lhs}/\texttt{Manipulation-Check-SideCond}}
+\input{doc/Manipulation-Check-SideCond}

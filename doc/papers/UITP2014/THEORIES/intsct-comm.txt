@@ -1,0 +1,32 @@
+Complete Proof for 'Sets$intsct-comm
+
+Goal : e1 intsct e2 = e2 intsct e1
+
+Strategy: Reduce to TRUE
+
+
+     e1 intsct e2 = e2 intsct e1
+
+ ===   " set-extensionality (L-to-R) @ "
+
+     forall x @ (x in (e1 intsct e2)) == (x in (e2 intsct e1))
+
+ ===   " in-intersect (L-to-R) @1.1 "
+
+     forall x @ (x in e1) /\ (x in e2) == (x in (e2 intsct e1))
+
+ ===   " in-intersect (L-to-R) @1.2 "
+
+     forall x @ (x in e1) /\ (x in e2) == (x in e2) /\ (x in e1)
+
+ ===   " /\-comm (R-to-L) @1.2 "
+
+     forall x @ (x in e1) /\ (x in e2) == (x in e1) /\ (x in e2)
+
+ ===   " Ax-==-id (R-to-L) @1 "
+
+     forall x @ TRUE
+
+ ===   " forall-vac (L-to-R) @ "
+
+     TRUE

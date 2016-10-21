@@ -1,0 +1,139 @@
+%\newif\ifDraft
+%\Drafttrue
+%\newif\ifPDFLaTeX
+%\PDFLaTeXtrue
+\documentclass[oribibl]{llncs}
+\usepackage{latexsym,amsmath,amssymb}
+\usepackage{mathpartir}
+\usepackage{zed-csp}
+\usepackage{saoithin}
+\usepackage{saoithin-pp}
+%\usepackage{proof}
+\usepackage{verbatim}
+\usepackage{graphicx}
+
+%\ifPDFLaTeX
+ \def\imgfile#1{#1.pdf}
+%\else
+% \def\imgfile#1{#1.eps}
+%\fi
+
+\newenvironment{haskell}%
+ {\small\verbatim}%
+ {\endverbatim\normalsize}
+
+\def\HOF#1{\ensuremath{\mathbf{#1}}}
+\def\FF{\HOF F}
+\def\GG{\HOF G}
+\def\HH#1{\HOF{H#1}}
+\def\isHH#1{\HOF{isH#1}}
+\def\mkHH#1{\HOF{mkH#1}}
+\def\RR#1{\HOF{R#1}}
+\def\isRR#1{\HOF{isR#1}}
+\def\mkRR#1{\HOF{mkR#1}}
+\def\ACP#1{\HOF{ACP#1}}
+\def\CSP#1{\HOF{CSP#1}}
+
+
+%\ifDraft
+%  \def\DRAFT#1{\textsc{~\\Draft:\\}\textsf{#1}\textsc{\\:end Draft\P.}}
+%  \def\REVIEW#1#2{\textsc{Reviewer:#1}\textsf{#2}\textsc{: end Review\P.}}
+%  \def\NEW#1{\textsc{NEW[}\textsf{#1}\textsc{]WEN}}
+%\else
+  \def\DRAFT#1{}
+  \def\REVIEW#1#2{}
+  \def\NEW#1{{#1}}
+%\fi
+
+\def\TRUE{TRUE}
+\def\FALSE{FALSE}
+\def\lst#1{\overrightarrow{#1}}
+
+\def\TRUE{TRUE}
+\def\FALSE{FALSE}
+\def\lst#1{\overrightarrow{#1}}
+
+\title{
+   \STHN: A Theorem Prover for UTP
+}
+
+\author{%
+ Andrew Butterfield\inst{1,2}
+ \thanks{
+  This paper emanated from work part funded by Science Foundation Ireland,
+  Projects 07/RFP/CMSF186, 08/RFP/CMS1277, 03/CE2/I303-1
+ }
+}
+
+\institute{%
+School of Computer Science \& Statistics \inst1
+\\Trinity College Dublin
+\\Rep. of Ireland
+\\Lero: the Irish Software Engineering Research Centre \inst2
+\\\email{Andrew.Butterfield@sccs.tcd.ie}
+}
+
+\bibliographystyle{alpha}
+
+\begin{document}
+
+\maketitle
+
+\input{abstract}
+
+\input{UTP2010-Intro}
+\input{UTP2010-Related}
+\input{UTP2010-Logic}
+\input{UTP2010-Logic-UTTXT}
+\input{UTP2010-Types}
+\input{UTP2010-Types-UTTXT}
+\input{UTP2010-Language}
+%\input{UTP2010-Language-UTTXT}
+\input{UTP2010-Proof}
+%\input{UTP2010-Proof-UI}
+\input{UTP2010-Matching}
+\input{UTP2010-Usage}
+\input{UTP2010-Conclusions}
+
+\bibliography{UTP-2010-final-MAIN}
+
+%\appendix
+%\input{Walkthrough-UI}
+
+%\input{Utilities.lhs}
+%\newpage
+%\input{Tables.lhs}
+%\newpage
+%\input{Datatypes}
+%\newpage
+%\input{Invariants.lhs}
+%\newpage
+%\input{Precedences.lhs}
+%\newpage
+%\input{DSL.lhs}
+%\newpage
+%\input{DataText.lhs}
+%\newpage
+%\input{Matching.lhs}
+%\newpage
+%\input{FreeBound}
+%\newpage
+%\input{Focus.lhs}
+%\newpage
+%\input{AlphaSubs}
+%\newpage
+%\input{Types}
+%\newpage
+%\input{Heuristics.lhs}
+%\newpage
+%\input{Manipulation.lhs}
+%\newpage
+%\input{Normalise}
+%\newpage
+%\input{Proof}
+%\newpage
+%\input{Theories}
+
+
+
+\end{document}

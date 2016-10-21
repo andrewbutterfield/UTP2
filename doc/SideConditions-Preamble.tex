@@ -1,0 +1,81 @@
+When checking side-conditions we need to handle meta-variables properly, by returning a side-condition on those variables rather than just a true/false result. So, the result of the check
+$$
+  x \not\in  ( P \land y=z \lor Q )
+$$
+should be
+$$
+  x \not\in P \land x \notin Q
+$$
+and not False, or ``don't-know''.
+
+We shall associate the following mathematical notation
+with the \texttt{SideCond} datatype,
+where $P$ and $E$ are meta-variables denoting arbitrary predicates and
+expressions respectively,
+and $V$ are explicitly enumerated sets of variables:
+
+\begin{tabular}{|l|c|}
+  \hline
+  \texttt{SideCond} & Notation
+\\\hline
+  \texttt{SCtrue}  & $\TRUE$
+\\\hline
+  \texttt{SCisCond P}  & $\isCond P$
+\\\hline
+  \texttt{SCnotFreeIn PredM V P}  & $P \DISJ V$
+\\\hline
+  \texttt{SCnotFreeIn ExprM V E}  & $E \DISJ V$
+\\\hline
+  \texttt{SCareTheFreeOf PredM V P}  & $P = V$
+\\\hline
+  \texttt{SCcoverTheFreeOf PredM V P}  & $ P \subseteq V $
+\\\hline
+  \texttt{SCfresh PredM V}  & $\isFresh V$
+\\\hline
+  \texttt{SCAnd S}  & $\bigwedge S$
+\\\hline & $ \FALSE  $
+\\\hline
+\end{tabular}
+
+Notes:
+\begin{enumerate}
+  \item Here $P \DISJ V$ is shorthand for $P \cap V = \emptyset$.
+  \item $\FALSE$ does not have an explicit \texttt{SideCond} representation
+   but is useful in what follows.
+   Given \texttt{Maybe SideCond} we can interpret \texttt{Nothing} as $\FALSE$.
+  \item
+    In the mathematical notation we may allow $P$ and $E$ to be instantiated
+    as general predicates as well as just denoting meta-variables,
+    in which case we use notation $p$ and $e$.
+    \\However, in general we recursively descend through $e$ or $p$
+    until we get conjunction of conditions on meta-variables $E$ and $P$.
+  \item In the sequel we use $M$ to stand for either $P$ or $E$ when the distinction
+    is immaterial.
+  \item
+    The variable-sets $V$ are always explicitly enumerated,
+    so set-theoretic properties involving these can always be calculated.
+\end{enumerate}
+
+\paragraph{Freshness}
+Freshness is a property of both predicate and expression meta-variables and
+means they must be match variables.
+The general rule is that the only occurrences of fresh variables should be those that
+are explicitly mentioned in the law.
+
+Consider a law fragment
+$$L(x,P,Q,R), \isFresh x$$
+matched against a goal
+$$G(v,A,B,C)$$
+with bindings
+$$
+ \beta = \mapof{x \mapsto v, P \mapsto A, Q \mapsto B, R \mapsto C}
+$$
+The side condition $\isFresh x$, translated to $\isFresh v$, is satisfied if the only occurrence of $v$ is in the binding $\mapof{x \mapsto v}$, and it does not occur anywhere in  $A$, $B$ or $C$. Putting it formally:
+\begin{eqnarray*}
+ \beta~\textbf{sat}~\isFresh x
+ &\defs&
+ \exists v @ v=\beta(x) \land v \notin \bigcup vars(rng(\beta\hide\setof x))
+\end{eqnarray*}
+A consequence of $\isFresh x$ for any expression variable $x$
+is that it immediately implies $P \DISJ \setof x$
+for all other predicate meta-variables $P$ in the law.

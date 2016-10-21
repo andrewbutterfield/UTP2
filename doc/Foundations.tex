@@ -1,0 +1,245 @@
+\section{Foundations}
+
+\subsection{1st-order Equational Logic (Tourlakis)}\label{ssec:1EL:Tourlakis}
+
+We shall adapt the formalisation of 1st-order equational logic (\textbf{EL1})
+due to Tourlakis \cite{journals/logcom/Tourlakis01},
+as reprised here (with minor syntactic tweaks).
+
+\subsubsection{EL1 Syntax}\label{sssec:1EL:syntax}
+
+\RLEQNS{
+   x \in ObjVar && (given) & \mbox{Object Variables}
+\\ p \in PropVar && (given) & \mbox{Propositional Variables}
+\\ a \in Const && (given) & \mbox{Constant symbols}
+\\ P \in PredRel && (given) & \mbox{Predicate and Relation symbols}
+\\ f \in Func && (given) & \mbox{Function symbols}
+\\ t \in Term &::=& x | a | f~t_1~t_2~\ldots~t_n & \mbox{Terms}
+\\ \alpha \in AF &::=& true|false|p & \mbox{Atomic Formulas}
+\\                 &|& t_1=t_2  & \mbox{Equality Assertion}
+\\                 &|& P~t_1~t_2~\ldots~t_n & \mbox{Pred.-Symbol application}
+\\ A,B \in WFF &::=& \alpha & \mbox{Well-Formed Formulas}
+\\             &|& \lnot A
+\\             &|& (A\equiv B) | (A \implies B)
+\\             &|& (A \land B) | (A \lor B)
+\\             &|& (\forall x @ A)
+}
+
+\subsubsection{EL1 Rules}\label{sssec:1EL:rules}
+
+\begin{description}
+  \item[Ax1.] All propositional axioms from \cite{gries.93}.
+  \item[Ax2.] $A \lor (\forall x @ B) \equiv (\forall x @ A \lor B), x \notin A$
+  \item[Ax3.] $(\forall x @ A) \implies A[x:=t]$ ($t$ substitutable in $x$ (in $A$))
+  \item[Ax4.] $x = x$
+  \item[Ax5. (Liebniz)] $x = t \implies (A \equiv A[x:=t])$
+     ($t$ substitutable in $x$ (in $A$))
+  \item[Inf1. (Substitution)] $\INFER{A}{A[p:=B]}$ (no capture)
+  \item[Inf2. (Leibniz)] $\INFER{A\equiv B}{C[p:=A] \equiv C[p:=B]}$
+  \item[Inf3. (Equanimity)] $\INFER{A, A \equiv B}{B}$
+  \item[Inf4. (Transitivity)] $\INFER{A\equiv B, B \equiv C}{A \equiv C}$\\
+\end{description}
+
+\subsubsection{EL1 Definitions}\label{sssec:1EL:defns}
+
+\RLEQNS{
+  (\exists x @ A) &\defs& \lnot(\forall x @ \lnot A)
+  & \mbox{Existential}
+}
+
+\subsubsection{EL1 Proof}\label{sssec:1EL:proof}
+
+\begin{description}
+  \item[Logical Axioms (LA)]
+     are the closure under \textbf{Inf1}
+     of \textbf{Ax1} and all instances of \textbf{Ax2-Ax5}.
+  \item[Non-Logical Axioms]
+    are a supplied set of assumed formulas, here denoted by $\Gamma$.
+  \item[$\Gamma$-Theorems]
+   is the set obtained by closing $\textbf{LA} \cup \Gamma$ under \textbf{Inf2-Inf3}.
+  \item[$\Gamma$-Proof $A_1,\ldots,A_n$]
+    is valid if either $A_i \in \textbf{LA} \cup \Gamma$
+    or is the result of using \textbf{Inf2-Inf3} on $A_j$,  $j < i$.
+  \item[$\Gamma \vdash A$] if $A$ is at the end of some $\Gamma$-proof.
+\end{description}
+
+\subsubsection{EL1 Metatheorems}\label{sssec:1EL:meta}
+
+We use the numbering in \cite{journals/logcom/Tourlakis01}.
+\begin{description}
+  \item[Remark 3.8(2)] if $A_1,\ldots,A_n$ have $\Gamma$-proofs
+   and $B$ has a $\{A_1,\ldots,A_n\}$-proof, then $B$ has a $\Gamma$-proof.
+  \item[Remark 3.8(3)] If $\Gamma \subseteq \Delta$ and $\Gamma \vdash A$,
+  then $\Delta \vdash A$.
+  \item[Meta 4.1] Rule \textbf{Inf4} is derived.
+  \item[Meta 4.2] $\Gamma \vdash A$ iff $\Gamma \vdash A \equiv true$.
+  \item[Meta 4.3] $\vdash (\forall x @ true) \equiv true$.
+  \item[Meta 4.4] $\Gamma \vdash A$ iff $\Gamma \vdash (\forall x @ A)$
+       --- $\forall$ Intro/Elim.
+  \item[Corr 4.5] $A \vdash \forall x @ A$.
+  \item[Corr 4.7] $A[x_1,\ldots,x_n] \vdash A[t_1,\ldots,t_n]$
+       --- Substitution.
+  \item[Meta 4.8]
+     $\vdash (A \implies \forall x @ B) \equiv (\forall x @ A \implies B)$,
+     provided $x \notin A$.
+  \item[Corr 4.9] $\vdash A \equiv (\forall x @ A)$, provided $x \notin A$.
+  \item[Remark 4.10] $\vdash A \equiv (\exists x @ A)$, provided $x \notin A$.
+  \item[Meta 4.11] $\Gamma \vdash A \implies B$ iff $\Gamma \vdash A \implies (\forall x @ B)$,
+    provided $x \notin A$.
+  \item[Corr 4.12] $\Gamma \vdash B \implies A$ iff $\Gamma \vdash (\exists x @ B) \implies A$,
+    provided $x \notin A$.
+  \item[Meta 4.13] $\vdash (\forall x @ A) \equiv (\forall z @ A[x:=z])$,
+    provided $z$ not free or bound in $\forall x @ A$
+    --- dummy renaming.
+  \item[Lemma 4.22] $\vdash (\forall x @ A \implies B)
+                            \implies (\forall x @ A)
+                            \implies (\forall x @ B)$.
+  \item[Lemma 4.23] $A \implies (B \equiv C)
+                     \vdash
+                     A \implies ((\forall x @ B) \equiv (\forall x @ C))$,
+                     provided $x \notin A$.
+  \item[Meta 4.24] If $A$ is closed and $\Gamma,A \vdash B$, then $\Gamma \vdash A \implies B$
+       --- The Deduction Theorem.
+   \\ also $\Gamma \vdash A \implies B$ implies that $\Gamma, A \vdash B$,
+     with no restrictions.
+  \item[Meta 4.25]
+    Extend language with new constant $e$ and let $\Gamma'$
+    be augmented theory with the same non-logical axioms as $\Gamma$.
+    Then $\Gamma' \vdash A[e]$ implies $\Gamma \vdash A[x]$,
+    provided $x$ is not free our bound anywhere in the $\Gamma'$-proof.
+  \item[Corr 4.26]
+    Extend language with new constant $e$ and let $\Gamma'$
+    be augmented theory with the same non-logical axioms as $\Gamma$.
+    Then for any variable $y$ we have $\Gamma' \vdash A[e]$ iff $\Gamma \vdash A[y]$.
+  \item[Remark 4.27]
+    Let the free variables of $A$ and $B$ be included in $\{x_1,\ldots,x_n\}$,
+    and $\Gamma'$ be obtained by adding $n$ new constants $e_1,\ldots,e_n$.
+    \\
+    Then from $\Gamma',A[e_1,\ldots,e_n/x_1,\ldots,x_n]
+               \vdash B[e_1,\ldots,e_n/x_1,\ldots,x_n]$
+    we can get $\Gamma \vdash A \implies B$.
+  \item[Meta 4.28]
+    From $\vdash A$ we get $\vdash A[p:=W]$ for any $W$ provided no free var of $W$
+    becomes bound during the substitution.
+\end{description}
+
+\newpage
+\subsection{\UTP2\ Logic Syntax}
+
+We now define our logic syntax as follows:
+\\\textbf{NEEDS REVISING TO USE UTP2LogicDefs TO KEEP THINGS CONSISTENT}
+\RLEQNS{
+   x \in Var && (given) & \mbox{Obs. Variables}
+\\ k \in Const && (given) & \mbox{Constants}
+\\ f \in Names && (given) & \mbox{(Function) Names}
+\\ E \in ENames && (given) & \mbox{Expression Metavariable Names}
+\\ P \in PNames && (given) & \mbox{Predicate Metavariable Names}
+\\ e \in Expr &::=& k | x  & \mbox{Expressions}
+\\              &|& f~e & \mbox{Applications}
+\\              &|& \lambda x @ e & \mbox{Obs. Abstraction}
+\\              &|& \Lambda E @ e & \mbox{E-var. Abstraction}
+\\              &|& \Lambda P @ e & \mbox{P-var. Abstraction}
+\\              &|& \setof{ x | p @ e } & \mbox{Comprehension}
+\\              &|& E & \mbox{Explicit Metavariable}
+\\              &|& e[ e/x ] & \mbox{Explicit Obs. Substitution}
+\\              &|& e[ e/E ] & \mbox{Explicit E-var. Substitution}
+\\              &|& e[ p/P ] & \mbox{Explicit P-var. Substitution}
+\\ p \in Pred &::=& True | False & \mbox{Constants Predicates}
+\\              &|& e & \mbox{Atomic Predicate (Boolean-valued Expr.)}
+\\              &|& \lnot p & \mbox{Negation}
+\\              &|& p~ \maltese q & \mbox{Composites, }\maltese \in \setof{\land,\lor,\implies,\equiv}
+\\              &|& P & \mbox{Explicit Metavariable}
+\\              &|& \yen x @ p & \mbox{1st-order Quantifiers, } \yen \in \setof{\forall,\exists,\exists!}
+\\              &|& \yen P @ p & \mbox{higher-order Quantifiers, } \yen \in \setof{\mathbf\forall,\mathbf\exists}
+\\              &|& \yen E @ p & \mbox{higher-order Quantifiers, } \yen \in \setof{\mathbf\forall,\mathbf\exists}
+\\              &|& p[ e/x ] & \mbox{Explicit Obs. Substitution}
+\\              &|& p[ e/E ] & \mbox{Explicit E-var. Substitution}
+\\              &|& p[ p/P ] & \mbox{Explicit P-var. Substitution}
+}
+
+\newpage
+\subsection{The Deduction Theorem}\label{ssec:Deduction}
+
+A key part of the logic we present involves the validity
+of the Deduction Theorem:
+\begin{eqnarray*}
+   \INFER%
+     {\Gamma,P \infer Q}%
+     {\Gamma \infer P \implies Q}
+\end{eqnarray*}
+The implementation of this needs to be done very carefully.
+Given a variable denoting a predicate (\texttt{Pvar}),
+we recognise two distinct cases:
+\begin{itemize}
+  \item (Closed \texttt{Pvar}) the variable is a shorthand name for some other predicate,
+   as indicated by an entry in a predicate table;
+  \item (Open \texttt{Pvar}) the variable denotes an arbitrary predicate.
+\end{itemize}
+During matching, the former (closed) only matches a \texttt{Pvar} of the same name,
+whilst the latter (open) matches any predicate at all.
+We shall indicate an open Pvar by underlining it in the sequel,
+so in $\underline P \land GROW$, \verb'Pvar "P"'
+is open and \verb'Pvar GROW' is closed.
+
+A law with open \texttt{Pvar}s effectively denotes an infinite law schema,
+one law instance for every possible instantiation of them.
+We need to be careful when invoking the deduction theorem,
+to ensure that every assumption made has its open \texttt{Pvar}s closed.
+by the simple expedient of uniformly renaming them to be fresh
+and then entering a mapping from those renamed \texttt{Pvar}s
+to themselves in the predicate table.
+Once a predicate with open Pvars is assumed true for a proof,
+all the Pvars must stop denoting arbitrary predicates and
+start denoting just themselves.
+
+Failure to do this results in an unsound proof, as exemplified by the following ``proof''
+of the (non-)``theorem'':
+$$
+ \underline A \implies \underline B
+$$
+(where $A$ and $B$ are open).
+
+(non-)proof:
+Assume $H1: \underline A$, with goal $ \underline B $
+\begin{eqnarray*}
+  && \underline B
+\EQV{$H1$ with $\underline A \mapsto \underline B$,
+ as $\underline A$ in $H1$ is open}
+\\&& True
+\end{eqnarray*}
+Now, if
+we use an overline to denote the ``closing''%
+\footnote{
+By ``closing'' we mean renaming to something fresh,
+and then adding a self-definition to the appropriate table.
+}
+of a predicate,
+in which all open \texttt{Pvar}s become closed,
+then the deduction theorem becomes:
+\begin{eqnarray*}
+   \INFER%
+     {\Gamma,\overline P \infer \overline Q}%
+     {\Gamma \infer P \implies Q}
+\end{eqnarray*}
+The non-proof above now fails:
+Assume $H1: \overline A$, with goal $ \overline B $
+\begin{eqnarray*}
+  && \overline B
+\\ &\not\equiv& \coz{We can't match against $H1$,
+as we have to match $\overline B$ against $\overline A$}
+\\&& True
+\end{eqnarray*}
+The following proof works just fine:
+$$
+  \underline A \implies \underline A \lor \underline B
+$$
+Assume $H1: \overline A$, with goal $\overline A \lor B$:
+\begin{eqnarray*}
+  && \overline A \lor B
+\EQV{$H1$, where $\overline A$ (closed) matches $\overline A$}
+\\&& True \lor B
+\EQV{$\lor$-zero}
+\\&& True
+\end{eqnarray*}
+
+All of this is basically how we implement Remark 4.27 (\S\ref{sssec:1EL:meta}) for the Tourlakis logic.

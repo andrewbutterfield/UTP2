@@ -1,0 +1,76 @@
+\subsubsection{Preliminaries}
+
+We want to assess $\alpha$-equivalence,
+as the best way to complete a proof.
+Given that we have three kinds of variables (Std, General-List, Reserved-List)
+we require $\alpha$-equivalence to respect the kind distinction,
+and in particular we expect the reserved list names and decorations to match,
+except that subscripts may differ.
+
+If the two predicates are $\alpha$-equivalent we should be able to determine
+a bijective mapping from the \emph{bound} variables of the first predicate to those of the second.
+We define $\alpha$-equivalence recursively,
+yielding either failure, or a mapping between bound variables
+on each side that induces equivalence.
+This paramterised at every level by the current set of variable bindings
+(empty at the top level).
+\begin{eqnarray*}
+   \_\alfeqv\_ &:& Pred^2 \fun \Bool
+\\ P_1 \alfeqv P_2
+   &\defs&
+   (P_1 \balfeqv\emptyset\emptyset P_2) \neq  inl()
+\\ \_ \balfeqv\_\_ \_ &:& (Pred\cross \power Var)^2 \fun 1 + BIJ
+\end{eqnarray*}
+Given that we have a number of contexts in which variable ordering is unimportant,
+such as quantifier lists, our bijective mapping has two components:
+an explicit bijection coupled with a pair of sets of variables of the same size,
+representing the need for some bijection to exist between them.
+\begin{eqnarray*}
+  Bij,(\beta,L,R) \in  BIJ
+  &=&  (Var \pbij Var) \cross \power Var \cross \power Var
+\\ \Inv{BIJ}(\beta,L,R)
+  &\defs&
+  L \DISJ \dom~\beta
+  \land
+  R \DISJ \rng~\beta
+\\ && {} \land
+  \#(L|_{Std}) = \#(R|_{Std})
+  \land
+  \#(L|_{Lst}) = \#(R|_{Lst})
+\end{eqnarray*}
+Note that we need to track bound variables for each side
+as we descend:
+We define a bijection merge that fails if the two bijections are in conflict,
+otherwise glues them together.
+Here, and in the sequel, we only show cases that succeed---all other situations
+result in failure.
+\begin{eqnarray*}
+ \_\uplus\_ &:& BIJ^2 \fun 1 + BIJ
+\\ (\beta_1,L_1,R_1) \uplus (\beta_2,L_2,R_2)
+   &\defs&
+   (\beta_1\sqcup\beta_2,L,R),
+\\ &&\qquad
+     L \DISJ \dom~(\beta_1\sqcup\beta_2)
+     \land
+     R \DISJ \rng~(\beta_1\sqcup\beta_2)
+\\ && \WHERE
+\\ && \quad L = L_1\setminus(\dom~\beta_2)
+                \cup
+                L_2\setminus(\dom~\beta_1)
+\\ && \quad R = R_1\setminus(\rng~\beta_2)
+                \cup
+                R_2\setminus(\rng~\beta_1)
+\\ && \textbf{provided}
+\\ && \quad  \forall \maplet u v \in \beta_1
+          @ (u \in L_2 \land v \in R_2) \lor (u \notin L_2 \land v \notin R_2))
+\\ && \quad \forall \maplet u v \in \beta_2
+          @ (u \in L_1 \land v \in R_1) \lor (u \notin L_1 \land v \notin R_1))
+\end{eqnarray*}
+
+We define $\sqcup$,
+as a finite-map lifting of the following pointwise definition.
+\begin{eqnarray*}
+   \_\sqcup\_ &:& (A \pfun B)^2 \fun 1 + (A \pfun B)
+\\ \mapof{u \to v_1} \sqcup \mapof{u \to v_2}
+   &\defs& \mapof{u \to v_1}, \qquad v_1 = v_2
+\end{eqnarray*}

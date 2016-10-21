@@ -1,0 +1,58 @@
+\documentclass[oribibl]{llncs}
+\usepackage{amssymb,amsmath}
+\usepackage{mathpartir}
+\usepackage{verbatim}
+\usepackage{saoithin}
+\usepackage{tikz}
+\usetikzlibrary{arrows,matrix}
+
+%\def\PLAN#1{\textit{\textsf{{#1}}}}
+\def\PLAN#1{}
+\def\DRAFT#1{}
+%\def\DRAFT#1{\textbf{DRAFT: }\textsf{{#1}}}
+
+
+
+\title{
+ The Logic of \UTP2
+  \thanks{
+    This research was supported by grants 07-RFP-CMSF186
+    and 08-RFP-CMS1277 from Science Foundation Ireland, as well as partial support from
+    Lero, the Irish Software Engineering Research Centre
+  }
+}
+
+\author{%
+Andrew Butterfield\inst{1}
+}
+
+\institute{%
+Lero@TCD, Trinity College Dublin, \email{\{butrfeld\}@tcd.ie}
+}
+
+
+\bibliographystyle{alpha}
+
+\input{UTP2LogicDefs}
+
+\begin{document}
+
+\maketitle
+
+\input{abstract}
+
+\input{Intro}
+\input{Theories}
+\input{Logic}
+\input{UTP}
+\input{Designs}
+\input{Programs}
+\input{Soundness}
+\input{Exploitation}
+\input{Conclusions}
+
+\bibliography{SAOITHIN}
+
+\appendix
+\input{Rules}
+\end{document}

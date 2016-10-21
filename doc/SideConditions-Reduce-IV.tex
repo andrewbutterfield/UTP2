@@ -1,0 +1,37 @@
+To reduce $a \in atom$,
+we first reduce the atom.
+If ground, we evaluate the membership,
+otherwise we lookup the side-conditions
+if any associated with the meta-variable
+and then try to see if we can evaluate
+given this extra information.
+\begin{eqnarray*}
+   reduce_M(v \in c) &=& reduce^v_M(reduce_C(c))
+\\
+\\ reduce^v_M(\setof{\vec v;\vec q})
+   &=&
+   \left\{\begin{array}{l@{~,~}l}
+     \True & v = v_i, \textbf{ any } i \\
+     \False & \textbf{otherwise}
+   \end{array}\right.
+\\ reduce^v_M(E \setminus \setof{\vec v;\vec q})
+   &=& reduce^v_H(E, \setof{\vec v;\vec q})
+\\ reduce^v_M(c) = v \in c
+\end{eqnarray*}
+Here we are looking for three outcomes:
+
+\begin{tabular}{|l|l|}
+  \hline
+  outcome & return value \\
+  \hline
+  $a$ not in $atom$ & \texttt{Nothing} \\
+  \hline
+  $a$ in $atom$ & \texttt{Just (True,\_)} \\
+  \hline
+  undetermined & \texttt{Just (False,reducedcond)} \\
+  \hline
+\end{tabular}
+
+Note that for now we only use obsvar freshness
+for these calculations. 
+Also, we can do better if we had bindings for $q$ and $r$ available

@@ -1,0 +1,10 @@
+\textbf{Translate Law Side-Condition (In-Context)}\\ % outer list
+Using the revised \texttt{qtrie} value,
+we now translate the side-condition properly,
+using the bindings and a context side-condition (goal)
+to get a law side-condition in terms of goal variables.
+If the context side-condition is false,
+we return \texttt{SCtrue} because basically all bets are off!
+
+What is not addressed properly here at present is what happens
+when a fresh list-variable maps to more that one target variable.

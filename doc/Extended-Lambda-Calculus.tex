@@ -1,0 +1,156 @@
+We present the extended $\lambda$-calculus that is a model for our logic:
+$$\begin{array}{rclr}
+   v,w,x &\in& V & \mbox{Standard Variables, given.}
+\\ E &\in& M & \mbox{Expression Meta-Variables, given.}
+\\ \lst q,\lst r &\in& Q & \mbox{List Variables, given.}
+\\ e,f,g \in L
+   &::=& v  & \mbox{Variables}
+\\ &|& e~e  & \mbox{Application}
+\\ &|& E & \mbox{Expression Metavariables}
+\\ &|& \lambda \vec v,\lstvec q @ e & \mbox{Extended $\lambda$ Abstraction} 
+\\ &|& e[\vec f,\lstvec r/\vec v,\lstvec q] & \mbox{Explicit Substitution}
+\end{array}$$
+The variable lists $\vec v,\lstvec q$ are well-formed when both have no duplicates.
+Also note that the $v_i$ and $\lst q_j$ can be mixed up in practise,
+but that listing standard- before list-variables is the canonical way
+of representing them here.
+In explicit substitutions, $\vec f$ and $\vec v$ must have the same length,
+as so must both $\lstvec r$ and $\lstvec q$.
+
+With such lists we can associate an interpretation $I_{\lambda}$ that maps list-variables
+to sequences of standard variables:
+\begin{eqnarray*}
+   I_{\lambda} &:& Q \pfun V^*
+\end{eqnarray*}
+The interpretation $I_{\lambda}$ is consistent 
+with list $\vec v,\lstvec q$ if no element of $\vec v$ appears in
+the interpretation of any element of $\lstvec q$,
+and those interpretation sets are all mutually disjoint.
+\begin{eqnarray*}
+  i &\in& 1 \ldots \len~ \vec v
+\\ j,k &\in& 1 \ldots \len~ \lstvec q
+\\ v_i &\notin& I_{\lambda}(\lst q_j)
+\\ j\neq k &\implies& I_{\lambda}(\lst q_j) \cap I_{\lambda}(\lst q_k) = \emptyset
+\end{eqnarray*}
+
+We also note, in (explicit) substitutions,
+that there should be no duplicates in $\lstvec r$,
+which are list-variables, each denoting a list of zero or more
+substitution replacement expressions.
+There is also an interpretation that maps these instances of list variables to 
+sequences of expressions:
+\begin{eqnarray*}
+   I_{\sigma} &:& Q \pfun L^*
+\end{eqnarray*}
+Given two interpretations $(I_{\sigma},I_{\lambda})$,
+we say they are consistent with respect to  an explicit substitution
+$[\vec f,\lstvec r/\vec v,\lstvec q]$, if $I_{\lambda}$ is consistent with
+$\vec v,\lstvec q$, and for each element of $\lstvec r$,
+its interpretation under $I_{\sigma}$ has the same length as that for the 
+corresponding element of $\lstvec q$.
+\begin{eqnarray*}
+  \len~\lstvec r &=& \len~\lstvec q
+\\ i &\in& 1 \ldots \len~ \lstvec r
+\\ \len(I_{\lambda}(\lst q_i))
+   &=&
+   \len(I_{\sigma}(\lst r_i))
+\end{eqnarray*}
+
+We now introduce meta-notation for substitution
+$$
+  e[\vec v,\lstvec q:=\vec f,\lstvec r]
+$$
+This is a syntactical operator, transforming an extended $\lambda$-calculus
+expression into another one that is equivalent, w.r.t to \emph{all} interpretations
+consistent with $\vec v,\lstvec q$.
+As a general rule, we can say that
+$$
+ e[\vec v,\lstvec q:=\vec f,\lstvec r]
+ =
+ e[\vec f,\lstvec r/\vec v,\lstvec q]
+$$
+but we would like to do better than this.
+
+We shall explore it's full definition by first considering single substitutions,
+one of a standard variable, the other of a list variable.
+First, the standard case:
+\begin{eqnarray*}
+   \_[\_:=\_] &\mbox{as}& L \fun (V \times L) \fun L
+\\ v[x:=g] &\defs&  g \cond{x=v} v
+\\ E[x:=g] &\defs&  E[g/x]
+\\ (f~e)[x:=g] &\defs& (f[x:=g])~(e[x:=g])
+\\ (\lambda \vec v,\lstvec q @ e)[x:=g]
+   &\defs&
+   \left\{
+     \begin{array}{ll}
+       (\lambda \vec v,\lstvec q @ e), & x \in \vec v \\
+       (\lambda \vec v,\lstvec q @ e)[g/x], & \hbox{otherwise.}
+     \end{array}
+   \right.
+\\ (e[\vec f/\vec v])[x:=g]
+   &\defs&
+   \left\{
+     \begin{array}{ll}
+       e[\vec f[g/x]/\vec v], & x \in \vec v \\
+       e[g,\vec f[g/x]/x,\vec v], & \hbox{otherwise.}
+     \end{array}
+   \right.
+\\ (e[\vec f,\lstvec r/\vec v,\lstvec q])[x:=g]
+   &\defs&
+   (e[\vec f,\lstvec r/\vec v,\lstvec q])[g/x]
+\\&\textbf{or?}&
+   \left\{
+     \begin{array}{ll}
+       e[\vec f[g/x],\vec{\lst r}[g/x]/\vec v,\lstvec q], & x \in \vec v \\
+       e[\vec f[g/x],\vec{\lst r}[g/x]/\vec v,\lstvec q], & x \notin e \\
+       (e[\vec f,\lstvec r/\vec v,\lstvec q])[g/x], & \hbox{otherwise.}
+     \end{array}
+   \right.
+\end{eqnarray*}
+The last alternative requires a further extension to the syntax to
+allow (nested) substitutions in the $\lstvec r$ list. Not sure we gain much.
+
+Next, the list case:
+\begin{eqnarray*}
+   \_[\_:=\_] &\mbox{as}& L \fun (Q \times L^*) \fun L
+\\ v[\lst p:=\vec g] &\defs&  v[\vec g/\lst p]
+\\ E[\lst p:=\vec g] &\defs&  E[\vec g/\lst p]
+\\ (f~e)[\lst p:=\vec g] &\defs& (f[\lst p:=\vec g])~(e[\lst p:=\vec g])
+\\ (\lambda \vec v,\lstvec q @ e)[\lst p:=\vec g]
+   &\defs&
+   \left\{
+     \begin{array}{ll}
+       (\lambda \vec v,\lstvec q @ e), & \lst p \in \lstvec q \\
+       (\lambda \vec v,\lstvec q @ e)[\vec g/\lst p], & \hbox{otherwise.}
+     \end{array}
+   \right.
+\\ (e[\vec f/\vec v])[\lst p:=\vec g]
+   &\defs&
+   (e[\vec f/\vec v])[\vec g/\lst p]
+\\ (e[\vec f,\lstvec r/\vec v,\lstvec q])[\lst p:=\vec g]
+   &\defs&
+   (e[\vec f,\lstvec r/\vec v,\lstvec q])[\vec g/\lst p]
+\end{eqnarray*}
+
+Now, the general case:
+\begin{eqnarray*}
+   \_[\_:=\_] &:& L \fun (V^m \times Q^n \times L^m \times Q^n) \fun L
+\\ e[\nil:=\nil] &\defs& e, \mbox{ the empty case}
+\\ v[\vec x,\lstvec p:=\vec g,\lstvec s] 
+  &\defs& x_i, \qquad \textbf{if}~ v = x_i
+\\ (f~e)[\vec x,\lstvec p:=\vec g,\lstvec s] 
+  &\defs& (f[\vec x,\lstvec p:=\vec g,\lstvec s]~e[\vec x,\lstvec p:=\vec g,\lstvec s])
+\\ (\lambda \vec v,\lstvec q @ e)[\vec x,\lstvec p:=\vec g,\lstvec s]
+   &\defs&
+   (\lambda \vec v,\lstvec q @ e)
+   [\vec x\setminus\vec v,\lstvec p\setminus\lstvec q
+    :=
+    \vec g|_{\vec x\setminus\vec v},\lstvec s|_{\lstvec p\setminus\lstvec q}]
+\\ e[\vec x,\lstvec p:=\vec g,\lstvec s] &\defs& e[\vec g,\lstvec s/\vec x,\lstvec p]
+\end{eqnarray*}
+Here the notation
+$$
+\vec g|_{\vec x\setminus\vec v}
+$$
+denotes $\vec g$ restricted to the corresponding elements of $\vec x$
+that remain when the elements of $\vec v$ are removed.

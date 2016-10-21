@@ -1,0 +1,74 @@
+THIS MATCHING IS GREEDY AND SHOULD REALLY BE DEFERRED
+
+We have a pattern, where w.l.o.g., we have the standard variables first
+($u_1,\ldots,u_k$) and the list-variables last ($ v\$_1,\ldots,v\$_\ell$),
+and the expressions substituting for the list-variables are themselves
+list variables ($f\$_1,\ldots,f\$_\ell$):
+$$
+ [ e_1,\ldots,e_k , f\$_1,\ldots,f\$_\ell
+ /
+   u_1,\ldots,u_k ,  v\$_1,\ldots,v\$_\ell ]
+ , \quad k+\ell \geq 1
+$$
+and test:
+$$
+ [ g_1,\ldots,g_m , h\$_1,\ldots,h\$_n
+ /
+   a_1,\ldots,a_m ,  b\$_1,\ldots,b\$_n ]
+ , \quad m+n \geq 1
+$$
+The $e_i$ and $g_i$ are expressions,
+while all the others are variables.
+Matching must take into account:
+\begin{itemize}
+  \item First of all, $m \geq k$, or no match is possible.
+  \item We match the $e_i$ and $u_i$
+        against the first $k$ of the $g_i$ and $a_i$.
+        This may fail with binding conflicts.
+        The resulting bindings are of the form:
+        $$
+          \begin{array}{ccc}
+             e_i & \ddagger & g_i
+          \\ u_j & \mapsto & a_j
+          \end{array}
+        $$
+  \item We are then left with pattern:
+        $$
+        [  f\$_1,\ldots,f\$_\ell
+        /
+         \qsep  v\$_1,\ldots,v\$_\ell ]
+        $$
+        and test:
+        $$
+         [ g_{k+1},\ldots,g_m , h\$_1,\ldots,h\$_n
+         /
+         a_{k+1},\ldots,a_m \qsep  b\$_1,\ldots,b\$_n ]
+         , \quad m+n \geq 1
+        $$
+        If $\ell=0$ and $m+n > 0$ we fail,
+        otherwise we simply return the additional bindings ($\ell\geq 2$):
+        $$
+         \begin{array}{l@{\mapsto}l}
+            f\$_1 & g_{k+1},\ldots,g_m
+         \\ f\$_2 & h\$_1,\ldots,h\$_n
+         \\ f\$_i & \nil, i > 2
+         \\ v\$_1 & a_{k+1},\ldots,a_m
+         \\ v\$_2 & b\$_1,\ldots,b\$_n
+         \\ v\$_i & \nil, i > 2
+         \end{array}
+        $$
+        or (if $\ell =1$):
+        $$
+         \begin{array}{l@{\mapsto}l}
+            f\$_1 & g_{k+1},\ldots,g_m ,  h\$_1,\ldots,h\$_n
+         \\ v\$_1 & a_{k+1},\ldots,a_m \qsep  b\$_1,\ldots,b\$_n
+         \end{array}
+        $$
+\end{itemize}
+The bindings for $e_i$ are normal expression match bindings,
+those for $u_i$ are \texttt{Var} expression variant
+and for $v\$_k$ we have standard \texttt{QVar} bindings.
+The bindings for the $f\$$ are in general a pair of lists,
+one of expressions, the other of variables.
+We store these two lists (for now) in a nested  \texttt{\texttt{Prod}/\texttt{Seq}} expression variant
+(even if we have singleton or null lists).

@@ -1,0 +1,141 @@
+%
+\def\Saoithin{\textsc{Saoith\'{i}n}}
+\def\STHN{\textsc{Saoith\'{i}n}}
+\def\UTP2{\ensuremath{{}\mathsf{U}\!\cdot\!\!T\!P^2}}
+\def\Circus{\textsf{\textit{Circus}}}
+\def\CHECK#1{\textsc{\textbf{Check: }#1}}
+%
+% generic mathematics
+\def\setof#1{\{#1\}}
+\def\seqof#1{\langle #1\rangle}
+\def\mapof#1{\{ #1\}}
+\def\to{\!\mapsto\!}
+\def\cond#1{\mathbin{\lhd{\,#1\,}\rhd}}
+\def\sem#1{[\![#1]\!]}
+\def\elems{\mathsf{elems}}
+\def\len{\mathsf{len}}
+\def\then{\rightarrow}
+\def\Bool{{\bbold B}}
+\def\Int{{\bbold Z}}
+\def\Nat{{\bbold N}}
+\def\otherwise{\mathrm{otherwise}}
+\def\qed{~{\blacksquare}}
+\def\lcons{\mathbin{\raise 0.6ex\hbox{\small\oalign{\hfil%
+          $\scriptscriptstyle\mathrm{o}$\hfil%
+          \cr\hfil$\scriptscriptstyle\mathrm{o}$\hfil}}}}
+
+\def\quant{\mathcal{Q}}
+\def\qsep{\mathbin{;\!\!}}
+\def\lit#1{\mbox{`\texttt{#1}'}}
+\def\litm#1{\mbox{`$\mathtt{#1}$'}}
+\def\DISJ{\mathrel{\not\!\cap~}}
+\def\isCond{\mathop{\mathtt{c.\!}}}
+\def\impliedBy{\mathrel{\Leftarrow}}
+
+\def\override{\mathbin{\dagger}}
+
+% generic proof
+\def\coz#1{\mbox{``#1''}}
+\def\EQV#1{\\&\equiv&\coz{#1}}
+
+% UTP specific
+\def\HH#1#2{\ensuremath{\mathbf{{#1}{#2}}}}
+\def\mkHH#1#2{\ensuremath{\mathbf{{mk#1}{#2}}}}
+\def\isHH#1#2{\ensuremath{\mathbf{{is#1}{#2}}}}
+
+\def\H{\HH{H}{}}
+\def\isH{\isHH{H}{}}
+\def\mkH{\mkHH{H}{}}
+\def\DD{\HH{D}{}}
+\def\RR#1{\HH{R}{#1}}
+\def\CSP#1{\HH{CSP}{#1}}
+
+\def\Skip{\mathit{II}}
+\def\FALSE{\mathbf{false}}
+\def\TRUE{\mathbf{true}}
+\def\False{\textsc{False}}
+\def\True{\textsc{True}}
+\def\refines{\sqsupseteq}
+\def\refinedby{\sqsubseteq}
+
+% Logic specific
+\def\F{{\small\textsc{False}}}
+%\def\pseudo#1{{}_p\!{#1}}
+\def\pseudo#1{\tilde{#1}}
+\def\infer{\vdash}
+\def\INFER#1#2{\mprset{fraction={-{\smash -}-}}\inferrule{#1}{#2}}
+\def\AXIOM#1{\mprset{fraction={-{\smash -}-}}\inferrule{~}{#1}}
+\def\BINFER#1#2{\mprset{fraction={===}} \inferrule{#1}{#2}}
+\def\LNAME#1{\textsc{[#1]}}
+\def\INTRO#1{\LNAME{{#1}--I}}
+\def\ELIM#1{\LNAME{{#1}--E}}
+\def\INFERN#1#2#3{\INFER{#1}{#2}\;#3}
+\def\RRULES#1{
+  $$\begin{array}{c@{\quad}l}
+    #1
+  \end{array}$$
+}
+
+% FM Specific
+\def\PFX#1{\mathrm{#1}\!\!-\!\!}
+\def\Inv#1{\PFX{inv}{#1}}
+\def\Pre#1{\PFX{pre}{#1}}
+\def\Post#1{\PFX{post}{#1}}
+
+% Logic Background
+
+\def\mkelabel#1{\textsf{[~#1~]}}
+\def\elabel#1{\mkelabel{#1}\label{#1}}
+\def\ecite#1{\mkelabel{#1}}
+\def\eref#1{\mkelabel{#1}\pageref{#1}}
+
+\def\RLEQNS#1{
+  $$\begin{array}{rcl@{\quad}l}
+    #1
+  \end{array}$$
+}
+
+% meta-Logic
+\def\AND{\mathrel{\textbf{and}}}
+\def\OR{\mathrel{\textbf{or}}}
+\def\IMPLIES{\mathrel{\textbf{implies}}}
+\def\FORALL{\mathrel{\textbf{for-all}}}
+\def\WEHAVE{\mathrel{\textbf{we-have}}}
+\def\EXISTS{\mathrel{\textbf{there-exists}}}
+\def\SUCHTHAT{\mathrel{\textbf{such-that}}}
+\def\IFF{\mathrel{\textbf{iff}}}
+
+\def\LET{\mathrel{\textbf{let}}}
+\def\IN{\mathrel{\textbf{in}}}
+\def\WHERE{\mathrel{\textbf{where}}}
+
+\def\synf#1{\ensuremath{\mathsf{#1}}}
+\def\fv{\synf{fv}}
+\def\bv{\synf{bv}}
+\def\fpre{\synf{fpre}}
+\def\opre{\synf{opre}}
+\def\nocapture{\synf{nocapture}}
+
+\def\semf#1{\ensuremath{\mathrm{#1}}}
+\def\ctype{\semf{ctype}}
+\def\isbasic{\semf{isbasic}}
+\def\ispartial{\semf{ispartial}}
+\def\val{\semf{val}}
+\def\tval{\semf{tval}}
+\def\pval{\semf{pval}}
+
+\def\alfeqvsym{\stackrel\alpha\sim}
+\def\alfeqv{\mathbin{~\alfeqvsym~}}
+\def\balfeqv#1#2{\mathbin{~{}_{#1}\!\!\alfeqvsym_{#2}~}}
+
+\def\defined{\downarrow}
+\def\Defd{\mathcal D}
+\def\carrier#1{\mathbin{|\!\!#1\!|}}
+\def\valsat{\mathrel{\vdash\!\!\!\vdash}}
+
+% Theory "theory"
+
+\def\vdepends{\stackrel{v}\hookleftarrow}
+\def\vdetermines{\stackrel{v}\hookrightarrow}
+\def\ndepends{\stackrel{n}\hookleftarrow}
+\def\ndetermines{\stackrel{n}\hookrightarrow}

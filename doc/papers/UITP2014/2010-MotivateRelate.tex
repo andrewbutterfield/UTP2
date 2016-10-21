@@ -1,0 +1,60 @@
+\section{Related Work}
+\label{sec:related}
+
+There are a lot of theorem provers in existence,
+of which the most prominent feature in \cite{conf/tphol/2006provers}.
+Of these, the most obvious candidates for consideration for UTP prover support
+are Isabelle/HOL\cite{books/sp/NipkowPW02},
+PVS\cite{conf/fmcad/Shankar96},
+and Coq \cite{bk:Coq'Art:04}.
+They are powerful, well-supported,
+with decades of development experience
+and large active user communities.
+They all support higher-order logic of some form, with a command-line interface,
+typically based around tactics of some form. All three require functions to be total,
+but support some kind of mechanism for handling partial functions
+(e.g. dependent types in PVS).
+Their reasoning frameworks are based on some form of sequent calculus,
+and do not support equational reasoning in a native fashion.
+
+There has been work done on improving the user interfaces
+of the above theorem provers.
+An interesting example was ``proof by pointing'' \cite{conf/tacs/BertotKT94}
+for CoQ which allowed the user to select a subterm,
+whereupon it would generate and apply a tactic based on the subterm's top-level
+operator.
+Whilst proof-by-pointing is not supported in more recent versions of CoQ,
+it has been incorporated into ``Proof General'' \cite{conf/tacas/Aspinall00},
+a general purpose user interface for theorem provers, built on top of Emacs.
+It supports Isabelle and Coq, among others,
+and is basically a proof-script management system.
+In essence it supports the command-line tactics of the provers,
+allowing the user to edit proof scripts at will,
+whilst maintaining prover consistency behind the scenes.
+
+Within the UTP community,
+there has been considerable work using Proof{\-}Power-Z to
+build models of UTP theories in Z in order to mechanise proofs.
+Early work looked at deep embedding into Z of an imperative language whose semantics
+were given using UTP \cite{conf/utp/NukaW06}.
+Work extending this to a mechanisation of UTP itself was also undertaken,
+driven by a desire to mechanically verify the semantics of Circus \cite{journals/fac/OliveiraCW09}.
+Recent work has looked at re-working the mechanisation of UTP in order to better support
+the hierarchical nature of UTP theory building \cite{journals/entcs/ZeydaC09},
+where alphabetised predicates are restricted to relations, then designs, and so on.
+Some support for Z-like theories from UTP (such as Circus)
+can be found as extensions implemented in the Community Z Tools project
+\cite{conf/zum/MalikU05}.
+
+
+Whilst all of good pedigree, CoQ, Isabelle/HOL, ProofPower-Z and PVS
+all have in common that they work best when used in the manner
+for which they were designed%
+---in none of these cases does this manner match the way
+we wish to work in UTP, as described in the introduction.
+Ironically, the key inspiration for the design of \STHN\ came not from the
+above provers, but instead from the one provided as part
+of the RAISE Development Method \cite{bk:Raise-dev-mthd:95}.
+That theorem prover had mechanisms for selecting sub-expressions
+and identifying applicable laws for that sub-expression,
+a feature very close to that required for the proof style that \STHN\ supports.

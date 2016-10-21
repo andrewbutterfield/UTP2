@@ -1,0 +1,105 @@
+\section{The Logic}
+\label{sec:logic:foundation}
+
+\REVIEW2{(OPEN)\\
+2) A more detailed description of the meta language and its
+logic would be useful. In particular more on how the theory of
+free and bound variable side conditions may be used in user
+defined constructs.
+}
+
+
+%
+% Presents the logic of  Saoithin with an emphasis on foundations
+%
+
+A subset of the syntax of the predicate logic of \STHN\ is
+shown below:
+  \begin{eqnarray*}
+    P,Q \in Pred &::=&  \True | \False | \lnot P | P \land P | P \lor P | P \implies P | P \equiv P
+  \\           & | & A | \forall \lst v @ P | \exists \lst v @ P
+                       | M | P[\lst e/\lst v]
+  \\ e,f \in Expr &::=& v | M | \mbox{expressions using }+,\times,\le,\cup,\cat \ldots, v \in Var
+%  \\ v &\in& Var
+  \end{eqnarray*}
+In addition to the usual propositions and quantifiers,
+we also have atomic predicates ($A$, boolean-valued expressions),
+meta-variables denoting arbitrary predicates or expressions ($M$),
+and an explicit substitution notation $P[\lst e/\lst v]$.
+The predicate meta-variables allow us to write conjectures and laws true for
+arbitrary predicates,
+while explicit substitution is required
+as many definitions in UTP use it in such an explicit manner.
+\NEW{The
+axiomatisation being used is one for equational logic
+\cite{journal/logcom/Tourlakis01},
+extended to support 2nd-order features,
+with the inference rules (Liebniz, etc.) effectively
+being implemented by the law matcher (\S\ref{sec:match:foundation}).
+}
+%It is also worth noting that all the boolean connectives live at the
+%predicate level, and are not present in expressions.
+%So, an atomic predicate is an expression whose type is boolean,
+%but whose value is constructed by applying a boolean valued function
+%to non-boolean arguments.
+
+Predicates in \STHN\ can participate in a number of roles,
+of which the most basic are \emph{laws} and \emph{conjectures}.
+Law are either asserted to be true (\emph{axioms}),
+or are conjectures that have been proven, and are now \emph{theorems}.
+A theorem is then a conjecture coupled with a proof.
+Some of the axioms/inference rules of predicate calculus have side-conditions,
+but given explicit meta-variables and substitutions,
+we find we can no longer treat side-conditions as statically checkable
+at law-application time, necessitating an explicit representation:
+  \begin{eqnarray*}
+     V \in VSet &::=& \power Var
+  \\ sc \in Side &::=& True | M = V
+                     | M \subseteq V
+                     | M \DISJ V
+                     | \isCond M
+                     | \bigwedge\setof{sc_1,\ldots,sc_n}
+  \end{eqnarray*}
+We read $\isCond M$ as asserting that $M$ is a \texttt{condition}
+(no dashed free variables), and $M \DISJ V$ means the free variables of $M$
+are disjoint from $V$.
+\NEW{
+The use of side-condition expressions is discussed further in
+\S\ref{ssec:match:completion}.
+}
+
+The basic unit of work in \STHN\ is in fact a predicate coupled
+with a side-condition and
+from here on we use the terms conjecture and law to refer to such pairs.
+So we can view a \STHN\ theory,
+as a named collection of named conjectures, theorems and laws:%
+\footnote{We use Z schema notation here for convenience%
+---we are not presenting a formal Z model of UTP theories.
+}
+\begin{schema}{Theory}
+   name : Name
+\\ laws : Name \pfun Pred \times Side
+\\ cnjs : Name \pfun Pred \times Side
+\\ thms : Name \pfun Pred \times Side \times Proof
+\end{schema}
+%The theory name uniquely defines that theory and so lives
+%in a \emph{theories namespace},
+%whilst the names associated with laws, conjectures and theorems
+%are in a common namespace local to that theory.
+%In particular, conjecture names must be disjoint from those of theorems or laws.
+Once a conjecture has been proven it is moved from conjectures
+to theorems with the same name.
+
+At present, \STHN\ is very much an experimental tool,
+intended in the first instance to support foundational work in the UTP.
+As a consequence of this, the axioms and inference rules have not,
+in the main, been hard-coded,
+but instead the user is free to add their own axioms.
+This clearly is very dangerous, but does support experimentation.
+For example, two axiomatisations of predicate calculus have been
+developed based on \cite{Morgan1989} and \cite{Gries-Schneider94},
+and initial experimentation suggests that the axiomatisation in the latter
+leads to easier proofs, due to less choice being available at each step.
+Versions of \STHN\ that disallow user addition of axioms have been
+implemented for use in teaching, and we envisage future versions
+of the tool being able to work in different ``user-experience'' modes.

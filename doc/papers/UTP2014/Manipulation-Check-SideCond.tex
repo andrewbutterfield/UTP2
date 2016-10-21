@@ -1,0 +1,10 @@
+\textbf{Check Side-Conditions}\\ % outer list
+Given bindings, lists of unmapped meta-variables
+and the goal and translated law side-conditions
+we want to check that the goal condition implies
+the law one, and return the final bindings if this is the case.
+However, if any meta variable in the law side-condition
+is unmapped by the binding, then we cannot check the side-condition
+at this stage and instead will have to do it if this match
+is actually chosen to be applied to the goal predicate. Finally, we ignore any freshness conditions as they 
+have already been resolved, or will be when the match is actually applied.

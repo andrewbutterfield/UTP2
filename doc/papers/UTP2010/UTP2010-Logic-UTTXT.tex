@@ -1,0 +1,49 @@
+
+The interface to the logic presented to the user is,
+in the main, based on an ASCII-based concrete syntax,
+that imitates the mathematical syntax as far as is practicable.
+This ASCII syntax is used for both input and output.
+For example, the predicates
+\begin{equation*}
+ [ (\exists c @ D \land L) \implies S ]
+ \qquad
+ P[\True/ok]
+\end{equation*}
+are written ASCII-style as:
+\begin{center}
+    \verb"[[ ( exists c @ D /\ L ) => S ]]       P[ TRUE // ok ]"
+\end{center}
+Similarly, side condition
+$
+   \bigwedge\setof{Q \subseteq \setof{a,b}, e \DISJ \setof{b,c} }
+$
+is written as
+\begin{center}
+    \verb"coverP Q a,b ; notinE e b,c"
+\end{center}
+
+An almost complete theory (less theorems)
+can be input and output as a ASCII text file,
+whose extension is \verb".uttxt" (UTP Text).
+The file is structured as a series of sections,
+each flagged by a header keyword.
+The first collection of sections,
+between SYNTAXFROM and ENDSYNTAX keywords
+provide information to support the parser.
+The remaining sections provide semantics information.
+The first line of such text files is the theory name,
+optionally followed by a version number.
+So a simple theory defining some laws and conjectures about conjunction
+and disjunction could be written as:
+\begin{haskell}
+ConjDisj 0
+SYNTAXFROM
+ Logic
+ENDSYNTAX
+LAWS
+  "/\-comm" | P /\ Q == Q /\ P .
+  "\/-def"  | P \/ Q == ~(~P /\ ~Q)
+CONJECTURES
+  "\/-comm" | P \/ Q == Q \/ P
+END
+\end{haskell}

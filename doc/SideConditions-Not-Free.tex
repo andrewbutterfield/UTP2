@@ -1,0 +1,10 @@
+Are variables not free in a predicate ($V \DISJ P$)~?
+\\They are if they are disjoint from the predicates free variables,
+and they are not free in any predicate meta-variable.
+\begin{eqnarray*}
+  V \DISJ \setof{v_1,\ldots,v_n} &\equiv& \forall i @ v_i \notin V
+\\ V \DISJ (M \setminus H) &\impliedby& V \subseteq H
+\\ V \DISJ (M \setminus H) &\impliedby& V \DISJ M
+\\ V\DISJ (ms \sthen c) &\impliedby& V \DISJ c
+\\ V\DISJ (m \ssthen r) && \textrm{Cannot say without } \rho.
+\end{eqnarray*}

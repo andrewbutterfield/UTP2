@@ -1,0 +1,47 @@
+The User Interfaces for Theorem Provers workshop series
+(http://www.informatik.uni-bremen.de/uitp) provides a forum for researchers
+interested in improving human interaction with interactive and automated
+deduction systems in a broad sense, including first- and higher-order theorem
+provers, sat-solvers, smt-solvers, proof assistants, description logic
+reasoners, expert systems, logic programming interpreters, tools for formal
+methods, and tools for manipulating and presenting mathematical formulas and
+proofs. For the forthcoming 11th UITP workshop, we invite contributions from
+users and developers of deduction tools, to report on their experience with
+existing systems and to discuss new directions. Topics under the scope of
+UITP include (non-exhaustively):
+
+Experiments and evaluation of prover interfaces
+Application-specific interaction mechanisms
+Interfaces for expert systems
+New designs for prover interfaces
+Performance/responsiveness of user interface for theorem provers
+Proof scripting languages
+Proof formats for authoring, exchanging and presenting proofs
+Implementation techniques (e.g. web services, custom middleware, DSLs, parallelism)
+Infra-structure for sharing and using benchmarks for theorem proving
+Summarization of proofs
+Visualization of proofs
+Visualization of large structured deduction problems
+User-friendly repositories of formal mathematical knowledge
+Mobile interfaces (iPhone or Android clients for deduction tools)
+System descriptions
+...
+Paper Submissions
+
+Submitted papers should describe previously unpublished work (completed or in
+progress), and be at least 4 pages and at most 12 pages. We encourage concise
+and relevant papers. Submissions should be in PDF format, and typeset with
+the EPTCS LaTeX document class (which can be downloaded from
+http://style.eptcs.org/). Submission should be done via EasyChair
+(https://www.easychair.org/conferences/?conf=uitp14).
+
+All papers will be peer reviewed by members of the programme committee and
+selected by the organizers in accordance with the referee reports. There will
+be 2-3 reviews per paper.
+
+Proceedings
+
+Authors will have the opportunity to incorporate feedback and insights
+gathered during the workshop to improve their accepted papers before
+publication in the Electronic Proceedings in Theoretical Computer Science
+(EPTCS - http://www.eptcs.org/).

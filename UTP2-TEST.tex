@@ -1,0 +1,82 @@
+\documentclass[fleqn,10pt]{report}
+%\documentclass[twoside]{report}
+\usepackage[a4paper, margin=1.1in]{geometry}
+\usepackage{amssymb,amsmath}
+\usepackage{mathpartir}
+\usepackage{listings}
+\usepackage{lstlhs}
+\usepackage{doc/saoithin}
+\usepackage{tikz}
+\usepackage{tikz-cd}
+\usetikzlibrary{arrows,matrix}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+
+\def\includepicture#1{\includegraphics{#1.eps}}
+
+\parindent=0pt % I hate first line indentation
+\parskip=3pt   % I like a visual white gap between paragraphs
+
+
+\author{
+  Andrew Butterfield%
+  ,\\Andrew Anderson%
+  , Colm~Bhandal%
+  , Simon~Dardis%
+  ,\\Ian~Fitzpatrick%
+  , Karen~Forde%
+  , Luke~McGuinness%
+  }
+\title{\UTP2
+  \\{\normalsize
+      Unifying Theories of Programming Theorem-Prover
+  \\  (TESTING)}
+}
+
+\def\TODO#1{%
+  \textbf{ToDo: }
+  \textit{#1}
+}
+
+\input{doc/UTP2LogicDefs}
+\input{doc/UTP2MathSyntaxDefs}
+\input{doc/UTP2ConcreteSyntaxDefs}
+\input{doc/UTP2AlphaDefs}
+\input{doc/UTP2VariableDefs}
+\input{doc/UTP2FreeVarDefs}
+\input{doc/formal/UTP2MatchingRules}
+
+
+\begin{document}
+
+\bibliographystyle{alpha}
+
+%\maketitle
+%\tableofcontents
+%
+%\newpage
+%\input{src/About.lhs}
+%
+%\input{UTP2-Requirements}
+\input{UTP2-Prover}
+%\input{UTP2-wxUI}
+%
+% MAINLINE
+\newpage
+\input{src/UTP2Test.lhs}
+\newpage
+\input{src/TestFramework.lhs}
+\newpage
+\input{src/AdHocTests.lhs}
+\newpage
+\input{src/TestRepository.lhs}
+\newpage
+\input{src/RepositorySupport.lhs}
+%
+%\newpage
+%\bibliography{doc/SAOITHIN}
+%
+\appendix
+%\input{UTP2-Appendices}
+
+\end{document}

@@ -1,0 +1,186 @@
+\section{Logic}\label{sec:logic}
+
+\PLAN{Describing the logic of \UTP2,
+and why it isn't just plain old predicate calculus (first order).}
+
+The logic of \UTP2\ is an adaptation of the first-order equational logic
+described by Tourlakis \cite{journals/logcom/Tourlakis01},
+that fully formalises the logic of Dijkstra, Gries and Schneider \cite{gries.93}.
+\subsection{\UTP2\ Logic Syntax}
+
+We define our logic syntax
+over a collection of given sets characterising different name-spaces:
+\RLEQNS{
+   x,y,z \in Var && (given) & \mbox{Obs. Variables}
+\\ k \in Const && (given) & \mbox{Constants}
+\\ f,g,h \in Name && (given) & \mbox{(Function) Names}
+\\ E,F,G \in EName && (given) & \mbox{Expression Metavariable Names}
+\\ P,Q,R \in PName && (given) & \mbox{Predicate Metavariable Names}
+}
+Variables, constants and function names are as one would expect
+in a logic with associated equational theories,
+but we also have explicit meta-variables for expressions
+and predicates, in the object logic, as many UTP laws
+are expressed using such.
+
+Expressions and Predicates are defined by mutual induction,
+because both may contain instances of the other.
+Expressions denote values in the ``world of discourse'' (observations)
+and are typed. Expressions whose type is boolean ($c \in Expr$)
+form the class
+of \emph{atomic predicates}:
+\RLEQNS{
+   c,e \in Expr &::=& k | x  & \mbox{Expressions}
+\\              &|& f~e & \mbox{Applications}
+\\              &|& \lambda x @ e & \mbox{Obs. Abstraction}
+\\              &|& \Lambda E @ e & \mbox{E-var. Abstraction}
+\\              &|& \Lambda P @ e & \mbox{P-var. Abstraction}
+\\              &|& \setof{ x | p @ e } & \mbox{Comprehension}
+\\              &|& E & \mbox{Explicit Metavariable}
+%\\              &|& e[ e/x ] & \mbox{Explicit Obs. Substitution}
+%\\              &|& e[ e/E ] & \mbox{Explicit E-var. Substitution}
+%\\              &|& e[ p/P ] & \mbox{Explicit P-var. Substitution}
+}
+Predicates are defined much as expected:
+\RLEQNS{
+   p,q,r \in Pred &::=& True | False & \mbox{Constant Predicates}
+\\              &|& e & \mbox{Atomic Predicate (Boolean-valued Expr.)}
+\\              &|& \lnot p & \mbox{Negation}
+\\              &|& p~ \maltese q & \mbox{Composites, }\maltese \in \setof{\land,\lor,\implies,\equiv}
+\\              &|& P & \mbox{Explicit Metavariable}
+\\              &|& \yen x @ p & \mbox{1st-order Quantifiers, } \yen \in \setof{\forall,\exists,\exists!}
+\\              &|& \yen P @ p & \mbox{higher-order Quantifiers, } \yen \in \setof{\mathbf\forall,\mathbf\exists}
+\\              &|& \yen E @ p & \mbox{higher-order Quantifiers, } \yen \in \setof{\mathbf\forall,\mathbf\exists}
+\\              &|& [ p ] & \mbox{Universal Closure (over observations)}
+%\\              &|& p[ e/x ] & \mbox{Explicit Obs. Substitution}
+%\\              &|& p[ e/E ] & \mbox{Explicit E-var. Substitution}
+%\\              &|& p[ p/P ] & \mbox{Explicit P-var. Substitution}
+}
+%One point to note is that the syntax for both expressions
+%and predicates include explicit substitutions,
+%as these feature prominently in many UTP theories
+%(e.g. laws regarding assignment and sequential composition,
+%of the reactive healthiness condition \RR2).
+
+The axioms of the logic are shown in Appendix \ref{sec:rules}
+(\ref{ssec:prop-axioms}, \ref{ssec:non-prop-axioms}).
+The axioms are stored in the hardwired \texttt{\_ROOT} theory,
+in the \emph{laws} component of the theory,
+which maps law-names to laws,
+where a law is a predicate and a side-condition.
+Side-conditions are a conjunction of zero or more basic conditions,
+which typically capture relationships between given variables and
+the free variables ($\fv$) of given predicates.
+\begin{eqnarray*}
+Theory &=& \textbf{record}
+\\ && laws : Name \pfun Law
+\\   && \ldots \textbf{end}
+\\ Law &=& Pred \times Side
+\\ Side &=&  x \notin \fv.P | \setof{x,y,\ldots} = \fv.P | \setof{x,y,\ldots} \supseteq \fv.P | \ldots
+\end{eqnarray*}
+Here the notation $A \pfun B$ denotes a partial finite function from $A$
+to $B$, and so is effectively a table using a key of type $A$ to lookup
+a value of type $B$.
+
+The inference rules (\ref{ssec:inference})
+are implemented, in the main, by a pattern matching mechanism
+that takes a current proof goal and sees which laws can apply,
+and a process that allows the user to select and apply the desired one,
+storing the changed goal in a list that is assumed to be chained
+together by logical equivalence.
+The basic structural match has a judgement $\Gamma\vdash P \ddagger T | \beta$
+that asserts that,
+given matching environment $\Gamma$,
+test predicate $T$ matches pattern predicate $P$, with resulting bindings $\beta$.
+Bindings map variables to well-formed expressions or predicates,
+as appropriate.
+If we ignore $\Gamma$ for now, then a representative collection
+of structural matching rules are:
+\begin{eqnarray*}
+   & \inferrule%
+      {}%
+      {\Gamma \vdash x \ddagger e |\setof{ x \mapsto e} }
+   & \LNAME{match-var}
+\\
+\\ & \inferrule%
+     {\Gamma\vdash P_i \ddagger T_i  | \beta_i
+       \qquad
+       \beta_1 \cong \beta_2}%
+     {\Gamma \vdash P_1 \land P_2 \ddagger T_1 \land T_2 | \beta_1 \uplus \beta_2}
+   & \LNAME{match-$\land$}
+\\
+\\ & \inferrule%
+        {P \ddagger Q  | \beta_1
+          \qquad xs \ddagger ys | \beta_2
+          \qquad \beta_1 \cong \beta_2}%
+        {\forall xs @ P \ddagger \forall ys @ P | \beta_1 \uplus \beta_2}
+   & \LNAME{match-$\forall$}
+\end{eqnarray*}
+The $\cong$ predicate asserts that two bindings
+do not map the same variable to different things.
+The $\uplus$ operator merges two bindings, provided they satisfy $\cong$.
+An attempted match of $T$ against $P$ fails if no rules apply,
+or an attempt is made to apply $\uplus$ to two bindings that do not satisfy $\cong$.
+
+In order to facilitate proof, the theory has two components, one
+for conjectures, which can be viewed as aspirant laws
+(posited, hopefully true, but not yet proven),
+and theorems, which are conjectures with proofs:
+\begin{eqnarray*}
+Theory &=& \textbf{record} \ldots
+\\ && conjs : Name \pfun Law
+\\ && thms : Name \pfun Proof
+\\ && \ldots \textbf{end}
+\\ Proof &=& \textbf{record}
+\\ && goal : Pred
+\\ && sc : Side
+\\ && done : \Bool
+\\ && \ldots \textbf{end}
+\end{eqnarray*}
+The workflow is as follows: conjectures can be entered by the user
+and accumulated in $conjs$. A proof can then be started by selecting
+a conjecture, which creates a corresponding entry in $thms$,
+with $goal,sc$ set to match the conjectured law, and the $done$ flag
+set to false. More than one proof can be active at any one time.
+A proof is carried out using all the $laws$ accessible from
+the theory.
+Once a proof is complete, the $done$ flag is set true,
+the corresponding conjecture is deleted, and, usually,
+a corresponding entry is made into $laws$.
+
+The mechanism as described so far is adequate for proving all and any conjectures
+based on propositional logic.
+However it needs extensions to cater for non-propositional logic,
+and the datatype theories.
+We will address the non-propositional extensions in the next section
+on generic UTP.
+Here we discuss briefly some practical issues with datatype theories.
+We can define a theory of natural number arithmetic using Peano axioms,
+for example---the tool supports the creation of a new named empty
+theory, and the addition of appropriate axioms%
+%\footnote{
+%Exercise: you need five axioms --- what are they?
+%}
+ by the user into the $laws$ table.
+Operations on natural numbers can be defined axiomatically by adding further
+laws as required.
+From this it is possible to prove a range of theorems about natural number
+operations, e.g. $m + 0 = m$.
+A similar exercise can be done for sets, and sequences,
+resulting in laws like $S \cup \emptyset = S$ and $s \cat \nil = s$.
+The problem is that we do not just match against whole laws, but can also
+match against just the lefthand or righthand sides of an equality or
+equivalence---so the righthand sides of all three laws above will match
+an arbitrary expression $e$, offering $e+0$, $e \cup \emptyset$ and $e \cat \nil$
+as replacements.
+To prevent such spurious matches, we introduce a type system for expressions,
+and a type-inference engine, that uses context information to deduce the types
+of expressions like $e$, and serves to reduce spurious matches to a considerable degree.
+A theory contains tables to support this feature:
+\begin{eqnarray*}
+Theory &=& \textbf{record} \ldots
+\\ && type : Name \pfun Type
+\\ && \ldots \textbf{end}
+\\ t \in Type &::=& \Bool | \Int | \tau | \power t | \ldots
+\end{eqnarray*}
+The $Name$s in $type$ are typically names of variables or functions.

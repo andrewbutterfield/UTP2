@@ -1,0 +1,102 @@
+\section{Introduction}\label{sec:intro}
+
+Unifying Theories of Programming (UTP) \cite{UTP-book},
+is a framework that uses alphabetised predicates to define language
+semantics in a relational calculus style, in a way that facilitates
+the unification of otherwise disjoint semantic theories,
+either by merging them, or using special linking predicates
+that form a Galois connection. The framework is designed
+to cover the spectrum from abstract specifications
+all the way down to near-machine level descriptions,
+and as a consequence the notion of refinement plays a key role.
+
+In \cite{conf/utp/Butterfield10}
+we gave an overview of the Unifying Theories of Programming Theorem Prover
+(\UTP2)
+that we are developing to support such theory development work%
+\footnote{%
+In that paper it was called \STHN, but the name has since changed to \UTP2
+}%
+.
+The prover is an interactive tool, with a graphical user-interface,
+designed to make it easy to define a UTP theory and to experiment
+and perform the key foundational proofs.
+The motivation for developing this tool,
+rather than using an existing one has been discussed in some detail
+in \cite{conf/utp/Butterfield10} and the  technical underpinning has been further elaborated upon in \cite{conf/utp/Butterfield12}.
+
+Here we focus on a small subset of the logic and laws
+in order to explain the key role of the extended matcher at the heart of \UTP2.
+The focus is on the various matching and inference mechanisms and how they
+interact to facilitate the application of laws in a proof at a level
+that matches typical handwritten proof steps,
+to the extent that this is feasible.
+
+This paper assumes that the reader is familiar
+with the basic ideas behind UTP, and does not give an introduction
+to the subject. A good introduction is the key textbook written
+by C.A.R. Hoare and He Jifeng \cite{UTP-book},
+which is free to download from \texttt{unifyingtheories.org}.
+
+
+\subsection{Matching: an overview}
+
+The matching problem we consider in this paper can be summarised as follows:
+during the course of a proof of some conjecture, we will have identified a sub-part
+of the proof goal predicate that is of current interest---the \emph{target} focus predicate;
+We will then indicate some collection of laws we hope might be applicable,
+and then proceed to systematically match the target against those laws,
+viewed as \emph{pattern} predicates.
+The conjecture will have associated side-conditions,
+as will each law---these are added to the match algorithm inputs.
+A successful match returns a binding that maps all pattern variables
+to the corresponding sub-parts of the target
+($\pfun$ is a partial function arrow, while $\ffun$ is a finite partial function).
+\[
+match : (Pred\times Side) \fun (Pred\times Side) \pfun (Var \ffun \mbox{``Syntax''})
+\]
+Assuming some success, we can then choose from the range of successful matches,
+and use this to apply the law.
+
+In an equational reasoning system such as this, if we match a target
+against a law successfully, then it is an instance of such a law,
+hence universally true (this is what it means to be a law),
+and so the only sensible replacement for the target is the constant predicate \True.
+So, why do we return any bindings? Why not just a success/fail indicator?
+There are two reasons, one algorithmic and pragmatic,
+the other as a result of ensuring maximum flexibility
+in the power of the prover:
+\begin{enumerate}
+  \item a match should fail if different sub-parts of the target
+     match different sub-parts of the pattern, but with inconsistent bindings.
+     So the attempt to merge these sub-bindings will uncover such problems.
+  \item in an equational reasoning system, given law predicates of the
+  forms $P \equiv Q$ or $P \implies Q$,
+  it makes sense to try matches against either the lhs or rhs,
+  with the other side viewed as a template for building the target replacement.
+  The binding provides details of how the template should be instantiated.
+\end{enumerate}
+The process of
+finding laws,
+establishing if they have the special forms
+just described,
+ and working out the relevant replacement predicates
+($\True$,or one of the law sides),
+is fairly straightforward, and we do not discuss it further.
+
+The real focus of this paper is on the function $match$ just introduced
+above, and an exposition of how it is so much more than just an exercise
+in structural template pattern-matching and merging the resulting bindings.
+
+\subsection{Structure of this paper}
+
+In Section \ref{sec:logic} we introduce a small subset of the logic of \UTP2,
+and then in Section \ref{sec:variables} we discuss how the notion
+of ``variable'' is neccessarily more complex than in most logic presentations.
+In Sections \ref{sec:theories} and \ref{sec:contexts}
+we describe how \UTP2 theories provide a context for matching,
+while Section \ref{sec:matching} gives an overview of matching,
+and Section \ref{sec:struct:matching} describes structural matching,
+and its limitations.
+The complexities of dealing with those limitation are described in Section \ref{sec:nondet:matching}.
+Finally, in Sections \ref{sec:related} and \ref{sec:conclusions} we discuss related work and conclude.

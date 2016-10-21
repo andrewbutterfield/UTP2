@@ -1,0 +1,64 @@
+A quantifier variable-list is well-formed if
+\begin{itemize}
+  \item all variables occur at most once
+  \item all reserved list-variables have possible denotations that are disjoint
+  \item no standard observation variable is unavoidably covered by a reserved
+    denotation.
+\end{itemize}
+The terms ``possible'' and ``unavoidably'' cover the cases where reserved
+list-variables have root subtractions that are not known observables,
+and so can only be determined at matching time, when a binding of such
+roots are available.
+In effect, we define two binary relations:
+\begin{enumerate}
+  \item one ($\disjRSV$), between two reserved list-variables, asserts that there does exist
+   a binding that makes their denotations disjoint (``possible disjointness'').
+  \item the other ($\notObsInRSV$), between a known standard observation variable
+  and a reserved-variable
+   assert the existence of a binding that ensures the former is not contained in the denotation
+   of the latter (``can escape'').
+\end{enumerate}
+We express these relationships in terms of the pair-denotations:
+\begin{eqnarray*}
+   (V_1\ominus X_1) \disjRSV (V_2\ominus X_2)
+   &\defs&
+   \exists \mu @ (V_1\setminus \mu X_1) \cap (V_2\setminus \mu X_2) = \emptyset
+\\ x \notObsInRSV (V \ominus X)
+   &\defs&
+   \exists \mu @ x \notin (V \setminus \mu X)
+\end{eqnarray*}
+These relations are statically decidable (without knowing bindings)
+only when the all subtracted roots are themselves known observations,
+or they are absent, or equal:
+\begin{eqnarray*}
+   (V_1\ominus \emptyset) \disjRSV (V_2\ominus \emptyset)
+   &\equiv&
+   V_1 \cap V_2 = \emptyset
+\\ V_1\ominus \emptyset) \disjRSV (V_2\ominus X_2)
+   &\equiv&
+   \exists \mu @ V_1 \cap (V_2\setminus \mu X_2) = \emptyset
+\\ (V \ominus X) \disjRSV (V\ominus X_)
+   &\equiv&
+   \False
+\\ x \notObsInRSV (V \ominus \emptyset)
+   &\equiv&
+   x \notin V
+\end{eqnarray*}
+If the $X_i$ contain list-variables only, then such bindings always exist.
+In some situations, with std-variables in $X_i$, no such binding may exist.
+For now we don't try to tease out these cases further, but just note that
+the bindings that matter will be those forced by the pattern matching
+of an entire goal predicate, which will force matters.
+
+In the event that no observation variables have been defined,
+i.e., in a ``generic'' UTP theory that defines common notions such
+a sequential composition and/or refinement,
+then the disjoint tests above will always succeed as all reserved variables
+will have the empty-set as their denotation.
+In this case we need to check the variables directly:
+\begin{eqnarray*}
+   Obs^d \disjRSV Mdl^e &\equiv& d \neq e
+\\ Obs^d \disjRSV Scr^e &\equiv& d \neq e
+\\ Mdl^d \disjRSV Scr^e &\equiv& \True
+\end{eqnarray*}
+Note that here there are no subtractions.

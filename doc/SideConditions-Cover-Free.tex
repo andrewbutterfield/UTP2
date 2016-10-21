@@ -1,0 +1,9 @@
+Do variables cover the free variables of a predicate ($V \subseteq P$)~?
+\\They do if they contain all the free variables of the predicate,
+and cover those free in any predicate meta-variable.
+\begin{eqnarray*}
+  V \supseteq \setof{v_1,\ldots,v_n} &\equiv& \forall i @ v_i \in V
+\\ V \supseteq ( P \setminus H ) &\equiv& (V\union H) \supseteq P
+\\ V \supseteq (ms \sthen c) &\impliedby& V \supseteq c
+\\ V \supseteq (m \ssthen r) && \textrm{Cannot say without } \rho.
+\end{eqnarray*} 

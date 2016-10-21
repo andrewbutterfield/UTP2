@@ -1,0 +1,44 @@
+v3.5
+^MATCH-TEST ^kn-suceed ^kn !EV
+!PE2
+^x ^1 !QL
+^x !EV
+!PE2
+!PEx
+^2 !PO
+^y ^1 !QL
+^y !EV
+!PE2
+!PN
+!PEx
+^2 !PO
+!CT
+^kn !EV
+!PE2
+^x ^1 !QL
+^x !EV
+!PE2
+!PEx
+^2 !PO
+^y ^1 !QL
+^y !EV
+!PE2
+!PN
+!PEx
+^2 !PO
+^0 !X
+!?R
+^$F ^_PLT_kn-suceed ^MATCH-TEST ^GSLogicFull ^_ROOT ^4 ^vcqsfgck !!
+^_PLT_kn-suceed ^0 ^0 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^0 !MO
+^0 !MG
+^0 !MK
+^0 !lM
+^0 !ML
+^0 !MT
+!@
+^1 !#

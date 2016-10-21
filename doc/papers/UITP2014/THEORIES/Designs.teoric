@@ -1,0 +1,1000 @@
+v3.6
+^Designs ^6 ^0 ^0 !MK
+^0 !ME
+^0 !ME
+^IsH1 ^IsH1 !PV
+^MkH1 ^MkH1 !PV
+^2 !MP
+^ok ^ok !cM
+!TB
+!o2
+^ok' ^ok' !cM
+!TB
+!o2
+^2 !MV
+^|- ^70 ^0 !p
+^1 !MO
+^|- ^&32;P&32;|-&32;P&32; ^1 !MG
+^0 !MK
+^|-promote ^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^|- ^70 ^P !PV
+!"P
+^P !PV
+^Q !PV
+^2 !PA
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PQ
+!CT
+^Andrew !OU
+^Logic !OS
+^ROOT !OS
+^3 !OP
+^designs-are-H1 ^IsH1 !PV
+^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PAP
+!CT
+^Andrew !OU
+^Logic !OS
+^ROOT !OS
+^3 !OP
+^mkH1-def ^MkH1 !PV
+^P !PV
+!PAP
+^ok !EV
+!PE2
+^P !PV
+!PI
+!PQ
+!CT
+^Andrew !OU
+^isH1-def ^IsH1 !PV
+^P !PV
+!PAP
+^MkH1 !PV
+^P !PV
+!PAP
+^P !PV
+!PQ
+!PQ
+!CT
+^Andrew !OU
+^|-promote ^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^|- ^70 ^P !PV
+!"P
+^P !PV
+^Q !PV
+^2 !PA
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PQ
+!CT
+^Andrew !OU
+^Logic !OS
+^ROOT !OS
+^3 !OP
+^|-promote ^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^|- ^70 ^P !PV
+!"P
+^P !PV
+^Q !PV
+^2 !PA
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PQ
+!CT
+^Andrew !OU
+^GSLogic !OS
+^INorm !OS
+^ISplit !OS
+^ROOT !OS
+^5 !OP
+^DEF&32;|- ^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!PQ
+!CT
+^Andrew !OU
+^7 !lM
+^test-prec ^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PQ
+!CT
+!L
+^1 !ML
+^|-promote ^Designs ^|-promote ^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^|- ^70 ^P !PV
+!"P
+^P !PV
+^Q !PV
+^2 !PA
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PQ
+!CT
+!PT
+!RE
+^0 !mre
+^_ROOT$0$Ax-==-id ^ROOT !OS
+!Il
+^Q ^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!PQ
+!s
+!AJ
+!RE
+^2 ^2 ^2 !mre
+^Logic$0$/\-comm ^Logic !OS
+!Il
+^A ^ok' !EV
+!PE2
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+!PI
+!PQ
+!s
+!AJ
+!RE
+^2 ^1 !mle
+^Logic$0$=>-merge.1 ^Logic !OS
+!Il
+^A ^ok !EV
+!PE2
+^C ^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+!PI
+!PI
+!PQ
+!s
+!AJ
+!RE
+^2 ^2 ^2 !mre
+^Logic$0$DEF-=>.1 ^Logic !OS
+!Il
+^B ^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+!PN
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !PO
+!PI
+!PQ
+!s
+!AJ
+!RE
+^2 ^2 ^2 !mle
+^Logic$0$\/-/\-~-absorb.2 ^Logic !OS
+!Il
+^A ^P !PV
+!PN
+^B ^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+!PN
+!PN
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !PA
+^P !PV
+!PN
+^2 !PO
+!PI
+!PQ
+!s
+!AJ
+!RE
+^2 ^2 ^1 ^1 ^4 !mtv
+^Logic$0$~~-idem ^Logic !OS
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !PA
+^P !PV
+!PN
+^2 !PO
+!PI
+!PQ
+!s
+!AJ
+!RE
+^2 ^2 ^2 !mle
+^Logic$0$DEF-=>.2 ^Logic !OS
+!Il
+^B ^P !PV
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !PA
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^P !PV
+^Q !PV
+^ok' !EV
+!PE2
+^2 !PA
+^2 !PA
+!PI
+!PI
+!PQ
+!s
+!AJ
+!RE
+^2 ^2 ^2 ^3 !mre
+^Logic$0$/\-assoc ^Logic !OS
+!Il
+^C ^ok' !EV
+!PE2
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^P !PV
+^Q !PV
+^2 !PA
+^ok' !EV
+!PE2
+^2 !PA
+!PI
+!PI
+!PQ
+!s
+!AJ
+!RE
+^2 ^2 ^2 ^3 !mre
+^Logic$0$/\-comm ^Logic !OS
+!Il
+^A ^P !PV
+^Q !PV
+^2 !PA
+^B ^ok' !EV
+!PE2
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^ok' !EV
+!PE2
+^P !PV
+^Q !PV
+^2 !PA
+^2 !PA
+!PI
+!PI
+!PQ
+!s
+!AJ
+!RE
+^2 ^1 !mre
+^Logic$0$=>-merge.1 ^Logic !OS
+!Il
+^A ^ok !EV
+!PE2
+^C ^ok' !EV
+!PE2
+^P !PV
+^Q !PV
+^2 !PA
+^2 !PA
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^P !PV
+^Q !PV
+^2 !PA
+^2 !PA
+!PI
+!PQ
+!s
+!AJ
+!RE
+^2 ^1 !mle
+^Designs$5$DEF&32;|- ^Andrew !OU
+!Il
+^Q ^P !PV
+^Q !PV
+^2 !PA
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^ok ^ok ^ok' ^ok' ^2 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^|- ^70 ^P !PV
+!"P
+^P !PV
+^Q !PV
+^2 !PA
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PQ
+!s
+!AJ
+!RE
+^1 ^1 !mle
+^Designs$5$DEF&32;|- ^Andrew !OU
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^ok ^ok ^ok' ^ok' ^2 !MU
+^0 !MVL
+!B9
+!j
+^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+^|- ^70 ^P !PV
+!"P
+^P !PV
+^Q !PV
+^2 !PA
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PQ
+!s
+!AJ
+^12 !X
+!?R
+^$T ^_PLT_|-promote ^Designs ^Sets ^Equality ^Logic ^_ROOT ^6 ^vcqsfgck !!
+^designs-are-H1 ^Designs ^designs-are-H1 ^IsH1 !PV
+^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PAP
+!CT
+!PT
+!RE
+^0 !mre
+^_ROOT$0$Ax-==-id ^ROOT !OS
+!Il
+^Q ^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!PQ
+!s
+!AJ
+!RE
+^1 ^1 ^1 ^3 !mle
+^Logic$0$/\-idem ^Logic !OS
+!Il
+^A ^ok !EV
+!PE2
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^ok !EV
+!PE2
+^2 !PA
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!PQ
+!s
+!AJ
+!RE
+^1 ^1 ^2 !mle
+^Logic$0$/\-assoc ^Logic !OS
+!Il
+^A ^ok !EV
+!PE2
+^B ^ok !EV
+!PE2
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!PQ
+!s
+!AJ
+!RE
+^1 ^1 !mle
+^Logic$0$=>-merge.1 ^Logic !OS
+!Il
+^A ^ok !EV
+!PE2
+^B ^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^C ^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+^3 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^ok !EV
+!PE2
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!PI
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!PQ
+!s
+!AJ
+!RE
+^1 ^1 !mle
+^Designs$2$mkH1-def ^Andrew !OU
+!Il
+^P ^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^ok ^ok ^1 !MU
+^0 !MVL
+!B9
+!j
+^MkH1 !PV
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!PAP
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!PQ
+!s
+!AJ
+!RE
+^0 !mle
+^Designs$2$isH1-def ^Andrew !OU
+!Il
+^P ^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^IsH1 !PV
+^ok !EV
+!PE2
+^P !PV
+^2 !PA
+^ok' !EV
+!PE2
+^Q !PV
+^2 !PA
+!PI
+!PAP
+!s
+!AJ
+!RE
+^1 ^1 !mle
+^Designs$2$DEF&32;|- ^Andrew !OU
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^ok ^ok ^ok' ^ok' ^2 !MU
+^0 !MVL
+!B9
+!j
+^IsH1 !PV
+^|- ^70 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|- !'T
+!'0
+^3 !PL
+!PAP
+!s
+!AJ
+^7 !X
+!?R
+^$T ^0 ^oBqcxf !!
+^2 !MT
+!@

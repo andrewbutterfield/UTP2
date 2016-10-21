@@ -1,0 +1,47 @@
+\section{Conclusions and Future Work}
+\label{sec:conclusions}
+
+We have given motivation for, and presented, \STHN,
+a theorem-proving assistant for UTP.
+The current state of the tool is still experimental,
+with considerable scope for enhancement and improvement,
+but is already a useful tool for experienced\footnote{Not too trusting!}
+developers of UTP foundations.
+
+Apart from the obvious need for comprehensive library of useful theorems
+from general logic, arithmetic, set, list and map theory,
+there are still a few foundational issues that need to be resolved.
+The current limitation to fixed alphabets is too restrictive,
+but we have a plan, using special meta-variables known to the pattern matcher,
+to be able to describe generic laws that cross a number of theories:
+the gold standard here would be a definition of sequential composition\
+\begin{center}
+$
+  P ; Q
+  ~~\defs~~
+  \exists OBS_m @ P[OBS_m/OBS'] \land Q[OBS_m/OBS],
+   \quad OBS_m \mbox{ fresh}
+$
+\end{center}
+that works in any theory whose observations are homogenous
+(meta variables $OBS_m$, $OBS'$ and $OBS$ would need special pattern matching
+and binding treatment).
+The treatment of undefinedness in a way that limits its impact on general proving
+is still under exploration, and we are exploring various ideas in this area
+\cite{wkshp/mpf/arthan:96}.
+Given the existing work on UTP and Circus using Proofpower-Z,
+we also hope to explore the ability to take the GUI front-end of \STHN,
+and couple it to ProofPower-Z as a backend, given some appropriate transformation
+of how proofs and theorems are presented.
+
+\subsection{Acknowledgments \& Availability}
+
+
+We would like to thank Colm Bhandal, Karen Forde, Simon Dardis,
+Jim Woodcock and the Formal Methods classes of 2009 and 2010
+for their work on, and feedback about, \STHN. \STHN\ is written
+in Haskell \cite{rep:Haskell:98}, managed using the distributed
+source-code manager Mercurial \cite{bk:mercurial:BOS:09}, and
+is released open-source under GPL v2, at
+\texttt{\url{http://www.scss.tcd.ie/Andrew.Butterfield/Saoithin/}}.
+The version available at the time of writing is 0.86$\alpha$10.

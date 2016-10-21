@@ -1,0 +1,92 @@
+We want to provide for the substitution
+for free variables,
+whilst ensuring that free-variable capture
+does not occur.
+We will ensure that we are only using well-formed substitutions
+that have been normalised, so the only occurrence of list-variables
+are in substitution pairs of the form
+$$
+L\!\!\dagger\!\setminus S\dagger \quad/\quad L\!\!\ddagger\!\setminus S\ddagger
+$$
+where all variables in $S$, if any, are known observation variables
+(\emph{I'm not sure that this is a consequence of normalisation as described earlier}).
+
+The scheme we follow is based on the following definition
+of free-variable substitution for the $\lambda$-calculus,
+(extended to (partially) support list-variables):
+\begin{eqnarray*}
+   v[r/x] &\defs& r \cond{x=v} v
+\\ v\!\ddagger[L\!\dagger\! / L\ddagger]
+   &\defs& v\!\dagger \cond{v \in \sem{L}} v\!\ddagger
+\\ M\!\ddagger[L\!\dagger\! / L\ddagger]
+   &\defs& L\!\dagger \cond{M=L} M\!\ddagger
+\\ (e_1~e_2)[r/x] &\defs& (e_1[r/x])~(e_2[r/x])
+\\ (\lambda b \cdot e)[r/x] &\defs& (\lambda b \cdot e)
+\\&& \cond{b=x}
+\\&& \left(
+       \begin{array}{c}
+         \lambda n \cdot ((e[n/b])[r/x]) \\
+         \cond{b \mbox{ free in } r} \\
+         \lambda b \cdot (e[r/x]) \\
+       \end{array}
+     \right)
+     , \qquad n \mbox{ fresh}
+\end{eqnarray*}
+We check for $b$'s freeness in $r$ to avoid generating fresh
+variables when not necessary.
+So, for substitution in the presence of a binder, we can identify
+three cases, which we list out explicitly, with labels:
+$$\begin{array}{lll}
+  (\lambda b \cdot e)[r/x]
+\\ (\textsc{bnd}) & b=x & \lambda b \cdot e
+\\ (\textsc{fre}) & b \neq x \land b \mbox{ not free in }r & \lambda b \cdot e[r/x]
+\\ (\textsc{cap}) & b \neq x \land b \mbox{ free in }r & \lambda n \cdot (e[n/b])[r/x], \quad n \mbox{ fresh.}
+\end{array}$$
+We now express how this generalises to multiple bindings, meta-variables
+and substitutions:
+\begin{eqnarray*}
+  (\lambda b_1,\ldots,b_m @ e)[e_1,\ldots,e_n/x_1,\ldots,x_n] && m,n \geq 0
+\\  (\textsc{bnd})
+    &\downarrow&
+    \setof{x'_1,\ldots,x'_k}  = \setof{x_1,\ldots,x_n}\setminus\setof{b_1,\ldots,b_m}, 1 \leq k \leq n
+\\ (\lambda b_1,\ldots,b_m @ e)[e'_1,\ldots,e'_k/x'_1,\ldots,x'_k] &&
+\\ &\downarrow& \mbox{w.l.o.g.}, 1 \leq j \leq m
+\\ (\textsc{fre})
+   &\downarrow&
+   \setof{b_1,\ldots,b_j} = \setof{b_1,\ldots,b_m}\setminus \mathcal{FV}\setof{e'_1,\ldots,e'_k}
+\\ (\textsc{cap})
+   &\downarrow&
+   \setof{b_{j+1},\ldots,b_m} = \setof{b_1,\ldots,b_m}\cap \mathcal{FV}\setof{e'_1,\ldots,e'_k}
+\\ (\lambda b_1,\ldots,b_j,\nu_{j+1},\ldots,\nu_m @ \qquad
+   && \nu_{j+1},\ldots,\nu_m \mbox{ fresh w.r.t. } b_i, e, e'_i, x'_i
+\\  e[\nu_{j+1},\ldots,\nu_m/b_{j+1},\ldots,b_m])
+\\  {}[e'_1,\ldots,e'_k/x'_1,\ldots,x'_k]
+\end{eqnarray*}
+Any occurrence of $(L\setminus S)$ in a substitution can
+be converted into a known set of variables.
+If such an occurrence in a binder cannot be given a full denotation
+(because $S$ contains `pattern' variables),
+then we cannot perform the substitution at this point.
+
+We can also give it an algorithmic formulation as follows:
+\begin{eqnarray*}
+  (\lambda B @ e) \sigma
+  &\defs&
+     {}\LET \sigma' = \sigma \setminus B \IN {}
+\\&& {}\LET F = \fv(\ran~\sigma') \IN{}
+\\&& {}\LET (B_F,B_C) = (B \setminus F, B \cap F) \IN {}
+\\&& {}\LET \alpha :\in N_C \bij B_C \IN \lambda B_F \cup N_C @ (e~\alpha)\sigma'
+\\&& {}\WHERE N_C \cap (B \cup F \cup \fv~e) = \emptyset
+\end{eqnarray*}
+The above description ignores variable ordering
+in the binders, which of course has to be preserved.
+
+This leads to a 2-phase algorithm:
+\begin{description}
+  \item[phase 1] compute $\sigma'$ and $F$ from $\sigma$ and $B$
+   (determine substitution scope).
+  \item[phase 2] With $F$ extended with $\fv~e$, work through $B$,
+    classifying into $B_F$ (leave as is) or $B_C$ (replace with $N_C$),
+   accumulating $\alpha$ as required
+   (to avoid variable capture).
+\end{description}

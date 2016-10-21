@@ -1,0 +1,34 @@
+\textbf{Resolving via Side-Conditions} \\
+We have tables of the form:
+\begin{eqnarray*}
+  x_i &\mapsto& \setof{a_1,\ldots,a_n}
+\\ \lst x_j &\mapsto& \setof{a_1,\ldots,a_n,\lst a_1,\ldots,\lst a_m}
+\\ \lst (\lst x_j,\lst e_j) &\mapsto&
+        \setof{(a_{k+1},f_{k+1}),\ldots,(a_n,f_n),
+               (\lst a_1,\lst f_1),\ldots,(\lst a_m,\lst f_m)}
+\end{eqnarray*}
+We then look at each pattern side-condition: $V \mathcal R M$,
+where $\mathcal R \in \setof{=,\supseteq,\DISJ}$,
+and replace standard $M$ by the free variables of its translation into goal-space,
+giving a mapping from pattern variable sets
+to a relation with a free-variable expression:
+\begin{eqnarray*}
+  V \mapsto (\mathcal R,F)
+\end{eqnarray*}
+We do not handle list meta-variables ($\lst M$) at present.
+
+In general $F$ is a union of an enumeration, a list-variable less an enumeration
+and either of the above conditional on some set membership.
+Given such a mapping,
+and from our tables a mapping of the form
+\begin{eqnarray*}
+ x  &\mapsto& \setof{a_1,\ldots,a_n,\lst a_1,\ldots,\lst a_m} = A, \quad x \in V
+\end{eqnarray*}
+then we adjust the range set $A$ as follows:
+\begin{eqnarray*}
+   (\DISJ,F)     && A \setminus F
+\\ (=,F)         && A \cap F
+\\ (\subseteq,F) && A
+\end{eqnarray*}
+We only consider enumerations when doing this adjustment,
+as everything else is too complicated!

@@ -1,0 +1,36 @@
+The textual form of the language specification
+is one that matches how the construct would be written,
+as an interleaving of language elements (basic and list)
+with tokens, which may be absent.
+The following character have special roles:
+\begin{description}
+  \item[Basic Elements]
+     letters \texttt{V}, \texttt{T}, \texttt{E} and \texttt{P}
+  \item[List Element]
+  letter \texttt{*} or \texttt{\#} immediately after a basic element.
+  \item[Whitespace] ignored/skipped
+\end{description}
+Anything else is interpreted as a token,
+even if it contains the above special characters.
+The only error is if two tokens occur one after another,
+with everything else being interpreted as a valid language specification.
+
+For illustration, here are some specifications
+that correspond to well-known language constructs:
+
+\begin{tabular}{|l|c|c|}
+  \hline
+    Construct & Specifier & Example
+  \\\hline
+    Logical-And & \texttt{P*/\BS} &  \texttt{P /\BS Q /\BS R}
+  \\\hline
+    Logical-Or & \texttt{P*\BS/} &  \texttt{P \BS/ Q \BS/ R}
+  \\\hline
+    Pred. Forall & \texttt{Forall V,* @ P} & \texttt{Forall P,Q @ P => Q}
+  \\\hline
+    Assignment & \texttt{V := E} & \texttt{x := y + z}
+  \\\hline
+    Sim.--Assignment & \texttt{V\#, := E\#,}
+      & \texttt{x,y := y + z,y-1}
+  \\\hline
+\end{tabular}

@@ -1,0 +1,53 @@
+\documentclass[fleqn]{article}
+%\documentclass[twoside]{report}
+\usepackage{amssymb,amsmath}
+\usepackage{mathpartir}
+\usepackage{verbatim}
+\usepackage{doc/saoithin}
+\usepackage{tikz}
+\usetikzlibrary{arrows,matrix}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+
+\def\includepicture#1{\includegraphics{#1.eps}}
+
+\parindent=0pt % I hate first line indentation
+\parskip=3pt   % I like a visual white gap between paragraphs
+
+\newenvironment{haskell}%
+ {\small\verbatim}%
+ {\endverbatim\normalsize}
+
+\def\rulebefore{\vspace{-6pt}\\\rule{\textwidth}{0.1pt}\vspace{-10pt}}
+\def\ruleafter{\vspace{-16pt}\rule{\textwidth}{0.1pt}\\}
+\newenvironment{code}%
+ {~\rulebefore\small\verbatim}%
+ {\endverbatim\normalsize\ruleafter}
+
+\def\latex{\LaTeX}
+\def\sthn{\Saoithin}
+
+\author{
+  Andrew Butterfield%
+  }
+\title{UNIFICATION EXPERIMENT
+}
+
+\def\TODO#1{%
+  \textbf{ToDo: }
+  \textit{#1}
+}
+
+
+
+\begin{document}
+
+\bibliographystyle{alpha}
+
+\maketitle
+\tableofcontents
+
+\input{src/Unify.lhs}
+
+
+\end{document}

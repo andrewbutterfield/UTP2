@@ -1,0 +1,1002 @@
+v3.6
+^AlgOp ^10 ^0 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^; ^90 ^2 !p
+^<= ^30 ^0 !p
+^|| ^85 ^2 !p
+^3 !MO
+^* ^&32;P&32;* ^; ^&32;P&32;;&32;P&32; ^<= ^&32;P&32;<=&32;P&32; ^Skip ^skip ^|| ^&32;P&32;||&32;P&32; ^5 !MG
+^0 !MK
+^;-lmono ^<= ^30 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+^<= ^30 ^; ^90 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+!PI
+!CT
+^butrfeld !OU
+^Proof !OS
+^ROOT !OS
+^3 !OP
+^;-lmono-lemma ^P !PV
+^Q !PV
+^2 !PO
+^Q !PV
+!PQ
+^; ^90 ^P !PV
+^Q !PV
+^2 !PO
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!PQ
+!PI
+!CT
+^Proof !OS
+^ROOT !OS
+^2 !OP
+^kleene-4 ^<= ^30 ^P !PV
+^; ^90 ^R !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^2 !PO
+!"P
+^R !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+^<= ^30 ^; ^90 ^P !PV
+!"P
+^* ^150 ^Q !PV
+!"P
+^1 !'0
+^* !'T
+^2 !PL
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^R !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+!PI
+!CT
+^butrfeld !OU
+^kleene-3 ^<= ^30 ^Skip ^150 ^0 ^skip !'T
+^1 !PL
+^; ^90 ^* ^150 ^P !PV
+!"P
+^1 !'0
+^* !'T
+^2 !PL
+!"P
+^P !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^2 !PO
+!"P
+^* ^150 ^P !PV
+!"P
+^1 !'0
+^* !'T
+^2 !PL
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+!CT
+^butrfeld !OU
+^kleene-2 ^<= ^30 ^P !PV
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^2 !PO
+!"P
+^R !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+^<= ^30 ^; ^90 ^* ^150 ^Q !PV
+!"P
+^1 !'0
+^* !'T
+^2 !PL
+!"P
+^P !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^R !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+!PI
+!CT
+^butrfeld !OU
+^kleene-1 ^<= ^30 ^Skip ^150 ^0 ^skip !'T
+^1 !PL
+^; ^90 ^P !PV
+!"P
+^* ^150 ^P !PV
+!"P
+^1 !'0
+^* !'T
+^2 !PL
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^2 !PO
+!"P
+^* ^150 ^P !PV
+!"P
+^1 !'0
+^* !'T
+^2 !PL
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+!CT
+^butrfeld !OU
+^||-rdistr ^|| ^85 ^P !PV
+^Q !PV
+^2 !PO
+!"P
+^R !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^|| ^85 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^|| ^85 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^2 !PO
+!PQ
+!CT
+^butrfeld !OU
+^||-ldistr ^|| ^85 ^P !PV
+!"P
+^Q !PV
+^R !PV
+^2 !PO
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^|| ^85 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^|| ^85 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^2 !PO
+!PQ
+!CT
+^butrfeld !OU
+^;-rdistr ^; ^90 ^P !PV
+^Q !PV
+^2 !PO
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^2 !PO
+!PQ
+!CT
+^butrfeld !OU
+^;-ldistr ^; ^90 ^P !PV
+!"P
+^Q !PV
+^R !PV
+^2 !PO
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^2 !PO
+!PQ
+!CT
+^butrfeld !OU
+^||-assoc ^|| ^85 ^P !PV
+!"P
+^|| ^85 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^|| ^85 ^|| ^85 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+!"P
+^R !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+!PQ
+!CT
+^butrfeld !OU
+^||-comm ^|| ^85 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^|| ^85 ^Q !PV
+!"P
+^P !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+!PQ
+!CT
+^butrfeld !OU
+^||-runit ^|| ^85 ^P !PV
+!"P
+^Skip ^150 ^0 ^skip !'T
+^1 !PL
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^P !PV
+!PQ
+!CT
+^butrfeld !OU
+^||-lunit ^|| ^85 ^Skip ^150 ^0 ^skip !'T
+^1 !PL
+!"P
+^P !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^P !PV
+!PQ
+!CT
+^butrfeld !OU
+^;-assoc ^; ^90 ^P !PV
+!"P
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^; ^90 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!PQ
+!CT
+^butrfeld !OU
+^;-runit ^; ^90 ^P !PV
+!"P
+^Skip ^150 ^0 ^skip !'T
+^1 !PL
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^P !PV
+!PQ
+!CT
+^butrfeld !OU
+^;-lunit ^; ^90 ^Skip ^150 ^0 ^skip !'T
+^1 !PL
+!"P
+^P !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^P !PV
+!PQ
+!CT
+^butrfeld !OU
+^exchg ^<= ^30 ^; ^90 ^|| ^85 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+!"P
+^|| ^85 ^R !PV
+!"P
+^T !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^|| ^85 ^; ^90 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^; ^90 ^Q !PV
+!"P
+^T !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+!CT
+^butrfeld !OU
+^DEF&32;<= ^<= ^30 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+^P !PV
+^Q !PV
+!PN
+^2 !PO
+!PQ
+!CT
+^butrfeld !OU
+^DEF&32;; ^; ^90 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^!BadVar<Bad-Variable:_UNINT> !EV
+!PE2
+!PQ
+!CT
+^butrfeld !OU
+^DEF&32;|| ^|| ^85 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^|| !'T
+!'0
+^3 !PL
+^!BadVar<Bad-Variable:_UNINT> !EV
+!PE2
+!PQ
+!CT
+^butrfeld !OU
+^DEF&32;Skip ^Skip ^150 ^0 ^skip !'T
+^1 !PL
+^!BadVar<Bad-Variable:_UNINT> !EV
+!PE2
+!PQ
+!CT
+^butrfeld !OU
+^DEF&32;* ^* ^150 ^P !PV
+!"P
+^1 !'0
+^* !'T
+^2 !PL
+^!BadVar<Bad-Variable:_UNINT> !EV
+!PE2
+!PQ
+!CT
+^butrfeld !OU
+^23 !lM
+^;-monotone ^<= ^30 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+^<= ^30 ^R !PV
+!"P
+^T !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+^2 !PA
+^<= ^30 ^; ^90 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^; ^90 ^Q !PV
+!"P
+^T !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+!PI
+!CT
+!L
+^1 !ML
+^;-lmono ^AlgOp ^;-lmono ^<= ^30 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+^<= ^30 ^; ^90 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+!PI
+!CT
+!PT
+!RE
+^0 !mal
+^AlgOp$5$;-lmono-lemma ^Proof !OS
+^ROOT !OS
+^2 !OP
+!Il
+^P ^P !PV
+^Q ^Q !PV
+^R ^R !PV
+^3 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^P !PV
+^Q !PV
+^2 !PO
+^Q !PV
+!PQ
+^; ^90 ^P !PV
+^Q !PV
+^2 !PO
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!PQ
+!PI
+!s
+!AJ
+!RE
+^1 ^1 !mle
+^AlgOp$3$DEF&32;<= ^butrfeld !OU
+!Il
+^P ^P !PV
+^Q ^Q !PV
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^<= ^30 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+^; ^90 ^P !PV
+^Q !PV
+^2 !PO
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!PQ
+!PI
+!s
+!AJ
+!RE
+^2 ^1 ^2 !mre
+^AlgOp$3$;-rdistr ^butrfeld !OU
+!Il
+^P ^P !PV
+^Q ^Q !PV
+^R ^R !PV
+^3 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^<= ^30 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+^; ^90 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^2 !PO
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!PQ
+!PI
+!s
+!AJ
+!RE
+^2 ^1 !mle
+^AlgOp$3$DEF&32;<= ^butrfeld !OU
+!Il
+^P ^; ^90 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^Q ^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^<= ^30 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+^<= ^30 ^; ^90 ^P !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!"P
+^2 !'0
+^<= !'T
+!'0
+^3 !PL
+!PI
+!s
+!AJ
+^4 !X
+!?R
+^$T ^0 ^vcqsfgck !!
+^;-lmono-lemma ^AlgOp ^;-lmono-lemma ^P !PV
+^Q !PV
+^2 !PO
+^Q !PV
+!PQ
+^; ^90 ^P !PV
+^Q !PV
+^2 !PO
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!PQ
+!PI
+!CT
+^; ^90 ^P !PV
+^Q !PV
+^2 !PO
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!PQ
+!PT
+!RE
+^0 !mre
+^_ROOT$0$Ax-==-id ^ROOT !OS
+!Il
+^P ^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!PQ
+!s
+!AJ
+!RE
+^1 ^1 ^2 !mle
+^_HYP_;-lmono-lemma$0$;-lmono-lemma.hyp.1 ^Proof !OS
+!Il
+^Q ^Q !PV
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^; ^90 ^P !PV
+^Q !PV
+^2 !PO
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+^; ^90 ^Q !PV
+!"P
+^R !PV
+!"P
+^2 !'0
+^; !'T
+!'0
+^3 !PL
+!PQ
+!s
+!AJ
+^2 !X
+!?R
+!?A
+^$T ^0 ^vcqsfgck !!
+^2 !MT
+!@

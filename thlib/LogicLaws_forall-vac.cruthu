@@ -1,0 +1,110 @@
+v3.6
+^LogicLaws ^forall-vac ^x ^1 !QL
+^A !PV
+!PAl
+^A !PV
+!PQ
+^x ^1 ^A !CP
+^x ^1 !QL
+^A !PV
+!PN
+!PEx
+!PN
+^A !PV
+!PQ
+!RE
+^1 ^1 ^2 !mre
+^_ROOT$0$Ax-any-x-def ^ROOT !OS
+!Il
+^P ^A !PV
+!PN
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^x$ ^x ^1 ^1 !MVL
+!B9
+!j
+^x ^1 !QL
+^A !PV
+!PN
+!PN
+!PAl
+!PN
+!PN
+^A !PV
+!PQ
+!s
+!AJ
+!RE
+^1 ^1 ^1 ^1 ^4 !mtv
+^LogicLaws$70$~~-idem ^ROOT !OS
+^1 !OP
+!Il
+^A ^A !PV
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^A !PV
+!PAl
+!PN
+!PN
+^A !PV
+!PQ
+!s
+!AJ
+!RE
+^1 ^1 !mtv
+^LogicLaws$70$~~-idem ^ROOT !OS
+^1 !OP
+!Il
+^A ^x ^1 !QL
+^A !PV
+!PAl
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^A !PV
+!PAl
+^A !PV
+!PQ
+!s
+!AJ
+^3 !X
+!?R
+^$F ^_PLT_forall-vac ^LogicLaws ^_ROOT ^3 ^oBqcxf !!
+^_PLT_forall-vac ^0 ^0 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^0 !MO
+^0 !MG
+^0 !MK
+^0 !lM
+^0 !ML
+^0 !MT
+!@
+^1 !#

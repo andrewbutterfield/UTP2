@@ -1,0 +1,43 @@
+An assertion we hope is true is a \emph{conjecture},
+whilst one that is ``self-evidently true'' (i.e. an axiom)
+or demonstrated to be so (by proof), is called a \emph{law}.
+With laws, we also want to associate a \emph{provenance}
+indicating the origin of
+such a law:
+\begin{description}
+  \item[SOURCE] The law is generated internally by this program
+   and has (hopefully) been subject to extensive checking and validation.
+   With this provenance we associate a name identifying the source
+   of the law
+  \item[PROOF] The law is as a result of a proof,
+    and its trustworthiness is related to that of
+    the least trustworthy step in that proof
+    (again, we may consider some steps to
+    be more trusted than others,
+       e.g. the matching against a simple law vs.
+       using a complex built-in simplifier).
+  \item[USER] The law was specified by a user,
+    exploiting the experimental nature of this tool.
+    Clearly trustworthiness here is low, and dependent on the user.
+    \begin{description}
+      \item[CONSERVATIVE] The law was specified by a user
+      as the \emph{sole} definition of the meaning of a language construct,
+      satisfying the following criteria:
+      \begin{itemize}
+        % \item The language specification uses no list elements
+        \item The law name is ``\texttt{DEF }\emph{\texttt{name}}'',
+        where \emph{\texttt{name}} is the language construct name.
+        \item The law has the form $LHS \equiv RHS$
+        \item The $LHS$ is an instance of the language specification
+         with every element given a unique metavariable
+         (so it matches any instance of the construct).
+         \\Note: any list is represented by a single ``multi-''metavariable.
+        \item The $RHS$ makes no mention or use of the language construct
+         itself.
+      \end{itemize}
+      Such laws are conservative definitions and are as safe
+      as anything else in the system.
+      In effect a construct defined by a law as above is simply
+      a macro, or syntactic-sugar for some pre-existing predicate.
+    \end{description}
+\end{description}

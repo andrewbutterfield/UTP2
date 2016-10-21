@@ -1,0 +1,90 @@
+\section{Types}
+\label{sec:types:foundation}
+
+\REVIEW2{(OPEN)\\
+1) a fuller discussion of the type system e.g.
+  a) does it include generics or some variety of polymorphism;
+  b) what is (type) relationship between function types and powerset types (e.g. does the type checker generate side conditions?)
+}
+
+\DRAFT{
+ Polymorphism (Haskell) a.k.a. Generic (Java),
+ and we do not relate power set and function type at the type-checker level
+}
+
+%
+% Presents expression typing in  Saoithin with an emphasis on foundations
+%
+
+We have a fairly simple notion of types
+with booleans and integers making up basic types,
+a basic type $Env$ that denotes
+a program environment ($Name \pfun Value$),
+type variables,
+and then the capacity to build up set/sequence/map/free types on top
+of these:
+  $$\begin{array}{rclr}
+     T \in Type &::=& \Bool | \Int  | Env & \mbox{Base Types}
+  \\  &|&  \tau | ~? {} &\mbox{Type variables}
+  \\  &|& \power T | T^* | T^+ | T \cross \cdots \cross T & \mbox{Composite types}
+  \\  &|& T \fun T | T \pfun T | T \ffun T & \mbox{Function types}
+  \\  &|& nm @ V~`\!|' \ldots `\!|' V & \mbox{Free Types}
+  \\ V \in Variant &::=& nm~\ldata T \cross \cdots \cross T \rdata & \mbox{Free Type Variant}
+  \\ nm &\in& Name & \mbox{Names}
+  \end{array}$$
+\NEW{The type-system supports Hindley-Milner style polymorphism,
+and, for simplicity, treats powerset, sequence and function types as distinct%
+\footnote{
+  We could add axioms to a theory relating type-assertion predicates if we wished
+  to link these types.
+}
+.
+}
+At present the main role played by types in the prover is to limit
+the search for applicable laws to those that match the types of expression
+involved.
+To this end a type-inferencing algorithm is used to associate types
+with all expressions. It uses user-supplied information about the types
+of named functions to deduce the relevant types for entire expressions.
+This information is stored in a table matching function names to their types,
+which of course has to be an additional component of a theory:
+\begin{schema}{Theory}
+   \ldots
+\\ types : Name \pfun Type
+\end{schema}
+%We should stress that the intended use of this table
+%is to associate types with the names of static functions
+%whose meaning and definition is fixed in a theory.
+%Examples of such functions might the standard binary arithmetic operators
+%like $+$,$-$,$\times$, or standard list operators and functions like $\cat$
+%and
+%$length$.
+%Type-inferencing is performed at a predicate level,
+%with all the expressions, extracted from its atomic predicates,
+%being treated together.
+%Given that our expression language does not contain boolean connectives
+%then the only way an expression $e$ can have type $Bool$ are enumerated as follows:
+%\begin{enumerate}
+%  \item a boolean constant or variable ($b:\Bool$);
+%  \item an application of a function of type $T \fun \Bool$,
+%        where $T$ is a non-boolean type.
+%\end{enumerate}
+
+%In the first case above the underlying type is $\Bool$,
+%while in  the second case it is $T$.
+%If $\Gamma \infer e \ddagger T$ means that $e$ has underlying type $T$
+%in context $\Gamma$, then the following rules allow this to be inferred:
+%\begin{mathpar}
+%   \INFER%
+%     {\Gamma \infer v :: \Bool}
+%     {\Gamma \infer v \ddagger \Bool}  [UVar]
+%     \qquad
+%   \INFER%
+%     {\Gamma \infer k :: \Bool}
+%     {\Gamma \infer k \ddagger \Bool}  [UConst]
+%\\ \INFER%
+%     {\Gamma \infer f~a :: \Bool
+%      \qquad \Gamma \infer a :: T
+%      \qquad \Gamma \infer f :: T \fun \Bool}
+%     {\Gamma \infer f~a \ddagger T} [UApp]
+%\end{mathpar}

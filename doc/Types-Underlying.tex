@@ -1,0 +1,32 @@
+Given that our expression language does not contain boolean connectives
+(represented solely at the predicate level),
+then the only way an expression $e$ can have type $Bool$ are enumerated as follows:
+\begin{enumerate}
+  \item a boolean constant or variable ($b:\Bool$);
+  \item the equality of two expressions of the same type ($e_1,e_2:T$)
+  \item an application of a function of type $T \fun \Bool$,
+        where $T$ is a non-boolean type.
+        \\(One exception: the unary logical negation operator
+           during parsing will occur as a top-level function name
+           of type $\Bool\fun\Bool$).
+\end{enumerate}
+In the first case the underlying type is $\Bool$,
+in the second case it is $T \times T$, and in the third it is $T$.
+If $\Gamma \infer e \utype T$ means that $e$ has underlying type $T$
+in context $\Gamma$, then the following rules allow this to be inferred:
+\begin{eqnarray*}
+   \INFER%
+     {\Gamma \infer v :: \Bool}
+     {\Gamma \infer v \utype \Bool} && [UVar]
+\\ \INFER%
+     {\Gamma \infer k :: \Bool}
+     {\Gamma \infer k \utype \Bool} && [UConst]
+\\ \INFER%
+     {\Gamma \infer f~a :: \Bool \qquad \Gamma \infer a :: T }
+     {\Gamma \infer f~a \utype T} && [UApp_1]
+\\ \INFER%
+     {\Gamma \infer f~a :: \Bool \qquad \Gamma \infer f :: T \fun \Bool}
+     {\Gamma \infer f~a \utype T} && [UApp_2]
+\end{eqnarray*}
+Top-level conditional expressions should be lifted to
+a conditional predicate.

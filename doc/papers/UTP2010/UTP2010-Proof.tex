@@ -1,0 +1,316 @@
+\section{Proofs}
+\label{sec:proof:foundation}
+
+\REVIEW1{(OPEN)\\
+The author is supposed to describe the implementation algorithm
+of the prover more clearly and give the performance evaluation
+of this tool.
+}
+
+\DRAFT{
+ I'll add some ``implementation'' comments here.
+ The performance will be commented on in the usage section
+}
+
+\REVIEW2{(OPEN)\\
+3) A minimal axioms for the built assumptions for the matcher
+and how, if at all, the theory of matching used compares to
+"unification in a theory" (i.e. unification in the presence of
+a background theory of operators, such as
+associative-commutative unification). Here there is also an
+opportunity to compare the matching strategies used in other
+proof assistants such as Isabelle, Mizar or the B-tool.
+}
+
+\DRAFT{
+  Will look up Unification/Unification wrt Theory
+}
+\DRAFT{
+  Will look up matching in Isabelle/Mizar/B-tool
+}
+
+%
+% Presents the Proof system of  Saoithin with an emphasis on foundations
+%
+
+Given a conjecture in a theory,
+any attempt to prove it will take place in a general proof context,
+adopting one of a number of available strategies,
+and making use of a variety of builtin proof procedures.
+In general, we do not work with a single theory, but rather
+a stack of them: the bottommost are the most fundamental and general
+whilst theories higher up the stack tend to be more specific and higher-level.
+The key idea is that a proof of a conjecture can depend on its own theory,
+as well as material from theories below it in the stack.
+The stack concept is provided to assist in the encapsulation of theories,
+and for this reason circular dependencies are not allowed.
+
+When initially started, \STHN\ has a proof stack with a single entry,
+the $\_ROOT$ theory, defining the precedences of the propositional infix
+connectives. The user can then load up the desired theories,
+and the current state of the stack is then displayed in
+the application's main (``top'') window:
+\begin{center}
+  \includegraphics[scale=0.8]{\imgfile{top-window}}
+\end{center}
+This stack state is saved into a file upon exiting the application,
+and restored automatically upon re-entry.
+%A typical stack setup for a theory of Reactive Systems (say) in UTP
+%might look like the following: Logic; Equality; UTP; Arithmetic; Sets; Lists; Reactive.
+%Most are self-explanatory --- UTP is a theory with general definitions common
+%to almost all UTP theories.
+Double-clicking on a theory name opens up a tabbed window to
+allow theory components to be inspected:
+\begin{center}
+  \includegraphics[scale=0.8]{\imgfile{theory-conj-window}}
+\end{center}
+
+There are a number of strategies we can employ to prove a goal conjecture $G$,
+based on its top-level structure:
+\begin{description}
+  \item[Reduce/Deduce]
+    We can simply attempt to take $G$ and use proof procedures
+    to transform it to $\True$
+    (or equivalently, an existing law).
+  \item[LHS-to-RHS]
+    If goal $G$ has the form $L \equiv R$,
+    we can try to transform the LHS $L$ until it is equivalent
+    to $R$
+    (we could also try \textbf{RHS-to-LHS}).
+  \item[Reduce-Both]
+    Again, for the form $L \equiv R$, a way to proceed
+    might be to try and transform both sides into something equivalent.
+  \item[Law-Reduce]
+    Rather than starting with the conjecture,
+    we start with an instantiation of an existing law,
+    and transform that until equivalent to our conjecture.
+%    Because we start with an established law,
+%    each step we make results in a theorem
+%    so we can exploit
+%    the following meta-theorem:
+%    if any of the following is a theorem then they all are:
+%    $$
+%      P \qquad [P] \qquad \forall x_1,\ldots,x_n @ P,
+%      \mbox{ for any }x_i
+%    $$
+%    This means that each check for equivalence between the current goal
+%    and the conjecture can strip off any top-level universal quantification.
+    This strategy is the basis for inductive proofs in \STHN.
+  \item[Assume-then-\ldots]
+    If the conjecture has the form $A \implies C$,
+    we can assume the LHS antecedent $A$ as a law, adding it to the proof
+    context, and have it available to assist in proving the consequent $C$
+    using some other appropriate strategy.
+\end{description}
+\STHN\ supports the above strategies,
+and will support more in the future.
+In general, the chosen strategy may modify both the conjecture
+and its proof context in some way,
+and will have a completion criteria that depends on that modification.
+We shall now discuss some of the concepts just introduced in a little
+more detail.
+
+Double clicking on a conjecture starts a proof by opening
+up a proof window. From the Setup menu a strategy can be chosen,
+for example Reduce:
+\begin{center}
+  \includegraphics[scale=0.8]{\imgfile{proof-window}}
+\end{center}
+In this case the entire goal appears, with the focus,
+currently the whole goal, underlined.
+Given that all atomic predicates are expressions of boolean type,
+we find more useful typing information to be the notion
+of \emph{underlying type}: the types of the sub-expressions
+just below the top-level of the atomic predicate.
+As the goal is an atomic predicate comparing two integers,
+we see that its underlying type is $\Int \cross \Int$.
+If attention moves down into sub-expressions,
+then the full type of that component is displayed,
+as the notion of underlying type
+only applies to atomic predicates at the top-level.
+
+\subsection{Transformations}
+
+We mentioned taking a goal and transforming it in some way.
+As \STHN\ favours the use of equational reasoning,
+such transformations generally involve replacing
+the goal, or a sub-part of it, by a logically equivalent expression.
+So a proof becomes a chain of equivalences linking the
+initial goal to one that is equivalent to the required final predicate,
+the specifics of which are of course strategy-dependent.
+%While not yet implemented, \STHN\ does have `hooks' to support
+%inequational reasoning,
+%where the transformations involve
+%implication rather than equivalence---so for example,
+%a goal of the form $A \implies C$ could be proven
+%by starting with $A$ and transforming it to $C$ with a mixture
+%of equivalent and implicative transforms.
+
+The primary mechanism for effecting such transformations
+is a process of selecting a sub-part of the current goal (the ``focus'')
+and then applying the desired rule.
+The rules available for application are dependent on the focus,
+but always include the option to match it against the laws
+in all the currently accessible theories.
+The details of this matching is discussed later (\S\ref{sec:match:foundation}),
+and for now we give a brief survey of other builtin transformers that can be used:
+\begin{description}
+  \item[Tidying]
+    Basically a collection of builtin operations to flatten and sort
+    predicates whose top-levels are disjunctions and conjunctions.
+  \item[Simplify]
+    Effectively constant-folding, doing fairly obvious propositional simplifications.
+  \item[Normal Forms]
+    Converting predicates to either disjunctive or conjunctive normal form
+  \item[Application]
+    Reducing applications of abstractions to arguments ($\beta$-reduction)
+    or applying explicit substitutions to the underlying predicate.
+  \item[Quantifiers]
+    Specifying explicit $\alpha$-substitution, or existential witnesses.
+    If using the Law-Reduce strategy, then we can also strip out top-level
+    universal quantifiers, provided the focus is the whole goal.
+  \item[Splitting]
+    Given long conjunction/disjunctions,
+    it is often useful to be able to re-structure them into
+    specific groups in order to allow certain laws to become applicable.
+%    For example, grouping terms with no bound variables would be a useful
+%    prelude to a law that moves them outside a quantifier.
+\end{description}
+Most of these can be invoked by a single key shortcut (see Help menu in Proof Window)
+
+A proof is complete when goal transformation
+makes it ``equivalent'' to an end-point predicate
+as determined by the strategy in use.
+The notion of equivalence we use is that of
+a slight generalisation of $\alpha$-equivalence,
+that flattens nested quantifiers of the same type,
+so that the following are considered equivalent:
+\begin{equation*}
+ (\forall x @ \forall y @ P)
+ \qquad
+ (\forall x,y @ P)
+ \qquad
+ (\forall y,x @ P)
+ \qquad
+ (\forall y @ \forall x @ P)
+\end{equation*}
+
+
+
+\subsection{Shorthands}\label{ssec:shorthands}
+
+A useful facility in \STHN\ is the ability to define meta-variables
+as shorthands for longer, more complex predicates.
+Examples of this in UTP include the definition of $J$ in the
+reactive theory \cite[Chp.8, p208]{UTP-book}:
+\begin{eqnarray*}
+  J &\defs& (ok \implies ok') \land wait'=wait \land tr'=tr \land ref'=ref
+\end{eqnarray*}
+These definitions can be made as part of a theory,
+or can be introduced on the fly during a proof to replace
+a long predicate by a shorthand.
+During a proof it is then possible to replace such a meta-variable
+by its definition, or even to recursively expand all such shorthands
+in a predicate---even if the shorthands are themselves mutually recursive.
+To support this facility, we must add tables to a theory to record
+these shorthands, which can be introduced for type and predicate
+meta-variables, as well as regular variables:
+\begin{schema}{Theory}
+   \ldots
+\\ typedef : Name \pfun Type
+\\ exprdef : Name \pfun Expr
+\\ preddef : Name \pfun Pred
+\end{schema}
+All of the names in these tables are ``known'',
+which affects how they participate in law matching.
+These tables also have another use to ensure the soundness
+of certain strategies, as detailed below.
+
+\subsection{Assumptions}
+
+The ``Assume-'' strategies are an implementation of the Deduction Theorem:
+$$
+  \Phi \infer A \implies C \quad \mbox{iff} \quad \Phi,A \infer C
+$$
+where the antecedent is elevated (temporarily) to a law
+for the purposes of this proof alone.
+However we need to be careful here \cite[p72]{Gries-Schneider94},
+to ensure that all meta-variables in the ``assumption-now-law''
+can only match against themselves---in essence any such variables
+in $A$ above must be temporarily restricted to only stand for themselves.
+We create a temporary theory on the top of the theory-stack,
+and add in as new laws, the antecedent $A$, suitably decomposed (e.g.):
+\begin{mathpar}
+  \Phi \infer (A_1 \land A_2 \land A_3) \implies ((A_4 \land A_5 \land A_6) \implies C)
+\\ \downharpoonleft
+\\ \Phi,A_1,A_2,A_3,A_4,A_5,A_6 \infer C
+\end{mathpar}
+We then use the meta-variable tables just introduced in \S\ref{ssec:shorthands},
+adding in entries of the form
+$
+  M \defs M
+$
+for every ``unknown'' meta-variable in $A$,
+\NEW{and finally renaming all the $M$ in these tables, $A_i$ and $C$
+to be fresh, so as to avoid clashes with other laws.
+}
+This effectively prevents the law matching from binding these meta-variables
+to anything else during the proof.
+Once the proof is complete,
+the temporary theory is removed.
+
+
+\subsection{Induction}
+
+The current support for induction is via the Law-Reduce strategy,
+using the appropriate induction axiom, instantiated appropriately
+with the conjecture. This is then simplified until the the goal is itself reached.
+For example, we may have the following inductive axiom for natural numbers:
+$$
+ M[0/x] \land (\forall y @ M[y/x] \implies M[y+1/x]) \implies \forall x @ M
+$$
+(Note that the assumption here is that $x$, if free in $M$ is a natural number).
+Given addition defined recursively on its left argument,
+we may wish to prove that $n+0 = n$, for all natural $n$.
+If we invoke the Induction strategy in \STHN, and upon selecting the above
+induction axiom, and identifying $n$ as our induction variable,
+a goal is generated by substituting our conjecture for $M$,
+and $n$ for $x$,
+to obtain:
+$$
+ (n+0 = n)[0/n]
+ \land (\forall y @ (n+0 = n)[y/n] \implies (n+0 = n)[y+1/n])
+ \implies \forall n @ (n+0 = n)
+$$
+Switching to an Assume strategy here doesn't help as we want to manipulate
+the antecedents. Successive transformations, applying substitutions
+and using the definition
+of $+$, plus other axioms associated with the natural numbers, allow us
+to reduce the antecedents to true, leaving
+$$
+ \forall n @ (n+0 = n)
+$$
+Because we are reducing from an instance of an axiom,
+this is a theorem, so we can strip off the top-level universal quantification
+to get our original conjecture:
+$$
+n+0 = n
+$$
+At present \STHN\ requires us to handle induction proofs as one lump as just illustrated,
+but future strategy/case-handling enhancements will make it possible to do a more
+``traditional'' proof, where the base and inductive cases are effectively
+proven separately.
+
+\subsection{Caveat Emptor}
+
+Before moving on to look at the law matching facilities
+we need to point out an important aspect of the transformations discussed
+in this section: they have built-in to them certain assumptions
+regarding such notions as $\alpha$-equivalence, the associativity, commutativity
+and idempotence of conjunction and disjunction, and implication trading,
+to name but a few.
+It is therefore important that any axioms introduced in theories
+do not conflict with these internal assumptions regarding the logic%
+\footnote{This is in fact an argument for having a built-in logic theory
+that is compatible with the above assumptions.}%
+.

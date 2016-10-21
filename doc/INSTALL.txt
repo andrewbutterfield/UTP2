@@ -1,0 +1,26 @@
+INSTALLATION INSTRUCTIONS:
+
+Binary install for Windows
+
+1. Unpack ZIP archive to were you want application to live.
+
+2. Run executable - it should set-up required directories and
+   files.
+
+ Note: every time you start the application on Windows Vista
+ or later operating systems, you get an error about comctl32.dll being
+ missing - just dismiss the error message and continue.
+
+ Some features to do with fonts in the Appearance menu do not work.
+ This "feature" should disappear when I can manage to build on a more recent
+ version of wxHaskell/Haskell.
+
+LaTeX packages required to render code + documentation:
+
+saoithin (included)
+
+amssymb,amsmath,verbatim,xy,graphicx
+(not included, but should be in any standard distribution)
+
+mathpartir
+(not included, available from http://pauillac.inria.fr/~remy/latex/ )

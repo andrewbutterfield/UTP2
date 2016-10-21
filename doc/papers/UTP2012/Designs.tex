@@ -1,0 +1,177 @@
+\section{Designs}\label{sec:designs}
+
+\PLAN{A theory of designs is developed, showing implicit and explicit alphabets,
+and the importance of side conditions.}
+
+The UTP theory of Designs \cite[Chp 3]{UTP-book}
+introduces two boolean observation variables ($ok, ok'$)
+to model program start and termination, and new notation $P \design Q$
+to represent a predicate with pre and post-conditions:
+\begin{eqnarray*}
+  ok,ok' &:& \Bool \\
+  P \design Q &\defs& ok \land P \implies ok' \land Q
+  , \qquad ok,ok' \notin \fv.P \cup \fv.Q
+\end{eqnarray*}
+A key feature to note is that in this theory we do not specify
+the entire alphabet, but only stipulate that whatever it is,
+it must contain $ok$ and $ok'$.
+In this light we see an even stronger need for special list-variables
+like $Obs$ as already introduced.
+
+We can already capture this with our theories as described so far:
+\begin{eqnarray*}
+   obs(ok) &=& \Bool
+\\ obs(ok') &=& \Bool
+\\ lang(\design) &=& P \design P
+\\ prec(\design) &=& (n,NonAssoc), \quad n \mbox{ is desired precedence}
+\\ laws(\design\!-\!DEF)
+   &=& (P \design Q \equiv ok \land P \implies ok' \land Q,
+        ok,ok' \notin \fv.P \cup \fv.Q)
+\end{eqnarray*}
+Here we see some side-conditions that assert that neither $P$ nor $Q$ should
+mention either $ok$ or $ok'$.
+These are important side-conditions, without which we do not obtain the
+desired behaviours (algebraic laws) for designs.
+However, in proving properties of designs in UTP,
+we find that the side-conditions play a more active role than encountered
+in more traditional presentations of logic.
+In many logics, side-conditions about free variables
+are syntactic in nature and can always be checked/discharged
+when applying a rule to a predicate in the logic.
+In particular, when applying a rule like the one above, both $P$ and $Q$
+will have been instantiated to concrete predicates, and so it will be
+easy to establish the truthfulness of these side-conditions.
+However in a UTP proof about the properties of designs,
+we work with explicit meta-variables $P$ and $Q$
+for which it is not possible to compute side-condition rules
+at rule-application time.
+
+Instead, we have to add a post processing stage to law matching.
+Assuming that a target predicate match involving a law has succeeded
+returning a binding,
+We use that binding to translate any side-condition with the law
+to a corresponding one in the target world.
+We then need to show that the translated law-side condition
+is a consequence of any side-conditions associated with the conjecture goal.
+
+In effect, in addition to a syntax for side-conditions,
+we have to implement a side-condition inference engine
+that can deduce when one side-condition implies another.
+Let $psc$ denote the translated pattern side-condition,
+and $tsc$ denote the side-condition associated with the conjecture being proven.
+We have to demonstrate that $tsc \implies psc$.
+As side-conditions are a conjunction of a few basic primitive side-conditions,
+we simply take both $tsc$ and $tsc \land psc$,
+reduce both to a canonical normal form, and check for equality.
+
+
+To illustrate all of this, here is a proof that $R \design S \equiv R \design R \land S$,
+given that $ok, ok' \notin \fv.R \cup \fv.S$.
+Here we deliberately state our conjecture using different meta-variables
+to those used to define designs, to show the translation aspect at work.
+Our proof strategy will be to take the lefthand side
+and transform it into the righthand side%
+\footnote{
+The strategy in play is noted in the $Proof$ record.
+}%
+.
+
+The first step  proceeds when a match of $R \design S$ succeeds
+against pattern $P \design Q$ returning the binding $\mapof{P \mapsto R, Q \mapsto S}$.
+However, we need to discharge the side-condition $ok,ok' \notin \fv.P \cup \fv.Q$.
+We use the bindings to translate this to $ok,ok' \notin \fv.R \cup \fv.S$.
+This then has to be implied by our conjecture side-condition, which in this case
+is identical to the law condition, so
+we can deduce that it holds.
+The proof then proceeds as follows:
+\begin{eqnarray*}
+  && R \design S
+\EQV{as just discussed above}
+\\&& ok \land R \implies ok' \land S
+\\&\quad\equiv\quad& ok \implies ( R \implies ok' \land S)
+\\&\equiv& ok \implies ( R \implies R \land ok' \land S)
+\\&\equiv& ok \land R \implies ok' \land S \land R
+\EQV{see below}
+\\ && R \design R \land S
+\end{eqnarray*}
+The last step up is similar to the first, as the matching of righthand sides
+succeeds, and the bindings and translation are the same.
+This raises a new and important issue to do with observational variables.
+The variables $ok$ and $ok'$ mentioned above are not arbitrary,
+but denote specific observations, and so it is important for UTP that
+they only match themselves in laws, unlike general variables
+that can match arbitrary expressions (including other variables).
+This leads to the need to indicate that certain variables in patterns
+stand for themselves. Such variables are described as being ``known''.
+All $obs$ variables are known,
+and there is also a facility for a user to give names to constants and expressions,
+and so those names would also be considered ``known''.
+We will not give further details here.
+
+The structural matching rule for variable patterns needs to be modified,
+using the context $\Gamma$ to check if a variable is known,
+here written as $x \in \Gamma$:
+\begin{eqnarray*}
+  & \inferrule%
+       {x \in \Gamma}%
+       {\Gamma \vdash x \ddagger x }
+\\& \inferrule%
+      {x \notin \Gamma}%
+      {\Gamma \vdash x \ddagger v |\setof{ x \mapsto v} }
+\\& \inferrule%
+      {x \notin \Gamma}%
+      {\Gamma \vdash x \ddagger e |\setof{ x \mapsto e} }
+\end{eqnarray*}
+Note that when a known variable matches against itself, no binding entry
+is produced.
+
+At this point, given the hierarchy of Figure \ref{fig:hier-of-theory},
+we have a theory called \texttt{Design},
+which has access to the laws of logic, equality, arithmetic and sets,
+as well as the definitions and associated laws of $\comp$, $\sqcap$, $\refinedby$,
+$\cond c$ and $\design$, as well as the known observation variables $ok$ and $ok'$.
+In particular, we stress that by being linked in the hierarchy shown,
+the \texttt{Design} theory inherits all the material defined in \texttt{UTP}, and all its
+ancestors.
+This is quite abstract at this point, so now we move to ground it all a little more.
+
+\subsection{Healthiness Conditions}
+
+A key feature of UTP is the use of healthiness conditions,
+expressed typically as monotonic idempotent predicate transformers.
+To support this in \UTP2\, we need to extend the predicate syntax
+to include notation for functions over predicates, and the application
+of those to predicates, and appropriate axiomatisation:
+\begin{eqnarray*}
+   p,q,r \in Pred &::=& \ldots
+\\              &|& \Lambda P @ p, \qquad  \mbox{Predicate Abstraction}
+\\              &|& p(q), \qquad \mbox{Predicate Application}
+\\ (\Lambda P @ p)(r) &\equiv& p[r/P]
+\end{eqnarray*}
+It is at this point that we definitely leave 1st-order logic behind
+and move up towards 2nd- and higher-orders of logic.
+At this point it is useful to have a facility to give names
+to frequently used constructs like  healthiness conditions
+or common predicate fragments, such as the predicates called $II$, $B$ and $J$
+used in the definition of the Reactive theory \cite[Chp. 8]{UTP-book}.
+In effect we want to give definitions like the following
+(not necessarily from the theory of Designs):
+\begin{eqnarray*}
+   \H1 &\defs& \Lambda P @ ok \implies P
+\\ J &\defs& (ok \implies ok') \land wait=wait \land tr'=tr \land ref'=ref
+\end{eqnarray*}
+We achieve this by adding in tables into a theory that allow us
+to write such definitions,
+and modifying the matching algorithm to treat all names in those
+tables as ``known'':
+\begin{eqnarray*}
+Theory &=& \textbf{record} \ldots
+\\ && preds : Name \pfun Pred
+\\ && exprs : Name \pfun Expr
+\\ && \ldots \textbf{end}
+\end{eqnarray*}
+So, for example,
+in this theory of Designs we have $preds(\H1) = \Lambda P @ ok \implies P$.
+The rest of the \UTP2\ machinery can then be used to reason about and use these
+healthiness conditions in the normal way,
+so for example, $\H1(q)$ can be converted into $ok \implies q$, and vice-versa.

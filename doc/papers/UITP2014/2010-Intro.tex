@@ -1,0 +1,47 @@
+\section{Introduction}
+
+\STHN\footnote{Pronounced ``See-heen''.}
+is an experimental proof assistant for the logic used in UTP,
+supporting a notion of UTP theory, an intuitive prover interface
+that supports the equational reasoning style that is prevalent in \cite{UTP-book}
+and much other UTP-related literature,
+with facilities for the user to define the syntax and semantics
+of their own language constructs.
+The tool consists of a core equational prover we have developed
+in concert with a closely-coupled GUI interface.
+At present its focus is on supporting foundational work in developing UTP,
+rather than the application of the theory to a ``real-world'' design problem.
+
+
+\subsection{Motivation}
+
+We are doing foundational work in the UTP \cite{UTP-book},
+which requires formal reasoning with not only predicates,
+but also predicate transformers: $\RR3(P)$ $\defs$ $\Skip \cond{wait} P$
+and predicates over predicates: $P = \RR3(P)$.
+We also need to use recursion at the predicate level:
+$ P \defs \mu Q \bullet F(Q)$,
+as well as partially-defined expressions:
+$s \le s \cat (tr'-tr) \equiv  tr \le tr'$.
+The logic being used is therefore semi-classical
+(two-valued logic, but expressions may be undefined)
+and of least 2nd-order.
+In addition, tool support for foundational work in UTP requires the ability
+to easily describe new language constructs,
+which can themselves be treated just like predicates,
+in keeping with the ``programs are predicates''
+philosophy \cite{conf/mlpl/Hoare85} of UTP.
+
+
+\subsection{Structure}
+
+We next discuss related work (\S\ref{sec:related}) in order to better justify
+our decision to ``grow our own'' theorem proving assistant.
+We then proceed to look at the logic (\S\ref{sec:logic:foundation},
+type-system (\S\ref{sec:types:foundation}),
+user defined language support (\S\ref{sec:language:foundation}),
+proof procedures (\S\ref{sec:proof:foundation}),
+and law matching (\S\ref{sec:match:foundation},
+with emphasis on the underlying foundations.
+We then discuss useability and experience (\S\ref{sec:usage})
+and finally finish with  future work and conclusions (\S\ref{sec:conclusions}).

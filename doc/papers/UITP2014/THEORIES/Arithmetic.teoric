@@ -1,0 +1,751 @@
+v3.6
+^Arithmetic ^0 ^_ROOT ^Equality ^2 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^* ^260 ^1 !p
+^+ ^250 ^1 !p
+^- ^250 ^1 !p
+^/ ^260 ^1 !p
+^< ^240 ^0 !p
+^<= ^240 ^0 !p
+^> ^240 ^0 !p
+^>= ^240 ^0 !p
+^div ^260 ^1 !p
+^mod ^260 ^1 !p
+^10 !MO
+^0 !MG
+^* !TZ
+!TZ
+^2 !TP
+!TZ
+!TF
+^+ !TZ
+!TZ
+^2 !TP
+!TZ
+!TF
+^- !TZ
+!TZ
+^2 !TP
+!TZ
+!TF
+^/ !TZ
+!TZ
+^2 !TP
+!TZ
+!TF
+^/= ^t !Tv
+^t !Tv
+^2 !TP
+!TB
+!TF
+^< !TZ
+!TZ
+^2 !TP
+!TB
+!TF
+^<= !TZ
+!TZ
+^2 !TP
+!TB
+!TF
+^= ^t !Tv
+^t !Tv
+^2 !TP
+!TB
+!TF
+^> !TZ
+!TZ
+^2 !TP
+!TB
+!TF
+^>= !TZ
+!TZ
+^2 !TP
+!TB
+!TF
+^div !TZ
+!TZ
+^2 !TP
+!TZ
+!TF
+^mod !TZ
+!TZ
+^2 !TP
+!TZ
+!TF
+^neg !TZ
+!TZ
+!TF
+^13 !MK
+^induction-Nat ^P !PV
+^0 !EN
+^1 ^x ^1 !QL
+!SE
+!PS
+^n ^1 !QL
+^P !PV
+^n !EV
+^1 ^x ^1 !QL
+!SE
+!PS
+^P !PV
+^+ ^250 ^n !EV
+^1 !EN
+!EB
+^1 ^x ^1 !QL
+!SE
+!PS
+!PI
+!PAl
+^2 !PA
+^x ^1 !QL
+^<= ^240 ^0 !EN
+^x !EV
+!EB
+!PE2
+^P !PV
+!PI
+!PAl
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^induction-Int ^P !PV
+^0 !EN
+^1 ^x ^1 !QL
+!SE
+!PS
+^n ^1 !QL
+^P !PV
+^n !EV
+^1 ^x ^1 !QL
+!SE
+!PS
+^P !PV
+^+ ^250 ^n !EV
+^1 !EN
+!EB
+^1 ^x ^1 !QL
+!SE
+!PS
+!PI
+!PAl
+^2 !PA
+^n ^1 !QL
+^P !PV
+^n !EV
+^1 ^x ^1 !QL
+!SE
+!PS
+^P !PV
+^- ^250 ^n !EV
+^1 !EN
+!EB
+^1 ^x ^1 !QL
+!SE
+!PS
+!PI
+!PAl
+^2 !PA
+^x ^1 !QL
+^P !PV
+!PAl
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^plus-l-unit ^+ ^250 ^0 !EN
+^e1 !EV
+!EB
+^e1 !EV
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^plus-r-unit ^+ ^250 ^e1 !EV
+^0 !EN
+!EB
+^e1 !EV
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^plus-comm ^+ ^250 ^e1 !EV
+^e2 !EV
+!EB
+^+ ^250 ^e2 !EV
+^e1 !EV
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^plus-assoc ^+ ^250 ^e1 !EV
+^+ ^250 ^e2 !EV
+^e3 !EV
+!EB
+!EB
+^+ ^250 ^+ ^250 ^e1 !EV
+^e2 !EV
+!EB
+^e3 !EV
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^plus-inv ^+ ^250 ^e1 !EV
+^neg ^e1 !EV
+!EA
+!EB
+^0 !EN
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^plus-cancel ^e1 !EV
+^e2 !EV
+!E=
+!PE2
+^+ ^250 ^e3 !EV
+^e1 !EV
+!EB
+^+ ^250 ^e3 !EV
+^e2 !EV
+!EB
+!E=
+!PE2
+!PQ
+!CT
+^Builtin:Arithmetic !OS
+^minus-as-plus-neg ^- ^250 ^e1 !EV
+^e2 !EV
+!EB
+^+ ^250 ^e1 !EV
+^neg ^e2 !EV
+!EA
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^minus-l-unit ^- ^250 ^e1 !EV
+^0 !EN
+!EB
+^e1 !EV
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^mul-l-unit ^* ^260 ^1 !EN
+^e1 !EV
+!EB
+^e1 !EV
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^mul-r-unit ^* ^260 ^e1 !EV
+^1 !EN
+!EB
+^e1 !EV
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^mul-l-zero ^* ^260 ^0 !EN
+^e1 !EV
+!EB
+^0 !EN
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^mul-r-zero ^* ^260 ^e1 !EV
+^0 !EN
+!EB
+^0 !EN
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^mul-comm ^* ^260 ^e1 !EV
+^e2 !EV
+!EB
+^* ^260 ^e2 !EV
+^e1 !EV
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^mul-assoc ^* ^260 ^e1 !EV
+^* ^260 ^e2 !EV
+^e3 !EV
+!EB
+!EB
+^* ^260 ^* ^260 ^e1 !EV
+^e2 !EV
+!EB
+^e3 !EV
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^divd-l-unit ^/ ^260 ^e1 !EV
+^1 !EN
+!EB
+^e1 !EV
+!E=
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^DOD-/ ^/ ^260 ^e1 !EV
+^e2 !EV
+!EB
+!P?
+^/= ^220 ^e2 !EV
+^0 !EN
+!EB
+!PE2
+!PQ
+!CT
+^Builtin:Arithmetic !OS
+^lt-irr ^< ^240 ^e1 !EV
+^e1 !EV
+!EB
+!PE2
+!PN
+!CT
+^Builtin:Arithmetic !OS
+^lt-trans ^< ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^< ^240 ^e2 !EV
+^e3 !EV
+!EB
+!PE2
+^2 !PA
+^< ^240 ^e1 !EV
+^e3 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^lt-disj ^< ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^< ^240 ^e2 !EV
+^e1 !EV
+!EB
+!PE2
+^2 !PA
+!PN
+!CT
+^Builtin:Arithmetic !OS
+^le-refl ^<= ^240 ^e1 !EV
+^e1 !EV
+!EB
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^le-trans ^<= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^<= ^240 ^e2 !EV
+^e3 !EV
+!EB
+!PE2
+^2 !PA
+^<= ^240 ^e1 !EV
+^e3 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^le-lt-trans ^<= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^< ^240 ^e2 !EV
+^e3 !EV
+!EB
+!PE2
+^2 !PA
+^<= ^240 ^e1 !EV
+^e3 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^lt-le-trans ^< ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^<= ^240 ^e2 !EV
+^e3 !EV
+!EB
+!PE2
+^2 !PA
+^<= ^240 ^e1 !EV
+^e3 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^le-anti ^<= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^<= ^240 ^e2 !EV
+^e1 !EV
+!EB
+!PE2
+^2 !PA
+^e1 !EV
+^e2 !EV
+!E=
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^gt-irr ^> ^240 ^e1 !EV
+^e1 !EV
+!EB
+!PE2
+!PN
+!CT
+^Builtin:Arithmetic !OS
+^gt-trans ^> ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^> ^240 ^e2 !EV
+^e3 !EV
+!EB
+!PE2
+^2 !PA
+^> ^240 ^e1 !EV
+^e3 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^gt-disj ^> ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^> ^240 ^e2 !EV
+^e1 !EV
+!EB
+!PE2
+^2 !PA
+!PN
+!CT
+^Builtin:Arithmetic !OS
+^ge-refl ^>= ^240 ^e1 !EV
+^e1 !EV
+!EB
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^ge-trans ^>= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^>= ^240 ^e2 !EV
+^e3 !EV
+!EB
+!PE2
+^2 !PA
+^>= ^240 ^e1 !EV
+^e3 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^ge-gt-trans ^>= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^> ^240 ^e2 !EV
+^e3 !EV
+!EB
+!PE2
+^2 !PA
+^>= ^240 ^e1 !EV
+^e3 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^gt-ge-trans ^> ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^>= ^240 ^e2 !EV
+^e3 !EV
+!EB
+!PE2
+^2 !PA
+^>= ^240 ^e1 !EV
+^e3 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^ge-anti ^>= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^>= ^240 ^e2 !EV
+^e1 !EV
+!EB
+!PE2
+^2 !PA
+^e1 !EV
+^e2 !EV
+!E=
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^swap-le-ge ^<= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^>= ^240 ^e2 !EV
+^e1 !EV
+!EB
+!PE2
+!PQ
+!CT
+^Builtin:Arithmetic !OS
+^swap-lt-gt ^< ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^> ^240 ^e2 !EV
+^e1 !EV
+!EB
+!PE2
+!PQ
+!CT
+^Builtin:Arithmetic !OS
+^le-as-lt ^<= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^< ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^e1 !EV
+^e2 !EV
+!E=
+!PE2
+^2 !PO
+!PQ
+!CT
+^Builtin:Arithmetic !OS
+^lt-as-le ^< ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^<= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^/= ^220 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^2 !PA
+!PQ
+!CT
+^Builtin:Arithmetic !OS
+^ge-as-gt ^>= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^> ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^e1 !EV
+^e2 !EV
+!E=
+!PE2
+^2 !PO
+!PQ
+!CT
+^Builtin:Arithmetic !OS
+^gt-as-ge ^> ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^>= ^240 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^/= ^220 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^2 !PA
+!PQ
+!CT
+^Builtin:Arithmetic !OS
+^plus-one-lt ^< ^240 ^e1 !EV
+^+ ^250 ^e1 !EV
+^1 !EN
+!EB
+!EB
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^plus-one-gt ^> ^240 ^+ ^250 ^e1 !EV
+^1 !EN
+!EB
+^e1 !EV
+!EB
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^plus-pos-ge ^>= ^240 ^e2 !EV
+^0 !EN
+!EB
+!PE2
+^>= ^240 ^+ ^250 ^e1 !EV
+^e2 !EV
+!EB
+^e1 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^plus-neg-le ^<= ^240 ^e2 !EV
+^0 !EN
+!EB
+!PE2
+^<= ^240 ^+ ^250 ^e1 !EV
+^e2 !EV
+!EB
+^e1 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^plus-pos-gt ^> ^240 ^e2 !EV
+^0 !EN
+!EB
+!PE2
+^> ^240 ^+ ^250 ^e1 !EV
+^e2 !EV
+!EB
+^e1 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^plus-neg-lt ^< ^240 ^e2 !EV
+^0 !EN
+!EB
+!PE2
+^< ^240 ^+ ^250 ^e1 !EV
+^e2 !EV
+!EB
+^e1 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^minus-one-gt ^> ^240 ^e1 !EV
+^- ^250 ^e1 !EV
+^1 !EN
+!EB
+!EB
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^minus-one-lt ^< ^240 ^- ^250 ^e1 !EV
+^1 !EN
+!EB
+^e1 !EV
+!EB
+!PE2
+!CT
+^Builtin:Arithmetic !OS
+^minus-pos-le ^>= ^240 ^e2 !EV
+^0 !EN
+!EB
+!PE2
+^<= ^240 ^- ^250 ^e1 !EV
+^e2 !EV
+!EB
+^e1 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^minus-neg-ge ^<= ^240 ^e2 !EV
+^0 !EN
+!EB
+!PE2
+^>= ^240 ^- ^250 ^e1 !EV
+^e2 !EV
+!EB
+^e1 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^minus-pos-lt ^> ^240 ^e2 !EV
+^0 !EN
+!EB
+!PE2
+^< ^240 ^- ^250 ^e1 !EV
+^e2 !EV
+!EB
+^e1 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^minus-neg-ge ^< ^240 ^e2 !EV
+^0 !EN
+!EB
+!PE2
+^> ^240 ^- ^250 ^e1 !EV
+^e2 !EV
+!EB
+^e1 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Arithmetic !OS
+^52 !lM
+^0 !ML
+^0 !MT
+!@

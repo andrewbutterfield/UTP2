@@ -1,0 +1,11 @@
+\textbf{Find all possible Substitution Matches (I)}\\
+  Argument \texttt{subms} is a list of pairs, each pair of the form:
+  \begin{eqnarray*}
+   (~(a_1,f_1),\ldots,(a_n,f_n), (\lst a_1,\lst f_1),\ldots,(\lst a_m,\lst f_m)
+   &,&
+     (x_1,e_1),\ldots,(x_k,e_k), (\lst x_1,\lst e_1),\ldots,(\lst x_\ell,\lst e_\ell)~)
+  \\ \mbox{test}  &,& \mbox{pattern}, \quad n \geq k \land ((n \neq k \lor m > 0) \implies \ell > 0)
+  \end{eqnarray*}
+ We process each pair to find a satisfying binding, consistent
+ with bindings so far, failing if we cannot do this for all pairs
+ in the list.

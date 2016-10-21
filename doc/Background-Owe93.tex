@@ -1,0 +1,254 @@
+\subsection{\textbf{WS} (Owe 1993)}
+
+\def\F{\textsc{f}}
+\def\T{\textsc{t}}
+\def\pre#1{\textsf{pre-}\!#1}
+
+This is the WS logic of Olaf Owe \cite{Owe93}.
+
+\subsubsection{Definedness}
+
+Definition of $\Delta$:
+\begin{eqnarray*}
+   \Delta(\bot)         &==& \F
+\\ \Delta(\T)           &==& \T
+\\ \Delta(\F)           &==& \T
+\\ \Delta(x)            &==& \T
+\\ \Delta(\lnot a)      &==& \Delta a
+\\ \Delta(a \land b)    &==& \Delta(a,b)
+                        \lor (\Delta a \land \lnot a)
+                        \lor (\Delta b \land \lnot b)
+\\ \Delta(a \lor b)     &==& \Delta(a,b)
+                        \lor (\Delta a \land a)
+                        \lor (\Delta b \land b)
+\\ \Delta(a \implies b) &==& \Delta(a,b)
+                        \lor (\Delta a \land \lnot a)
+                        \lor (\Delta b \land b)
+\\ \Delta(\forall x.a)  &==& (\forall x.\Delta a)
+                        \lor (\exists x.\Delta a \land \lnot a)
+\\ \Delta(\exists x.a)  &==& (\forall x.\Delta a)
+                        \lor (\exists x.\Delta a \land a)
+\\ \Delta(f(e))         &==& \Delta e \land \pre f (e)
+\\ \Delta(e_1=e_2)      &==& \Delta(e_1,e_2)
+\\ \Delta(\IF a \THEN e_1 \ELSE e_2)
+   &==&
+   \Delta a \land (\IF a \THEN \Delta e_1 \ELSE \Delta e_2)
+\end{eqnarray*}
+Properties of $\Delta$:
+\begin{eqnarray*}
+   \Delta(\Delta a) && holds
+\\ \Delta(\Delta a \land a) && holds
+\\ \Delta(\Delta a \implies a) && holds
+\\ \Delta(a \implies b)\land(a \implies b)
+   &==&
+   (\Delta a \implies a) \implies (\Delta b \land b)
+\\ \Delta(\forall x.a) \land (\forall x.a)
+   &==&
+   (\forall x.\Delta a \land a)
+\\ \Delta(\forall x.a) \implies (\forall x.a)
+   &==&
+   (\forall x.\Delta a \implies a)
+\\ \Delta(\exists x.a) \land (\exists x.a)
+   &==&
+   (\exists x.\Delta a \land a)
+\\ \Delta(\exists x.a) \implies (\exists x.a)
+   &==&
+   (\exists x.\Delta a \implies a)
+\\ \Delta(a[x:=e]) &whenever& \Delta(a,e)
+\\ e_1 == e_2
+   &becomes&
+   \lnot\Delta e_1 \land \lnot\Delta e_2
+   \lor
+   \Delta(e_1,e_2) \land e_1 = e_2
+\end{eqnarray*}
+
+\newpage
+\subsubsection{Inference Rules}
+
+$A \infer c$ is equivalent to $\infer c, \overline A$,
+where $,$ denotes $\lor$,
+and $\overline{\setof{A_1,\ldots,A_n}}$
+is $\setof{\lnot A_1, \ldots, \lnot A_n}$.
+
+
+$$\begin{array}{c@{\quad}l@{\qquad\qquad}r}
+  \INFER{\infer A}{\infer B}, & A \subseteq B & (enrichment)
+\\
+\\\INFER%
+    {\infer A \\ \infer \Delta t}%
+    {\infer A[x:=t]}
+    && (weak~substitution)
+\end{array}$$
+Convention from now on:
+$$
+ \INFER{\ldots \\ \infer A_i \\ \ldots}%
+       {\infer A}
+       , \quad i \in 1\ldots n
+$$
+is short for
+$$
+ \INFER{\ldots \\ \infer A_i,B_i \\ \ldots}%
+       {\infer A, \bigcup_{i \in 1 \ldots n} B_i}
+$$
+
+$$\begin{array}{c@{\quad}l@{\qquad\qquad}r}
+  \BINFER{\infer a,b}{\infer a \lor b} && (\lor)
+\\
+\\\BINFER{\infer a \\\\ \infer b}{\infer a \land b} && (\land)
+\\
+\\\BINFER{\infer \lnot a,b}{\infer a \implies b} && (\implies)
+\\
+\\\BINFER{\infer a \\\\ \infer \lnot a}{\infer \F} && (\lnot)
+\\
+\\\BINFER{\infer \F,a}{\infer a} && (\F)
+\\
+\\\BINFER{\infer a,\lnot a}{\infer \Delta a} && (\Delta)
+\\
+\\\BINFER{\infer a}{\infer \forall x.a} && \mbox{no implicit clause with $x$ free when used forwards}
+\\
+\\\INFER{\infer \exists x . a \\\\ \infer \lnot a}%
+        {\infer \F}
+        && \mbox{no implicit clause with $x$ free}
+\\
+\\\INFER{\infer a[x:=t]}{\infer \exists x.a} && (\exists\mbox{-introduction})
+\end{array}$$
+\newpage
+Logical axioms:
+\begin{eqnarray*}
+  && \infer a,\lnot a,\lnot\Delta a
+\\&& \infer \Delta\Delta t
+\end{eqnarray*}
+Derived Rules and Theorems:
+$$\begin{array}{lrr}
+   \BINFER%
+     {\infer a}%
+     {\infer \Delta a \land a}
+   &&
+   \BINFER%
+     {\infer a \land b}%
+     {\infer (\Delta a \land a) \land (\Delta a \land a)}
+\\ \\
+   \BINFER%
+     {\infer \forall x.a}%
+     {\infer \forall x.(\Delta a \land a)}
+   &&
+   \BINFER%
+     {\infer a \lor b}%
+     {\infer (\Delta a \land a) \lor (\Delta a \land a}
+\\ \\
+   \BINFER%
+     {\infer \exists x.a}%
+     {\infer \exists x.(\Delta a \land a)}
+   &&
+   \BINFER%
+     {\infer a \implies b}%
+     {\infer (\Delta a \implies a) \implies (\Delta b \land b)}
+\\ \\
+   \infer \Delta(\Delta a \land a)
+   &
+   \infer \Delta(\Delta a \implies a)
+   &
+   \infer \Delta t, \lnot \Delta t
+\\ \\
+   \INFER%
+     {\infer A \\\\ \infer \Delta A[x:=t]}%
+     {\infer A[x:=t]}
+   && A \mbox{ monotonic, no impicit clause}
+\end{array}$$
+
+\subsubsection{Equality}
+
+$$\begin{array}{lrr}
+   \infer x=x
+   &
+   \INFER%
+     {\infer e_1 = e_2 \\ \infer a[x:=e_1]}%
+     {\infer a[x:=e_2]}
+   &
+   \BINFER%
+     {\infer a \implies b \\\\ \infer b \implies a}%
+     {\infer a=b}
+\end{array}$$
+With strong equality then properties of $\Delta$ above become axioms
+and
+$$
+  \INFER%
+    {\infer e_1 == e_2 \\\\ \infer a[x:=e_1]}%
+    {\infer a[x:=e_2]}
+$$
+
+\subsubsection{Assumptions}
+
+\begin{eqnarray*}
+   \BINFER%
+     {A \infer a,B}%
+     {A,\lnot a \infer B}
+   &
+   (swap)
+   &
+   \BINFER%
+     {A \infer \lnot a, B}%
+     {A,a \infer B}%
+\end{eqnarray*}
+Derived rules:
+$$\begin{array}{c@{\qquad}c@{\qquad}c}
+   \BINFER%
+     {\infer \Delta a}%
+     {a \infer a}
+   &
+   \BINFER%
+     {a \infer b}%
+     {\infer a \implies b}
+   &
+   \INFER%
+     {\infer a \\\\ \Delta a,a \infer b}%
+     {\infer b}
+\end{array}$$
+
+
+\subsubsection{Function Definitions}
+
+Given $f(y) \defs e$, we have:
+
+$$\begin{array}{c@{\quad}l@{\qquad\qquad}r}
+   \infer f(y) == e && (f\mbox{-axiom})
+\\ \pre f(y) == \Delta e && (\pre f\mbox{-axiom})
+\end{array}$$
+If $e$ has recursive calls $f(e_i)$, and $a$ has no occurrence for $f$
+and is admissible for $x$,
+then:
+$$\begin{array}{c@{\quad}l@{\qquad\qquad}r}
+   \INFER%
+     {\infer a[x:=\bot]
+      \\\\
+      \ldots,a[x:=f(y)][y:=e_i],\ldots \infer a[x:=e]
+      }
+     {\infer a[x:=f(y)]}
+   && (comp. ind.)
+\\ \\
+  \INFER%
+    {\ldots,\pre f(e_i) \implies a[x:=f(y)][y:=e_i],\ldots
+     \infer
+     \Delta e \implies a[x:=e]}
+    {\pre f(y) \infer a[x:=f(y)]}
+    && (\pre f\mbox{-rule})
+\end{array}$$
+
+
+\subsubsection{Propositional Connectives}
+
+
+\subsubsection{Axioms}
+
+
+\subsubsection{Inference Rules}
+
+
+\subsubsection{Derived Rules}
+
+
+\subsubsection{Valuations}
+
+
+\subsubsection{Meta-theorems}
+

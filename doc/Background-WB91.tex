@@ -1,0 +1,242 @@
+\subsection{$\mathcal{W}$ (Woodcock/Brien 91)}
+Based on \cite{WB91}
+
+\def\bindof#1{\langle\!|#1|\!\rangle}
+\def\bto{\rightsquigarrow}
+
+We have a sequent of the form:
+\begin{eqnarray*} 
+  \overbrace{\textsf{declarations} | \textsf{predicates}}^{\textsf{antecedent}}
+ &\vdash&
+ \underbrace{\textsf{predicates}}_{\textsf{consequent}}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+   d,e,f && \mbox{(lists of) declarations}
+\\ p,q,r && \mbox{predicates}
+\\ \Phi, \Psi, \Omega && \mbox{sets of predicates}
+\end{eqnarray*}
+Sequent: $d | \Phi \vdash \Psi$.
+\begin{eqnarray*}
+   R && \textrm{relations}
+\\ b,c && \textrm{bindings}
+\\ s,t,u,v && \textrm{expressions}
+\\ S,T,U && \textrm{schemas}
+\\ x,y,z && \textrm{variables}
+\\ X, Y, Z && \textrm{schema references}
+\\ St && \textrm{schema texts}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+   s,t,u,v \in Expr 
+     &::=& x | x_\gamma | s~t 
+\\ && {} | \power t | (t_1 \times \ldots \times t_n)|(t_1,\ldots ,t_n)| \setof{t_1, \ldots, t_n}
+\\ && {} | T | \theta T^q | St @ t | \mu St @ t
+\\ p,q,r \in Pred 
+     &::=& s=t | s \in t | s~R~t
+\\ && {} | \lnot p | p \land q | p \lor q | p \implies q | p \iff q
+\\ && {} | \forall St @ p | \exists St @ p | \exists_1 St @ p | T
+\\ S,T,U \in Schema 
+     &::=& [d\!|\!p]~ | X
+\\ && {} | \lnot T |  S \land T | S \lor T | S \implies T | S \iff T
+\\ && {} | \forall St @ T | \exists St @ T | \exists_1 St @ T | 
+\\ d,e,f \in Decl
+     &::=& x:t |  (d\!|\!p)~ | T |  d;e 
+\end{eqnarray*}
+
+\subsubsection{Propositional Connectives}
+
+Standard, all classical.
+
+
+\subsubsection{Axioms}
+
+
+\subsubsection{Inference Rules}
+
+
+\subsubsection{Derived Rules}
+
+
+\subsubsection{Valuations}
+
+
+\subsubsection{Meta-theorems}
+
+
+\begin{eqnarray*}
+   \alpha &:& Schema \fun \power Var
+\\ \alpha[d\!|\!p]) &\defs& \alpha d
+\\ \alpha X[s_1,\ldots s_n] &\defs& \alpha(\bindof{u_1,\ldots u_n \bto s_1,\ldots,s_n}.T), \quad X[s_1,\ldots,s_n] \defs T
+\\ \alpha X^q &\defs& \setof{x_1^q,\ldots,q_n^q}, = \alpha X, \quad T[X_1,\ldots,X_n] \defs U
+\\ \alpha(\lnot S) &\defs& \alpha S
+\\ \alpha(S \odot T) &\defs& (\alpha S)  \cup (\alpha T), \qquad \odot \in \setof{\land,\lor,\implies,\iff}
+\\ \alpha(\quant St @ T) &\defs& \alpha T \setminus \alpha St, \qquad \quant \in \setof{\forall,\exists,\exists_1}
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+   \alpha &:& Decl \fun \power Var
+\\ \alpha (x:t) &\defs& \setof x
+\\ \alpha (d\!|\!p) &\defs& \alpha d 
+\\ \alpha (d;e) &\defs& (\alpha d) \cup (\alpha e)
+\end{eqnarray*}
+
+\begin{eqnarray*}
+   \phi_e &:& Expr \fun \power Var
+\\ \phi_e(x) &\defs& \setof x
+\\ \phi_e(x_\gamma) &\defs& \emptyset
+\\ \phi_e(s~t) &\defs& (\phi_e s) \cup (\phi_e t)
+\\ \phi_e(\power t) &\defs& (\phi_e X)
+\\ \phi_e((t_1 \times \ldots \times t_n)) &\defs& (\phi_e t_1) \cup \ldots \cup (\phi_e t_n)
+\\ \phi_e((t_1, \ldots, t_n)) &\defs& (\phi_e t_1) \cup \ldots \cup (\phi_e t_n)
+\\ \phi_e(\setof{t_1 ,\ldots, t_n}) &\defs& (\phi_e t_1) \cup \ldots \cup (\phi_e t_n)
+\\ \phi_e(T) &\defs& \phi_s T
+\\ \phi_e(\theta T^q) &\defs& (\phi_s T) \cup (\alpha T^q)
+\\ \phi_e(St @ t) &\defs& (\phi_d St) \cup (\phi_e t \setminus \alpha St)
+\\ \phi_e(\mu St @ t) &\defs& (\phi_d St) \cup (\phi_e t \setminus \alpha St)
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+   \phi_p &:& Pred \fun \power Var
+\\ \phi_p(\lnot p) &\defs& \phi_p p
+\\ \phi_p(p \odot q) &\defs& (\phi_p p) \cup (\phi_p q), \qquad \odot \in \setof{\land,\lor,\implies,\iff}
+\\ \phi_p(t=u) &\defs& (\phi_e t) \cup (\phi_e u)
+\\ \phi_p(t \in u) &\defs& (\phi_e t) \cup (\phi_e u)
+\\ \phi_p(s~R~u) &\defs& (\phi_e s) \cup (\phi_e R) \cup (\phi_e u)
+\\ \phi_p(\quant St @ p) &\defs& (\phi_d St) \cup (\phi_p p) \setminus \alpha St), \qquad \quant \in \setof{\forall,\exists,\exists_1}
+\\ (\phi_p T) &\defs& (\phi_s T) \cup \alpha T
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+   \phi_s &:& Schema \fun \power Var
+\\ \phi_s[d\!|\!p]) &\defs& \phi_d (d\!|p!)
+\\ \phi_s X &\defs&\emptyset
+\\ \phi_s(\lnot S) &\defs& \phi_s S
+\\ \phi_s(S \odot T) &\defs& (\phi_s S)  \cup (\phi_s T), \qquad \odot \in \setof{\land,\lor,\implies,\iff}
+\\ \phi_s(\quant St @ T) &\defs& (\phi_d St) (\phi_s T), \qquad \quant \in \setof{\forall,\exists,\exists_1}
+\\ \phi_s T  &\defs& \phi_s X
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+   \phi_d &:& Decl \fun \power Var
+\\ \phi_d (x:t) &\defs& \phi_e t
+\\ \phi_d (d\!|\!p) &\defs& (\phi_d d) \cup (\phi_p p \setminus \alpha d)
+\\ \phi_d T &\defs& \phi_s T
+\\ \phi_d (d;e) &\defs& (\phi_d d) \cup (\phi_d e \setminus \alpha d)
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+   b. &:& Expr \fun \power Var
+\\ \bindof{x \bto t}.x &\defs& t
+\\ \bindof{y \bto t}.x &\defs& x, \quad x \neq y
+\\ b.(x_\gamma) &\defs& \emptyset
+\\ b.(s~t) &\defs& b.s ~ b.t
+\\ b.(\power t) &\defs& \power (b.t)
+\\ b.(t_1 \times \ldots \times t_n) &\defs& (b.t_1) \cup \ldots \cup (b.t_n) ????
+\\ b.(t_1, \ldots, t_n) &\defs& (b.t_1,\ldots , b.t_n)
+\\ b.\setof{t_1 ,\ldots, t_n} &\defs& \setof{b. t_1,\ldots, b. t_n}
+\\ b.X &\defs& X
+\\ b.(\theta T^q) &\defs& (\phi_s T) \cup (\alpha T^q)
+\\ b.(St @ t) &\defs& (\phi_d St) \cup (b. t \setminus \alpha St)
+\\ b.(\mu St @ t) &\defs& (\phi_d St) \cup (b. t \setminus \alpha St)
+\\ b.s &=& s, \qquad \alpha b \cap \phi s = \emptyset
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+   b. &:& Pred \fun \power Var
+\\ b.(\lnot p) &\defs& b. p
+\\ b.(p \odot q) &\defs& (b. p) \cup (b. q), \qquad \odot \in \setof{\land,\lor,\implies,\iff}
+\\ b.(t=u) &\defs& (b. t) \cup (b. u)
+\\ b.(t \in u) &\defs& (b. t) \cup (b. u)
+\\ b.(s~R~u) &\defs& (b. s) \cup (b. R) \cup (b. u)
+\\ b.(\quant St @ p) &\defs& (\phi_d St) \cup (b. p) \setminus \alpha St), \qquad \quant \in \setof{\forall,\exists,\exists_1}
+\\ (b. T) &\defs& (\phi_s T) \cup \alpha T
+\end{eqnarray*}
+
+
+\begin{eqnarray*}
+   b. &:& Decl \fun \power Var
+\\ b. (x:t) &\defs& b. t
+\\ b. (d\!|\!p) &\defs& (b. d) \cup (b. p \setminus \alpha d)
+\\ b. T &\defs& \phi_s T
+\\ b. (d;e) &\defs& (b. d) \cup (b e \setminus \alpha d)
+\end{eqnarray*}
+
+
+[Rule-lifting]
+\\
+Provided that $(\alpha d \cup \alpha d') \cap (\phi p \cup \phi q) = \emptyset$
+\\then rule
+$
+\INFER%
+     {e; d | \Psi \vdash \Psi}%
+     {e; d' | \Psi' \vdash \Psi'}%
+$
+is sound
+\\iff
+rule
+$
+\INFER%
+     {f; e; d | p,\Psi \vdash q,\Psi}%
+     {f; e; d' | p,\Psi' \vdash q,\Psi'}%
+$
+is sound.
+
+[Rule-inversion]
+\\ 
+The rule
+$
+\INFER%
+     {d \vdash p}%
+     {d \vdash q}%
+$
+is sound
+iff
+rule
+$
+\INFER%
+     {d | q \vdash}%
+     {d | p \vdash}%
+$
+is sound.
+
+[Meta-equivalance-lifting]
+\\ If the following are meta-level equivalances: $p \equiv q$ and $d \equiv e$,
+\\ then the following rules are sound:
+\begin{eqnarray*}
+ \INFER{e|q\vdash}{d|p\vdash} && \INFER{e\vdash q}{d\vdash p}
+\end{eqnarray*}
+
+[Sequent-lifting]
+\\ Rule 
+$
+\AXIOM{d | \Phi \vdash \Psi}
+$
+is sound
+iff
+sequent
+$ d | \Phi \vdash \Psi$ is valid.
+
+[Tree-squashing]
+\\Given (sound) derivation tree:
+$$
+ \INFER%
+   {\INFER{Seq_1}\vdots[p_1] \ldots  \INFER{Seq_n}\vdots[p_n]}%
+   {\INFER\vdots{Seq} [p]}
+$$
+then
+$$
+  \INFER%
+    {Seq_1 ~ \ldots Seq_n}%
+    {Seq}
+  [p,p_1,\ldots,p_n]
+$$
+is sound.
+
+

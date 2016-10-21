@@ -1,0 +1,444 @@
+\subsection{Partial Logics (Cerioli/Mossakowski/Reichel 1999)}
+Based on \cite{CMR99}.
+
+The key idea is to have a two-valued logic that handles
+terms which may not denote.
+
+An important point to note here is that the axioms and predicates
+are \emph{``alphabetised''}.
+
+\subsubsection{Syntax}
+
+The define formulas over signatures $\Sigma$ and (free) variable sets
+$X$ as belonging to $Form(\Sigma,X)$.
+
+They define \emph{first order axioms} as a pair $X.P$ where $P \in Form(\Sigma,X)$,
+so $X$ must cover all free variables in $P$.
+If omitted, $X$ is assumed equal to the free variables of $P$.
+If $X=\emptyset$ the axiom is \emph{closed}.
+
+\subsubsection{Propositional Connectives}
+
+\subsubsection{Substitution}
+
+\RLEQNS{
+   \__{\dagger\_} &\defs& Substn \times \power Variable \fun Substn & \elabel{Subs:id-ovr:sig}
+\\ \theta_{\dagger X} &\defs& \theta \override Substn(id_X) & \elabel{Subs:id-ovr:def}
+\\ \_[\_] &:& Predicate \times Substn \pfun Predicate & \elabel{Subs:p-pred:sig}
+\\ (t_1 =_e t_2)[\theta] &\defs_E& t_1[\theta]=_e t_2[\theta] & \elabel{Subs:p-pred:eq:def}
+\\ p(e_1,\ldots,e_n)[\theta] &\defs_E& p(e_1[\theta],\ldots,e_n[\theta]) & \elabel{Subs:p-pred:pred:def}
+\\ False[\theta] &\defs_E& False &\elabel{Subs:p-pred:F:def}
+\\ (P \land Q)[\theta] &\defs_S& P[\theta] \land Q[\theta]  &\elabel{Subs:p-pred:and:def}
+\\ (P \implies Q)[\theta] &\defs_S& P[\theta] \implies Q[\theta]  &\elabel{Subs:p-pred:imp:def}
+\\ (\forall \vec x @ P)[\theta]
+   &\defs_S&
+   \left\{
+     \begin{array}{ll}
+       \forall \vec x @ P[\theta_{\dagger\vec x}], & \nocapture~\theta~\vec x \\
+       undefined, & \hbox{otherwise.}
+     \end{array}
+   \right.
+   & \elabel{Subs:p-pred:all:def}
+}
+Here $Substn(\vartheta)$ denotes the obvious lifting of $\vartheta:Variable \pfun Variable$
+to a substitution (range injection into $Expr$).
+
+\begin{itemize}
+  \item Substitution Lemma for $\models^t$ \elabel{Subst-Lemma:models-t}
+  \\ Given $\tval:Y \fun A$, $\theta:X \fun term(Y)$ and $P$ (over $X$), and the conditions:
+    \begin{itemize}
+      \item $\tval^{\#} \circ \theta : X \fun A$ is total, i.e forall $x \in X$
+       we have $\tval \valsat \theta(x)\defined$
+      \item $P[\theta]$ is defined
+    \end{itemize}
+    then
+    $\tval^{\#} \circ \theta \valsat P
+       ~\IFF~
+       \tval \valsat P[\theta]
+    $
+  \item Substitution Lemma for $\models^p$ \elabel{Subst-Lemma:models-p}
+  \\ Given $\pval:Y \pfun A$, $\theta:X \fun term(Y)$ and $P$ (over $X$), and the condition:
+    \begin{itemize}
+      \item $P[\theta]$ is defined
+    \end{itemize}
+    then
+    $\pval^{\#} \circ \theta \valsat P
+       ~\IFF~
+       \pval \valsat P[\theta]
+    $
+\end{itemize}
+
+\subsubsection{Derivation Rules}
+
+Abbreviations:
+\RLEQNS{
+   e\defined &\defs& e =_e e & \elabel{abrv:defd:eeq}
+\\ e =_w e' &\defs& (e\defined \land e'\defined) \implies e =_e e'
+   & \elabel{abrv:weq:eeq}
+\\ e =_s e' &\defs& (e\defined \lor e'\defined) \implies e =_e e'
+   & \elabel{abrv:seq:eeq}
+\\ e =_w e' &\defs& (e\defined \land e'\defined) \implies e =_s e'
+   & \elabel{abrv:weq:seq}
+\\ e =_e e' &\defs& e\defined \implies e =_s e'
+   & \elabel{abrv:eeq:seq}
+\\ e =_e e' &\defs& e\defined \land e'\defined \land e =_w e'
+   & \elabel{abrv:eeq:weq:defd}
+\\ e =_s e' &\defs& (e\defined \lor e'\defined)
+                    \implies
+                    e\defined \land e'\defined \land e =_w e'
+   & \elabel{abrv:seq:weq:defd}
+\\ \lnot P &\defs& P \implies False & \elabel{abrv:not:implies:F}
+\\ P \lor Q &\defs& \lnot(\lnot P \land \lnot Q) & \elabel{abrv:or:deMorgan}
+\\ P \equiv Q &\defs& (P \implies Q) \land (Q \implies P)
+  & \elabel{abrv:equiv:bi-implies}
+\\ \exists \vec x @ P &\defs& \lnot(\forall \vec x @ \lnot P) & \elabel{abrv:exists:deMorgan}
+}
+Derivation Rules, assuming $\Phi,\Phi_1,\Phi_2$ and $\Phi_3$
+as sets of formulae over $X$.
+\RRULES{
+   \INFER{~}{\Phi \infer^t_{\Sigma,X} P \qquad P \in \Phi}
+   &  \elabel{rule:Assumption:total}
+\\\\ \INFER%
+     {\Phi_1 \infer^t_{\Sigma,X} P
+      \qquad
+      \Phi_2 \infer^t_{\Sigma,X} Q}
+     {\Phi_1\cup\Phi_2 \infer^t_{\Sigma,X} P\land Q}
+   & \elabel{rule:And-intro:total}
+\\\\ \INFER%
+     {\Phi \infer^t_{\Sigma,X} P\land Q}
+     {\Phi \infer^t_{\Sigma,X} P}
+   & \elabel{rule:And-left-elim:total}
+\\\\ \INFER%
+     {\Phi \infer^t_{\Sigma,X} P\land Q}
+     {\Phi \infer^t_{\Sigma,X} Q}
+   & \elabel{rule:And-right-elim:total}
+\\\\ \INFER%
+     {\Phi_1 \cup \setof{P} \infer^t_{\Sigma,X} Q
+      \\\\
+      \Phi_2 \cup \setof{(P \implies False)}\infer^t_{\Sigma,X} Q}
+     {\Phi_1\cup\Phi_2 \infer^t_{\Sigma,X} Q}
+   & \elabel{rule:Tertium-non-datur:total}
+\\\\ \INFER%
+     {\Phi \infer^t_{\Sigma,X} False}
+     {\Phi \infer^t_{\Sigma,X} P}
+   & \elabel{rule:Absurdity:total}
+\\\\ \INFER%
+     {\Phi_1 \infer^t_{\Sigma,X} \bigwedge_i P_i \implies Q_x
+      \\\\
+      \Phi_2 \infer^t_{\Sigma,Y}\bigwedge_j Q_j \implies R}
+     {\Phi_1\cup\Phi_2 \infer^t_{\Sigma,X\cup Y}
+         \bigwedge_i P_i \land \bigwedge_j Q_j \implies R, j\neq x}
+   & \elabel{rule:Cut:total}
+\\\\ \INFER%
+     {\Phi \cup \Phi_1 \infer^t_{\Sigma,X} P}
+     {\Phi \infer^t_{\Sigma,X} \bigwedge\Phi_1 \implies P}
+   & \elabel{rule:Implies-intro:total}
+\\\\ \INFER%
+     {\Phi\infer^t_{\Sigma,X} \forall \vec y @ P}
+     {\Phi \infer^t_{\Sigma,X\cup\vec y} P}
+   & \elabel{rule:Forall-elim:total}
+\\\\ \INFER%
+     {\Phi\infer^t_{\Sigma,X\cup\vec y} P
+      \quad
+      \vec y \cap \fv~\Phi = \emptyset}
+     {\Phi \infer^t_{\Sigma,X} \forall \vec y @  P}
+   & \elabel{rule:Forall-intro:total}
+\\\\ \INFER%
+     {~}{\Phi \infer^t_{\Sigma,X} x =_e x \qquad x \in X}
+   & \elabel{rule:Reflexivity:total}
+\\\\ \INFER%
+     {\Phi \infer^t_{\Sigma,X} P
+      \\\\
+      \theta:X\fun term(Y) \\ P[\theta]\defined}
+     {\Phi \infer^t_{\Sigma,X\cup Y} (\bigwedge_{x \in X}x=_e\theta(x))\implies P[\theta]}
+   & \elabel{rule:Congruence:total}
+}
+
+\RRULES{
+     \INFER%
+     {\Phi \infer^t_{\Sigma,X} P
+      \\\\
+      \theta:X\fun term(Y) \\ P[\theta]\defined \\ \Phi[\theta]\defined}
+     {\Phi[\theta] \infer^t_{\Sigma,Y} (\bigwedge_{x \in X}\theta(x)\defined)\implies P[\theta]}
+   & \elabel{rule:Substitution:total}
+\\\\ \INFER%
+     {\Phi\infer^t_{\Sigma,X} e_1 =_e e_2 \\ e \mbox{ sub-term of }e_1\mbox{ or }e_2}
+     {\Phi \infer^t_{\Sigma,X} e\defined}
+   & \elabel{rule:Function-strict:total}
+\\\\ \INFER%
+     {\Phi\infer^t_{\Sigma,X} p(e_1,\ldots,e_n)}
+     {\Phi \infer^t_{\Sigma,X} e_i\defined}
+   & \elabel{rule:Predicate-strict:total}
+\\\\ \INFER%
+     {\Phi\infer^t_{\Sigma,X} \bigwedge_i e_i\defined\\ f\mbox{ total}}
+     {\Phi \infer^t_{\Sigma,X} f(e_1,\ldots,e_n)\defined}
+   & \elabel{rule:Totality:total}
+}
+
+For a system based on Strong Equality and Definedness,
+drop \ecite{rule:Reflexivity:total} and \ecite{rule:Congruence:total}
+and add:
+\RLEQNS{
+     \INFER%
+     {~}{\Phi \infer^t_{\Sigma,X} e =_s e \qquad e \in term(X)}
+   & \elabel{rule:S-Reflexivity:total}
+\\\\ \INFER%
+     {\Phi \infer^t_{\Sigma,X} e_1 =_e e_2}
+     {\Phi \infer^t_{\Sigma,X} e_1 =_s e_2}
+   & \elabel{rule:S-Equality1:total}
+\\\\ \INFER%
+     {\Phi \infer^t_{\Sigma,X} e_1\defined
+      \\
+      \Phi \infer^t_{\Sigma,X} e_1 =_s e_2}
+     {\Phi \infer^t_{\Sigma,X} e_1 =_e e_2}
+   & \elabel{rule:S-Equality2:total}
+\\\\ \INFER%
+     {\Phi \infer^t_{\Sigma,X} e_1\defined \implies False
+      \\
+      \Phi \infer^t_{\Sigma,X} e_2\defined \implies False}
+     {\Phi \infer^t_{\Sigma,X} e_1 =_s e_2}
+   & \elabel{rule:S-Equality3:total}
+\\\\ \INFER%
+     {\Phi \infer^t_{\Sigma,X} P
+      \\\\
+      \theta:X\fun term(Y) \\ P[\theta]\defined}
+     {\Phi \infer^t_{\Sigma,X\cup Y} (\bigwedge_{x \in X}x=_s\theta(x))\implies P[\theta]}
+   & \elabel{rule:S-Congruence:total}
+}
+
+The partial calculus:
+\RRULES{
+   \INFER{~}{\Phi \infer^p_\Sigma P \qquad P \in \Phi}
+   &  \elabel{rule:Assumption:partial}
+\\\\ \INFER%
+     {\Phi_1 \infer^p_\Sigma P
+      \qquad
+      \Phi_2 \infer^p_\Sigma Q}
+     {\Phi_1\cup\Phi_2 \infer^p_\Sigma P\land Q}
+   & \elabel{rule:And-intro:partial}
+\\\\ \INFER%
+     {\Phi \infer^p_\Sigma P\land Q}
+     {\Phi \infer^p_\Sigma P}
+   & \elabel{rule:And-left-elim:partial}
+\\\\ \INFER%
+     {\Phi \infer^p_\Sigma P\land Q}
+     {\Phi \infer^p_\Sigma Q}
+   & \elabel{rule:And-right-elim:partial}
+\\\\ \INFER%
+     {\Phi_1 \cup \setof{P} \infer^p_\Sigma Q
+      \\\\
+      \Phi_2 \cup \setof{(P \implies False)}\infer^p_\Sigma Q}
+     {\Phi_1\cup\Phi_2 \infer^p_\Sigma Q}
+   & \elabel{rule:Tertium-non-datur:partial}
+\\\\ \INFER%
+     {\Phi \infer^p_\Sigma False}
+     {\Phi \infer^p_\Sigma P}
+   & \elabel{rule:Absurdity:partial}
+\\\\ \INFER%
+     {\Phi\infer^p_\Sigma \forall \vec y @ P}
+     {\Phi \infer^t_\Sigma (\bigwedge_{y \in \vec y} y\defined) \implies P}
+   & \elabel{rule:Forall-elim:partial}
+\\\\ \INFER%
+     {\Phi\infer^t_\Sigma (\bigwedge_{y \in \vec y} y\defined) \implies P
+      \quad
+      \vec y \cap \fv~\Phi = \emptyset}
+     {\Phi \infer^p_\Sigma \forall \vec y @  P}
+   & \elabel{rule:Forall-intro:partial}
+\\\\ \INFER%
+     {~}
+     {\Phi \infer^p_\Sigma e_1 =_e e_2 \implies e_2 =_e e_1}
+   & \elabel{rule:Symmetry:partial}
+\\\\ \INFER%
+     {\Phi \infer^p_\Sigma P
+      \\\\
+      \theta:X\fun term(Y) \\ P[\theta]\defined \\ \Phi[\theta]\defined}
+     {\Phi[\theta] \infer^t_\Sigma P[\theta]}
+   & \elabel{rule:Substitution:partial}
+\\\\ \INFER%
+     {\Phi\infer^p_\Sigma e_1 =_e e_2 \\ e \mbox{ sub-term of }e_1\mbox{ or }e_2}
+     {\Phi \infer^p_\Sigma e\defined}
+   & \elabel{rule:Function-strict:partial}
+\\\\ \INFER%
+     {\Phi\infer^p_\Sigma p(e_1,\ldots,e_n)}
+     {\Phi \infer^p_\Sigma e_i\defined}
+   & \elabel{rule:Predicate-strict:partial}
+\\\\ \INFER%
+     {\Phi\infer^p_\Sigma \bigwedge_i e_i\defined\\ f\mbox{ total}}
+     {\Phi \infer^p_\Sigma f(e_1,\ldots,e_n)\defined}
+   & \elabel{rule:Totality:partial}
+}
+
+
+\subsubsection{Derived Rules}
+
+
+\subsubsection{Valuations/Satisfaction}
+
+\begin{itemize}
+  \item Partial Signature \elabel{Part-Sig:def}
+    \\ $\Sigma = (S,\Omega,P\Omega,\Pi)$
+       of sorts, total operations, partial operations and predicates,
+       all well-sorted.
+  \item Partial Structure \elabel{Part-Str:def}
+    \\ $(\carrier A,\mathcal I^{w,s}_A,\mathcal J^{s_1,\ldots,s_n}_A)$
+    of carrier sets,
+    function interpretations
+    and predicate interpretations,
+    defined w.r.t. partial signatures (\ecite{Part-Sig:def})
+    \\ For $f \in \Omega$, $pf \in P\Omega$
+       and $p \in \Pi$, we define shorthands
+       for their respective interpretations as $f_A$, $pf_A$ and $p_A$.
+  \item Total Valuation \elabel{Tot-Val:def}
+    \\ $\tval : Variable \pfun \carrier A$ associates a denoting value
+       with every variable in its domain.
+       We write $\tval_X$ when we want to make the domain explicit.
+  \item Partial Valuation \elabel{Part-Val:def}
+    \\ $\pval : Variable \pfun \carrier A_\bot$ may associate a non-denoting value
+       with some variables in its domain.
+       We write $\pval_X$ when we want to make the domain explicit.
+  \item Term Valuation \elabel{Term-Val:def}
+    \\ By $\tval^\#$ and $\pval^\#$ we denote respectively
+    the ``obvious'' extensions of $\tval$ and $\pval$ to
+    terms built over the variables in their domains.
+  \item Satisfaction w.r.t Valuation \elabel{Val:Sat:def}
+    \\ Let \val\ stand for either $\tval$ or $\pval$ in:
+    \RLEQNS{
+       \_ \valsat \_ &:& Valuation \times Predicate \fun Bool
+       & \elabel{Val-Sat:sig}
+    \\ \val \valsat t_1 =_e t_2
+       &\defs&
+       \val^\#(t_1) =_e \val^\#(t_2) & \elabel{Val-Sat:eq:def}
+    \\ \val \valsat p(t_1,\ldots,t_n)
+       &\defs&
+       \val^\#(t_1)\defined \land \ldots \land \val^\#(t_n)\defined
+    \\&& {} \land (\val^\#(t_1),\ldots,\val^\#(t_n)) \in p_A
+    & \elabel{Val-Sat:p:def}
+    \\ \val \valsat False &\defs& F & \elabel{Val-Sat:F:def}
+    \\ \val \valsat P \land Q
+       &\defs&
+       \val\valsat P \AND \val\valsat Q
+       & \elabel{Val-Sat:and:def}
+    \\ \val \valsat P \implies Q
+       &\defs&
+       \val\valsat P \IMPLIES \val\valsat Q
+       & \elabel{Val-Sat:imp:def}
+    \\ \val \valsat \forall \vec x @ P
+       &\defs&
+       \FORALL \tval'_{\vec x} \WEHAVE \val\override\tval' \valsat P
+       & \elabel{Val-Sat:imp:def}
+    }
+  \item Total Valuation Axiom Satisfaction
+    \\ Partial $\Sigma$-structure $A$ satisfies axiom $X.P$ w.r.t. total valuations
+    \RLEQNS{
+       A \models^t_\Sigma X.P
+       &\defs&
+       \FORALL \tval_X \WEHAVE \tval_X \valsat P
+       & \elabel{Axiom:Sat:total}
+    }
+  \item Partial Valuation Axiom Satisfaction
+    \\ Partial $\Sigma$-structure $A$ satisfies axiom $X.P$
+    w.r.t. partial valuations
+    \RLEQNS{
+       A \models^p_\Sigma X.P
+       &\defs&
+       \FORALL \pval_X \WEHAVE \pval_X \valsat P
+       &  \elabel{Axiom:Sat:partial}
+    }
+\end{itemize}
+
+
+\subsubsection{Meta-theorems}
+
+\begin{itemize}
+  \item Universal Closure of Satisfaction
+     \RLEQNS{
+        A \models^t_\Sigma \vec x.P
+        \quad\IFF
+        &A \models^t_\Sigma \emptyset.\forall \vec x @ P&
+        \IFF\quad
+        A \models^p_\Sigma \emptyset.\forall \vec x @ P
+        & \elabel{Sat:univ:closure}
+     }
+     Note, however that
+     $A \models^p_\Sigma \emptyset.\forall x @ x=_e x$,
+     but
+     $A \not\models^p_\Sigma \setof x. x=_e x$,
+  \item Satisfaction Coverage
+    \RLEQNS{
+       \fv~P \subseteq X \cap Y
+       &\IMPLIES&
+       A \models^p_\Sigma X.P
+       \IFF
+       A \models^p_\Sigma Y.P
+       & \elabel{Sat:p:cover}
+    \\ \fv~P \subseteq X \cap Y \AND \carrier A \neq \emptyset
+       &\IMPLIES&
+       A \models^t_\Sigma X.P
+       \IFF
+       A \models^t_\Sigma Y.P
+       & \elabel{Sat:t:cover}
+    }
+    Here $\carrier A \neq \emptyset$ should be read as all carrier sets are non-empty.
+  \item Semantical Consequence
+    \\
+    Given axiom $X.P$, let $\Phi = \setof{ \ldots Y.Q \ldots}$ be an axiom set,
+    and $Z = X \cup \bigcup_{Y.Q \in \Phi} Y$, in
+    \RLEQNS{
+       \Phi \models^t_\Sigma P
+       &\IFF&
+       \FORALL \tval_Z \WEHAVE  & \elabel{Sem:Cons:total}
+    \\ && \quad (\FORALL Y.Q \in \Phi \WEHAVE \tval_Z \valsat Q)
+    \\ && \qquad\IMPLIES \tval_Z \valsat P
+    \\ \Phi \models^p_\Sigma P
+       &\IFF&
+       \FORALL \pval_Z \WEHAVE  & \elabel{Sem:Cons:partial}
+    \\ && \quad (\FORALL Y.Q \in \Phi \WEHAVE \pval_Z \valsat Q)
+    \\ && \qquad\IMPLIES \pval_Z \valsat P
+    }
+  \item Coverage gives Partial Consequence
+    \\Let $\Phi \cup \setof P$ be axioms over alphabet $X \cap Y$, then
+    \RLEQNS{
+       \Phi \models^p_\Sigma Y.P
+       &\IFF&
+       \Phi \models^p_\Sigma X.P
+       & \elabel{Sem:Cons:p-coverage}
+    }
+    This property does not hold for $\models^t$.
+    \par
+    We can therefore ignore alphabets for partial valuations,
+    and treat $P$ as an abbreviation for $\fv~P.P$.
+  \item Models
+    \\\emph{Presentation} $(\Sigma,AX)$ where $AX$ is a set of axioms over $\Sigma$,
+    has as model any partial structure $A$ such that $A \models^p_\Sigma AX$.
+    We denote the class of models by $Mod_\Sigma(AX)$.
+  \item Semantic Consistency
+    \\ Presentation $(\Sigma,AX)$ is semantically consistent if $Mod_\Sigma(AX)$ is non-empty.
+    \RLEQNS{
+       && \Phi \cup \setof{P_1,\ldots,P_n} \models^p_\Sigma Q
+       & \elabel{Sem:Cnsq:Cnstnt:partial}
+    \\ &\IFF& \Phi  \models^p_\Sigma  P_1 \land \ldots \land P_n \implies Q
+    \\ &\IFF& (\Sigma,\Phi\cup \setof{P_1,\ldots,P_n,\lnot Q}) \mbox{ is inconsistent}
+    }
+  \item Derivation
+    \\ Finite sequence of judgments $\Phi \infer^t_{\Sigma,X} P$,
+       each an axiom, or obtained from earlier by a rule.
+  \item Derivation of Formula
+    \\ Derivation of $X.P$ is derivation ending in $\emptyset \infer^t_{\Sigma,X} P$
+  \item Soundness \& Completeness of $\infer^t_{\Sigma,\_}$
+    \RLEQNS{
+        \Phi \models^t_\Sigma X.P
+     &  \IFF
+     &  \Phi \infer^t_{\Sigma,X \cup Y} P
+     & \elabel{Sem:Sound-Complete:rules:total}
+    }
+    where $Y$ is all the variable-sets in $\Phi$
+  \item Soundness \& Completeness of $\infer^p_\Sigma$
+    \RLEQNS{
+        \Phi \models^p_\Sigma X.P
+     &  \IFF
+     &  \Phi \infer^p_\Sigma P
+     & \elabel{Sem:Sound-Complete:rules:partial}
+    }
+\end{itemize}
+
+

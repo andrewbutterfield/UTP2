@@ -1,0 +1,88 @@
+We want to assess $\alpha$-equivalence,
+as the best way to complete a proof.
+If the two predicates are $\alpha$-equivalent it returns
+a bijective mapping from the first predicate to the second.
+We define $\alpha$-equivalence recursively,
+yielding either failure, or a mapping between bound variables
+on each side that induces equivalence.
+first noting that we need to track bound variables for each side
+as we descend:
+\begin{eqnarray*}
+   \_\alfeqv\_ &:& Pred^2 \fun 1 + (Var \pfun Var)
+\\ P_1 \alfeqv P_2
+   &\defs&
+   P_1 \balfeqv\emptyset\emptyset P_2
+\end{eqnarray*}
+We define a mapping merge that fails if the two maps are in conflict,
+otherwise glues them together,
+and a map restriction that removes any maplet
+if neither of its components are in the specified set
+(both can be specified pointwise):
+\begin{eqnarray*}
+ \_\uplus\_ &:& (Var \pfun Var)^2 \fun 1 + (Var \pfun Var)
+\\ \mapof{u \to v_1} \uplus \mapof{u \to v_2}
+   &\defs& \mapof{u \to v_1}, \qquad v_1 = v_2
+\\ \_|\_ &:& (Var \pfun Var) \times \power Var \fun (Var \pfun Var)
+\\ \mapof{u \to v} | B
+   &\defs&
+   \mapof{} \cond{\setof{u,v} \DISJ B} \mapof{u \to v}
+\end{eqnarray*}
+In the sequel we only show cases that succeed - all other situations
+result in failure.
+For composites, we recurse down,
+and then merge the resulting bindings,
+which may fail:
+\begin{eqnarray*}
+   (P_1 \land Q_1) \balfeqv{B_1}{B_2} (P_2 \land Q_2)
+   &\defs&
+   (P_1 \balfeqv{B_1}{B_2} P_2)
+   \uplus
+   (Q_1 \balfeqv{B_1}{B_2} Q_2)
+\end{eqnarray*}
+Any (predicate/expression) meta-variables must match themselves,
+with an exception for regular variables
+which can match expression meta variables of the same name
+provided they are not known or bound
+\begin{eqnarray*}
+   M \balfeqv{B_1}{B_2} M &\defs& \mapof{}
+\\ M \balfeqv{B_1 \setminus x}{B_2\setminus \setof x} x &\defs& \mapof{}, \quad \IF~x=M
+\end{eqnarray*}
+When we descend through a binder
+we extend the bound variable sets.
+We then take the returned mappings,
+remove any entries not mentioned in either of the original bound sets,
+and merge those.
+\begin{eqnarray*}
+   (\exists x_1 @ P_1) \balfeqv{B_1}{B_2} (\exists x_2 @ P_2)
+   &\defs&
+   (P_1 \balfeqv{B_1 \cup \setof{x_1}}{B_2\cup\setof{x_2}} P_2)
+   |_{(B_1 \cup B_2)}
+\end{eqnarray*}
+Variables are equivalent if identical and neither is bound,
+or they are both in their respective bound sets,
+in which case they can be mapped:
+\begin{eqnarray*}
+   x_1 \balfeqv{B_1 \cup \setof{x_1}}{B_2\cup\setof{x_2}} x_2
+   &\defs& \mapof{x_1 \to x_2}
+\\ x \balfeqv{B_1 \setminus \setof{x}}{B_2 \setminus\setof{x}} x
+   &\defs& \mapof{}
+\end{eqnarray*}
+For substitutions (which can be viewed as abstractions applied
+to arguments) we simply view the target variables
+as bound in the substitution body, obtaining:
+\begin{eqnarray*}
+   P_1[e_1/x_1] \balfeqv{B_1}{B_2} P_2[e_2/x_2]
+   &\defs&
+   (P_1 \balfeqv{B_1 \cup \setof{x_1}}{B_2\cup\setof{x_2}} P_2)
+   |_{(B_1 \cup B_2)}
+\\ && \uplus (e_1 \balfeqv{B_1}{B_2}  e_2)
+\end{eqnarray*}
+A complication arises when we have simultaneous substitutions,
+as the ordering of the replacement expressions should be immaterial.
+We use the bindings returned from the substitution body
+to help find an appropriate permutation.
+A consequence of this is that our algorithm is currently incomplete
+in that it may classify substitutions as incomplete when in fact they
+are.
+Note that we expect a one-to-one mapping for all QVars,
+even multiple q-variables.

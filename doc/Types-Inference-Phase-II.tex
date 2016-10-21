@@ -1,0 +1,18 @@
+The approach is to lift range elements of $vt : VT$
+by turning variable strings into \texttt{Tvar}s,
+and treating the resulting lists as equivalence-sets.
+The domain elements of $tt :TT$ are lifted to \texttt{Tvar}s,
+merged with their domains lists to give further equivalence sets.
+
+We need to extract out
+any equivalences implied but not already explicit
+in existing lists,
+e.g.: equivalence set $\setof{t_1,t_2^*,t_3^*}$
+not only asserts that $t_1$ is the same as both $t_2^*$
+and $t_3^*$, but also implies that $t_2 = t_3$,
+so inducing the set $\setof{t_2,t_3}$.
+We do this by proceeding down an ordered type-list,
+skipping Tvars until the first constructor, if any, is found.
+We then match successive entries, and look for bindings
+of the form \texttt{Tvar} $\mapsto$ \texttt{TVar} and use these to generate
+2-element equivalence sets.

@@ -1,0 +1,189 @@
+\section{Adding Language}
+\label{sec:language:foundation}
+
+%
+% Presents Language-building in  Saoithin with an emphasis on foundations
+%
+
+The main purpose of UTP is to allow the construction,
+comparison and connection of theories about a variety of
+modelling, specification and programming languages.
+This requires us to be able to specify two key aspects:
+\begin{enumerate}
+  \item The types of observations of such systems that we wish to discuss,
+   captured by the notion of \emph{observation variables};
+  \item A description of the language under study: both its syntax and semantics.
+\end{enumerate}
+
+\subsection{Alphabets}
+
+A key feature of UTP is its use of \emph{alphabetised} predicates,
+where the alphabet is a collection of typed observation variables.
+At present, the support in \STHN\
+is limited to theories with fixed alphabets, such as the standard
+reactive systems theories, or theories where all program variables
+are encapsulated in a single $state : Name \pfun Value$ observation.
+A proposal to broaden this to cover varying alphabets is under consideration
+for a future revision of the prover.
+At present, we simply record the (fixed) set of observation
+variables and their types in a table:
+\begin{schema}{Theory}
+   \ldots
+\\ obs : Name \pfun Type
+\end{schema}
+The variables listed in the domain of $objs$ are ``known'' to the theorem prover
+and this influences the operation of the matcher.
+This information is also fed into the type-inferencing system,
+complementing the $types$ information.
+We can specify this in the text file, as in the following example
+for a theory of designs:
+\begin{haskell}
+OBSVAR
+ ok : B .
+ ok' : B
+\end{haskell}
+
+
+\subsection{User-defined Language Constructs}
+
+In order to be able to describe a theory about the language,
+we need to be able to describe the language,
+so we provide facilities to allow the specification (to \STHN)
+of the syntax of language constructs.
+
+First, we note that the expression language is easily extendible
+as the parser automatically converts token streams of the form $nm~e$
+into the application of (function) $nm$ to expression argument $e$.
+However their effective use often requires the user to give them a type,
+entered in the $types$ table.
+New infix operators however are not automatically parsed,
+and need to be declared in advance, using a simple form associating
+an operator name with its precedence and associativity.
+This infix information is stored in a table in the theory:
+\begin{schema}{Theory}
+   \ldots
+\\ precs : Name \pfun Precedence
+\end{schema}
+A \emph{predecence} is a pair of a number and an associativity (None/Left/Right),
+with higher numbers denoting tighter binding strengths%
+\footnote{Currently $\land:80, \lor:60, \implies:30, \equiv:20$}.
+In a theory of designs, we want to introduce $\vdash$ as an infix operator
+so we can declare it in a PRECEDENCES section:
+\begin{haskell}
+PRECEDENCES
+ |- 55 None
+\end{haskell}
+A user-defined language construct is an interleaving of existing forms (variables, expressions, types, predicates)
+with new tokens, including also some list forms with specified delimiters and separators.
+So a theory needs to contain a table listing syntax specifications:
+\begin{schema}{Theory}
+   \ldots
+\\ lang : Name \pfun SynSpec
+\end{schema}
+There is a simple ASCII syntax for defining new language constructs,
+basically an interleaving of keywords
+\verb"V" (variable),
+\verb"T" (type),
+ \verb"E" (expression) and \verb"P" (predicate),
+keysymbols \verb"*" (list) and \verb"#" (counted-list)
+with arbitrary syntactical elements.
+The keysymbols follow a keyword and are themselves followed
+by a token denoting a separator.
+So \verb"E*," denotes a comma-separated list of expressions,
+wherease \verb"V#," is a comma-separated list of variables,
+whose length must match that of any other list present
+also defined using \verb"#".
+A theory of designs and imperative programming might declare its
+syntax as follows:
+\begin{haskell}
+LANGUAGE
+  "|-"   | " P |- P " .
+  ":="   | " V := E " .
+  "::="  | " V#, ::= E#, " .
+  ";"    | " P ; P " .
+  "**"   | " E ** P "
+\end{haskell}
+(Here \verb"::=" is intended to be simultaneous assignment).
+All language constructs so specified are considered as new instances
+of predicates, and so can themselves appear and be parsed as language elements,
+so allowing easy nesting of such constructs.
+Any specifications that define an infix operator can also have a precedence
+declaration.
+
+There are no extra facilities provided to describe the semantics
+of user-constructs, as such laws are simply provided by the user as appropriate
+axioms in the theory.
+For our design theory we might give the semantics of $\vdash$ as follows:
+\begin{haskell}
+LAWS
+  "DEF |-" |  P |- Q  ==  ok /\ P => ok' /\ Q
+\end{haskell}
+Note these axioms can be written using the full predicate calculus language
+shown here, and hence cannot be considered as some form of conservative extension
+of pre-existing axioms.
+%Hence, care needs to be taken when given such a semantics,
+%noting in particular that a pattern-matching semantics style,
+%reminiscent of modern functional languages,
+%is potentially dangerous, as \STHN\ provides no guarantee%
+%\footnote{And never will!}
+%about the
+%order of such ``pattern matches''.
+In addition,
+for any law regarding a user-construct to be useable,
+there must be a non-empty collection of laws satisfying the following conditions:
+\begin{enumerate}
+  \item
+    Each law has a name prefixed with ``DEF\verb*" "$uname$'',
+    where $uname$ is the name in $lang$ of the user-construct.
+  \item
+    Each law has the form $LHS \equiv RHS$
+    where $LHS$ is an instance of the $uname$ construct.
+  \item
+    Any instance of the language construct must match at least one of these laws.
+  \item
+    The $RHS$s must not mention the construct explicitly,
+    nor should it be possible to construct a cycle
+    via mutual recursion with other user-constructs.
+\end{enumerate}
+The reason for this set of restrictions
+is because these laws will be used to automatically expand language
+definitions ``under the hood'' in order to evaluate free variables
+and side-conditions (\S\ref{ssec:free-vars}).
+They do not preclude our introducing laws with language recursion,
+provided their names do not start with ``DEF\verb*" "$uname$''.
+
+Having introduced our language constructs we then will want to give their
+semantic definitions as axioms, posit some conjectures,
+and hopefully prove them to be laws of the language.
+However, the parser needs to know about language syntax before
+the rest of the theory text file can be parsed,
+as we are introducing new lexical elements.
+So every UTP text file has to have a syntax preamble,
+immediately after the first line gving the theory name.
+The preamble has the following format:
+{\obeylines
+\texttt{SYNTAXFROM}
+  list of zero or more theory names, separated by spaces
+  optional \texttt{LANGUAGE} and \texttt{PRECEDENCES} sections in any order
+\texttt{ENDSYNTAX}
+}
+\noindent
+The theories listed are those with syntax sections defining language
+constructs used in this theory in addition to the ones it introduces itself.
+
+%\subsection{On Metavariables}
+%
+%An issues arises concerning the interaction of ``regular'' variables
+%and expression meta-variables.
+%Consider the follow two laws, one drawn from a theory of lists,
+%whilst the other comes from a theory of a sequential imperative language:
+%\begin{eqnarray*}
+%  \ell_1 \cat (\ell_2 \cat \ell_3) &~~=~~& (\ell_1 \cat \ell_2) \cat \ell_3
+%\\ x:=e ; y:=f &=& y:=f[e/x] ; x:=e, \qquad y \notin e
+%\end{eqnarray*}
+%The question then arises, which of $\ell_i$, $x$, $y$, $e$ and $f$
+%are ordinary (observation/quantifiable) variables,
+%and which are expression meta-variables?
+%The solution adopted treats a variable as ordinary, except if it is ``known''
+%as an expression meta-variable, or appears as such in a side condition.
+%So, in the above, only $e$ needs to be treated as a metavariable.

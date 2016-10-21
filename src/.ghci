@@ -1,0 +1,2 @@
+:set -fglasgow-exts
+:set -XUndecidableInstances

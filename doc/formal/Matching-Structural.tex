@@ -1,0 +1,19 @@
+
+We present here the basic structural matching rules
+
+\MRSTRUCT
+
+We have two versions of null-quantifier matching:
+\begin{description}
+  \item[\MRNullQuantZN] allows all list-variables in a quantifier
+   to match empty lists,
+   which results in a law like
+   \[(\exists \lst x @ P) = \lnot(\forall \lst x @ \lnot P)\]
+   being able to match
+   \[ P = \lnot\lnot P, \qquad \textrm{with } \lst x \mapsto \nil \]
+  \item[\MRNullQuantON] requires at least one list-variable in a quantifer
+   to match a non-empty list, so preventing the above match.
+\end{description}
+Currently we adopt \MRNullQuantZN, with surprising (but so far, sound) results.
+Using \MRNullQuantON\ might be preferable to avoid confusion though.
+This should probably be something that can be toggled.

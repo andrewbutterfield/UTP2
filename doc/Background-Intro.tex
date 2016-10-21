@@ -1,0 +1,116 @@
+\subsection{The Goal}
+
+We want a 2nd-order (at least) logic,
+that is 2-valued (?),
+that handles partial expressions, explicit substitutions,
+and that gives
+the results we want for UTP proofs.
+The additional trick is in finding an axiomatization that supports
+the equational reasoning we prefer, which means that Liebniz' rule
+needs a light touch, and we hope to keep the Deduction Theorem,
+and the one-point rules.
+
+In this section we explore various proposed logics%
+\cite{Prawitz56,Farmer90,Owe93,JM94,Feferman95,MB98,CMR99},
+mostly partial, and typically either first- or higher-order.
+
+
+
+The key test cases for us are proofs of the idempotence
+of \RR2 and the commutativity of \RR1 and \RR2,
+which are shown here for ease of reference.
+
+\newpage
+\subsubsection{Proof: \RR2 is idempotent}
+
+The proof of \RR2's idempotence requires us to
+use Liebniz inside (explicit) substitution terms,
+without any side-conditions regarding the definedness
+of the term $tr'-tr$ (defined only if $tr \le tr'$).
+\begin{eqnarray*}
+  && \RR2(\RR2(P))
+\EQV{defn. \RR2, twice}
+\\&& \exists s @
+      (\exists t @ P[t,t\cat(tr'-tr)/tr,tr'])
+      [s,s\cat(tr'-tr)/tr,tr']
+\EQV{defn. substitution, flatten quantifiers}
+\\&& \exists s,t @
+      P[t,t\cat(tr'-tr)/tr,tr'][s,s\cat(tr'-tr)/tr,tr']
+\EQV{substitution composition}
+\\&& \exists s,t @
+      P[t,t\cat((s\cat(tr'-tr))-s)/tr,tr']
+\EQV{sequence property, \textbf{ignoring definedness issues for $tr'-tr$}}
+\\&& \exists s,t @ P[t,t\cat(tr'-tr)/tr,tr']
+\EQV{$s$ no longer mentioned}
+\\&& \exists t @ P[t,t\cat(tr'-tr)/tr,tr']
+\EQV{defn. \RR2}
+\\&& \RR2(P)
+\end{eqnarray*}
+
+\subsubsection{Proof: \RR1 and \RR2 commute}
+
+By contrast, the proof of commutativity of \RR1 and \RR2
+depends on the definedness side-condition for term $tr'-tr$
+being invoked:
+\begin{eqnarray*}
+  && \RR2(\RR1(P))
+\EQV{defns. \RR1, \RR2}
+\\&& \exists s @ (P \land tr \le tr')[s,s\cat(tr'-tr)/tr,tr']
+\EQV{defn. substitution}
+\\&& \exists s @ P[s,s\cat(tr'-tr)/tr,tr'] \land s \le s\cat(tr'-tr)
+\EQV{$\sigma \le \sigma\cat\tau \equiv True$, \textbf{with definedness condition for }$tr'-tr$}
+\\&& \exists s @ P[s,s\cat(tr'-tr)/tr,tr'] \land True \land tr \le tr'
+\EQV{shrink scope, prop. calc.}
+\\&& (\exists s @ P[s,s\cat(tr'-tr)/tr,tr']) \land tr \le tr'
+\EQV{defns. \RR2, \RR1}
+\\&& \RR1(\RR2(P))
+\end{eqnarray*}
+The key issue of importance here is why we could ignore the definedness
+of $tr'-tr$ in the first proof, but had to invoke it in the second.
+The underlying intuition is that in the first case,
+the potential need to consider definedness was present
+in both the before- and after-steps, namely that the reasoning
+step kept the troublesome term $tr'-tr$ around.
+In the second case, however, the whole term containing $tr'-tr$
+is replaced by $True$, and so the implied need to consider the definedness
+of this term has vanished, and therefore we are forced to deploy it explicitly.
+The challenge is to formalise these two distinct steps and show their
+soundness.
+
+Another example,
+often cited is the following recursive definition
+of partial natural number subtraction:
+\begin{eqnarray*}
+   subp(i,j) &\defs& \IF~i=j
+\\ && \THEN~0
+\\&& \ELSE subp(i,j+1)+1
+\end{eqnarray*}
+and a proof of the following property:
+\begin{eqnarray*}
+   \forall i,j : \num @ i \ge j \implies subp(i,j) = i-j
+\end{eqnarray*}
+To this we add the following properties,
+analagous to those regarding sequences
+that arise in the \RR1/\RR2 proofs above:
+\begin{eqnarray*}
+  && \forall i,j :\num @ i \ge j \implies subp(i+subp(i,j),i) = subp(i,j)
+\\ && \forall i,j : \num @ i \ge j \implies \num @ i \le i + subp(i,j)
+\end{eqnarray*}
+The question is if we can modify the first
+to not require the precondition, \emph{i.e.}:
+\begin{eqnarray*}
+  ? && \forall i,j :\num @ subp(i+subp(i,j),i) = subp(i,j)
+\end{eqnarray*}
+
+\subsection{The Approach}
+
+In what follows, we (hope to )present all the logics in a
+standardised fashion, using uniform naming schemes for axioms,
+inference rules, derived laws, and meta-theorems, whilst also
+giving the mapping to the notations, names and terms used in
+the original source material.
+
+After giving the uniform listing,
+we kick off with a total/classical 2nd-order logic
+and then treat each partial logic
+in chronological order of published sources.

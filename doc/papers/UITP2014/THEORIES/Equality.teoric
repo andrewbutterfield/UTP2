@@ -1,0 +1,81 @@
+v3.6
+^Equality ^0 ^_ROOT ^1 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^/= ^220 ^0 !p
+^= ^220 ^0 !p
+^2 !MO
+^0 !MG
+^/= ^t !Tv
+^t !Tv
+^2 !TP
+!TB
+!TF
+^= ^t !Tv
+^t !Tv
+^2 !TP
+!TB
+!TF
+^2 !MK
+^=-refl ^e1 !EV
+^e1 !EV
+!E=
+!PE2
+!CT
+^Builtin:Equality !OS
+^=-symm ^e1 !EV
+^e2 !EV
+!E=
+!PE2
+^e2 !EV
+^e1 !EV
+!E=
+!PE2
+!PQ
+!CT
+^Builtin:Equality !OS
+^=-trans ^e1 !EV
+^e2 !EV
+!E=
+!PE2
+^e2 !EV
+^e3 !EV
+!E=
+!PE2
+^2 !PA
+^e1 !EV
+^e3 !EV
+!E=
+!PE2
+!PI
+!CT
+^Builtin:Equality !OS
+^DEF-ne ^/= ^220 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^e1 !EV
+^e2 !EV
+!E=
+!PE2
+!PN
+!PQ
+!CT
+^Builtin:Equality !OS
+^/=-symm ^/= ^220 ^e1 !EV
+^e2 !EV
+!EB
+!PE2
+^/= ^220 ^e2 !EV
+^e1 !EV
+!EB
+!PE2
+!PQ
+!CT
+^Builtin:Equality !OS
+^5 !lM
+^0 !ML
+^0 !MT
+!@

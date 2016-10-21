@@ -1,0 +1,839 @@
+v3.6
+^Lists ^0 ^_ROOT ^Equality ^Arithmetic ^Sets ^4 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^++ ^250 ^2 !p
+^-- ^250 ^1 !p
+^: ^260 ^2 !p
+^<< ^240 ^0 !p
+^<<= ^240 ^0 !p
+^5 !MO
+^0 !MG
+^++ ^t !Tv
+!TL
+^t !Tv
+!TL
+^2 !TP
+^t !Tv
+!TL
+!TF
+^-- ^t !Tv
+!TL
+^t !Tv
+!TL
+^2 !TP
+^t !Tv
+!TL
+!TF
+^: ^t !Tv
+^t !Tv
+!TL
+^2 !TP
+^t !Tv
+!TL
+!TF
+^<< ^t !Tv
+!TL
+^t !Tv
+!TL
+^2 !TP
+!TB
+!TF
+^<<= ^t !Tv
+!TL
+^t !Tv
+!TL
+^2 !TP
+!TB
+!TF
+^elems ^t !Tv
+!TL
+^t !Tv
+!TS
+!TF
+^frnt ^t !Tv
+!TL
+^t !Tv
+!TL
+!TF
+^hd ^t !Tv
+!TL
+^t !Tv
+!TF
+^ix ^t !Tv
+!TL
+!TZ
+^2 !TP
+^t !Tv
+!TF
+^len ^t !Tv
+!TL
+!TZ
+!TF
+^lst ^t !Tv
+!TL
+^t !Tv
+!TF
+^null ^t !Tv
+!TL
+!TB
+!TF
+^tl ^t !Tv
+!TL
+^t !Tv
+!TL
+!TF
+^13 !MK
+^nil-is-List ^0 !EL
+^t !Tv
+!TL
+!P:
+!CT
+^Builtin:Lists !OS
+^cons-is-List ^x !EV
+^t !Tv
+!P:
+^xs !EV
+^t !Tv
+!TL
+!P:
+^2 !PA
+^: ^260 ^x !EV
+^xs !EV
+!EB
+^t !Tv
+!TL
+!P:
+!PI
+!CT
+^Builtin:Lists !OS
+^nil-not-cons ^0 !EL
+^: ^260 ^x !EV
+^xs !EV
+!EB
+!E=
+!PE2
+!PN
+!CT
+^Builtin:Lists !OS
+^cons-injective ^x !EV
+^y !EV
+!E=
+!PE2
+^xs !EV
+^ys !EV
+!E=
+!PE2
+^2 !PA
+^: ^260 ^x !EV
+^xs !EV
+!EB
+^: ^260 ^y !EV
+^ys !EV
+!EB
+!E=
+!PE2
+!PQ
+!CT
+^Builtin:Lists !OS
+^induction-List ^P !PV
+^0 !EL
+^1 ^ell ^1 !QL
+!SE
+!PS
+^x ^xs ^2 !QL
+^P !PV
+^xs !EV
+^1 ^ell ^1 !QL
+!SE
+!PS
+^P !PV
+^: ^260 ^x !EV
+^xs !EV
+!EB
+^1 ^ell ^1 !QL
+!SE
+!PS
+!PI
+!PAl
+^2 !PA
+^ell ^1 !QL
+^P !PV
+!PAl
+!PI
+!CT
+^Builtin:Lists !OS
+^DEF-non-nil ^xs !EV
+^0 !EL
+!E=
+!PE2
+!PN
+^xs !EV
+^t !Tv
+!Tl
+!P:
+!PQ
+!CT
+^Builtin:Lists !OS
+^DEF-null ^null ^xs !EV
+!EA
+!PE2
+^xs !EV
+^0 !EL
+!E=
+!PE2
+!PQ
+!CT
+^Builtin:Lists !OS
+^DEF-singleton-list ^x !EV
+^1 !EL
+^: ^260 ^x !EV
+^0 !EL
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-hd ^hd ^: ^260 ^x !EV
+^xs !EV
+!EB
+!EA
+^x !EV
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-tl ^tl ^: ^260 ^x !EV
+^xs !EV
+!EB
+!EA
+^xs !EV
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-cat-nil ^++ ^250 ^0 !EL
+^l2 !EV
+!EB
+^l2 !EV
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-cat-cons ^++ ^250 ^: ^260 ^x !EV
+^l1 !EV
+!EB
+^l2 !EV
+!EB
+^: ^260 ^x !EV
+^++ ^250 ^l1 !EV
+^l2 !EV
+!EB
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-len-nil ^len ^0 !EL
+!EA
+^0 !EN
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-len-cons ^len ^: ^260 ^x !EV
+^xs !EV
+!EB
+!EA
+^+ ^250 ^1 !EN
+^len ^xs !EV
+!EA
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-index-one ^ix ^: ^260 ^x !EV
+^xs !EV
+!EB
+^1 !EN
+^2 !EP
+!EA
+^x !EV
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-index-n ^ix ^: ^260 ^x !EV
+^xs !EV
+!EB
+^+ ^250 ^n !EV
+^1 !EN
+!EB
+^2 !EP
+!EA
+^ix ^xs !EV
+^n !EV
+^2 !EP
+!EA
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-pfx-nil ^<<= ^240 ^0 !EL
+^xs !EV
+!EB
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-pfx-cons ^<<= ^240 ^: ^260 ^x !EV
+^xs !EV
+!EB
+^: ^260 ^y !EV
+^ys !EV
+!EB
+!EB
+!PE2
+^x !EV
+^y !EV
+!E=
+!PE2
+^<<= ^240 ^xs !EV
+^ys !EV
+!EB
+!PE2
+^2 !PA
+!PQ
+!CT
+^Builtin:Lists !OS
+^DEF-not-pfx ^<<= ^240 ^: ^260 ^x !EV
+^xs !EV
+!EB
+^0 !EL
+!EB
+!PE2
+!PF
+!PQ
+!CT
+^Builtin:Lists !OS
+^DEF-spfx-nil ^<< ^240 ^0 !EL
+^: ^260 ^x !EV
+^xs !EV
+!EB
+!EB
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-spfx-cons ^<< ^240 ^: ^260 ^x !EV
+^xs !EV
+!EB
+^: ^260 ^y !EV
+^ys !EV
+!EB
+!EB
+!PE2
+^x !EV
+^y !EV
+!E=
+!PE2
+^<< ^240 ^xs !EV
+^ys !EV
+!EB
+!PE2
+^2 !PA
+!PQ
+!CT
+^Builtin:Lists !OS
+^DEF-not-spfx ^<< ^240 ^xs !EV
+^0 !EL
+!EB
+!PE2
+!PF
+!PQ
+!CT
+^Builtin:Lists !OS
+^DEF-ssub-nil ^-- ^250 ^xs !EV
+^0 !EL
+!EB
+^xs !EV
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-ssub-cons ^-- ^250 ^: ^260 ^x !EV
+^xs !EV
+!EB
+^: ^260 ^x !EV
+^ys !EV
+!EB
+!EB
+^-- ^250 ^xs !EV
+^ys !EV
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-frnt-sngl ^frnt ^x !EV
+^1 !EL
+!EA
+^0 !EL
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-frnt-cons2 ^frnt ^: ^260 ^x !EV
+^: ^260 ^y !EV
+^ys !EV
+!EB
+!EB
+!EA
+^: ^260 ^x !EV
+^frnt ^: ^260 ^y !EV
+^ys !EV
+!EB
+!EA
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-last-sngl ^lst ^x !EV
+^1 !EL
+!EA
+^x !EV
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-last-cons2 ^lst ^: ^260 ^x !EV
+^: ^260 ^y !EV
+^ys !EV
+!EB
+!EB
+!EA
+^lst ^: ^260 ^y !EV
+^ys !EV
+!EB
+!EA
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-elems-nil ^elems ^0 !EL
+!EA
+^0 !ES
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DEF-elems-cons ^elems ^: ^260 ^x !EV
+^xs !EV
+!EB
+!EA
+^union ^260 ^x !EV
+^1 !ES
+^elems ^xs !EV
+!EA
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^DOD--- ^-- ^250 ^xs !EV
+^ys !EV
+!EB
+!P?
+^<<= ^240 ^ys !EV
+^xs !EV
+!EB
+!PE2
+!PQ
+!CT
+^Builtin:Lists !OS
+^DOD-hd ^xs !EV
+!P?
+^null ^xs !EV
+!EA
+!PE2
+!PN
+!PQ
+!CT
+^Builtin:Lists !OS
+^DOD-tl ^xs !EV
+!P?
+^null ^xs !EV
+!EA
+!PE2
+!PN
+!PQ
+!CT
+^Builtin:Lists !OS
+^DOD-frnt ^xs !EV
+!P?
+^null ^xs !EV
+!EA
+!PE2
+!PN
+!PQ
+!CT
+^Builtin:Lists !OS
+^DOD-lst ^xs !EV
+!P?
+^null ^xs !EV
+!EA
+!PE2
+!PN
+!PQ
+!CT
+^Builtin:Lists !OS
+^index-sngl ^ix ^x !EV
+^1 !EL
+^1 !EN
+^2 !EP
+!EA
+^x !EV
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^induction-Non-Nil ^P !PV
+^x !EV
+^1 !EL
+^1 ^ell ^1 !QL
+!SE
+!PS
+^x ^xs ^2 !QL
+^P !PV
+^xs !EV
+^1 ^ell ^1 !QL
+!SE
+!PS
+^P !PV
+^: ^260 ^x !EV
+^xs !EV
+!EB
+^1 ^ell ^1 !QL
+!SE
+!PS
+!PI
+!PAl
+^2 !PA
+^ell ^1 !QL
+^ell !EV
+^t !Tv
+!Tl
+!P:
+^P !PV
+!PI
+!PAl
+!PI
+!CT
+^Builtin:Lists !OS
+^non-nil-is-List ^xs !EV
+^t !Tv
+!Tl
+!P:
+^xs !EV
+^t !Tv
+!TL
+!P:
+!PI
+!CT
+^Builtin:Lists !OS
+^non-nil-hd-tl ^xs !EV
+^t !Tv
+!Tl
+!P:
+^xs !EV
+^: ^260 ^hd ^xs !EV
+!EA
+^tl ^xs !EV
+!EA
+!EB
+!E=
+!PE2
+!PI
+!CT
+^Builtin:Lists !OS
+^cons-not-nil ^xs !EV
+^: ^260 ^hd ^xs !EV
+!EA
+^tl ^xs !EV
+!EA
+!EB
+!E=
+!PE2
+^xs !EV
+^0 !EL
+!E=
+!PE2
+!PN
+!PQ
+!CT
+^Builtin:Lists !OS
+^cat-assoc ^++ ^250 ^l1 !EV
+^++ ^250 ^l2 !EV
+^l3 !EV
+!EB
+!EB
+^++ ^250 ^++ ^250 ^l1 !EV
+^l2 !EV
+!EB
+^l3 !EV
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^seq-imp-pfx.1 ^l1 !EV
+^l2 !EV
+!E=
+!PE2
+^<<= ^240 ^l1 !EV
+^l2 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Lists !OS
+^seq-imp-pfx.2 ^l1 !EV
+^l2 !EV
+!E=
+!PE2
+^<<= ^240 ^l2 !EV
+^l1 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Lists !OS
+^spfx-trans ^<< ^240 ^l1 !EV
+^l2 !EV
+!EB
+!PE2
+^<< ^240 ^l2 !EV
+^e3 !EV
+!EB
+!PE2
+^2 !PA
+^<< ^240 ^l1 !EV
+^e3 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Lists !OS
+^spfx-disj ^<< ^240 ^l1 !EV
+^l2 !EV
+!EB
+!PE2
+^<< ^240 ^l2 !EV
+^l1 !EV
+!EB
+!PE2
+^2 !PA
+!PN
+!CT
+^Builtin:Lists !OS
+^spfx-=>-pfx ^<< ^240 ^xs !EV
+^ys !EV
+!EB
+!PE2
+^<<= ^240 ^xs !EV
+^ys !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Lists !OS
+^cat-inv-ssub ^<<= ^240 ^l1 !EV
+^l2 !EV
+!EB
+!PE2
+^++ ^250 ^l1 !EV
+^-- ^250 ^l2 !EV
+^l1 !EV
+!EB
+!EB
+^l2 !EV
+!E=
+!PE2
+!PI
+!CT
+^Builtin:Lists !OS
+^last-snoc ^lst ^++ ^250 ^xs !EV
+^x !EV
+^1 !EL
+!EB
+!EA
+^x !EV
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^last-alt-def ^lst ^xs !EV
+!EA
+^hd ^-- ^250 ^xs !EV
+^frnt ^xs !EV
+!EA
+!EB
+!EA
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^index-one-hd ^xs !EV
+^0 !EL
+!E=
+!PE2
+!PN
+^ix ^xs !EV
+^1 !EN
+^2 !EP
+!EA
+^hd ^xs !EV
+!EA
+!E=
+!PE2
+!PI
+!CT
+^Builtin:Lists !OS
+^pfx-trans ^<<= ^240 ^l1 !EV
+^l2 !EV
+!EB
+!PE2
+^<<= ^240 ^l2 !EV
+^l3 !EV
+!EB
+!PE2
+^2 !PA
+^<<= ^240 ^l1 !EV
+^l3 !EV
+!EB
+!PE2
+!PI
+!CT
+^Builtin:Lists !OS
+^pfx-anti ^<<= ^240 ^l1 !EV
+^l2 !EV
+!EB
+!PE2
+^<<= ^240 ^l2 !EV
+^l1 !EV
+!EB
+!PE2
+^2 !PA
+^l1 !EV
+^l2 !EV
+!E=
+!PE2
+!PI
+!CT
+^Builtin:Lists !OS
+^frnt-snoc ^frnt ^++ ^250 ^xs !EV
+^x !EV
+^1 !EL
+!EB
+!EA
+^xs !EV
+!E=
+!PE2
+!CT
+^Builtin:Lists !OS
+^frnt-len ^/= ^220 ^xs !EV
+^0 !EL
+!EB
+!PE2
+^len ^xs !EV
+!EA
+^+ ^250 ^len ^frnt ^xs !EV
+!EA
+!EA
+^1 !EN
+!EB
+!E=
+!PE2
+!PI
+!CT
+^Builtin:Lists !OS
+^54 !lM
+^cat-nil-r-unit ^++ ^250 ^l1 !EV
+^0 !EL
+!EB
+^l1 !EV
+!E=
+!PE2
+!CT
+!L
+^cons-not-null ^null ^: ^260 ^x !EV
+^xs !EV
+!EB
+!EA
+!PE2
+!PN
+!CT
+!L
+^len-cat-morphism ^len ^++ ^250 ^l1 !EV
+^l2 !EV
+!EB
+!EA
+^+ ^250 ^len ^l1 !EV
+!EA
+^len ^l2 !EV
+!EA
+!EB
+!E=
+!PE2
+!CT
+!L
+^len-sngl ^len ^x !EV
+^1 !EL
+!EA
+^1 !EN
+!E=
+!PE2
+!CT
+!L
+^nil-is-null ^null ^0 !EL
+!EA
+!PE2
+!CT
+!L
+^pfx-cat ^<<= ^240 ^l1 !EV
+^++ ^250 ^l1 !EV
+^l2 !EV
+!EB
+!EB
+!PE2
+!CT
+!L
+^pfx-refl ^<<= ^240 ^l1 !EV
+^l1 !EV
+!EB
+!PE2
+!CT
+!L
+^sngl-not-nil ^x !EV
+^1 !EL
+^0 !EL
+!E=
+!PE2
+!PN
+!CT
+!L
+^ssub-inv-cat ^-- ^250 ^++ ^250 ^l1 !EV
+^l2 !EV
+!EB
+^l1 !EV
+!EB
+^l2 !EV
+!E=
+!PE2
+!CT
+!L
+^9 !ML
+^0 !MT
+!@

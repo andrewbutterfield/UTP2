@@ -1,0 +1,19 @@
+From the type-lists we now incrementally construct two new tables:
+\begin{itemize}
+  \item $vmap : VM = Tvar \pfun Tvar$
+    \\--- maps all variables deemed equal to the least such
+  \item $vtyp : TV = Tvar \pfun Type$
+    \\--- maps least variable in equivalence class to its type.
+\end{itemize}
+We have the following invariants:
+\begin{eqnarray*}
+   \dom~vmap &\not{\!\cap}& \ran~vmap
+\\ \ran~vmap &\subseteq& \dom~vtyp
+\\ a = vmap(b) &\implies& a < b
+\end{eqnarray*}
+So given that $a,b,c$ and $d$ are all equivalent, and denote $T$,
+we have:
+\begin{eqnarray*}
+   vmap &=& \mapof{\ldots,b \mapsto a,c \mapsto a,d\mapsto a,\ldots}
+\\ vtyp &=& \mapof{\ldots,a \mapsto T,\ldots}
+\end{eqnarray*}

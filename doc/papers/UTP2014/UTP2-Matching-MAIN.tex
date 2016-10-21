@@ -1,0 +1,61 @@
+\documentclass[oribibl]{llncs}
+\usepackage{amssymb,amsmath}
+\usepackage{mathpartir}
+\usepackage{verbatim}
+\usepackage{saoithin}
+\usepackage{tikz}
+\usetikzlibrary{arrows,matrix}
+
+\def\PLAN#1{\textsc{Plan: }\textit{\textsf{{#1}}}}
+%\def\PLAN#1{}
+%\def\DRAFT#1{}
+\def\DRAFT#1{\textbf{DRAFT: }\textsf{{#1}}}
+
+
+
+\title{
+ Matching: The heart of \UTP2
+}
+
+\author{%
+Andrew Butterfield\inst{1}
+}
+
+\institute{%
+Lero@TCD, Trinity College Dublin, \email{\{butrfeld\}@tcd.ie}
+}
+
+
+\bibliographystyle{alpha}
+
+\input{UTP2LogicDefs}
+\input{UTP2MatchingRules}
+
+\begin{document}
+
+\maketitle
+
+\input{abstract}
+
+\input{Intro}
+\input{Logic}
+\input{Variables}
+\input{Theories}
+\input{Matching}
+\input{StructMatch}
+\input{NonDetMatch}
+\input{Related}
+\input{Conclusions}
+
+\bibliography{SAOITHIN}
+\appendix
+
+\input{SyntaxChange}
+
+%\input{UTP}
+%\input{Designs}
+%\input{Programs}
+%\input{Exploitation}
+%\input{Rules}
+
+\end{document}
