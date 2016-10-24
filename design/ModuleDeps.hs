@@ -1,19 +1,28 @@
 module ModuleDeps where
 import System.Environment
 import qualified Data.Map as M
+import Data.List
 
 type Tree = M.Map String [String]
 
 mrgTree = M.unionWith (++)
 
+
+
 main 
  = do args <- getArgs
       let (lhsLog,importLog,importTree) = parse args
-      lhs <- fmap lines $ readFile lhsLog
-      imports <- fmap lines $ readFile importLog
-      let tree = buildTree lhs imports
+      lhs <- fmap (parseLHSs . lines) $ readFile lhsLog
+      imports <- fmap (parseImports . lines) $ readFile importLog
+      let tree = lhs `mrgTree` imports
       writeFile importTree $ treeShow tree
-      putStrLn "NYI"
+      let extern = nub (concat (M.elems imports)) \\ M.keys lhs
+      putStrLn $ unlines ("External Modules:":extern)
+      let reached = reachable tree "UTP2"
+      let used = reached`intersect` M.keys lhs
+      let unused = reached \\ M.keys lhs
+      let cycs = cycles tree "UTP2"
+      putStrLn $ unlines ("Cycles": take 10 (map show cycs))
 
 {- Parsing -}
 
@@ -52,9 +61,6 @@ parseParent w1
 
 parseImports = foldl mrgTree M.empty . map parseImport
 
-buildTree lhs imports 
-  = parseLHSs lhs `mrgTree` parseImports imports
-
 treeShow tree
  = unlines $ concat $ map depShow $ M.toList tree
 
@@ -68,3 +74,22 @@ depShow (parent,children)
     | otherwise  =  split (n+len) ((s++rs):rss) ss
     where len = length s
 
+cycles :: Tree -> String -> [[String]] -- does not terminate!
+-- sample using take/drop
+cycles tree name
+ = cyc [] name
+ where
+   cyc :: [String] -> String -> [[String]]
+   cyc seen nm
+    | nm `elem` seen  =  [nm:seen]
+    | otherwise
+      = case M.lookup nm tree of
+         Nothing  ->  [] -- no cycle here, at least
+         Just children
+          -> concat $ map (cyc (nm:seen)) children
+
+reachable tree name
+ = case M.lookup name tree of
+     Nothing -> []
+     (Just children) 
+       ->  nub (children ++ concat (map (reachable tree) children))
