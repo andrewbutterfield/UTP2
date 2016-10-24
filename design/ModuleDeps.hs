@@ -1,3 +1,5 @@
+{- Copyright (c) 2016 Andrew Butterfield, TCD -}
+
 module Main where
 import qualified Data.Map as M
 import Data.List
@@ -8,26 +10,40 @@ mrgTree = M.unionWith (++)
 
 lhsLog     =  "_lhs.log"
 importLog  =  "_import.log"
-treeLog    =  "_importTree.log"
+treeLog    =  "_hierarchy.log"
 cyclesLog  =  "_cycles.log"
 wxLog      =  "_wxTree.log"
 
 main 
  = do lhs <- fmap (parseLHSs . lines) $ readFile lhsLog
+      putStrLn ("Read "++lhsLog)
+
       imports <- fmap (parseImports . lines) $ readFile importLog
+      putStrLn ("Read "++importLog)
+
       let tree = lhs `mrgTree` imports
       writeFile treeLog $ treeShow tree
+      putStrLn ("Written "++treeLog)
+
       let lhsKeys = M.keys lhs
+
+      -- we don't reportythis at the moment
       let extern = nub (concat (M.elems imports)) \\ lhsKeys
       let reached = reachable tree "UTP2"
       let used = reached`intersect` lhsKeys
       let unused = reached \\ lhsKeys
+
+      -- we know the hierarchy has a cycle !
       let cycs = cycles tree "UTP2"
       writeFile cyclesLog $  unlines ("Cycles": take 10 (map show cycs))
+      putStrLn ("Written "++cyclesLog)
+
       let wxusers = M.map (filter isWX) $ M.filter (any isWX) tree
       writeFile wxLog $ treeShow wxusers
       let wxusage = M.map (filter (`elem` lhsKeys)) $ M.filterWithKey (fkey isWX) tree
       appendFile wxLog $ '\n':treeShow wxusage
+      putStrLn ("Written "++wxLog)
+
 
 isWX name = take 2 name == "Wx"
 fkey w k a = w k
