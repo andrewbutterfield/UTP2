@@ -25,9 +25,9 @@ parse args = ("_lhs.log","_import.log","_importTree.log")
 -- where <base> does not contain '/'
 -- e.g.,  ../src/XXXX.lhs  -->  XXXX
 parseLHS = pLHS . reverse
- where
-  pLHS ('s':'h':'l':'.':rest) = reverse $ takeWhile (/='/') rest
-  pLHS _ = ""
+
+pLHS ('s':'h':'l':'.':rest) = reverse $ takeWhile (/='/') rest
+pLHS _ = ""
 
 parseLHSs = M.fromList . map addNull . filter (/="") . map parseLHS
 addNull str= (str,[""])
@@ -38,28 +38,33 @@ parseImport :: String -> Tree
 parseImport = pImp . words
  where
   pImp (w1:w2:_) 
-   = case pImp' w1 w2 of
+   = case parseParent w1 of
       Nothing -> M.empty
-      Just (m1,m2) -> M.singleton m1 [m2]
+      Just m1 -> M.singleton m1 [w2]
   pImp _ = M.empty
 
-  pImp' :: String -> String -> Maybe (String, String)
-  pImp' w1 w2
-   = do parentMod <- parseParent w1
-        childMod <- parseChild w2
-        return (parentMod,childMod)
-
 -- ../src/DataText.lhs:19:import
-parseParent w1 = return w1
+parseParent w1 
+  | null p1  =  fail ""
+  | otherwise  = return p1
+  where p1 = pLHS $ dropWhile (/='s') $ reverse w1
 
--- Text.ParserCombinators.Parsec.Token as P
-parseChild w2 = return w2
 
 parseImports = foldl mrgTree M.empty . map parseImport
 
 buildTree lhs imports 
   = parseLHSs lhs `mrgTree` parseImports imports
 
-treeShow = show
+treeShow tree
+ = unlines $ concat $ map depShow $ M.toList tree
 
+depShow (parent,children)
+ = (parent ++ " <-") : split 0 [] (map (' ':) children) 
+ where
+   split _ rss [] = reverse rss
+   split _ [] (s:ss) = split (length s) [s] ss
+   split n (rs:rss) (s:ss)
+    | n >= 72  =  split len (s:rs:rss) ss
+    | otherwise  =  split (n+len) ((s++rs):rss) ss
+    where len = length s
 
