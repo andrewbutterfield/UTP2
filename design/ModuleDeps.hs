@@ -1,5 +1,4 @@
-module ModuleDeps where
-import System.Environment
+module Main where
 import qualified Data.Map as M
 import Data.List
 
@@ -7,22 +6,31 @@ type Tree = M.Map String [String]
 
 mrgTree = M.unionWith (++)
 
-
+lhsLog     =  "_lhs.log"
+importLog  =  "_import.log"
+treeLog    =  "_importTree.log"
+cyclesLog  =  "_cycles.log"
+wxLog      =  "_wxTree.log"
 
 main 
- = do args <- getArgs
-      let (lhsLog,importLog,importTree) = parse args
-      lhs <- fmap (parseLHSs . lines) $ readFile lhsLog
+ = do lhs <- fmap (parseLHSs . lines) $ readFile lhsLog
       imports <- fmap (parseImports . lines) $ readFile importLog
       let tree = lhs `mrgTree` imports
-      writeFile importTree $ treeShow tree
-      let extern = nub (concat (M.elems imports)) \\ M.keys lhs
-      putStrLn $ unlines ("External Modules:":extern)
+      writeFile treeLog $ treeShow tree
+      let lhsKeys = M.keys lhs
+      let extern = nub (concat (M.elems imports)) \\ lhsKeys
       let reached = reachable tree "UTP2"
-      let used = reached`intersect` M.keys lhs
-      let unused = reached \\ M.keys lhs
+      let used = reached`intersect` lhsKeys
+      let unused = reached \\ lhsKeys
       let cycs = cycles tree "UTP2"
-      putStrLn $ unlines ("Cycles": take 10 (map show cycs))
+      writeFile cyclesLog $  unlines ("Cycles": take 10 (map show cycs))
+      let wxusers = M.map (filter isWX) $ M.filter (any isWX) tree
+      writeFile wxLog $ treeShow wxusers
+      let wxusage = M.map (filter (`elem` lhsKeys)) $ M.filterWithKey (fkey isWX) tree
+      appendFile wxLog $ '\n':treeShow wxusage
+
+isWX name = take 2 name == "Wx"
+fkey w k a = w k
 
 {- Parsing -}
 
@@ -93,3 +101,5 @@ reachable tree name
      Nothing -> []
      (Just children) 
        ->  nub (children ++ concat (map (reachable tree) children))
+
+
