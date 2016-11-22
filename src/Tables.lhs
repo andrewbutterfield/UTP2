@@ -380,7 +380,9 @@ mkentry (s,v) trie = tupdate s v trie
 
 and from value-string lists:
 \begin{code}
+lflipupdate :: Trie t -> [(t, String)] -> Trie t
 lflipupdate = foldr mkflipentry
+mkflipentry :: (t,String) -> Trie t -> Trie t
 mkflipentry (v,s) trie = tupdate s v trie
 \end{code}
 

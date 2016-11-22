@@ -1200,7 +1200,7 @@ checkInfix newPrecs newToks ((sp, h):xs)
 checkNum [] = Nothing
 checkNum ((sp, (TNum num)):xs)
  = checkOp n xs -- does TName/TSym/TKSym token follow number?
-         where (n::Int) = read num
+         where n = read num :: Int
 checkNum (h:xs)
  = Nothing
 

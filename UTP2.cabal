@@ -1,0 +1,43 @@
+Name:                UTP2
+Version:             0.9.8.8
+Synopsis:            Unifying Theories of Programming Theorem-Prover
+Description:
+    This application supports the development of UTP theories
+    using equational reasoning
+    
+    
+
+Homepage:            http://wiki.haskell.org/Reactive-banana
+License:             BSD3
+License-file:        LICENSE
+Author:              Andrew Butterfield
+Maintainer:          Andrew Butterfield <Andrew.Butterfield@scss.tcd.ie>
+Category:            GUI
+Cabal-version:       >= 1.8
+
+
+Build-type:          Custom
+Extra-source-files:  Makefile
+
+data-dir:            resource
+data-files:          *.ico, *.wav, *.png
+
+Library
+    hs-source-dirs:  src
+    build-depends:   base >= 4.2 && < 5,
+                     cabal-macosx >= 0.1 && < 0.3,
+                     wxcore (>= 0.13.2.1 && < 0.90) || (>= 0.90.0.1 && < 0.93),
+                     wx (>= 0.13.2.1 && < 0.90) || (>= 0.90.0.1 && < 0.93),
+                     hashable, QuickCheck, containers, time, directory, parsec, deepseq
+
+Executable UTP2
+    hs-source-dirs:  src
+    main-is:         UTP2.lhs
+    if os(darwin)
+        build-depends: hashable, QuickCheck, deepseq, containers, time, directory, parsec, filepath >= 1.1 && <= 1.4.0.0, cabal-macosx, wx, wxcore, base
+    else
+        build-depends: hashable, QuickCheck, deepseq, containers, time, directory, parsec, filepath >= 1.1 && <= 1.4.0.0, wx, wxcore, base
+    extensions: UndecidableInstances, 
+                StandaloneDeriving,
+                FlexibleInstances,
+                FlexibleContexts

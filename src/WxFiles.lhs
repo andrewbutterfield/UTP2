@@ -65,7 +65,7 @@ dirget get descr def
                           return def
        Right thing  -> return thing
 
-getUsername:: IO String
+getUsername -- :: IO String
  = do attempt <- utp2try $ getHomeDirectory
       case attempt of
        Left ioerror -> do putStrLn ("cannot get username: "++show ioerror)

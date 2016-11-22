@@ -755,7 +755,7 @@ wrRoot = wrArg . rootString
 wrGenRoot = wrArg . genRootString
 wrTVar = wrArg
 
-wrNum (n::Int) = wrArg (show n)
+wrNum n = wrArg (show (n :: Int))
 
 wrArgs ss = wr 0 ss
  where

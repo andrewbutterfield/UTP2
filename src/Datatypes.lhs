@@ -2312,6 +2312,7 @@ langsLang (le:les) = langLang le `mrgnorm` langsLang les
 
 Building tables from \texttt{Pvar}-value lists:
 \begin{code}
+plupdate :: Trie t -> [(Pred, t)] -> Trie t
 plupdate = foldr mkpentry
 mkpentry (Pvar (Std f),t) trie = tupdate f t trie
 mkpentry (Pvar (Lst f),t) trie = tupdate (f++"$") t trie

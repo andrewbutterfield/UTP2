@@ -181,3 +181,6 @@ TSWLatexianTemp*
 UTP2.prj
 UTP2-MAIN.pdf
 moduledeps
+*.hi
+.stack-work
+*.exe

@@ -587,7 +587,7 @@ the helptext file which corresponds to the line that was clicked on.
 \begin{code}
 
 mouseOnWhichLine work clickPt count ycount
- = do (heightMenuLine::Int) <- getSCMenuLnHeight work
+ = do heightMenuLine <- getSCMenuLnHeight work
       let y = pointY(clickPt)
       -- toConsole ("clicked y = "++show y)
       if (y > ycount) && (y <= (ycount + heightMenuLine))
