@@ -20,7 +20,10 @@ Build-type:          Custom
 Extra-source-files:  Makefile
 
 data-dir:            resource
-data-files:          *.ico, *.wav, *.png
+data-files:          UTP2-alert.wav
+                     UTP2-cheer.wav
+                     UTP2-note.wav
+                     UTP2-scream.wav
 
 Library
     hs-source-dirs:  src

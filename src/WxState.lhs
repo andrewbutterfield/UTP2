@@ -1209,9 +1209,9 @@ scream work s
  = do top <- getTop work
       errorDialog top "Serious Error" s
 
-alert  t s  = notify "Saoithin-alert.wav" t s
-cheer  t s  = notify "Saoithin-cheer.wav" t s
-note   t s  = notify "Saoithin-note.wav"  t s
+alert  t s  = notify "UTP2-alert.wav" t s
+cheer  t s  = notify "UTP2-cheer.wav" t s
+note   t s  = notify "UTP2-note.wav"  t s
 quiet  t s  = set t [text:=s]
 \end{code}
 
