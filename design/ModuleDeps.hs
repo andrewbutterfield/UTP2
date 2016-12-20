@@ -27,7 +27,7 @@ main
 
       let lhsKeys = M.keys lhs
 
-      -- we don't reportythis at the moment
+      -- we don't report this at the moment
       let extern = nub (concat (M.elems imports)) \\ lhsKeys
       let reached = reachable tree "UTP2"
       let used = reached`intersect` lhsKeys

@@ -89,7 +89,7 @@ initWidth = 500
 initHeight = 150
 initLayout = space initWidth initHeight
 
-main = start utp2_gui
+main = start utp2_gui_run
 
 m = main --- much easier in GHCi !
 \end{code}
@@ -97,7 +97,7 @@ m = main --- much easier in GHCi !
 \subsection{Mainline GUI}
 
 \begin{code}
-utp2_gui
+utp2_gui_run
  = do (uname,fstate) <- systemFilePaths
       f <- frame  [text := (fullname++" - "++uname)]
       initfs <- startupFileHandling f fstate
@@ -192,7 +192,8 @@ paintTop work dc viewArea
       let currCol  = case tStyle of
                           Nothing -> defaultColour
                           (Just style) -> textCol style  -- current text colour
-      let fontItalStyle = TextStyle currFont{_fontShape = ShapeItalic} currCol -- TextStyle with italic font
+      let fontItalStyle -- TextStyle with italic font
+            = TextStyle currFont{_fontShape = ShapeItalic} currCol
 
       -- Workspace display
       let currfs = currFS ss
@@ -297,13 +298,6 @@ topProofClick pspace
 
 \subsubsection{Top-Theory Right-Click}
 
-ALL ABOUT TO BE REPLACED BY RDAG SOLUTION.
-
-At present there are no stack manipulations possible.
-Shortly the theory-stack will be replaced by an rooted directed acyclic
-graph (rDAG) and right-clicking will be used for housekeeping.
-For now it simply says that  there is nothing that can be done.
-
 When no theory has been selected:
 \begin{code}
 noTheoryManipulationMenu pnt work
@@ -323,8 +317,6 @@ theoryManipulationMenu thry pnt work
       addSAVEItem   work thry tmMenu
       addEXPORTItem work thry tmMenu
       addLINKItem  work thry pnt tmMenu
-      -- addDOWNItem work thry tmMenu
-      -- addUPItem work thry tmMenu
       addDROPItem   work thry tmMenu
       addPROGItem   work thry tmMenu
       -- then, general manipulations
@@ -537,11 +529,6 @@ buildFileMenu fileMenu f work
                            , help:=("load a theory"++thryfileext)]
       set loadThry [on command := loadTheory work]
 
-      loadThry <- menuItem fileMenu
-                           [ text:="Load Theory &Bundle\tCtrl+B"
-                           , help:="load a theory bundle (uttxt+teoric)"]
-      set loadThry [on command := loadTheoryBundle work]
-
       saveThrys <- menuItem fileMenu
                             [ text:="Save Theories"
                             , help:="Save any modified theories"]
@@ -625,48 +612,13 @@ loadTheory work
         (Just name)
           -> switch name
                [ isTeoric ---> loadTeoric sts work
-               , isUtp    ---> loadUTP    sts work
                , isUttxt  ---> loadUTText sts work
-               ] (notTheoryFName sts)
-
-loadTheoryDebug work
- = do ss <- varGet work
-      let sts = topstatus ss
-      let (_,cwd) = currentFileSpace (filestate ss)
-      resp <- fileOpenDialog (guitop ss)
-               True True "Select Theory (Debug)"
-               [theoryFiles,anyFiles] cwd ""
-      case resp of
-        Nothing  ->  alert sts "Theory debug : no file selected"
-        (Just name)
-          -> switch name
-               [ isUtp    ---> loadUTPDebug  sts work
                ] (notTheoryFName sts)
 
 notTheoryFName sts name
  = alert sts ("'"++name++"' is not a theory filename, nothing loaded")
 \end{code}
 
-Loading a theory (uttxt/teoirime) bundle
-\begin{code}
-loadTheoryBundle work
- = do ss <- varGet work
-      let sts = topstatus ss
-      let (_,cwd) = currFS ss
-      resp <- fileOpenDialog (guitop ss)
-               True True "Select Theory Bundle (either file)"
-               [bundleTxtThryFiles] cwd ""
-      case resp of
-        Nothing  ->  alert sts "Theory load : no file selected"
-        (Just name)
-          -> switch name
-               [ isUttxt   --->  loadTxtThryBundle sts work
-               , isTeoric  --->  loadTxtThryBundle sts work
-               ] (notTxtThmBundleFName sts)
-
-notTxtThmBundleFName sts name
- = alert sts ("'"++name++"' is not a uttxt/teoric bundle filename, nothing loaded")
-\end{code}
 
 Loading a theory file.
 \begin{code}
@@ -694,102 +646,6 @@ loadUTText sts work name
        (Right thry)  ->  addTheory work thry{modified=Log}
 \end{code}
 
-Loading a UTP-Theory (\LaTeX) file
-\begin{code}
-loadUTP sts work name
- = alert sts "load UTP theory from LaTeX no longer supported"
---  = do txt <- readFile name
---       thg <- getThgrf work
---       let mstk = graphAsStack thg
---       let utp = utpParser mstk txt
---       case utp of
---        (Left msg)   ->  alert sts ("load UTP theory failed : "++msg)
---        (Right thry) ->  addTheory work thry{modified=Log}
-
-loadUTPDebug sts work name
- = alert sts "load UTP theory (DEBUG) from LaTeX no longer supported"
---  = do txt <- readFile name
---       thg <- getThgrf work
---       let mstk = graphAsStack thg
---       let utp = utpParserDebug mstk txt
---       case utp of
---        (Left msg)   ->  alert sts ("load UTP theory failed : "++msg)
---        (Right parselines) ->  displayTheoryParse parselines
---  where
---    displayTheoryParse ptxt
---      = do f <- frame [text:="Theory Parse Display for '"++name++"'"]
---           p <- panel f []
---           sw <- scrolledWindow p []
---           set sw [ virtualSize := sz 1500 5000
---                  , scrollRate := sz 10 10
---                  , size := sz 800 500
---                  , on paint := paintLines ptxt
---                  ]
---           set f [ layout := container p
---                             $ margin 10
---                             $ boxed "Parser AST"
---                             $ fill (widget sw)
---                 , outerSize := sz 1000 500
---                 ]
---
---           return ()
-\end{code}
-
-Loading a text/theorem bundle:
-\begin{code}
-loadTxtThryBundle sts work name
- = do alert sts "loading text theory bundle unimplemented"
-
---  let froot = stripExt name
---       txt <- readFile (froot++uttxt)
---       ss <- varGet work
---       thgrf <- getThgrf work
---       let mstk = graphAsStack thgrf
---       let result = theoryTextParser mstk (stripDir name) txt
---       case result of
---        Left msg -> alert sts ("Bad uttxt : "++msg)
---        Right newthry
---         -> do txt' <- readFile (froot++teoric)
---               let (rep',oldthry) = loadPX txt'
---               case rep' of
---                ImportFail msg' -> alert sts ("Bad teoric : "++msg')
---                _ -> integrateBundle newthry oldthry mstk sts work
---
--- integrateBundle newthry oldthry mstk sts work
---  = do let (new,mstk') = insertTheory newthry mstk
---       let thname = thryName newthry
---       if new
---        then do let (thry',conflicts,impact)
---                      = reconcileBundle newthry oldthry
---                reportImpact thry' mstk'  conflicts impact sts work
---        else alert sts ("Already have theory called '"++thname++"'")
---
--- reportImpact thry mstk [] impact sts work
---  = do setMstk work (thry:ttail mstk)
---       setStkMod work True
---       top <- getTop work
---       repaint top
---       note sts "Bundle loaded, no conflicts"
---
--- reportImpact thry mstk conflicts impact sts work
---  = do toConsole ("CONF:"++show conflicts)
---       toConsole ("IMPACT:"++show impact)
---       top <- getTop work
---       yes <- confirmDialog top "Law Conflict" details False
---       if yes
---        then do setMstk work (thry:ttail mstk)
---                setStkMod work True
---                repaint top
---                alert sts "Bundle loaded, DESPITE CONFLICTS"
---        else alert sts "Law conflicts, Bundle declined"
---  where
---   details = unlines ([ "CONFLICTS: "++show conflicts , "IMPACT:" ]
---                      ++ concat (map ishow impact)
---                      ++ [ "", "DO YOU REALLY WANT TO DO THIS?"] )
---   ishow (nm,[]) = []
---   ishow (nm,thms) = [nm++"$ : "++tshow thms]
---   tshow = concat . intersperse ","
-\end{code}
 
 Adding a theory to graph:
 \begin{code}
@@ -812,75 +668,11 @@ addTheory work thry
 \end{code}
 
 
-\subsubsection{The Options Menu}
-
-The options menu provides commands to
-\begin{itemize}
-  \item toggle the ``auto-promotion'' of just-proved theorems to laws
-   \\ \textbf{Note:} this made sense here when only one proof could exist
-    but should now be moved to apply on a per-proof basis.
-\end{itemize}
-
-\begin{code}
-
-{-buildOptionMenu optMenu f work
- = do toggleASTitm <- menuItem optMenu
-                           [ text:="toggle Auto-Save"
-                           , help:="toggle automatic save of completed theorems"]
-      set toggleASTitm [on command := toggleASTs work]
-
-      toggleAPTitm <- menuItem optMenu
-                           [ text:="toggle Auto-Promote"
-                           , help:="toggle automatic promotion of theorems to laws"]
-      set toggleAPTitm [on command := toggleAPTs work]
-
-toggleAPTs work     --doesn't work
- = do --ap <- getAPTs work --this is returning [] instead of [Bool]
-      let ap = [True]
-      setAPTs work (not(and ap))
-      ss <- varGet work
-      let ws = workspace ss
-      let asd = show (autoSaveThm (proofGUI.fromJust $ tlookup (currProofs ws) "")) --currProofs is returning an EmptyTrie
-      let qwe = currProofs ws
-      putStrLn.show.isEmptyTrie $ qwe
-      putStrLn asd
-      sts <- getSts work
-      alert sts ("Auto-promotion of Theorems is now "++if (and ap) then "OFF" else "ON")
- where
-   setAPTs work b' = proofguiSetparts (autoPromoteThmSetf (const b')) work
-   proofguiSetparts setf work
-    = do cprfs <- getCurrprfs work
-         let cprfs' = tmap (proofGUISetf setf) cprfs
-         varSetf ((workspaceSetf . currProofsSetf . const) cprfs') work
-
-toggleASTs work      --doesn't work, same reasons as above
- = do ast <- getASTs work
-      setASTs work (not(and ast))
-      sts <- getSts work
-      alert sts ("Auto-save of Theorems is now "++if (and ast) then "OFF" else "ON")
- where
-   setASTs work b' = proofguiSetparts (autoSaveThmSetf (const b')) work
-   proofguiSetparts setf work
-    = do cprfs <- getCurrprfs work
-         let cprfs' = tmap (proofGUISetf setf) cprfs
-         varSetf ((workspaceSetf . currProofsSetf . const) cprfs') work
-         -}
-\end{code}
 
 
 \subsection{Closing Down}
 
 \begin{code}
-
--- saveState work
---  = do toConsole "Saving state..."
---       saveTheories work
---       stkro <- getStkMod work
---       if stkro then saveStartupScript work else return ()
---       saveActiveProof work
---       toConsole "... done!"
---       top <- getTop work
---       repaint top
 
 closeDown f work
  = do varSetf (shuttingdownSetf (const True)) work
@@ -1022,9 +814,6 @@ mkMaintMenu work
                   , help:="Propagate Theory changes globally"]
 
       buildSyncMenu work syncMenu availableSynchronisers
-
-      dbgThry <- menuItem maintMenu [ text:="Debug UTP Parser"]
-      set dbgThry [on command := loadTheoryDebug work]
 
       vwFonts <- menuItem maintMenu [ text:="View Fonts"]
       set vwFonts [on command := viewFonts work]

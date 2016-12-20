@@ -8,4 +8,4 @@ Script `./clean.sh` will remove Haskell compile files
 
 See files of the form `_xxxx.log` for results.
 
-Script `./wipe.sh` will also remove the above-memtioned .log files and the executable.
+Script `./wipe.sh` will also remove the above-mentioned .log files and the executable.
