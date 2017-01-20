@@ -59,10 +59,10 @@ import WxState
 import WxFiles
 import WxStyle
 import WxRender
-import WxProof
-import WxTheory
-import WxSynchro
-import WxProg
+--import WxProof
+--import WxTheory
+--import WxSynchro
+--import WxProg
 
 import Debug.Trace
 import System.Info
@@ -283,18 +283,18 @@ handleTopClick work ksel pnt
 
 topTheoryClick thry
  = ClkHandlers Nothing
-               (Just viewThisTheory)
+               Nothing -- (Just viewThisTheory)
                (Just manipulateThisTheory)
  where
-  viewThisTheory pnt = viewTheory thry
+  -- viewThisTheory pnt = viewTheory thry
   manipulateThisTheory = theoryManipulationMenu thry
 
 topProofClick pspace
  = ClkHandlers Nothing
-               (Just viewThisProof)
+               Nothing -- (Just viewThisProof)
                Nothing
- where
-   viewThisProof pnt work = repaintProofGUI pspace
+ -- where
+ --   viewThisProof pnt work = repaintProofGUI pspace
 \end{code}
 
 
@@ -320,7 +320,7 @@ theoryManipulationMenu thry pnt work
       addEXPORTItem work thry tmMenu
       addLINKItem  work thry pnt tmMenu
       addDROPItem   work thry tmMenu
-      addPROGItem   work thry tmMenu
+      -- addPROGItem   work thry tmMenu -- in WxProg
       -- then, general manipulations
       addCREATEItem  work tmMenu
       addSAVEALLItem work tmMenu
@@ -548,10 +548,10 @@ buildFileMenu fileMenu f work
                              , help:="Save appearance configuration"]
       set saveStyles [on command := saveStyleState work]
 
-      loadPrf <- menuItem fileMenu
-                           [ text:="Load Proof"
-                           , help:=("load a proof"++prffileext)]
-      set loadPrf [on command := importProof work]
+      -- loadPrf <- menuItem fileMenu
+      --                      [ text:="Load Proof"
+      --                      , help:=("load a proof"++prffileext)]
+      -- set loadPrf [on command := importProof work]
 
       chgWD <- menuItem fileMenu
                            [ text:="Change Working Filespace"
@@ -584,8 +584,8 @@ createTheory work
         do (rdag,trie) <- getThgrf work
            sts <- getSts work
            case tlookup trie newthname of
-            Just _
-             -> alert sts ("createTheory '"++newthname++"' already exists")
+            Just _  -> return ()
+             -- -> alert sts ("createTheory '"++newthname++"' already exists")
             Nothing
              -> do let thry = nmdNullPrfCtxt newthname
                    let trie' = tupdate newthname thry trie
@@ -726,87 +726,87 @@ touchTheory mod thry work
 \subsubsection{The Build Menu}
 
 \begin{code}
-mkBuildMenu work
- = do genPCMenu <- menuPane [text:="&Build"]
-
-      genAllThry <- menuItem genPCMenu [text:="All", help:="generate all default theories"]
-      set genAllThry [ on command
-                       :=
-                       genProofCtxts
-                         [ rootTheory
-                         , logicLawsTheory
-                         , logicProofContext
-                         , gsPropTheory
-                         , gsNonPropTheory
-                         , gsLogicProofContext
-                         , gsLogicAllProofContext
-                         , theoryEquality
-                         , theoryArithmetic
-                         , theorySets
-                         , theoryLists
-                         , theory3BA31Lists
-                         , utpProofContext
-                         , rAlgAxProofContext
-                         , rAlgCjProofContext
-                         , rProofContext
-                         ] work
-                     ]
-
-      genRoot <- menuItem genPCMenu [text:=rootName, help:="generate default root theory"]
-      set genRoot [on command := genProofCtxt rootTheory work]
-
-      genLogic <- menuItem genPCMenu [text:="LogicLaws", help:="generate default Logic law conjectures"]
-      set genLogic [on command := genProofCtxt logicLawsTheory work]
-
-      genLogic <- menuItem genPCMenu [text:="Logic", help:="generate Morgan&Sanders axioms"]
-      set genLogic [on command := genProofCtxt logicProofContext work]
-
-      genPropLogic <- menuItem genPCMenu [text:="PropLogic", help:="generate default PropLogic theory"]
-      set genPropLogic [on command := genProofCtxt gsPropTheory work]
-
-      genNonPropLogic <- menuItem genPCMenu [text:="NonPropLogic", help:="generate default NonPropLogic theory"]
-      set genNonPropLogic [on command := genProofCtxt gsNonPropTheory work]
-
-      genGSLogic <- menuItem genPCMenu [text:="GSLogic", help:="generate default GSLogic theory"]
-      set genGSLogic [on command := genProofCtxt gsLogicProofContext work]
-
-      genGSLogic <- menuItem genPCMenu [text:="GSLogicAll", help:="generate full GSLogic theory"]
-      set genGSLogic [on command := genProofCtxt gsLogicAllProofContext work]
-
-      genGS3001 <- menuItem genPCMenu [text:="GS3001", help:="generate default GS3001 theory"]
-      set genGS3001 [on command := genProofCtxt gs3001ProofContext work]
-
-      genEquality <- menuItem genPCMenu [text:="Equality", help:="generate default Equality theory"]
-      set genEquality [on command := genProofCtxt theoryEquality work]
-
-      genArithmetic <- menuItem genPCMenu [text:="Arithmetic", help:="generate default Arithmetic theory"]
-      set genArithmetic [on command := genProofCtxt theoryArithmetic work]
-
-      genSets <- menuItem genPCMenu [text:="Sets", help:="generate default Sets theory"]
-      set genSets [on command := genProofCtxt theorySets work]
-
-      genLists <- menuItem genPCMenu [text:="Lists", help:="generate default Lists theory"]
-      set genLists [on command := genProofCtxt theoryLists work]
-
-      genLists <- menuItem genPCMenu [text:="3BA31Lists", help:="generate default 3BA31Lists theory"]
-      set genLists [on command := genProofCtxt theory3BA31Lists work]
-
-      genUTP <- menuItem genPCMenu [text:="UTP", help:="generate default UTP theory"]
-      set genUTP [on command := genProofCtxt utpProofContext work]
-
-      genRAA <- menuItem genPCMenu [text:="RAlgAxioms", help:="generate default Reactive-Algebra axioms"]
-      set genRAA [on command := genProofCtxt rAlgAxProofContext work]
-
-      genRAC <- menuItem genPCMenu [text:="RAlgConjs", help:="generate default Reactive-Algebra conjectures"]
-      set genRAC [on command := genProofCtxt rAlgCjProofContext work]
-
-      genR <- menuItem genPCMenu [text:="R", help:="generate default Reactive theory"]
-      set genR [on command := genProofCtxt rProofContext work]
-
-      genXYZ <- menuItem genPCMenu [text:="X", help:="generate default XYZDesign theory"]
-      set genXYZ [on command := genProofCtxt xyzDesignTheory work]
-
-      return genPCMenu
+-- mkBuildMenu work
+--  = do genPCMenu <- menuPane [text:="&Build"]
+--
+--       genAllThry <- menuItem genPCMenu [text:="All", help:="generate all default theories"]
+--       set genAllThry [ on command
+--                        :=
+--                        genProofCtxts
+--                          [ rootTheory
+--                          , logicLawsTheory
+--                          , logicProofContext
+--                          , gsPropTheory
+--                          , gsNonPropTheory
+--                          , gsLogicProofContext
+--                          , gsLogicAllProofContext
+--                          , theoryEquality
+--                          , theoryArithmetic
+--                          , theorySets
+--                          , theoryLists
+--                          , theory3BA31Lists
+--                          , utpProofContext
+--                          , rAlgAxProofContext
+--                          , rAlgCjProofContext
+--                          , rProofContext
+--                          ] work
+--                      ]
+--
+--       genRoot <- menuItem genPCMenu [text:=rootName, help:="generate default root theory"]
+--       set genRoot [on command := genProofCtxt rootTheory work]
+--
+--       genLogic <- menuItem genPCMenu [text:="LogicLaws", help:="generate default Logic law conjectures"]
+--       set genLogic [on command := genProofCtxt logicLawsTheory work]
+--
+--       genLogic <- menuItem genPCMenu [text:="Logic", help:="generate Morgan&Sanders axioms"]
+--       set genLogic [on command := genProofCtxt logicProofContext work]
+--
+--       genPropLogic <- menuItem genPCMenu [text:="PropLogic", help:="generate default PropLogic theory"]
+--       set genPropLogic [on command := genProofCtxt gsPropTheory work]
+--
+--       genNonPropLogic <- menuItem genPCMenu [text:="NonPropLogic", help:="generate default NonPropLogic theory"]
+--       set genNonPropLogic [on command := genProofCtxt gsNonPropTheory work]
+--
+--       genGSLogic <- menuItem genPCMenu [text:="GSLogic", help:="generate default GSLogic theory"]
+--       set genGSLogic [on command := genProofCtxt gsLogicProofContext work]
+--
+--       genGSLogic <- menuItem genPCMenu [text:="GSLogicAll", help:="generate full GSLogic theory"]
+--       set genGSLogic [on command := genProofCtxt gsLogicAllProofContext work]
+--
+--       genGS3001 <- menuItem genPCMenu [text:="GS3001", help:="generate default GS3001 theory"]
+--       set genGS3001 [on command := genProofCtxt gs3001ProofContext work]
+--
+--       genEquality <- menuItem genPCMenu [text:="Equality", help:="generate default Equality theory"]
+--       set genEquality [on command := genProofCtxt theoryEquality work]
+--
+--       genArithmetic <- menuItem genPCMenu [text:="Arithmetic", help:="generate default Arithmetic theory"]
+--       set genArithmetic [on command := genProofCtxt theoryArithmetic work]
+--
+--       genSets <- menuItem genPCMenu [text:="Sets", help:="generate default Sets theory"]
+--       set genSets [on command := genProofCtxt theorySets work]
+--
+--       genLists <- menuItem genPCMenu [text:="Lists", help:="generate default Lists theory"]
+--       set genLists [on command := genProofCtxt theoryLists work]
+--
+--       genLists <- menuItem genPCMenu [text:="3BA31Lists", help:="generate default 3BA31Lists theory"]
+--       set genLists [on command := genProofCtxt theory3BA31Lists work]
+--
+--       genUTP <- menuItem genPCMenu [text:="UTP", help:="generate default UTP theory"]
+--       set genUTP [on command := genProofCtxt utpProofContext work]
+--
+--       genRAA <- menuItem genPCMenu [text:="RAlgAxioms", help:="generate default Reactive-Algebra axioms"]
+--       set genRAA [on command := genProofCtxt rAlgAxProofContext work]
+--
+--       genRAC <- menuItem genPCMenu [text:="RAlgConjs", help:="generate default Reactive-Algebra conjectures"]
+--       set genRAC [on command := genProofCtxt rAlgCjProofContext work]
+--
+--       genR <- menuItem genPCMenu [text:="R", help:="generate default Reactive theory"]
+--       set genR [on command := genProofCtxt rProofContext work]
+--
+--       genXYZ <- menuItem genPCMenu [text:="X", help:="generate default XYZDesign theory"]
+--       set genXYZ [on command := genProofCtxt xyzDesignTheory work]
+--
+--       return genPCMenu
 \end{code}
 
 \newpage
@@ -816,13 +816,13 @@ mkBuildMenu work
 mkMaintMenu work
  = do maintMenu <- menuPane [text:="&Maintenance"]
 
-      syncMenu <- menuPane [text:="&Synchronise"]
+      --syncMenu <- menuPane [text:="&Synchronise"]
 
-      itmGen <- menuSub maintMenu syncMenu
-                  [ text:="Theory Synchronisers"
-                  , help:="Propagate Theory changes globally"]
+      -- itmGen <- menuSub maintMenu syncMenu
+      --             [ text:="Theory Synchronisers"
+      --             , help:="Propagate Theory changes globally"]
 
-      buildSyncMenu work syncMenu availableSynchronisers
+      --buildSyncMenu work syncMenu availableSynchronisers
 
       vwFonts <- menuItem maintMenu [ text:="View Fonts"]
       set vwFonts [on command := viewFonts work]
@@ -849,13 +849,13 @@ mkMaintMenu work
 
 Building the synchronisation menu:
 \begin{code}
-buildSyncMenu work menu [] = return ()
-buildSyncMenu work menu ((nm,descr,thsyncf,pfsyncf):rest)
- = do mitem <- menuItem menu [ text:=nm, help:=descr ]
-      let syncfs = (thsyncf,pfsyncf)
-      let fulldescr = nm ++ " - "++descr
-      set mitem [on command := workSpaceSync syncfs fulldescr work]
-      buildSyncMenu work menu rest
+-- buildSyncMenu work menu [] = return ()
+-- buildSyncMenu work menu ((nm,descr,thsyncf,pfsyncf):rest)
+--  = do mitem <- menuItem menu [ text:=nm, help:=descr ]
+--       let syncfs = (thsyncf,pfsyncf)
+--       let fulldescr = nm ++ " - "++descr
+--       set mitem [on command := workSpaceSync syncfs fulldescr work]
+--       buildSyncMenu work menu rest
 \end{code}
 
 \newpage
@@ -956,10 +956,10 @@ mkAppMenu top f work
       bgColourMenu <- menuItem appMenu [text:= "Background Colour"]
       set bgColourMenu [on command := changeBgColour bgColourMenu work]
 
-      toggleWinSplititm <- menuItem appMenu
-                           [ text:="Toggle split in Proof windows"
-                           , help:="proof windows should be divided (Horizontal/Vertical)"]
-      set toggleWinSplititm [on command := toggleSplit work]
+      -- toggleWinSplititm <- menuItem appMenu
+      --                      [ text:="Toggle split in Proof windows"
+      --                      , help:="proof windows should be divided (Horizontal/Vertical)"]
+      -- set toggleWinSplititm [on command := toggleSplit work]
 
       resetMenu <- menuItem appMenu [text:= "Reset"]
       set resetMenu [on command := resetStyles work]

@@ -1201,9 +1201,9 @@ dbggrf (g,_) = show g
 An audible accompaniment to notices is often useful.
 \begin{code}
 notify noisefile txtspot string
- = do let beep = sound noisefile
+ = do --let beep = sound noisefile
       set txtspot [text:=string]
-      playWait beep
+      --playWait beep
 
 scream work s
  = do top <- getTop work
