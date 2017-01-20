@@ -1,5 +1,5 @@
-v3.6
-^Sets ^15 ^_ROOT ^Equality ^Arithmetic ^3 ^0 !MK
+v3.7
+^Sets ^16 ^_ROOT ^Equality ^Arithmetic ^3 ^0 !MK
 ^0 !ME
 ^0 !ME
 ^0 !MP
@@ -61,6 +61,18 @@ v3.6
 !TS
 !TF
 ^7 !MK
+^intsct-comm ^intsct ^270 ^e1 !EV
+^e2 !EV
+!EB
+^intsct ^270 ^e2 !EV
+^e1 !EV
+!EB
+!E=
+!PE2
+!CT
+^Builtin:Sets !OS
+^ROOT !OS
+^2 !OP
 ^union-sdiff-distr ^\ ^260 ^union ^260 ^e1 !EV
 ^e2 !EV
 !EB
@@ -440,8 +452,234 @@ v3.6
 !PE2
 !CT
 ^Builtin:Sets !OS
-^26 !lM
+^27 !lM
 ^0 !ML
+^intsct-comm ^Sets ^intsct-comm ^intsct ^270 ^e1 !EV
+^e2 !EV
+!EB
+^intsct ^270 ^e2 !EV
+^e1 !EV
+!EB
+!E=
+!PE2
+!CT
+!PT
+!RE
+^0 !mal
+^PropLogic$87$==-refl ^ROOT !OS
+^1 !OP
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+!PT
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 !mre
+^_ROOT$0$Ax-==-id ^ROOT !OS
+!Il
+^Q ^in ^280 ^x !EV
+^e1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^e2 !EV
+!EB
+!PE2
+^2 !PA
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^e1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^e2 !EV
+!EB
+!PE2
+^2 !PA
+^in ^280 ^x !EV
+^e1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^e2 !EV
+!EB
+!PE2
+^2 !PA
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 !mre
+^PropLogic$87$/\-Comm ^ROOT !OS
+^1 !OP
+!Il
+^P ^in ^280 ^x !EV
+^e1 !EV
+!EB
+!PE2
+^Q ^in ^280 ^x !EV
+^e2 !EV
+!EB
+!PE2
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^e1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^e2 !EV
+!EB
+!PE2
+^2 !PA
+^in ^280 ^x !EV
+^e2 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^e1 !EV
+!EB
+!PE2
+^2 !PA
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^2 ^2 !mle
+^Sets$15$in-intersect ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s1 ^e2 ^s2 ^e1 ^3 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^e1 !EV
+!EB
+!PE2
+^in ^280 ^x !EV
+^e2 !EV
+!EB
+!PE2
+^2 !PA
+^in ^280 ^x !EV
+^intsct ^270 ^e2 !EV
+^e1 !EV
+!EB
+!EB
+!PE2
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^1 ^1 ^2 !mle
+^Sets$15$in-intersect ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^e1 ^x ^s1 ^e1 ^s2 ^e2 ^3 !MU
+^0 !MVL
+!B9
+!j
+^x ^1 !QL
+^in ^280 ^x !EV
+^intsct ^270 ^e1 !EV
+^e2 !EV
+!EB
+!EB
+!PE2
+^in ^280 ^x !EV
+^intsct ^270 ^e2 !EV
+^e1 !EV
+!EB
+!EB
+!PE2
+!PQ
+!PAl
+!s
+!AJ
+!RE
+^0 !mle
+^Sets$15$set-extensionality ^Builtin:Sets !OS
+!Il
+^0 !MP
+^0 !MRL
+^s1 ^intsct ^270 ^e1 !EV
+^e2 !EV
+!EB
+^s2 ^intsct ^270 ^e2 !EV
+^e1 !EV
+!EB
+^2 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^x ^x ^1 !MU
+^0 !MVL
+!B9
+!j
+^intsct ^270 ^e1 !EV
+^e2 !EV
+!EB
+^intsct ^270 ^e2 !EV
+^e1 !EV
+!EB
+!E=
+!PE2
+!s
+!AJ
+^6 !X
+!?R
+^$T ^_PLT_intsct-comm ^Sets ^Equality ^NonPropLogic ^PropLogic ^_ROOT ^6 ^vcqsfgck !!
 ^union-sdiff-distr ^Sets ^union-sdiff-distr ^\ ^260 ^union ^260 ^e1 !EV
 ^e2 !EV
 !EB
@@ -1126,7 +1364,7 @@ v3.6
 !AJ
 ^12 !X
 !?R
-^$T ^_PLT_union-sdiff-distr ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^sdiff-union-distr ^Sets ^sdiff-union-distr ^\ ^260 ^e1 !EV
 ^union ^260 ^e2 !EV
 ^e3 !EV
@@ -1640,7 +1878,7 @@ v3.6
 !AJ
 ^10 !X
 !?R
-^$T ^_PLT_sdiff-union-distr ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^sdiff-int-distr ^Sets ^sdiff-int-distr ^\ ^260 ^e1 !EV
 ^intsct ^270 ^e2 !EV
 ^e3 !EV
@@ -2154,7 +2392,7 @@ v3.6
 !AJ
 ^10 !X
 !?R
-^$T ^_PLT_sdiff-int-distr ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^sdiff-self ^Sets ^sdiff-self ^\ ^260 ^e1 !EV
 ^e1 !EV
 !EB
@@ -2427,7 +2665,7 @@ v3.6
 !AJ
 ^9 !X
 !?R
-^$T ^_PLT_sdiff-self ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^int-sdiff-distr ^Sets ^int-sdiff-distr ^\ ^260 ^intsct ^270 ^e1 !EV
 ^e2 !EV
 !EB
@@ -3241,7 +3479,7 @@ v3.6
 !AJ
 ^14 !X
 !?R
-^$T ^_PLT_int-sdiff-distr ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^union-int-distr ^Sets ^union-int-distr ^intsct ^270 ^union ^260 ^e1 !EV
 ^e2 !EV
 !EB
@@ -3894,7 +4132,7 @@ v3.6
 !AJ
 ^12 !X
 !?R
-^$T ^_PLT_union-int-distr ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^sdiff-twice ^Sets ^sdiff-twice ^\ ^260 ^\ ^260 ^e1 !EV
 ^e2 !EV
 !EB
@@ -4332,7 +4570,7 @@ v3.6
 !AJ
 ^9 !X
 !?R
-^$T ^_PLT_sdiff-twice ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^int-union-distr ^Sets ^int-union-distr ^union ^260 ^intsct ^270 ^e1 !EV
 ^e2 !EV
 !EB
@@ -4985,7 +5223,7 @@ v3.6
 !AJ
 ^12 !X
 !?R
-^$T ^_PLT_int-union-distr ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^intsct-assoc ^Sets ^intsct-assoc ^intsct ^270 ^e1 !EV
 ^intsct ^270 ^e2 !EV
 ^e3 !EV
@@ -5353,233 +5591,7 @@ v3.6
 !AJ
 ^8 !X
 !?R
-^$T ^_PLT_intsct-assoc ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
-^intsct-comm ^Sets ^intsct-comm ^intsct ^270 ^e1 !EV
-^e2 !EV
-!EB
-^intsct ^270 ^e2 !EV
-^e1 !EV
-!EB
-!E=
-!PE2
-!CT
-!PT
-!RE
-^0 !mle
-^_ROOT$0$Ax-all-x-scope ^ROOT !OS
-!Il
-^P !PT
-^1 !MP
-^0 !MRL
-^0 !ME
-^x$ ^x ^1 ^y$ ^0 ^2 !MVL
-^0 !MEL
-^0 !MK
-^0 !MTL
-^0 !MU
-^0 !MVL
-!B9
-!j
-^x ^1 !QL
-!PT
-!PAl
-!s
-!AJ
-!RE
-^1 ^1 !mre
-^_ROOT$0$Ax-==-id ^ROOT !OS
-!Il
-^Q ^in ^280 ^x !EV
-^e1 !EV
-!EB
-!PE2
-^in ^280 ^x !EV
-^e2 !EV
-!EB
-!PE2
-^2 !PA
-^1 !MP
-^0 !MRL
-^0 !ME
-^0 !MVL
-^0 !MEL
-^0 !MK
-^0 !MTL
-^0 !MU
-^0 !MVL
-!B9
-!j
-^x ^1 !QL
-^in ^280 ^x !EV
-^e1 !EV
-!EB
-!PE2
-^in ^280 ^x !EV
-^e2 !EV
-!EB
-!PE2
-^2 !PA
-^in ^280 ^x !EV
-^e1 !EV
-!EB
-!PE2
-^in ^280 ^x !EV
-^e2 !EV
-!EB
-!PE2
-^2 !PA
-!PQ
-!PAl
-!s
-!AJ
-!RE
-^1 ^2 ^2 !mre
-^PropLogic$87$/\-Comm ^ROOT !OS
-^1 !OP
-!Il
-^P ^in ^280 ^x !EV
-^e1 !EV
-!EB
-!PE2
-^Q ^in ^280 ^x !EV
-^e2 !EV
-!EB
-!PE2
-^2 !MP
-^0 !MRL
-^0 !ME
-^0 !MVL
-^0 !MEL
-^0 !MK
-^0 !MTL
-^0 !MU
-^0 !MVL
-!B9
-!j
-^x ^1 !QL
-^in ^280 ^x !EV
-^e1 !EV
-!EB
-!PE2
-^in ^280 ^x !EV
-^e2 !EV
-!EB
-!PE2
-^2 !PA
-^in ^280 ^x !EV
-^e2 !EV
-!EB
-!PE2
-^in ^280 ^x !EV
-^e1 !EV
-!EB
-!PE2
-^2 !PA
-!PQ
-!PAl
-!s
-!AJ
-!RE
-^1 ^2 ^2 !mle
-^Sets$5$in-intersect ^Builtin:Sets !OS
-!Il
-^0 !MP
-^0 !MRL
-^0 !ME
-^0 !MVL
-^0 !MEL
-^0 !MK
-^0 !MTL
-^e1 ^x ^s1 ^e2 ^s2 ^e1 ^3 !MU
-^0 !MVL
-!B9
-!j
-^x ^1 !QL
-^in ^280 ^x !EV
-^e1 !EV
-!EB
-!PE2
-^in ^280 ^x !EV
-^e2 !EV
-!EB
-!PE2
-^2 !PA
-^in ^280 ^x !EV
-^intsct ^270 ^e2 !EV
-^e1 !EV
-!EB
-!EB
-!PE2
-!PQ
-!PAl
-!s
-!AJ
-!RE
-^1 ^1 ^2 !mle
-^Sets$5$in-intersect ^Builtin:Sets !OS
-!Il
-^0 !MP
-^0 !MRL
-^0 !ME
-^0 !MVL
-^0 !MEL
-^0 !MK
-^0 !MTL
-^e1 ^x ^s1 ^e1 ^s2 ^e2 ^3 !MU
-^0 !MVL
-!B9
-!j
-^x ^1 !QL
-^in ^280 ^x !EV
-^intsct ^270 ^e1 !EV
-^e2 !EV
-!EB
-!EB
-!PE2
-^in ^280 ^x !EV
-^intsct ^270 ^e2 !EV
-^e1 !EV
-!EB
-!EB
-!PE2
-!PQ
-!PAl
-!s
-!AJ
-!RE
-^0 !mle
-^Sets$5$set-extensionality ^Builtin:Sets !OS
-!Il
-^0 !MP
-^0 !MRL
-^s1 ^intsct ^270 ^e1 !EV
-^e2 !EV
-!EB
-^s2 ^intsct ^270 ^e2 !EV
-^e1 !EV
-!EB
-^2 !ME
-^0 !MVL
-^0 !MEL
-^0 !MK
-^0 !MTL
-^x ^x ^1 !MU
-^0 !MVL
-!B9
-!j
-^intsct ^270 ^e1 !EV
-^e2 !EV
-!EB
-^intsct ^270 ^e2 !EV
-^e1 !EV
-!EB
-!E=
-!PE2
-!s
-!AJ
-^6 !X
-!?R
-^$T ^_PLT_intsct-comm ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^intsct-idem ^Sets ^intsct-idem ^intsct ^270 ^e1 !EV
 ^e1 !EV
 !EB
@@ -5737,7 +5749,7 @@ v3.6
 !AJ
 ^5 !X
 !?R
-^$T ^_PLT_intsct-idem ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^union-assoc ^Sets ^union-assoc ^union ^260 ^e1 !EV
 ^union ^260 ^e2 !EV
 ^e3 !EV
@@ -6104,7 +6116,7 @@ v3.6
 !AJ
 ^8 !X
 !?R
-^$T ^_PLT_union-assoc ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^union-comm ^Sets ^union-comm ^union ^260 ^e1 !EV
 ^e2 !EV
 !EB
@@ -6329,7 +6341,7 @@ v3.6
 !AJ
 ^6 !X
 !?R
-^$T ^_PLT_union-comm ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^union-idem ^Sets ^union-idem ^union ^260 ^e1 !EV
 ^e1 !EV
 !EB
@@ -6486,7 +6498,7 @@ v3.6
 !AJ
 ^5 !X
 !?R
-^$T ^_PLT_union-idem ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^in-self ^Sets ^in-self ^in ^280 ^e1 !EV
 ^e1 !EV
 ^1 !ES
@@ -6539,6 +6551,6 @@ v3.6
 !AJ
 ^2 !X
 !?R
-^$T ^_PLT_in-self ^Sets ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^15 !MT
 !@

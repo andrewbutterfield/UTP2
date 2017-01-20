@@ -2,6 +2,7 @@
 
 \begin{code}
 ----------------------- UTP2 Coding Standard Width ------------------------->|
+{-# LANGUAGE CPP #-}
 module About where
 import DataText
 import Data.List
@@ -12,13 +13,18 @@ import Data.Version
 \subsection{Program Name \& Version}
 
 \begin{code}
+#ifndef mingw32_HOST_OS
+progname = "U\xb7(TP)\178"
+#endif
+#ifdef mingw32_HOST_OS
 progname = "U(TP)^2"
+#endif
 fullname = progname ++ " v" ++ version
 \end{code}
 
-\textbf{v0.98$\alpha$8, from 18th Feb 2015}
+\textbf{v0.99$\alpha$1, from 20th Jan 2017}
 \begin{code}
-version = "0.98a8(2015-02-18+)"
+version = "0.99a1(2017-01-20+)"
 \end{code}
 
 \subsection{About Text}
@@ -26,12 +32,12 @@ version = "0.98a8(2015-02-18+)"
 \begin{code}
 aboutText
   = unlines [fullname
-            ,"    a.k.a. Saoith\237n ('See-heen')"
+            ," (UTP2 for short)"
             ,""
             ,"2nd-order Equational-Reasoning Proof-Assistant"
             ,"for Unifying Theories of Programming (UTP)"
             ,""
-            ,"(c) 2007-15 Andrew Butterfield"
+            ,"(c) 2007-17 Andrew Butterfield"
             ," with thanks to :"
             ,"  Andrew Anderson, Colm Bhandal, Simon Dardis,"
             ,"  Ian Fitzpatrick, Karen Forde, Luke McGuinness"

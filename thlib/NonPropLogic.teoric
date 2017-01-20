@@ -1,5 +1,5 @@
-v3.5
-^NonPropLogic ^26 ^_ROOT ^1 ^0 !MK
+v3.7
+^NonPropLogic ^27 ^_ROOT ^1 ^0 !MK
 ^0 !ME
 ^0 !ME
 ^0 !MP
@@ -7,6 +7,30 @@ v3.5
 ^0 !MO
 ^0 !MG
 ^0 !MK
+^Meh ^P !PV
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PEx
+^2 !PA
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PN
+!PAl
+!PN
+^P !PV
+!PQ
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PN
+!PAl
+!PN
+^P !PV
+^2 !PO
+!PQ
+!PQ
+^x$ ^1 ^P !CP
+^ROOT !OS
+^1 !OP
 ^/\-any-x-scope ^P !PV
 ^x$ ^y$ ^2 !QL
 ^Q !PV
@@ -322,7 +346,7 @@ v3.5
 !CT
 ^ROOT !OS
 ^1 !OP
-^20 !lM
+^21 !lM
 ^==-rForall-Distr ^x$ ^1 !QL
 ^R !PV
 ^P !PV
@@ -524,6 +548,123 @@ v3.5
 !CT
 !L
 ^10 !ML
+^Meh ^NonPropLogic ^Meh ^P !PV
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PEx
+^2 !PA
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PN
+!PAl
+!PN
+^P !PV
+!PQ
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PN
+!PAl
+!PN
+^P !PV
+^2 !PO
+!PQ
+!PQ
+^x$ ^1 ^P !CP
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PN
+!PAl
+!PN
+^P !PV
+!PQ
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PN
+!PAl
+!PN
+^P !PV
+^2 !PO
+!PQ
+!RE
+^0 !mle
+^_ROOT$0$Ax-Golden-Rule ^ROOT !OS
+!Il
+^P ^x$ ^y$ ^2 !QL
+^Q !PV
+!PN
+!PAl
+!PN
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PN
+!PAl
+!PN
+^P !PV
+^2 !PA
+!s
+!AJ
+!RE
+^1 ^1 !mle
+^_ROOT$0$Ax-any-x-def ^ROOT !OS
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^y$ ^2 ^1 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PEx
+^P !PV
+^2 !PA
+!s
+!AJ
+!RE
+^0 !mre
+^PropLogic$87$/\-Comm ^ROOT !OS
+^1 !OP
+!Il
+^P ^x$ ^y$ ^2 !QL
+^Q !PV
+!PEx
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^P !PV
+^x$ ^y$ ^2 !QL
+^Q !PV
+!PEx
+^2 !PA
+!s
+!AJ
+^3 !X
+!?R
+^$T ^_PLT_START ^NonPropLogic ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
 ^/\-any-x-scope ^NonPropLogic ^/\-any-x-scope ^P !PV
 ^x$ ^y$ ^2 !QL
 ^Q !PV
@@ -555,13 +696,15 @@ v3.5
 !PEx
 ^2 !PA
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -580,13 +723,15 @@ v3.5
 !Il
 ^P ^Q !PV
 ^1 !MP
-^x$ ^y$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^y$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^y$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -613,10 +758,15 @@ v3.5
 !PAl
 !PN
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -641,12 +791,15 @@ v3.5
 !PN
 !PAl
 ^1 !MP
-^x$ ^0 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^0 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^0 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -669,16 +822,15 @@ v3.5
 ^Q ^Q !PV
 !PN
 ^2 !MP
-^x$ ^x$ !EV
-^1 !EL
-^y$ ^y$ !EV
-^1 !EL
-^2 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^y$ ^y$ ^1 ^2 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^y$ ^y$ ^1 !QL
-^2 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 !PN
@@ -702,10 +854,15 @@ v3.5
 !PN
 !PAl
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 !PN
@@ -724,12 +881,15 @@ v3.5
 !Il
 ^P ^P !PV
 ^1 !MP
-^x$ ^0 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^0 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^0 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 ^x$ ^y$ ^2 !QL
@@ -746,14 +906,15 @@ v3.5
 !Il
 ^P ^Q !PV
 ^1 !MP
-^x$ ^x$ !EV
-^y$ !EV
-^2 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^y$ ^2 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^y$ ^2 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 ^x$ ^y$ ^2 !QL
@@ -764,7 +925,7 @@ v3.5
 !AJ
 ^8 !X
 !?R
-^$T ^_PLT_START ^NonPropLogic ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^$T ^0 ^vcqsfgck !!
 ^rForall-Body-Wkn ^NonPropLogic ^rForall-Body-Wkn ^x$ ^1 !QL
 ^R !PV
 ^Q !PV
@@ -792,10 +953,15 @@ v3.5
 ^2 !PA
 !PEx
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -817,10 +983,15 @@ v3.5
 !PI
 !PAl
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -859,10 +1030,15 @@ v3.5
 !PI
 !PAl
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -894,10 +1070,15 @@ v3.5
 ^P !PV
 !PI
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -931,13 +1112,15 @@ v3.5
 !PI
 !PN
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -982,10 +1165,15 @@ v3.5
 !PI
 !PAl
 ^3 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1014,12 +1202,15 @@ v3.5
 !Il
 ^P ^P !PV
 ^1 !MP
-^x$ ^0 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^0 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^0 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1054,10 +1245,15 @@ v3.5
 !PN
 !PN
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1092,10 +1288,15 @@ v3.5
 ^Q ^P !PV
 !PN
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1132,13 +1333,15 @@ v3.5
 !PN
 ^2 !PA
 ^2 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1170,10 +1373,15 @@ v3.5
 ^R ^P !PV
 !PN
 ^3 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1200,10 +1408,15 @@ v3.5
 ^P ^Q !PV
 ^Q ^P !PV
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1231,13 +1444,15 @@ v3.5
 ^2 !PA
 ^R ^R !PV
 ^2 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1273,10 +1488,15 @@ v3.5
 !PI
 !PAl
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1322,10 +1542,15 @@ v3.5
 ^2 !PA
 !PEx
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1347,10 +1572,15 @@ v3.5
 ^2 !PA
 !PEx
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 !PT
 ^x$ ^1 !QL
@@ -1371,10 +1601,15 @@ v3.5
 ^2 !PA
 !PEx
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1412,10 +1647,15 @@ v3.5
 !PEx
 !PN
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1458,10 +1698,15 @@ v3.5
 ^2 !PA
 !PEx
 ^3 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1498,10 +1743,15 @@ v3.5
 ^2 !PA
 !PEx
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1545,10 +1795,15 @@ v3.5
 !PEx
 ^2 !PO
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1581,13 +1836,15 @@ v3.5
 ^P !PV
 ^2 !PA
 ^2 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1615,10 +1872,15 @@ v3.5
 ^Q ^Q !PV
 ^R ^P !PV
 ^3 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -1665,13 +1927,15 @@ v3.5
 !Il
 ^P ^Q !PV
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -1690,13 +1954,15 @@ v3.5
 !Il
 ^P ^P !PV
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -1725,10 +1991,15 @@ v3.5
 !PN
 !PAl
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -1751,13 +2022,15 @@ v3.5
 ^Q ^Q !PV
 !PN
 ^2 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -1777,10 +2050,15 @@ v3.5
 ^P ^P !PV
 ^Q ^Q !PV
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -1799,13 +2077,15 @@ v3.5
 ^Q !PV
 ^2 !PO
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -1870,10 +2150,15 @@ v3.5
 !Il
 ^P ^P !PV
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 !PF
@@ -1891,10 +2176,15 @@ v3.5
 ^_ROOT$0$Ax-FALSE-def ^ROOT !OS
 !Il
 ^0 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 !PT
@@ -1914,13 +2204,15 @@ v3.5
 !Il
 ^R ^R !PV
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 ^x$ ^1 !QL
@@ -1948,10 +2240,15 @@ v3.5
 ^P ^R !PV
 !PN
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 ^x$ ^1 !QL
@@ -1979,10 +2276,15 @@ v3.5
 !PN
 !PAl
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 ^x$ ^1 !QL
@@ -2006,13 +2308,15 @@ v3.5
 ^P ^P !PV
 ^R ^R !PV
 ^2 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -2038,13 +2342,15 @@ v3.5
 ^Q !PV
 !PI
 ^2 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -2066,10 +2372,15 @@ v3.5
 ^Q ^P !PV
 ^R ^Q !PV
 ^3 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -2124,10 +2435,15 @@ v3.5
 ^P !PT
 ^Q ^P !PV
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 !PT
@@ -2153,10 +2469,15 @@ v3.5
 !Il
 ^P ^P !PV
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 !PT
@@ -2185,10 +2506,15 @@ v3.5
 !SE
 !PS
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -2216,10 +2542,15 @@ v3.5
 !SE
 !PS
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -2246,13 +2577,15 @@ v3.5
 !PS
 ^2 !PA
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 !PT
@@ -2274,10 +2607,15 @@ v3.5
 !RE
 ^1 ^1 ^1 ^3 !IS
 ^0 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 !PT
@@ -2304,14 +2642,15 @@ v3.5
 ^P !PV
 ^2 !PA
 ^1 !MP
-^x$ ^x !EV
-^x$ !EV
-^2 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x ^x$ ^2 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x ^x$ ^2 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 !PT
@@ -2356,10 +2695,15 @@ v3.5
 !PS
 !PAl
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x ^x$ ^2 !QL
 !PT
@@ -2410,10 +2754,15 @@ v3.5
 ^P ^R !PV
 ^Q ^P !PV
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -2431,13 +2780,15 @@ v3.5
 ^Q ^R !PV
 ^R !PT
 ^3 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 ^x$ ^1 !QL
@@ -2474,16 +2825,16 @@ v3.5
 !Il
 ^P ^P !PV
 ^1 !MP
+^0 !MRL
 ^e ^e !EEV
-^x ^x !EV
-^x$ ^x$ !EV
-^1 !EL
-^3 !ME
+^1 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x ^x ^1 !QL
-^x$ ^x$ ^1 !QL
-^2 !MQ
-!B4
+^0 !MTL
+^x ^x ^1 !MU
+^0 !MVL
+!B9
 !j
 ^x ^x$ ^2 !QL
 ^P !PV
@@ -2509,10 +2860,15 @@ v3.5
 !SE
 !PS
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x ^x$ ^2 !QL
 ^P !PV
@@ -2536,10 +2892,15 @@ v3.5
 !Il
 ^P ^P !PV
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x ^x$ ^2 !QL
 !PT
@@ -2593,10 +2954,15 @@ v3.5
 ^Q ^R !PV
 ^R ^P !PV
 ^3 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^Q !PV
@@ -2638,10 +3004,15 @@ v3.5
 ^P !PV
 ^2 !PA
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 !PT
@@ -2687,10 +3058,15 @@ v3.5
 ^Q ^R !PV
 ^R ^P !PV
 ^3 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^Q !PV
@@ -2723,10 +3099,15 @@ v3.5
 !PN
 !PAl
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -2746,10 +3127,15 @@ v3.5
 !PAl
 ^Q !PT
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 !PT
 ^x$ ^1 !QL
@@ -2767,13 +3153,15 @@ v3.5
 ^P !PT
 ^R ^R !PV
 ^2 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -2811,10 +3199,15 @@ v3.5
 !PI
 !PAl
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -2837,10 +3230,15 @@ v3.5
 ^P ^R !PV
 ^Q ^P !PV
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -2864,10 +3262,15 @@ v3.5
 !PN
 ^Q ^P !PV
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -2891,15 +3294,15 @@ v3.5
 ^Q ^R !PV
 !PN
 ^2 !MP
-^x$ ^x$ !EV
-^1 !EL
-^y$ ^0 !EL
-^2 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^y$ ^0 ^2 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^y$ ^0 !QL
-^2 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -2923,10 +3326,15 @@ v3.5
 ^P ^R !PV
 !PN
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -2978,10 +3386,15 @@ v3.5
 ^P ^R !PV
 ^Q ^Q !PV
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 ^x$ ^1 !QL
@@ -3000,13 +3413,15 @@ v3.5
 ^R !PV
 ^2 !PA
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 ^x$ ^1 !QL
@@ -3026,10 +3441,15 @@ v3.5
 !Il
 ^P ^P !PV
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 !PN
@@ -3058,10 +3478,15 @@ v3.5
 !PN
 !PAl
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^P !PV
 !PN
@@ -3086,15 +3511,15 @@ v3.5
 ^2 !PA
 !PN
 ^2 !MP
-^x$ ^x$ !EV
-^1 !EL
-^y$ ^0 !EL
-^2 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^y$ ^0 ^2 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^y$ ^0 !QL
-^2 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -3118,10 +3543,15 @@ v3.5
 ^R !PV
 ^2 !PA
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -3143,10 +3573,15 @@ v3.5
 ^Q ^Q !PV
 ^R ^R !PV
 ^3 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^P !PV
@@ -3169,10 +3604,15 @@ v3.5
 ^Q !PV
 ^2 !PA
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3195,13 +3635,15 @@ v3.5
 ^2 !PA
 ^2 !PA
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3229,10 +3671,15 @@ v3.5
 ^_ROOT$0$Ax-FALSE-def ^ROOT !OS
 !Il
 ^0 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 !PT
 !PN
@@ -3244,10 +3691,15 @@ v3.5
 ^1 !OP
 !Il
 ^0 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 !PT
@@ -3261,10 +3713,15 @@ v3.5
 ^1 !OP
 !Il
 ^0 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 !PF
@@ -3279,13 +3736,15 @@ v3.5
 !Il
 ^P !PF
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 !PF
@@ -3299,10 +3758,15 @@ v3.5
 !Il
 ^P ^R !PV
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3341,10 +3805,15 @@ v3.5
 !Il
 ^P ^P !PV
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3366,10 +3835,15 @@ v3.5
 !PN
 !PN
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3391,10 +3865,15 @@ v3.5
 ^Q ^P !PV
 !PN
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3415,13 +3894,15 @@ v3.5
 !PN
 ^2 !PA
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3463,10 +3944,15 @@ v3.5
 ^Q ^P !PV
 !PN
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3485,10 +3971,15 @@ v3.5
 ^P ^R !PV
 ^Q ^P !PV
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3510,10 +4001,15 @@ v3.5
 !PN
 !PAl
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3533,13 +4029,15 @@ v3.5
 ^P !PV
 ^2 !PA
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3579,10 +4077,15 @@ v3.5
 ^P ^R !PV
 ^Q ^P !PV
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3599,10 +4102,15 @@ v3.5
 !Il
 ^P ^P !PV
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3623,10 +4131,15 @@ v3.5
 ^Q ^P !PV
 !PN
 ^2 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3650,10 +4163,15 @@ v3.5
 !PN
 !PAl
 ^1 !MP
+^0 !MRL
 ^0 !ME
+^0 !MVL
+^0 !MEL
 ^0 !MK
-^0 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3675,13 +4193,15 @@ v3.5
 !PN
 ^2 !PA
 ^1 !MP
-^x$ ^x$ !EV
-^1 !EL
-^1 !ME
+^0 !MRL
+^0 !ME
+^x$ ^x$ ^1 ^1 !MVL
+^0 !MEL
 ^0 !MK
-^x$ ^x$ ^1 !QL
-^1 !MQ
-!B4
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
 !j
 ^x$ ^1 !QL
 ^R !PV
@@ -3695,5 +4215,5 @@ v3.5
 ^5 !X
 !?l
 ^$T ^0 ^vcqsfgck !!
-^18 !MT
+^19 !MT
 !@

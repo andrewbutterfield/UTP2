@@ -59,10 +59,10 @@ import WxState
 import WxFiles
 import WxStyle
 import WxRender
---import WxProof
---import WxTheory
---import WxSynchro
---import WxProg
+import WxProof
+import WxTheory
+import WxSynchro
+import WxProg
 
 import Debug.Trace
 import System.Info
@@ -155,9 +155,9 @@ utp2_gui_run
 
       --buildMenu <- mkBuildMenu work
 
-      --maintMenu <- mkMaintMenu work
+      maintMenu <- mkMaintMenu work
 
-      --appMenu <- mkAppMenu top f work
+      appMenu <- mkAppMenu top f work
 
       set f [  statusBar := [status]
              , layout := container p
@@ -165,7 +165,7 @@ utp2_gui_run
                          $ boxed "Theories"
                          $ fill (widget top)     -- $
              , outerSize := sz 500 700
-             , menuBar := [fileMenu,helpMenu] -- ,appMenu,buildMenu,maintMenu]
+             , menuBar := [fileMenu,helpMenu,appMenu,maintMenu] -- buildMenu
              , on (menu about) := infoDialog f "About.." aboutText
              , bgcolor := bcolour
              ]
@@ -283,18 +283,18 @@ handleTopClick work ksel pnt
 
 topTheoryClick thry
  = ClkHandlers Nothing
-               Nothing -- (Just viewThisTheory)
+               (Just viewThisTheory)
                (Just manipulateThisTheory)
  where
-  -- viewThisTheory pnt = viewTheory thry
+  viewThisTheory pnt = viewTheory thry
   manipulateThisTheory = theoryManipulationMenu thry
 
 topProofClick pspace
  = ClkHandlers Nothing
-               Nothing -- (Just viewThisProof)
+               (Just viewThisProof)
                Nothing
- -- where
- --   viewThisProof pnt work = repaintProofGUI pspace
+ where
+   viewThisProof pnt work = repaintProofGUI pspace
 \end{code}
 
 
@@ -320,7 +320,7 @@ theoryManipulationMenu thry pnt work
       addEXPORTItem work thry tmMenu
       addLINKItem  work thry pnt tmMenu
       addDROPItem   work thry tmMenu
-      -- addPROGItem   work thry tmMenu -- in WxProg
+      addPROGItem   work thry tmMenu -- in WxProg
       -- then, general manipulations
       addCREATEItem  work tmMenu
       addSAVEALLItem work tmMenu
@@ -548,10 +548,10 @@ buildFileMenu fileMenu f work
                              , help:="Save appearance configuration"]
       set saveStyles [on command := saveStyleState work]
 
-      -- loadPrf <- menuItem fileMenu
-      --                      [ text:="Load Proof"
-      --                      , help:=("load a proof"++prffileext)]
-      -- set loadPrf [on command := importProof work]
+      loadPrf <- menuItem fileMenu
+                           [ text:="Load Proof"
+                           , help:=("load a proof"++prffileext)]
+      set loadPrf [on command := importProof work]
 
       chgWD <- menuItem fileMenu
                            [ text:="Change Working Filespace"
@@ -816,13 +816,13 @@ touchTheory mod thry work
 mkMaintMenu work
  = do maintMenu <- menuPane [text:="&Maintenance"]
 
-      --syncMenu <- menuPane [text:="&Synchronise"]
+      syncMenu <- menuPane [text:="&Synchronise"]
 
-      -- itmGen <- menuSub maintMenu syncMenu
-      --             [ text:="Theory Synchronisers"
-      --             , help:="Propagate Theory changes globally"]
+      itmGen <- menuSub maintMenu syncMenu
+                  [ text:="Theory Synchronisers"
+                  , help:="Propagate Theory changes globally"]
 
-      --buildSyncMenu work syncMenu availableSynchronisers
+      buildSyncMenu work syncMenu availableSynchronisers
 
       vwFonts <- menuItem maintMenu [ text:="View Fonts"]
       set vwFonts [on command := viewFonts work]
@@ -849,13 +849,13 @@ mkMaintMenu work
 
 Building the synchronisation menu:
 \begin{code}
--- buildSyncMenu work menu [] = return ()
--- buildSyncMenu work menu ((nm,descr,thsyncf,pfsyncf):rest)
---  = do mitem <- menuItem menu [ text:=nm, help:=descr ]
---       let syncfs = (thsyncf,pfsyncf)
---       let fulldescr = nm ++ " - "++descr
---       set mitem [on command := workSpaceSync syncfs fulldescr work]
---       buildSyncMenu work menu rest
+buildSyncMenu work menu [] = return ()
+buildSyncMenu work menu ((nm,descr,thsyncf,pfsyncf):rest)
+ = do mitem <- menuItem menu [ text:=nm, help:=descr ]
+      let syncfs = (thsyncf,pfsyncf)
+      let fulldescr = nm ++ " - "++descr
+      set mitem [on command := workSpaceSync syncfs fulldescr work]
+      buildSyncMenu work menu rest
 \end{code}
 
 \newpage
@@ -944,8 +944,8 @@ mkAppMenu top f work
       penStyle4 <- menuItem tableStyleMenu [text:="____"]
       set penStyle4 [ on command := changeTableStyle 4 work]
 
-      fontMenu <- menuItem appMenu [text:= "Font"]
-      set fontMenu [on command := changeFont fontMenu work]
+      -- fontMenu <- menuItem appMenu [text:= "Font"]
+      -- set fontMenu [on command := changeFont fontMenu work]
 
       textColourMenu <- menuItem appMenu [text:= "Text Colour"]
       set textColourMenu [on command := changeTextCol textColourMenu work]
@@ -956,10 +956,10 @@ mkAppMenu top f work
       bgColourMenu <- menuItem appMenu [text:= "Background Colour"]
       set bgColourMenu [on command := changeBgColour bgColourMenu work]
 
-      -- toggleWinSplititm <- menuItem appMenu
-      --                      [ text:="Toggle split in Proof windows"
-      --                      , help:="proof windows should be divided (Horizontal/Vertical)"]
-      -- set toggleWinSplititm [on command := toggleSplit work]
+      toggleWinSplititm <- menuItem appMenu
+                           [ text:="Toggle split in Proof windows"
+                           , help:="proof windows should be divided (Horizontal/Vertical)"]
+      set toggleWinSplititm [on command := toggleSplit work]
 
       resetMenu <- menuItem appMenu [text:= "Reset"]
       set resetMenu [on command := resetStyles work]
