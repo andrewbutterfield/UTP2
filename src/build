@@ -1,0 +1,1 @@
+ghc --make -fglasgow-exts -package wx -XNPlusKPatterns -XOverlappingInstances -XUndecidableInstances UTP2.lhs -o UTP2

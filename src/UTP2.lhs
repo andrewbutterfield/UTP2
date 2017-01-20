@@ -94,6 +94,7 @@ main = start utp2_gui_run
 m = main --- much easier in GHCi !
 \end{code}
 
+\newpage
 \subsection{Mainline GUI}
 
 \begin{code}
@@ -152,11 +153,11 @@ utp2_gui_run
       helpMenu <- menuHelp []
       about <- menuAbout helpMenu [help:=("About "++progname)]
 
-      buildMenu <- mkBuildMenu work
+      --buildMenu <- mkBuildMenu work
 
-      maintMenu <- mkMaintMenu work
+      --maintMenu <- mkMaintMenu work
 
-      appMenu <- mkAppMenu top f work
+      --appMenu <- mkAppMenu top f work
 
       set f [  statusBar := [status]
              , layout := container p
@@ -164,14 +165,14 @@ utp2_gui_run
                          $ boxed "Theories"
                          $ fill (widget top)     -- $
              , outerSize := sz 500 700
-             , menuBar := [fileMenu,helpMenu,appMenu,buildMenu,maintMenu]
+             , menuBar := [fileMenu,helpMenu] -- ,appMenu,buildMenu,maintMenu]
              , on (menu about) := infoDialog f "About.." aboutText
              , bgcolor := bcolour
              ]
 
 \end{code}
 
-
+\newpage
 \subsection{Rendering the Top Window}
 
 In the top window we display
@@ -265,6 +266,7 @@ paintTop work dc viewArea
                             , (topProofClick pspace) )
 \end{code}
 
+\newpage
 \subsection{Top Window Event Handlers}
 
 \begin{code}
@@ -327,7 +329,7 @@ theoryManipulationMenu thry pnt work
       repaint top
 \end{code}
 
-
+\newpage
 Saving a modified theory
 \begin{code}
 addSAVEItem work thry tmMenu
@@ -384,6 +386,7 @@ exportLaTeXTheory thry work
       note (topstatus ss) ("Theory '"++name++"' exported to "++fname)
 \end{code}
 
+\newpage
 When exporting theories as text, or bundled,
 we always increment the sequence number,
 as we have no guarantee that the file won't be modified
@@ -415,6 +418,7 @@ exportTheoryBundle thry work
       note sts ("Theory '"++name++"' exported to bundle "++froot)
 \end{code}
 
+\newpage
 Linking theories:
 \begin{code}
 addLINKItem work thry pnt tmMenu
@@ -459,7 +463,7 @@ linkTheory from to work
                alert sts ("Cannot link: "++show err)
 \end{code}
 
-
+\newpage
 Dropping a theory can only be done if no hard links to it exist.
 For now we limit it to top theories only.
 \begin{code}
@@ -505,7 +509,7 @@ addSAVEALLItem work tmMenu
       set mitem [on command := saveTheories work]
 \end{code}
 
-
+\newpage
 \subsubsection{The File Menu}
 
 The file menu provides commands to
@@ -567,6 +571,7 @@ buildFileMenu fileMenu f work
   prffileext = "("++cruthu++")"
 \end{code}
 
+\newpage
 Creating a theory
 \begin{code}
 createTheory work
@@ -632,6 +637,7 @@ loadTeoric sts work name
        _  ->  addTheory work thry
 \end{code}
 
+\newpage
 Loading a unifying-theory plain-text file.
 \begin{code}
 loadUTText sts work name
@@ -697,6 +703,7 @@ closeDown f work
 
 \end{code}
 
+\newpage
 \subsection{Maintenance/Developement-related stuff}
 
 \subsubsection{``Touching'' a Theory}
@@ -715,6 +722,7 @@ touchTheory mod thry work
       namedTheorySet thry' work
 \end{code}
 
+\newpage
 \subsubsection{The Build Menu}
 
 \begin{code}
@@ -801,6 +809,7 @@ mkBuildMenu work
       return genPCMenu
 \end{code}
 
+\newpage
 \subsubsection{The Maintenance Menu}
 
 \begin{code}
@@ -849,7 +858,7 @@ buildSyncMenu work menu ((nm,descr,thsyncf,pfsyncf):rest)
       buildSyncMenu work menu rest
 \end{code}
 
-
+\newpage
 Text tests
 \begin{code}
 textTest work what parser dbgshow
@@ -895,7 +904,7 @@ dialogTest work
 
 \end{code}
 
-
+\newpage
 \subsubsection{The Appearance Menu}
 
 \begin{code}
@@ -1007,6 +1016,8 @@ thryBoxSpacerX = 10
 thryBoxSpacerY = 10
 rowSepY = 2 * thryBoxSpacerY
 \end{code}
+
+\newpage
 Then the rendering code:
 \begin{code}
 theoryGraphDD :: FontStyle -> Color -> TheoryGraph -> DisplayDescr
@@ -1044,7 +1055,7 @@ theoryGraphDD  currFont currCol (rdag,trie)
                   $ DDrawHoriz Nothing DrawCentre dds 0
 \end{code}
 
-
+\newpage
 We overlay links connecting nodes to immediate
 descendants (towards the root):
 \begin{code}
@@ -1105,9 +1116,11 @@ theoryGraphOverlay (rdag,trie) ddata dc viewarea
    link _ _ _ _ _ = putStrLn "link: not DDrawText"
 \end{code}
 
+\newpage
 Drawing a link (need nice picture here)
 \begin{code}
-drawLink :: Bool -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> DC () -> IO ()
+drawLink :: Bool -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int
+         -> DC () -> IO ()
 drawLink hard px py pw ph cx cy cw ch dc
  | k == 0
      =  do line dc (Point itx ity) (Point ibx iby) pstyle
