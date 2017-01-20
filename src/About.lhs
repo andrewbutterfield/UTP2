@@ -32,7 +32,7 @@ version = "0.99a1(2017-01-20+)"
 \begin{code}
 aboutText
   = unlines [fullname
-            ," (UTP2 for short)"
+            ,"(UTP2 for short)"
             ,""
             ,"2nd-order Equational-Reasoning Proof-Assistant"
             ,"for Unifying Theories of Programming (UTP)"

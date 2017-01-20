@@ -2,8 +2,8 @@ RDAG
 PropLogic
 LogicLaws
 NonPropLogic PropLogic
-UTP-Base PropLogic LogicLaws
 AlgOp LogicLaws
+UTP-Base LogicLaws PropLogic
 Equality NonPropLogic
 Sets Equality
 .
