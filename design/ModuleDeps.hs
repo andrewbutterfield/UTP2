@@ -30,7 +30,7 @@ main
       -- we don't report this at the moment
       let extern = nub (concat (M.elems imports)) \\ lhsKeys
       let reached = reachable tree "UTP2"
-      let used = reached`intersect` lhsKeys
+      let used = reached `intersect` lhsKeys
       let unused = reached \\ lhsKeys
 
       -- we know the hierarchy has a cycle !

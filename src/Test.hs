@@ -107,3 +107,10 @@ rmanalysis vp
          return prop
    showB True  = "true "
    showB False = "FALSE"
+
+
+writeUFile = writeFile "unicode.txt" "\8709 = A \8745 \ESC[9mA\x35e\ESC[0m"
+
+readUFile
+ = do utxt <- readFile "unicode.txt"
+      putStrLn utxt

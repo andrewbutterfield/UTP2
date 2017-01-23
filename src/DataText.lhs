@@ -1772,19 +1772,19 @@ showPred p (If cp tp ep)
  = pShow (p+1) tp
    ++ " "++ksymLCOND++" " ++ showPred 0 cp ++ " "++ksymRCOND++" "
    ++ pShow (p+1) ep
-showPred p pr@(Eqv p1 p2)  = pShow q p1 ++ " == " ++ pShow q p2
+showPred p pr@(Eqv p1 p2)  = pShow q p1 ++ " \8801 " ++ pShow q p2
  where q = pPrec pr
-showPred p pr@(Imp p1 p2)  = pShow q p1 ++ " => " ++ pShow q p2
+showPred p pr@(Imp p1 p2)  = pShow q p1 ++ " \8658 " ++ pShow q p2
  where q = pPrec pr
 showPred p pr@(RfdBy p1 p2)  = pShow q p1 ++ " |= " ++ pShow q p2
  where q = pPrec pr
 showPred p pr@(Not pr') = keyLNOT++pShow q pr'
  where q = pPrec pr
-showPred p pr@(Or ps)   = showSep q pShow " \\/ " ps
+showPred p pr@(Or ps)   = showSep q pShow " \8744 " ps
  where q = pPrec pr
 showPred p pr@(NDC p1 p2)   = pShow q p1 ++ " |~| " ++ pShow q p2
  where q = pPrec pr
-showPred p pr@(And ps)  = showSep q pShow " /\\ " ps
+showPred p pr@(And ps)  = showSep q pShow " \8743 " ps
  where q = pPrec pr
 
 -- showPred p pr = "XXXXXX(showPred of unexpected variant)XXXXXX"
