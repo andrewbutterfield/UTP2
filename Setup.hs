@@ -17,7 +17,7 @@ main = defaultMainWithHooks $ simpleUserHooks
 guiApps :: [MacApp]
 guiApps =
     [MacApp "UTP2"
-            (Just "resource/*.wav")
+            (Just "resource/UTP2-Icons.icns")
             Nothing
             []
             []

@@ -184,3 +184,8 @@ moduledeps
 *.hi
 .stack-work
 *.exe
+*.o
+HereIsMy-Carbon-r.txt
+utp2.pptx
+UTP2
+dist
