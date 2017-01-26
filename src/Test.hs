@@ -108,9 +108,13 @@ rmanalysis vp
    showB True  = "true "
    showB False = "FALSE"
 
+uniExample = "\8709 = A \8745 \ESC[9mA\x35e\ESC[0m"
 
-writeUFile = writeFile "unicode.txt" "\8709 = A \8745 \ESC[9mA\x35e\ESC[0m"
+writeUFile = writeFile "unicode.txt" uniExample
 
 readUFile
  = do utxt <- readFile "unicode.txt"
       putStrLn utxt
+
+-- dealing with strings using read- and show-like functions
+-- results because read and show are not inverses for strings
