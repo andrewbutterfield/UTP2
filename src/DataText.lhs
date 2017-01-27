@@ -1229,13 +1229,13 @@ checkOp n (h:xs)
 
 \subsubsection{Type Key-tokens}
 We then address those key-words and key-symbols used for type
-expressions
+expressions.
 \begin{code}
-tkeyBOOL  = "B"
-tkeyINT   = "Z"
+tkeyBOOL  = _mathbb "B"
+tkeyINT   = _mathbb "Z"
 tkeyENV   = "ENV"
-tkeyPOWER = "P"
-tkeyPROD  = "x"
+tkeyPOWER = _mathcal "P"
+tkeyPROD  = _times
 
 te_keywords
  = [ tkeyBOOL
@@ -1248,14 +1248,14 @@ te_keywords
 teKeywords = sbuild te_keywords
 
 tksymHASTYPE = ":"
-tksymAT = "@"
+tksymAT = _bullet
 tksymALT = "|"
 tksymDOT = "."
 tksymARB   = "?"
-tksymFUN = "->"
-tksymPFUN = "-~>"
-tksymMAP = "-+>"
-tksymSEQ = "*"
+tksymFUN = _fun
+tksymPFUN = _pfun
+tksymMAP = _ffun
+tksymSEQ = _supStr _star
 tksymSEQP = "+"
 tksymLBR = "("
 tksymRBR = ")"

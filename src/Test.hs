@@ -1,6 +1,7 @@
 module Test where
 import Utilities
 import Data.List
+import Numeric
 
 ex = [ ('a',[4,5,6,7,12,13,14,15])
      , ('b',[2,3,6,7,10,11,14,15])
@@ -107,6 +108,8 @@ rmanalysis vp
          return prop
    showB True  = "true "
    showB False = "FALSE"
+   
+hex n = showHex n ""
 
 uniExample = "\8709 = A \8745 \ESC[9mA\x35e\ESC[0m"
 
