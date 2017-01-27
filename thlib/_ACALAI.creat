@@ -4,6 +4,7 @@ LogicLaws
 NonPropLogic PropLogic
 AlgOp LogicLaws
 UTP-Base LogicLaws PropLogic
+Unicode PropLogic
 Equality NonPropLogic
 Sets Equality
 .

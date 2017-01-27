@@ -1,0 +1,226 @@
+v3.7
+^Unicode ^2 ^0 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^π ^π !cM
+^type !Tv
+!o2
+^π' ^π' !cM
+^type !Tv
+!o2
+^2 !MV
+^≡ ^20 ^1 !p
+^1 !MO
+^≡ ^&32;P&32;≡&32;P&32; ^1 !MG
+^0 !MK
+^utest ^≡ ^20 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^≡ !'T
+!'0
+^3 !PL
+^≡ ^20 ^Q !PV
+!"P
+^P !PV
+!"P
+^2 !'0
+^≡ !'T
+!'0
+^3 !PL
+!PQ
+!CT
+^butrfeld !OU
+^ROOT !OS
+^2 !OP
+^DEF&32;≡ ^≡ ^20 ^P0 !PV
+!"P
+^P1 !PV
+!"P
+^2 !'0
+^≡ !'T
+!'0
+^3 !PL
+^P0 !PV
+^P1 !PV
+!PI
+^P1 !PV
+^P0 !PV
+!PI
+^2 !PA
+!PQ
+!CT
+^butrfeld !OU
+^2 !lM
+^0 !ML
+^utest ^Unicode ^utest ^≡ ^20 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^≡ !'T
+!'0
+^3 !PL
+^≡ ^20 ^Q !PV
+!"P
+^P !PV
+!"P
+^2 !'0
+^≡ !'T
+!'0
+^3 !PL
+!PQ
+!CT
+!PT
+!RE
+^0 !mre
+^_ROOT$0$Ax-==-id ^ROOT !OS
+!Il
+^Q ^P !PV
+^Q !PV
+!PI
+^Q !PV
+^P !PV
+!PI
+^2 !PA
+^1 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^P !PV
+^Q !PV
+!PI
+^Q !PV
+^P !PV
+!PI
+^2 !PA
+^P !PV
+^Q !PV
+!PI
+^Q !PV
+^P !PV
+!PI
+^2 !PA
+!PQ
+!s
+!AJ
+!RE
+^2 ^1 !mre
+^PropLogic$88$/\-Comm ^ROOT !OS
+^1 !OP
+!Il
+^P ^P !PV
+^Q !PV
+!PI
+^Q ^Q !PV
+^P !PV
+!PI
+^2 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^P !PV
+^Q !PV
+!PI
+^Q !PV
+^P !PV
+!PI
+^2 !PA
+^Q !PV
+^P !PV
+!PI
+^P !PV
+^Q !PV
+!PI
+^2 !PA
+!PQ
+!s
+!AJ
+!RE
+^2 ^1 !mle
+^Unicode$1$DEF&32;≡ ^butrfeld !OU
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^P !PV
+^Q !PV
+!PI
+^Q !PV
+^P !PV
+!PI
+^2 !PA
+^≡ ^20 ^Q !PV
+!"P
+^P !PV
+!"P
+^2 !'0
+^≡ !'T
+!'0
+^3 !PL
+!PQ
+!s
+!AJ
+!RE
+^1 ^1 !mle
+^Unicode$1$DEF&32;≡ ^butrfeld !OU
+!Il
+^0 !MP
+^0 !MRL
+^0 !ME
+^0 !MVL
+^0 !MEL
+^0 !MK
+^0 !MTL
+^0 !MU
+^0 !MVL
+!B9
+!j
+^≡ ^20 ^P !PV
+!"P
+^Q !PV
+!"P
+^2 !'0
+^≡ !'T
+!'0
+^3 !PL
+^≡ ^20 ^Q !PV
+!"P
+^P !PV
+!"P
+^2 !'0
+^≡ !'T
+!'0
+^3 !PL
+!PQ
+!s
+!AJ
+^4 !X
+!?R
+^$T ^_PLT_utest ^Unicode ^PropLogic ^_ROOT ^4 ^vcqsfgck !!
+^1 !MT
+!@

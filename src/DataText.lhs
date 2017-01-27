@@ -13,6 +13,7 @@ import Utilities
 -- import Invariants
 -- import DSL
 --import Types
+import NiceSymbols
 
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Prim

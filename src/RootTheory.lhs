@@ -21,7 +21,7 @@ present, which gives the syntax data for the logic,
 and the axioms. The axioms are inspired by
 the work of Gries\&Schneider \cite{gries.93},
 and adapted from the work of Tourlakis \cite{journals/logcom/Tourlakis01}.
-We also define some conjectures to proven as theorems
+We also define some conjectures to prove as theorems
 from these axioms. Here we do not follow the pattern of \cite{gries.93},
 but instead a more classical view, with an emphasis on dual properties,
 distributions and properties of implication.
