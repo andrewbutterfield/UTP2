@@ -3,7 +3,8 @@
 \begin{code}
 ----------------------- UTP2 Coding Standard Width ------------------------->|
 {-# LANGUAGE CPP #-}
-module Main where
+module UTP2 where
+
 import Tables
 import Datatypes
 import DataText
@@ -88,10 +89,6 @@ initWidth, initHeight :: Int
 initWidth = 500
 initHeight = 150
 initLayout = space initWidth initHeight
-
-main = start utp2_gui_run
-
-m = main --- much easier in GHCi !
 \end{code}
 
 \newpage
