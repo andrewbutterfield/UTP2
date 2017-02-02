@@ -5,16 +5,13 @@ Description:
     This application supports the development of UTP theories
     using equational reasoning
     
-    
-
-Homepage:            http://wiki.haskell.org/Reactive-banana
+Homepage:            https://www.scss.tcd.ie/Andrew.Butterfield/Saoithin
 License:             BSD3
 License-file:        LICENSE
 Author:              Andrew Butterfield
 Maintainer:          Andrew Butterfield <Andrew.Butterfield@scss.tcd.ie>
 Category:            GUI
 Cabal-version:       >= 1.8
-
 
 Build-type:          Custom
 Extra-source-files:  Makefile
@@ -27,20 +24,82 @@ data-files:          UTP2-alert.wav
 
 Library
     hs-source-dirs:  src
-    build-depends:   base >= 4.2 && < 5,
-                     cabal-macosx >= 0.1 && < 0.3,
-                     wxcore (>= 0.13.2.1 && < 0.90) || (>= 0.90.0.1 && < 0.93),
-                     wx (>= 0.13.2.1 && < 0.90) || (>= 0.90.0.1 && < 0.93),
-                     hashable, QuickCheck, containers, time, directory, parsec, deepseq
+    exposed-modules: UTP2
+    other-modules:   About
+                   , AlphaSubs
+                   , Archive
+                   , Builtin
+                   , DSL
+                   , DataText
+                   , Datatypes
+                   , DocTextParser
+                   , Files
+                   , Flatten
+                   , Focus
+                   , FreeBound
+                   , GS3001
+                   , GSLogic
+                   , Heuristics
+                   , ImportExport
+                   , Instantiate
+                   , Invariants
+                   , LaTeXNames
+                   , LaTeXPretty
+                   , LaTeXSetup
+                   , LaTeXTest
+                   , Laws
+                   , Logic
+                   , Manipulation
+                   , MatchTypes
+                   , Matching
+                   , MatchingType
+                   , Normalise
+                   , Precedences
+                   , Program
+                   , Proof
+                   , ProofReplay
+                   , R
+                   , RAlg
+                   , RootTheory
+                   , SideConditions
+                   , Substitution
+                   , Synchronise
+                   , Tables
+                   , Theories
+                   , Types
+                   , UTP
+                   , Utilities
+                   , WxFiles
+                   , WxProg
+                   , WxProof
+                   , WxRender
+                   , WxRenderOld
+                   , WxState
+                   , WxStyle
+                   , WxSynchro
+                   , WxTheory
+                   , WxTypes
+    build-depends:   base >= 4.2 && < 5
+                   , cabal-macosx 
+                   , containers
+                   , deepseq
+                   , directory
+                   , filepath
+                   , hashable
+                   , parsec
+                   , QuickCheck
+                   , time
+                   , wxcore
+                   , wx
+    extensions:      FlexibleContexts
+                   , FlexibleInstances
+                   , StandaloneDeriving
+                   , UndecidableInstances
 
 Executable UTP2
-    hs-source-dirs:  src
-    main-is:         UTP2.lhs
+    hs-source-dirs:  app
+    main-is:         Main.lhs
     if os(darwin)
-        build-depends: hashable, QuickCheck, deepseq, containers, time, directory, parsec, filepath >= 1.1 && <= 1.4.0.0, cabal-macosx, wx, wxcore, base
+        build-depends: base, cabal-macosx, UTP2, wx
     else
-        build-depends: hashable, QuickCheck, deepseq, containers, time, directory, parsec, filepath >= 1.1 && <= 1.4.0.0, wx, wxcore, base
-    extensions: UndecidableInstances, 
-                StandaloneDeriving,
-                FlexibleInstances,
-                FlexibleContexts
+        build-depends: base,               UTP2, wx
