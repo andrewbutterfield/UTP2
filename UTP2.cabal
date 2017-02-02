@@ -25,6 +25,7 @@ data-files:          UTP2-alert.wav
 Library
     hs-source-dirs:  src
     exposed-modules: UTP2
+                   , UTP2.Threepenny
     other-modules:   About
                    , AlphaSubs
                    , Archive
@@ -89,6 +90,7 @@ Library
                    , parsec
                    , QuickCheck
                    , time
+                   , threepenny-gui
                    , wxcore
                    , wx
     extensions:      FlexibleContexts
@@ -103,3 +105,8 @@ Executable UTP2
         build-depends: base, cabal-macosx, UTP2, wx
     else
         build-depends: base,               UTP2, wx
+
+Executable UTP2-threepenny
+    hs-source-dirs:  app-threepenny
+    main-is:         Main.lhs
+    build-depends:   base, UTP2

@@ -30,3 +30,12 @@ Store. You might have to agree to XCode's terms and conditions which you can
 find by opening XCode.
 
 The project should now build with stack.
+
+## Running
+
+### Threepenny
+
+To run UTP2 with the web-based Threepenny gui on port 8000:
+
+`stack exec UTP2-threepenny 8000 src/threepenny-static`
+
