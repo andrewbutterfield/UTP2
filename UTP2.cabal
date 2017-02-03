@@ -25,6 +25,7 @@ data-files:          UTP2-alert.wav
 Library
     hs-source-dirs:  src
     exposed-modules: UTP2
+                   , UTP2.Abstract
                    , UTP2.Threepenny
     other-modules:   About
                    , AlphaSubs
@@ -87,6 +88,7 @@ Library
                    , directory
                    , filepath
                    , hashable
+                   , mtl
                    , parsec
                    , QuickCheck
                    , time

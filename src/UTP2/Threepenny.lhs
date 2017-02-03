@@ -1,9 +1,10 @@
-\section{\UTP2\ Threepenny}
-
 \begin{code}
+
 module UTP2.Threepenny (start) where
 
+import           Control.Concurrent.MVar
 import           Control.Monad                (void)
+import           Control.Monad.Reader
 import qualified Graphics.UI.Threepenny       as UI
 import           Graphics.UI.Threepenny.Core
 
