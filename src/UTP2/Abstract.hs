@@ -11,18 +11,18 @@ import           Graphics.UI.Threepenny.Core hiding (Config)
 -- provide their own types representing windows or the monad the GUI runs in.
 class Monad m => AG m w e | m -> w e where
     gButton  :: String -> m e
-    gAdd     :: m e -> [m e] -> m e
+    gAdd     :: e -> [e] -> m e
     gGetBody :: w -> m e
     gLift    :: e -> m e
     gRunIn   :: w -> m a -> IO a
 
 -- |Theepenny instance of abstract GUI.
 instance AG UI Window Element where
-    gButton  = \t -> UI.button # set UI.text t
-    gAdd     = (#+)
-    gGetBody = getBody
-    gLift    = element
-    gRunIn   = runUI
+    gButton   = \t -> UI.button # set UI.text t
+    gAdd e es = (gLift e) #+ map gLift es
+    gGetBody  = getBody
+    gLift     = element
+    gRunIn    = runUI
 
 type Config = (Int, Int) -- TBD
 type App    = ReaderT Config
@@ -31,7 +31,7 @@ setup :: AG m w e => w -> App m ()
 setup w = void $ do
     button <- lift $ gButton "foo"
     body   <- lift $ gGetBody w
-    lift $ gAdd (gLift body) [gLift button]
+    lift $ gAdd body [button]
 
 -- start :: Int -> String -> IO ()
 -- start port staticPath = startGUI defaultConfig {
