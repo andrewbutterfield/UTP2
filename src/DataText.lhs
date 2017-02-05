@@ -178,7 +178,7 @@ cShowPos pos
      ++ ")"
 
 cShowToken (pos,tok)
-  = show tok ++ " @ " ++ cShowPos pos
+  = show tok ++ pad _bullet ++ cShowPos pos
 
 cShowToks :: [Token] -> String
 cShowToks = concat . intersperse "\n" . map cShowToken
@@ -1565,10 +1565,10 @@ First, expression-related lexical elements:
 
 keyTRUE     =  "TRUE"
 keyFALSE    =  "FALSE"
-keyTHE      =  "the"
-ksymMAPLET  =  "|->"
-ksymLCOND   =  "<|"
-ksymRCOND   =  "|>"
+keyTHE      =  _iota
+ksymMAPLET  =  _maplet
+ksymLCOND   =  _lhd
+ksymRCOND   =  _rhd
 ksymEABS    =   "\\\\"
 
 \end{code}
@@ -1601,9 +1601,9 @@ showExpr _ (Prod es) = "(" ++ showSep 0 showExpr "," es ++ ")"
 showExpr _ (Set es) = "{" ++ showSep 0 showExpr "," es ++ "}"
 
 showExpr _ (Setc tt qs TRUE e)
-  = "{ "++ show qs ++" @ "++ showExpr 0 e ++" }"
+  = "{ "++ show qs ++pad _bullet++ showExpr 0 e ++" }"
 showExpr _ (Setc tt qs pr e)
-  = "{ "++ show qs ++" | "++ showPred 0 pr ++" @ "++ showExpr 0 e ++" }"
+  = "{ "++ show qs ++" | "++ showPred 0 pr ++pad _bullet++ showExpr 0 e ++" }"
 
 showExpr _ (Seq es) = "["++ showSep 0 showExpr "," es ++"]"
 showExpr _ (Seqc tt qs pr e)
@@ -1617,12 +1617,12 @@ showExpr _ (Esub e s)
 
 showExpr p (The tt x (And [rg, pr]))
  | rg == TRUE  =  keyTHE ++ " " ++ showVar x
-                         ++" @ " ++ showPred p pr
+                         ++pad _bullet ++ showPred p pr
  | otherwise   =  keyTHE ++ " " ++ showVar x
                          ++ " | " ++ showPred 0 rg
-                         ++" @ " ++ showPred p pr
+                         ++pad _bullet ++ showPred p pr
 showExpr p (The tt x pr)
- = keyTHE ++ " " ++ showVar x ++ " @ " ++ showPred p pr
+ = keyTHE ++ " " ++ showVar x ++ pad _bullet ++ showPred p pr
 
 showExpr p (Cond cp te ee)
  = eShow (p+1) te
@@ -1630,7 +1630,7 @@ showExpr p (Cond cp te ee)
    ++ eShow (p+1) ee
 showExpr p (Build n es) = n ++ " " ++ showSep (p+1) eShow " " es
 showExpr p (Eabs tt qs eb)
-  = ksymEABS ++ " " ++ show qs ++ " @ " ++ eShow (p+1) eb
+  = ksymEABS ++ " " ++ show qs ++ pad _bullet ++ eShow (p+1) eb
 showExpr p (App "-" es) = "-" ++ eShow (p+1) es -- special case
 showExpr p e@(App v es) = v ++ " " ++ eShow (q+1) es
  where q = ePrec e
@@ -1660,15 +1660,15 @@ variables expressions.
 Displaying predicates, designed to be compatible with the text
 parser.
 \begin{code}
-keyLNOT     =  notName -- logical negation
-keyFORALL   =  "forall"
-keyEXISTS   =  "exists"
+keyLNOT     =  _lnot -- logical negation
+keyFORALL   =  _forall
+keyEXISTS   =  _exists
 keyEXISTS1  =  "exists1"
 keyPFORALL  =  "Forall"
 keyPEXISTS  =  "Exists"
 ksymPEABS   =  "\\!"
 ksymPPABS   =  "!!"
-keyREC      =  "rec"     -- a.k.a. "mu"
+keyREC      =  _mu
 keyLQUOTE   =  "`"       -- language quotation
 keyDEFD     =  "DEFD"
 \end{code}
@@ -1719,16 +1719,16 @@ showPred p pr@(Psin pr1 spr)
  where q = pPrec pr
 
 showPred _ (Pforall qs pr)
- = keyPFORALL ++ " " ++ show qs ++ " @ " ++ showPred 0 pr
+ = keyPFORALL ++ " " ++ show qs ++ pad _bullet ++ showPred 0 pr
 
 showPred _ (Pexists qs pr)
- = keyPEXISTS ++ " " ++ show qs ++ " @ " ++ showPred 0 pr
+ = keyPEXISTS ++ " " ++ show qs ++ pad _bullet ++ showPred 0 pr
 
 showPred p (Ppabs qs pr)
- = ksymPPABS ++ " " ++ show qs ++ " @ " ++ showPred 0 pr
+ = ksymPPABS ++ " " ++ show qs ++ pad _bullet ++ showPred 0 pr
 
 showPred _ (Peabs qs pr)
- = ksymPEABS ++ " " ++ show qs ++ " @ " ++ showPred 0 pr
+ = ksymPEABS ++ " " ++ show qs ++ pad _bullet ++ showPred 0 pr
 
 showPred p pr@(Lang s q les ss)
   | isBinSpec (LangSpec les ss) = showLang q les ss
@@ -1741,51 +1741,51 @@ showPred p (Pfocus pr) = [pFocusStart]++showPred p pr++[pFocusEnd]
 
 -- showPred p (Exists tt qs (And [rg, pr]))
 --  | rg == TRUE  =  keyEXISTS ++ " " ++ show qs
---                             ++ " @ " ++ pShow p pr
+--                             ++ pad _bullet ++ pShow p pr
 --  | otherwise   =  keyEXISTS ++ " " ++ show qs
 --                             ++ " | " ++ showPred 0 rg
---                             ++ " @ " ++ pShow p pr
+--                             ++ pad _bullet ++ pShow p pr
 
 showPred p (Exists tt qs pr)
- = keyEXISTS ++ " " ++ show qs ++ " @ " ++ pShow p pr
+ = keyEXISTS ++ " " ++ show qs ++ pad _bullet ++ pShow p pr
 
 -- showPred p (Exists1 tt qs (And [rg, pr]))
 --  | rg == TRUE  =  keyEXISTS1 ++ " " ++ show qs
---                             ++ " @ " ++ pShow p pr
+--                             ++ pad _bullet ++ pShow p pr
 --  | otherwise   =  keyEXISTS1 ++ " " ++ show qs
 --                             ++ " | " ++ showPred 0 rg
---                             ++ " @ " ++ pShow p pr
+--                             ++ pad _bullet ++ pShow p pr
 
 showPred p (Exists1 tt qs pr)
- = keyEXISTS1 ++ " " ++ show qs ++ " @ " ++ pShow (p+1) pr
+ = keyEXISTS1 ++ " " ++ show qs ++ pad _bullet ++ pShow (p+1) pr
 
 -- showPred p (Forall tt qs (Imp rg pr))
 --  | rg == TRUE  =  keyFORALL ++ " " ++ show qs
---                             ++ " @ " ++ pShow p pr
+--                             ++ pad _bullet ++ pShow p pr
 --  | otherwise   =  keyFORALL ++ " " ++ show qs
 --                             ++ " | " ++ showPred 0 rg
---                             ++ " @ " ++ pShow p pr
+--                             ++ pad _bullet ++ pShow p pr
 
 showPred p (Forall tt qs pr)
- = keyFORALL ++ " " ++ show qs ++ " @ " ++ pShow (p+1) pr
+ = keyFORALL ++ " " ++ show qs ++ pad _bullet ++ pShow (p+1) pr
 
 showPred p (If cp tp ep)
  = pShow (p+1) tp
    ++ " "++ksymLCOND++" " ++ showPred 0 cp ++ " "++ksymRCOND++" "
    ++ pShow (p+1) ep
-showPred p pr@(Eqv p1 p2)  = pShow q p1 ++ " \8801 " ++ pShow q p2
+showPred p pr@(Eqv p1 p2)  = pShow q p1 ++ pad _equiv ++ pShow q p2
  where q = pPrec pr
-showPred p pr@(Imp p1 p2)  = pShow q p1 ++ " \8658 " ++ pShow q p2
+showPred p pr@(Imp p1 p2)  = pShow q p1 ++ pad _implies ++ pShow q p2
  where q = pPrec pr
-showPred p pr@(RfdBy p1 p2)  = pShow q p1 ++ " |= " ++ pShow q p2
+showPred p pr@(RfdBy p1 p2)  = pShow q p1 ++ pad _sqsubseteq ++ pShow q p2
  where q = pPrec pr
 showPred p pr@(Not pr') = keyLNOT++pShow q pr'
  where q = pPrec pr
-showPred p pr@(Or ps)   = showSep q pShow " \8744 " ps
+showPred p pr@(Or ps)   = showSep q pShow (pad _lor) ps
  where q = pPrec pr
-showPred p pr@(NDC p1 p2)   = pShow q p1 ++ " |~| " ++ pShow q p2
+showPred p pr@(NDC p1 p2)   = pShow q p1 ++ pad _sqcap ++ pShow q p2
  where q = pPrec pr
-showPred p pr@(And ps)  = showSep q pShow " \8743 " ps
+showPred p pr@(And ps)  = showSep q pShow (pad _land) ps
  where q = pPrec pr
 
 -- showPred p pr = "XXXXXX(showPred of unexpected variant)XXXXXX"
@@ -1815,7 +1815,7 @@ showPredSet _ (PSetC qs pr1 pr2)
  = keyDLCBR
    ++" "++show qs
    ++" | "++showPred 0 pr1
-   ++" @ "++showPred 0 pr2
+   ++pad _bullet++showPred 0 pr2
    ++" "++keyDRCBR
 
 showPredSet p (PSetU s1 s2)
