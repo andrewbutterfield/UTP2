@@ -198,9 +198,9 @@ The \texttt{LaTeXLayout} structure
 holds the parameters that are need for pretty printing/parsing
 \begin{code}
 data LaTeXLayout
-  = LaTeXLayout { lineLength	:: Int
-                , indentLength	:: Int
-                , wantBindings	:: Bool
+  = LaTeXLayout { lineLength  :: Int
+                , indentLength  :: Int
+                , wantBindings  :: Bool
                 -- translation functions
                 , ltx2sym :: String -> Maybe Symbol
                 , sym2ltx :: Symbol -> Maybe String
