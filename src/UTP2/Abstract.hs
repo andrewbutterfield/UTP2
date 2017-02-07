@@ -7,9 +7,13 @@ import           Control.Monad.Reader
 import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Core hiding (Config)
 
--- |A collection of types define our abstract GUI. GUI libraries typically
--- provide their own types representing windows or the monad the GUI runs in.
-class Monad m => AG m w e | m -> w e where
+-- |A GUI consists of a collection of types and operations between them. These
+-- types include the monad in which the GUI is built and things like windows.
+-- Type variables:
+--     m: monad in which a GUI runs
+--     w: a window
+--     e: an element
+class Monad m => GUI m w e | m -> w e where
     gButton  :: String -> m e
     gAdd     :: e -> [e] -> m e
     gGetBody :: w -> m e
@@ -17,9 +21,9 @@ class Monad m => AG m w e | m -> w e where
     gRunIn   :: w -> m a -> IO a
 
 -- |Theepenny instance of abstract GUI.
-instance AG UI Window Element where
+instance GUI UI Window Element where
     gButton   = \t -> UI.button # set UI.text t
-    gAdd e es = (gLift e) #+ map gLift es
+    gAdd e es = (element e) #+ map element es
     gGetBody  = getBody
     gLift     = element
     gRunIn    = runUI
@@ -27,14 +31,21 @@ instance AG UI Window Element where
 type Config = (Int, Int) -- TBD
 type App    = ReaderT Config
 
-setup :: AG m w e => w -> App m ()
-setup w = void $ do
+-- |Run the App monad.
+runApp :: App m a -> Config -> m a
+runApp = runReaderT
+
+-- |Example app that adds a "foo" button to a window.
+exampleApp :: (GUI m w e) => w -> App m ()
+exampleApp w = void $ do
     button <- lift $ gButton "foo"
     body   <- lift $ gGetBody w
     lift $ gAdd body [button]
 
--- start :: Int -> String -> IO ()
--- start port staticPath = startGUI defaultConfig {
---         jsPort   = Just port,      -- Port on which to run.
---         jsStatic = Just staticPath -- Directory path for static content.
---     } setup
+-- |Runs an app with the threepenny GUI.
+runThreepenny :: Int -> String -> (Window -> App UI ()) -> Config -> IO ()
+runThreepenny port staticPath app config = do
+    startGUI defaultConfig {
+        jsPort   = Just port,      -- Port on which to run
+        jsStatic = Just staticPath -- Directory path for static content
+    } (\w -> runApp (app w) config)
