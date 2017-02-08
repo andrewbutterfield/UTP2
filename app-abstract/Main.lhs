@@ -1,11 +1,11 @@
 \begin{code}
 module Main where
 
+import UTP2.GUI
 import System.Environment (getArgs)
-import UTP2.GUI.Threepenny
 
 main :: IO ()
 main = do
     [port, static] <- getArgs
-    start (read port) static
+    runThreepenny (read port) static exampleApp (0, 0)
 \end{code}

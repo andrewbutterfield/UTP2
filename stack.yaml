@@ -2,10 +2,10 @@ resolver: lts-4.1
 
 packages:
 - '.'
-- location:
-    git: https://github.com/barischj/threepenny-gui
-    commit: HEAD
-  extra-dep: true
+# - location:
+#     git: https://github.com/heinrichapfelmus/threepenny-gui
+#     commit: HEAD
+#   extra-dep: true
 
 extra-deps:
 - aeson-0.11.3.0
@@ -20,6 +20,7 @@ extra-deps:
 - snap-core-1.0.1.0
 - snap-server-1.0.1.1
 - tagged-0.8.4
+- threepenny-gui-0.7.0.1
 - unix-compat-0.4.3.1
 - websockets-0.9.8.2
 - websockets-snap-0.10.2.0

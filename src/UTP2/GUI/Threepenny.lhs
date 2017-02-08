@@ -1,6 +1,6 @@
 \begin{code}
 
-module UTP2.Threepenny (start) where
+module UTP2.GUI.Threepenny (start) where
 
 import           Control.Concurrent.MVar
 import           Control.Monad                (void)

@@ -25,8 +25,10 @@ data-files:          UTP2-alert.wav
 Library
     hs-source-dirs:  src
     exposed-modules: UTP2
-                   , UTP2.Abstract
-                   , UTP2.Threepenny
+                   , UTP2.GUI
+                   , UTP2.GUI.Threepenny
+                   , Graphics.UI.Abstract
+                   , Graphics.UI.Abstract.Threepenny
     other-modules:   About
                    , AlphaSubs
                    , Archive
@@ -112,3 +114,9 @@ Executable UTP2-threepenny
     hs-source-dirs:  app-threepenny
     main-is:         Main.lhs
     build-depends:   base, UTP2
+
+Executable UTP2-abstract
+    hs-source-dirs:  app-abstract
+    main-is:         Main.lhs
+    build-depends:   base, UTP2
+
