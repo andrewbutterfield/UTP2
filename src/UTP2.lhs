@@ -29,8 +29,8 @@ import Files
 import ImportExport
 import Archive
 import DocTextParser
-import LaTeXSetup
-import LaTeXPretty
+--import LaTeXSetup
+--import LaTeXPretty
 
 import DSL
 import Logic
@@ -361,10 +361,10 @@ saveTheoremSummary thry work
 Exporting a theory
 \begin{code}
 addEXPORTItem work thry tmMenu
- = do mitem <- menuItem tmMenu [text:=ltxt thry]
-      set mitem [on command := exportLaTeXTheory thry work]
-      mitem <- menuItem tmMenu [text:=ttxt thry]
+ = do mitem <- menuItem tmMenu [text:=ttxt thry]
       set mitem [on command := exportTexTTheory thry work]
+      -- mitem <- menuItem tmMenu [text:=ltxt thry]
+      -- set mitem [on command := exportLaTeXTheory thry work]
       mitem <- menuItem tmMenu [text:=btxt thry]
       set mitem [on command := exportTheoryBundle thry work]
  where
@@ -372,18 +372,18 @@ addEXPORTItem work thry tmMenu
   ttxt thry = "Export Text (" ++ uttxt ++ ")"
   btxt thry = "Export Bundle (" ++ uttxt ++ "," ++ teoric ++ ")"
 
-exportLaTeXTheory thry work
- = do ss <- varGet work
-      let name = thryName thry
-      let thstk = hardGraphToStack name $ theorygraph ss
-      let prec = map precs thstk
-      let llayout = latexlayout ss
-      let txt = pprint_proofcontext prec llayout thry
-      (_,cwd) <- getCurrFS work
-      let fname = cwd ++ [pathSeparator]
-                  ++ name++"-"++show (thrySeqNo thry)++utp
-      writeFile fname txt
-      note (topstatus ss) ("Theory '"++name++"' exported to "++fname)
+-- exportLaTeXTheory thry work
+--  = do ss <- varGet work
+--       let name = thryName thry
+--       let thstk = hardGraphToStack name $ theorygraph ss
+--       let prec = map precs thstk
+--       let llayout = latexlayout ss
+--       let txt = pprint_proofcontext prec llayout thry
+--       (_,cwd) <- getCurrFS work
+--       let fname = cwd ++ [pathSeparator]
+--                   ++ name++"-"++show (thrySeqNo thry)++utp
+--       writeFile fname txt
+--       note (topstatus ss) ("Theory '"++name++"' exported to "++fname)
 \end{code}
 
 \newpage
