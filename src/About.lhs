@@ -12,6 +12,11 @@ import Data.Version
 
 \subsection{Program Name \& Version}
 
+\textbf{v0.99$\alpha$2, from 9th Feb 2017}
+\begin{code}
+version = "0.99a2(2017-02-09+)"
+\end{code}
+
 \begin{code}
 #ifndef mingw32_HOST_OS
 progname = "U\xb7(TP)\178"
@@ -22,10 +27,6 @@ progname = "U(TP)^2"
 fullname = progname ++ " v" ++ version
 \end{code}
 
-\textbf{v0.99$\alpha$1, from 20th Jan 2017}
-\begin{code}
-version = "0.99a1(2017-01-20+)"
-\end{code}
 
 \subsection{About Text}
 
@@ -42,17 +43,11 @@ aboutText
             ,"  Andrew Anderson, Colm Bhandal, Simon Dardis,"
             ,"  Ian Fitzpatrick, Karen Forde, Luke McGuinness"
             ,""
-            ,"Licensed under GPL v2 - see COPYING.txt"
+            ,"Licensed under BSD-3-Clause - see licence/BSD3.txt"
             ,""
             ,"built ("++build++") using:"
             ,"  wxHaskell"
             ,"  Parsec"
-            ,"  Jaza"
-            ,""
-            ,[ pFocusStart, eFocusStart, eFocusEnd, pFocusEnd
-             , ' '
-             , beginPFocus, beginEFocus, deepFocus, endEFocus, endPFocus
-             ]
             ]
  where
    build = arch +-+ os +-+ compilerName +-+ cv
