@@ -732,8 +732,9 @@ with the first being reversed (see \texttt{factor2p} for why).
         | otherwise            =  buildPredOp p1 p2
         where
           (isbin,lat,rat,rst) = isBinOp optyp
-          isBinOp (Tfun (Tprod [t1,t2]) t3) = (True,t1,t2,t3)
-          isBinOp t                         = (False,t,t,t)
+          isBinOp (Tfun (TApp tcn [t1,t2]) t3)
+           | tcn==n_Tprod     = (True,t1,t2,t3)
+          isBinOp t           = (False,t,t,t)
 
       buildPredOp p1 p2
         | opname == andName    =  return (p1 /\ p2)
@@ -1066,7 +1067,7 @@ apply2p f a = Papp f a
 
 tapp (Tfun tf tr) ta
  | tf `tlequiv` ta  =  tr
-tapp tf ta = Terror "ill-typed application " (Tprod [tf,ta])
+tapp tf ta = Terror "ill-typed application " (mkTprod [tf,ta])
 \end{code}
 
 \subsection{Forcing Expressions}
@@ -1352,7 +1353,7 @@ This case should not arise~!
    t2t (TEPtprod teps)
     = do let p = map t2t teps
          let q = either2val [] p
-         return (Tprod q)
+         return (mkTprod q)
 
    t2t (TEPtfun tep1 tep2)
     = do p <- t2t tep1
@@ -1362,24 +1363,24 @@ This case should not arise~!
    t2t (TEPtpfun tep1 tep2)
     = do p <- t2t tep1
          q <- t2t tep2
-         return (Tpfun p q)
+         return (Tfun p q)
 
    t2t (TEPtmap tep1 tep2)
     = do p <- t2t tep1
          q <- t2t tep2
-         return (Tmap p q)
+         return (Tfun p q)
 
    t2t (TEPtset tep)
     = do p <- t2t tep
-         return (Tset p)
+         return (mkTset p)
 
    t2t (TEPtseq tep)
     = do p <- t2t tep
-         return (Tseq p)
+         return (mkTseq p)
 
    t2t (TEPtseqp tep)
     = do p <- t2t tep
-         return (Tseqp p)
+         return (mkTseqp p)
 
    t2t (TEPtfree tn []) = Right (Tvar tn)
    t2t (TEPtfree tn cls)

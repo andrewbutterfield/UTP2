@@ -1296,23 +1296,12 @@ tShow p t
  | otherwise  =  showType tp t
  where tp = typeLevel t
 
+typeLevel (TApp _ _) = 1
 typeLevel (Tfree _ _) = 1
 typeLevel (Tfun _ _)  = 2
-typeLevel (Tpfun _ _) = 2
-typeLevel (Tmap _ _)  = 2
-typeLevel (Tprod _)   = 2
-typeLevel (Tset _)    = 4
-typeLevel (Tseq _)    = 5
-typeLevel (Tseqp _)   = 5
 
 showType p (Tfree n cs) = n ++ ' ':tksymAT++ (showSep 6 showCases (' ':tksymALT) cs)++"."
 showType p (Tfun d r)   = tShow (p+1) d ++ ' ':tksymFUN ++ ' ':tShow p r
-showType p (Tpfun d r)  = tShow (p+1) d ++ ' ':tksymPFUN ++ ' ':tShow p r
-showType p (Tmap d r)   = tShow (p+1) d ++ ' ':tksymMAP ++ ' ':tShow p r
-showType p (Tprod ts)   = showSep (p+1) tShow (' ':tkeyPROD++" ") ts
-showType p (Tset t)     = tkeyPOWER++' ':tShow p t
-showType p (Tseq t)     = tShow p t++tksymSEQ
-showType p (Tseqp t)    = tShow p t++tksymSEQP
 showType p t            = tShow p t
 
 showCases p (n,ts) = " "++n ++ " " ++ showSep p tShow " " ts

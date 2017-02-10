@@ -1652,10 +1652,6 @@ are available.
     _ -> ( proof, [] )
  where
    prf' = proof{done=False}
-   leftUT  (Tprod [lut,_])  =  lut
-   leftUT  ut               =  Terror "Equals has bad u.t. : " ut
-   rightUT (Tprod [_,rut])  =  rut
-   rightUT ut               =  Terror "Equals has bad u.t. : " ut
 \end{code}
 
 For the reduce-from-law strategies, we need a law argument.

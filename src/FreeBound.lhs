@@ -1139,13 +1139,10 @@ exprAllTVars e = lnorm $ foldE allTVarsFold e
 
 typeAllTVars :: Type -> [TVar]
 typeAllTVars (Tvar tv)     = [tv]
-typeAllTVars (Tset t)      = typeAllTVars t
-typeAllTVars (Tseq t)      = typeAllTVars t
-typeAllTVars (Tseqp t)     = typeAllTVars t
-typeAllTVars (Tprod ts)    = lnorm $ concat $ map typeAllTVars ts
+typeAllTVars (TApp _ ts)  = lnorm $ concat $ map typeAllTVars ts
+typeAllTVars (Tfree _ ccs)
+  = lnorm $ concat $ map (concat . (map typeAllTVars . snd)) ccs
 typeAllTVars (Tfun t1 t2)  = lnorm (typeAllTVars t1 ++ typeAllTVars t2)
-typeAllTVars (Tpfun t1 t2) = lnorm (typeAllTVars t1 ++ typeAllTVars t2)
-typeAllTVars (Tmap t1 t2)  = lnorm (typeAllTVars t1 ++ typeAllTVars t2)
 typeAllTVars _             = []
 \end{code}
 

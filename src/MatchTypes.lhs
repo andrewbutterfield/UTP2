@@ -60,29 +60,30 @@ evalExprType tts tags e
    typof F  =  B
    typof (Num i)  =  Z
    typof (Var v)  =  ttsVLookup tts v tags
-   typof (Prod es)  =  Tprod $ map typof es
+   typof (Prod es)  =  undefined -- Tprod $ map typof es
    typof (App f e)
      = case ttsLookup tts f tags of
         Tfun _ tr  ->  tr
         t          ->  Terror (f++" not a function") t
    typof (Bin op i e1 e2)
-     = case ttsLookup tts op tags of
-        Tfun (Tprod [_,_]) tr  ->  tr
-        t                      ->  Terror (op++" not a bin-op.") t
+     = undefined
+        -- case ttsLookup tts op tags of
+        --Tfun (Tprod [_,_]) tr  ->  tr
+        --t                      ->  Terror (op++" not a bin-op.") t
    typof (Equal e1 e2)  =  B
-   typof (Set [])  =  Tset Tarb
-   typof (Set (e:_))  =  Tset $ typof e
-   typof (Setc tag qvs pr e)  =  evalExprType tts (tag:tags) e
-   typof (Seq [])  =  Tseq Tarb
-   typof (Seq (e:_))  =  Tseq $ typof e
-   typof (Seqc tag qvs pr e)  =  evalExprType tts (tag:tags) e
-   typof (Map [])  =  Tmap Tarb Tarb
-   typof (Map ((d,r):_))  =  Tmap (typof d) (typof r)
-   typof (Cond pr e1 e2)  =  typof e1
+   typof (Set [])  =  undefined --Tset Tarb
+   typof (Set (e:_))  =  undefined -- Tset $ typof e
+   typof (Setc tag qvs pr e)  =  undefined -- evalExprType tts (tag:tags) e
+   typof (Seq [])  =  undefined -- Tseq Tarb
+   typof (Seq (e:_))  =  undefined -- Tseq $ typof e
+   typof (Seqc tag qvs pr e)  =  undefined -- evalExprType tts (tag:tags) e
+   typof (Map [])  =  undefined -- Tmap Tarb Tarb
+   typof (Map ((d,r):_))  =  undefined -- Tmap (typof d) (typof r)
+   typof (Cond pr e1 e2)  =  undefined -- typof e1
    typof (Build str es)  =  Tfree "?" [(str,map typof es)]
-   typof (The tag v pr)  =  ttsVLookup tts v (tag:tags)
+   typof (The tag v pr)  =  undefined -- ttsVLookup tts v (tag:tags)
    typof (Evar v)  =  ttsVLookup tts v tags
-   typof (Eabs tag qvs e)  =  evalExprType tts (tag:tags) e
+   typof (Eabs tag qvs e)  =  undefined -- evalExprType tts (tag:tags) e
    typof (Esub e esub)  =  typof e
    typof (Efocus e)  =  typof e
    typof (Eerror str)  =  Terror ("Eerror "++str) Tarb
@@ -104,11 +105,8 @@ tlequiv (Terror _ _) t           =  True
 tlequiv t          Tarb          =  True
 tlequiv t          (Tvar s)      =  True -- should bind s to t
 tlequiv t          (Terror _ _)  =  True
-tlequiv (Tprod ts) (Tprod ts')   =  tslequiv ts ts'
-tlequiv (Tmap d r) (Tmap d' r')  =  tslequiv [d,r] [d',r']
 tlequiv (Tfun d r) (Tfun d' r')  =  tslequiv [d,r] [d',r']
-tlequiv (Tset t)   (Tset t')     =  tlequiv t t'
-tlequiv (Tseq t)   (Tseq t')     =  tlequiv t t'
+tlequiv (TApp n ts) (TApp n' ts') =  n==n' && tslequiv ts ts'
 tlequiv (Tfree n cs) (Tfree n' cs') =  n==n' && cslequiv cs cs'
 tlequiv t          t'            =  t==t'
 
@@ -903,7 +901,7 @@ here shown w.l.og. as:
 to satisfy the follow
 well-formedness conditions:
 \begin{itemize}
-  \item 
+  \item
     The number of standard and list variables in both test and pattern
     must satisfy the following relationship, which is derived
     from a counting argument that establishes a necessary
@@ -949,7 +947,7 @@ type SubstMatchToDo v a
    )
 \end{code}
 
-Well-formedness when \texttt{v} is instantiated by \texttt{Variable} is as for 
+Well-formedness when \texttt{v} is instantiated by \texttt{Variable} is as for
 \texttt{QVars}:
 \begin{code}
 type ESubstMatchToDo = SubstMatchToDo Variable Expr

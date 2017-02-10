@@ -1026,14 +1026,9 @@ typeRec merge spec base ty
 
   typerec = typeRec merge spec base
 
-  tRecurse (Tset ty) = typerec ty
-  tRecurse (Tseq ty) = typerec ty
-  tRecurse (Tseqp ty) = typerec ty
-  tRecurse (Tprod tys) = merge $ map typerec tys
   tRecurse (Tfree _ fs) = merge $ map typerec $ concat $ map snd fs
+  tRecurse (TApp _ ts) = merge $ map typerec ts
   tRecurse (Tfun ty1 ty2) = merge $ map typerec [ty1,ty2]
-  tRecurse (Tpfun ty1 ty2) = merge $ map typerec [ty1,ty2]
-  tRecurse (Tmap ty1 ty2) = merge $ map typerec [ty1,ty2]
   tRecurse _ = base
 
 \end{code}
@@ -1909,14 +1904,9 @@ dbgSshow shv shth i ((v,thing):rest)
 
 dbgTshow i Tarb = hdr i ++ "TARB"
 dbgTshow i (Tvar s) = hdr i ++ "TVAR "++s
-dbgTshow i (Tset t) = hdr i ++ "TSET" ++ dbgTshow (i+1) t
-dbgTshow i (Tseq t) = hdr i ++ "TSEQ" ++ dbgTshow (i+1) t
-dbgTshow i (Tseqp t) = hdr i ++ "TSEQP" ++ dbgTshow (i+1) t
-dbgTshow i (Tprod ts) = hdr i ++ "TPROD" ++ concat(map (dbgTshow (i+1)) ts)
+dbgTshow i (TApp s ts) = hdr i ++ "TAPP "++s ++ concat(map (dbgTshow (i+1)) ts)
 dbgTshow i (Tfree s cs) = hdr i ++ "TFREE "++s ++ concat(map (dbgFshow (i+1)) cs)
 dbgTshow i (Tfun t1 t2) = hdr i ++ "TFUN" ++ dbgTshow (i+1) t1 ++ dbgTshow (i+1) t2
-dbgTshow i (Tpfun t1 t2) = hdr i ++ "TPFUN" ++ dbgTshow (i+1) t1 ++ dbgTshow (i+1) t2
-dbgTshow i (Tmap t1 t2) = hdr i ++ "TMAP" ++ dbgTshow (i+1) t1 ++ dbgTshow (i+1) t2
 dbgTshow i Tenv = hdr i ++ "TENV"
 dbgTshow i Z = hdr i ++ "TINT"
 dbgTshow i B = hdr i ++ "TBOOL"

@@ -9,6 +9,7 @@ import Control.Monad
 import Tables
 import Datatypes
 import DataText
+import DSL
 import Utilities
 import Focus
 import AlphaSubs
@@ -483,7 +484,7 @@ There is no constraint on product types:
 \begin{code}
    ehvst vt0 tts tags (Prod es)
      = do (ts', (vt0', tts', teqs')) <- eshvst vt0 tts tags es
-          return (Tprod ts', (vt0', tts', teqs'))
+          return (mkTprod ts', (vt0', tts', teqs'))
 \end{code}
 
 Applications/Conditions introduce equations:
@@ -502,7 +503,7 @@ Applications/Conditions introduce equations:
          rtv <- newu
          let rtyp = tag2tvar rtv
          return ( rtyp, (vt0''', tts'''
-                        , (optyp,Tfun (Tprod [t1,t2]) rtyp):teqs''++teqs''')
+                        , (optyp,Tfun (mkTprod [t1,t2]) rtyp):teqs''++teqs''')
                 )
 
    ehvst vt0 tts tags (Equal e1 e2)
@@ -528,7 +529,7 @@ Abstraction is the dual of application:
          case qvlookup tts tt [x] of
            [xt] -> return (xt, (vt0', tts', teqs'))
            xts -> return( Terror ("Can't find '"++varKey x++"' in 'The'")
-                                 $ Tprod xts
+                                 $ mkTprod xts
                         , (vt0', tts', teqs'))
 \end{code}
 
@@ -539,16 +540,16 @@ Sets, Sequences and Map enumerations introduce many equations:
          case ts' of
            [] -> do stv <- newu
                     let styp = tag2tvar stv
-                    return (Tset styp, (vt0', tts', teqs'))
-           (t:ts) -> return (Tset t, (vt0', tts', tlisteq t ts ++ teqs'))
+                    return (mkTset styp, (vt0', tts', teqs'))
+           (t:ts) -> return (mkTset t, (vt0', tts', tlisteq t ts ++ teqs'))
 
    ehvst vt0 tts tags (Seq es)
     = do (ts', (vt0', tts', teqs')) <- eshvst vt0 tts tags es
          case ts' of
            [] -> do stv <- newu
                     let styp = tag2tvar stv
-                    return (Tseq styp, (vt0', tts', teqs'))
-           (t:ts) -> return (Tseq t, (vt0', tts', tlisteq t ts ++ teqs'))
+                    return (mkTseq styp, (vt0', tts', teqs'))
+           (t:ts) -> return (mkTseq t, (vt0', tts', tlisteq t ts ++ teqs'))
 
    ehvst vt0 tts tags (Map drs)
     = do let (des,res) = unzip drs
@@ -558,8 +559,8 @@ Sets, Sequences and Map enumerations introduce many equations:
          case (dts',rts') of
            ([],[]) -> do dtv <- newu ; let dtyp = tag2tvar dtv
                          rtv <- newu ; let rtyp = tag2tvar rtv
-                         return (Tmap dtyp rtyp, (vt0'', tts'', tqs))
-           (dt:dts,rt:rts) -> return (Tmap dt rt,
+                         return (Tfun dtyp rtyp, (vt0'', tts'', tqs))
+           (dt:dts,rt:rts) -> return (Tfun dt rt,
                                        (vt0'', tts'', tlisteq dt dts
                                                       ++ tlisteq rt rts
                                                       ++ tqs))
@@ -605,7 +606,7 @@ Comprehensions:
    cmphvst vt0 tts tags pr e
     = do (vt0', tts', teqs') <- phvst vt0 tts tags pr
          (te,(vt0'', tts'', teqs'')) <- ehvst vt0' tts' tags e
-         return (Tset te, (vt0'', tts', teqs'++teqs''))
+         return (mkTset te, (vt0'', tts', teqs'++teqs''))
 \end{code}
 \begin{code}
 \end{code}
@@ -694,21 +695,15 @@ mrgType t1@(Tvar a) (Tvar b)
 mrgType (Tvar a) t2 = return (t2,[(a,t2)],[])
 mrgType t1 (Tvar b) = return (t1,[(b,t1)],[])
 
-mrgType (Tset t1)  (Tset t2)  = mrgBox Tset t1 t2
-mrgType (Tseq t1)  (Tseq t2)  = mrgBox Tseq t1 t2
-mrgType (Tseqp t1) (Tseqp t2) = mrgBox Tseqp t1 t2
-
-mrgType (Tprod ts1) (Tprod ts2)
- = do (ts',bnds',eqvs') <-  mrgTs "(,)" [] [] [] ts1 ts2
-      return (Tprod ts',bnds',eqvs')
+mrgType (TApp tcn1 ts1) (TApp tcn2 ts2)
+ = do (ts',bnds',eqvs') <-  mrgTs tcn1 [] [] [] ts1 ts2
+      return (TApp tcn1 ts',bnds',eqvs')
 
 mrgType t1@(Tfree n1 fs1) t2@(Tfree n2 fs2)
  | n1 == n2   =  mrgFS n1 [] [] [] fs1 fs2
  | otherwise  =  mrgErr "Tfree" t1 t2
 
 mrgType (Tfun td1 tr1)  (Tfun td2 tr2)  = mrgF Tfun td1 tr1 td2 tr2
-mrgType (Tpfun td1 tr1) (Tpfun td2 tr2) = mrgF Tpfun td1 tr1 td2 tr2
-mrgType (Tmap td1 tr1)  (Tmap td2 tr2)  = mrgF Tmap td1 tr1 td2 tr2
 
 mrgType Tenv Tenv  =  return (Tenv,[],[])
 mrgType Z Z        =  return (Z,[],[])
@@ -857,14 +852,9 @@ typeVarMap tvt t
         Nothing                      ->  (False, typ)
         Just (Tvar tv') | tv == tv'  ->  (False, typ)
         Just typ'                    ->  (True, typ')
-   tvmap (Tset t)  =  tvmapf Tset t
-   tvmap (Tseq t)  =  tvmapf Tseq t
-   tvmap (Tseqp t)  =  tvmapf Tseqp t
-   tvmap (Tprod typs)  =  tvsmap Tprod typs
+   tvmap (TApp tcn typs) = tvsmap (TApp tcn) typs
    tvmap (Tfree str cases)  =  undefined
    tvmap (Tfun t1 t2) = tvmap2 Tfun t1 t2
-   tvmap (Tpfun t1 t2)  =  tvmap2 Tpfun t1 t2
-   tvmap (Tmap t1 t2)  =  tvmap2 Tmap t1 t2
    tvmap typ = (False, typ)
 
    tvmapf tcon t = let (chgd,t') = tvmap t in (chgd,tcon t')
@@ -883,14 +873,9 @@ Extracting all typevars mentioned in a type:
 \begin{code}
 typeVarsOf :: Type -> [String]
 typeVarsOf (Tvar s) = [s]
-typeVarsOf (Tprod ts) = concat (map typeVarsOf ts)
-typeVarsOf (Tmap t1 t2) = concat (map typeVarsOf [t1,t2])
 typeVarsOf (Tfun t1 t2) = concat (map typeVarsOf [t1,t2])
-typeVarsOf (Tpfun t1 t2) = concat (map typeVarsOf [t1,t2])
-typeVarsOf (Tset t) = typeVarsOf t
-typeVarsOf (Tseq t) = typeVarsOf t
-typeVarsOf (Tseqp t) = typeVarsOf t
 typeVarsOf (Tfree _ css) = concat (map typeVarsOf (concat (map snd css)))
+typeVarsOf (TApp _ ts) = concat (map typeVarsOf ts)
 typeVarsOf _ = []
 \end{code}
 
@@ -1052,22 +1037,11 @@ genFreshTypeVars (Tvar v) tmap
     Nothing   ->  do t <- newtvar
                      return (tupdate v t tmap)
 
-genFreshTypeVars (Tprod ts) tmap
- = seqgenFreshTypeVars ts tmap
-
 genFreshTypeVars (Tfun td tr) tmap
      = seqgenFreshTypeVars [td,tr] tmap
-genFreshTypeVars (Tpfun td tr) tmap
-     = seqgenFreshTypeVars [td,tr] tmap
-genFreshTypeVars (Tmap td tr) tmap
-     = seqgenFreshTypeVars [td,tr] tmap
 
-genFreshTypeVars (Tset t) tmap
-     = genFreshTypeVars t tmap
-genFreshTypeVars (Tseq t) tmap
-     = genFreshTypeVars t tmap
-genFreshTypeVars (Tseqp t) tmap
-     = genFreshTypeVars t tmap
+genFreshTypeVars (TApp _ ts) tmap
+     = seqgenFreshTypeVars ts tmap
 
 genFreshTypeVars (Tfree _ fs) tmap
  = seqgenFreshTypeVars (concat (map snd fs)) tmap
@@ -1087,22 +1061,11 @@ buildFreshType :: Trie TVar -> Type -> Type
 buildFreshType tmap (Tvar v) = Tvar t
  where (Just t) = tlookup tmap v
 
-buildFreshType tmap (Tprod ts)
-  = Tprod (map (buildFreshType tmap) ts)
+buildFreshType tmap (TApp tcn ts)
+  = TApp tcn (map (buildFreshType tmap) ts)
 
 buildFreshType tmap (Tfun td tr)
    = Tfun (buildFreshType tmap td) (buildFreshType tmap tr)
-buildFreshType tmap (Tpfun td tr)
-   = Tpfun (buildFreshType tmap td) (buildFreshType tmap tr)
-buildFreshType tmap (Tmap td tr)
-   = Tmap (buildFreshType tmap td) (buildFreshType tmap tr)
-
-buildFreshType tmap (Tset t)
-   = Tset (buildFreshType tmap t)
-buildFreshType tmap (Tseq t)
-   = Tseq (buildFreshType tmap t)
-buildFreshType tmap (Tseqp t)
-   = Tseqp (buildFreshType tmap t)
 
 buildFreshType tmap (Tfree name fs)
  = Tfree name (map bfts fs)
@@ -1313,8 +1276,6 @@ Applications
         case res of
          Nothing  ->  return(t,vta,tta,[ta],ft)
          (Just (Tfun td tr))  -> addDR t tr ta td vta tta ft
-         (Just (Tpfun td tr)) -> addDR t tr ta td vta tta ft
-         (Just (Tmap td tr))  -> addDR t tr ta td vta tta ft
          (Just typ) -> do let typ' = terr f typ
                           let tt' = insTentry t typ' tta
                           return (t,vta,tt',[ta],ft)
@@ -1328,9 +1289,8 @@ Applications
         res <- flookup gamma $ preVar op
         case res of
          Nothing  ->  return(t,vt2,tt2,[t1,t2],ft)
-         (Just (Tfun td@(Tprod [ta,tb]) tr))  -> addBIN t tr t1 ta t2 tb vt2 tt2 ft
-         (Just (Tpfun td@(Tprod [ta,tb]) tr)) -> addBIN t tr t1 ta t2 tb vt2 tt2 ft
-         (Just (Tmap td@(Tprod [ta,tb]) tr))  -> addBIN t tr t1 ta t2 tb vt2 tt2 ft
+         (Just (Tfun td@(TApp tcn [ta,tb]) tr))
+           | tcn==n_Tprod  -> addBIN t tr t1 ta t2 tb vt2 tt2 ft
          (Just typ) -> do let typ' = terr op typ
                           let tt' = insTentry t typ' tt2
                           return (t,vt2,tt',[t1,t2],ft)
@@ -1389,19 +1349,19 @@ Product
    = do t <- newtvar
         (ts,vtn,ttn,_,ft) <- blds gamma es vt tt
         let typs = map Tvar ts
-        return(t,vtn,insTentry t (Tprod typs) ttn,[],ft)
+        return(t,vtn,insTentry t (mkTprod typs) ttn,[],ft)
 \end{code}
 
 Sets, Sequences, \ldots (see \texttt{addBOX} defn. above)
 \begin{code}
-  bld gamma (Set es)     vt tt  =  addBOX Tset es vt tt
-  bld gamma (Seq es)     vt tt  =  addBOX Tseq es vt tt
-  bld gamma (Seqc _ _ _ e) vt tt  =  addBOX Tseq [e] vt tt
+  bld gamma (Set es)     vt tt  =  addBOX mkTset es vt tt
+  bld gamma (Seq es)     vt tt  =  addBOX mkTseq es vt tt
+  bld gamma (Seqc _ _ _ e) vt tt  =  addBOX mkTseq [e] vt tt
   bld gamma (Setc _ _ pr e) vt tt
    =  do t <- newtvar
          (ts,vtr,ttr,_,fr) <- blds gamma (exprsOf pr) vt tt
          (t',vt',tt',tc,fs) <- bld gamma e vtr ttr
-         return (t,vt',insTentry t (Tset (Tvar t')) tt',tc,fr `fuse` fs)
+         return (t,vt',insTentry t (mkTset (Tvar t')) tt',tc,fr `fuse` fs)
 \end{code}
 
 Maps
@@ -1429,7 +1389,7 @@ Maps
         let ft = ft1 `fuse` ft2
         let vtp = insTeList td tds vtr
         let vt' = insTeList tr trs vtp
-        let tt' = insTentry t (Tmap (Tvar td) (Tvar tr)) ttr
+        let tt' = insTentry t (Tfun (Tvar td) (Tvar tr)) ttr
         return (t,vt',tt',[],ft)
 \end{code}
 
@@ -1703,21 +1663,16 @@ mergeTypes t1 t2
 
   mrgT (Tvar a) t2 = (t2,[(a,t2)],[])
 
-  mrgT (Tset t1)  (Tset t2)  = mrgBox Tset t1 t2
-  mrgT (Tseq t1)  (Tseq t2)  = mrgBox Tseq t1 t2
-  mrgT (Tseqp t1) (Tseqp t2) = mrgBox Tseqp t1 t2
-
-  mrgT (Tprod ts1) (Tprod ts2)
-   = let (ts',bnds',eqvs') = mrgTs "(,)" [] [] [] ts1 ts2
-     in (Tprod ts',bnds',eqvs')
+  mrgT (TApp tcn1 ts1) (TApp tcn2 ts2)
+   | tcn1==tcn2
+   = let (ts',bnds',eqvs') = mrgTs tcn1 [] [] [] ts1 ts2
+     in (TApp tcn1 ts',bnds',eqvs')
 
   mrgT t1@(Tfree n1 fs1) t2@(Tfree n2 fs2)
    | n1 == n2  =  mrgFS n1 [] [] [] fs1 fs2
    | otherwise  =  (mrgErr t1 t2,[],[])
 
   mrgT (Tfun td1 tr1)  (Tfun td2 tr2)  = mrgF Tfun td1 tr1 td2 tr2
-  mrgT (Tpfun td1 tr1) (Tpfun td2 tr2) = mrgF Tpfun td1 tr1 td2 tr2
-  mrgT (Tmap td1 tr1)  (Tmap td2 tr2)  = mrgF Tmap td1 tr1 td2 tr2
 
   mrgT t1 t2 = (mrgErr t1 t2,[],[])
 
@@ -1853,13 +1808,8 @@ typeVarEqvMap trie t = tm  t where
    = case tlookup trie v of
        Nothing    ->  tv
        (Just v')  ->  Tvar v'
-  tm (Tprod ts) = Tprod (map tm ts)
-  tm (Tmap td tr) = Tmap (tm td) (tm tr)
-  tm (Tpfun td tr) = Tpfun (tm td) (tm tr)
+  tm (TApp tcn ts) = TApp tcn (map tm ts)
   tm (Tfun td tr) = Tfun (tm td) (tm tr)
-  tm (Tset t) = Tset (tm t)
-  tm (Tseqp t) = Tseqp (tm t)
-  tm (Tseq t) = Tseq (tm t)
   tm (Tfree tn fs) = Tfree tn (map fm fs)
   tm t = t
 
@@ -1883,13 +1833,8 @@ typeMap trie t = tm  t where
    = case tlookup trie v of
        Nothing    ->  tv
        (Just t')  ->  t'
-  tm (Tprod ts) = Tprod (map tm ts)
-  tm (Tmap td tr) = Tmap (tm td) (tm tr)
-  tm (Tpfun td tr) = Tpfun (tm td) (tm tr)
+  tm (TApp tcn ts) = TApp tcn (map tm ts)
   tm (Tfun td tr) = Tfun (tm td) (tm tr)
-  tm (Tset t) = Tset (tm t)
-  tm (Tseqp t) = Tseqp (tm t)
-  tm (Tseq t) = Tseq (tm t)
   tm (Tfree tn fs) = Tfree tn (map fm fs)
   tm t = t
 
@@ -1979,7 +1924,7 @@ topType top children
      B  ->  case children of
               []  ->  B
               [tt]  ->  tt
-              _     -> Tprod children
+              _     -> mkTprod children
      Tfun B B  ->  Tfun B B
      Tarb      ->  inventType children
      Tvar _    ->  inventType children
@@ -1999,7 +1944,7 @@ we invent one for it, rather than recording an error.
 \begin{code}
 inventType [] = B -- must be boolean !
 inventType ts
- = Tprod (invent 1 [] ts)
+ = mkTprod (invent 1 [] ts)
  where
   invent n st' [] = reverse st'
   invent n st' (Tarb:ts) = invent (n+1) (Tvar ("a"++show n):st') ts
@@ -2039,14 +1984,9 @@ Have we got a type-error?
 errsInType :: Type -> [String]
 
 errsInType (Terror s t)  = [s]
-errsInType (Tset t)      = errsInType t
-errsInType (Tseq t)      = errsInType t
-errsInType (Tseqp t)     = errsInType t
-errsInType (Tprod ts)    = concat $ map errsInType ts
+errsInType (TApp _ ts)    = concat $ map errsInType ts
 errsInType (Tfree _ cs)  = concat $ map errsInType $ concat $ map snd cs
 errsInType (Tfun tf ta)  = errsInType tf ++ errsInType ta
-errsInType (Tpfun tf ta) = errsInType tf ++ errsInType ta
-errsInType (Tmap tf ta)  = errsInType tf ++ errsInType ta
 errsInType _             = []
 \end{code}
 

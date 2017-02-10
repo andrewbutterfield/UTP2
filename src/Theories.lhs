@@ -5,6 +5,7 @@ module Theories where
 import Tables
 import Datatypes
 import Utilities
+import DSL
 import Types
 import FreeBound
 import MatchTypes
@@ -360,7 +361,7 @@ fixupLaw mctxt ((pr,sc),prov,_)
  | otherwise  =  ((pr',sc),prov,btupdate (-1) (tsingle "!" terrs) tts)
  where
    (pr',tts,msgs) = setPredTypes mctxt pr
-   terrs = Tprod $ map terr msgs
+   terrs = mkTprod $ map terr msgs
    terr msg = Terror msg Tarb
 \end{code}
 

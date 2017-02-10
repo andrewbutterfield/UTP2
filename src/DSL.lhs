@@ -14,6 +14,22 @@ import Text.ParserCombinators.Parsec.Expr
 This module defines a DSL in Haskell
 to make it easy to write built-in theories.
 
+\subsection{Common Types}
+
+\begin{code}
+n_Tprod = "prod"
+mkTprod ts = TApp n_Tprod ts
+
+n_Tset = "set"
+mkTset t = TApp n_Tset [t]
+
+n_Tseq = "seq"
+mkTseq t = TApp n_Tseq [t]
+
+n_Tseqp = "seqp"
+mkTseqp t = TApp n_Tseqp [t]
+\end{code}
+
 \subsection{Making Laws}
 \begin{code}
 mkAssertion :: SideCond -> Pred -> Assertion
@@ -179,9 +195,9 @@ precsLogic
  where mk nm assoc = (nm,(opPrec 1 nm,assoc))
 
 tBoolOp = Tfun B B
-tBoolBinOp = Tfun (Tprod [B,B]) B
+tBoolBinOp = Tfun (mkTprod [B,B]) B
 t = Tvar "t"
-t2 = Tprod [t,t]
+t2 = mkTprod [t,t]
 \end{code}
 
 We give types to the binary predicate operators,
@@ -318,7 +334,7 @@ divd m n    = Bin "/"   (precLkp precsArithmetic1 "/") m n
 divdiv m n  = Bin "div" (precLkp precsArithmetic1 "div") m n
 modulo m n  = Bin "mod" (precLkp precsArithmetic1 "mod") m n
 
-tNum2 = Tprod [Z,Z]
+tNum2 = mkTprod [Z,Z]
 tArithBinOp = Tfun tNum2 Z
 
 zero = Num 0
@@ -375,11 +391,11 @@ precsSet
    , ("subseteq", (250,AssocNone))
    ]
 
-tSet = Tset t
-tSet2 = Tprod [tSet,tSet]
+tSet = mkTset t
+tSet2 = mkTprod [tSet,tSet]
 tSetBinOp = Tfun tSet2 tSet
 tSetRel = Tfun tSet2 B
-tMmbr = Tprod [t,tSet]
+tMmbr = mkTprod [t,tSet]
 
 infix 8 `mof`
 infixl 6 `unn`
@@ -428,9 +444,9 @@ n_ell = "ell"
 vell = Var $ preVar n_ell
 qell = qvar n_ell
 
-tSeq = Tseq t
-tSeqp = Tseqp t
-tSeq2 = Tprod [tSeq,tSeq]
+tSeq = mkTseq t
+tSeqp = mkTseqp t
+tSeq2 = mkTprod [tSeq,tSeq]
 tSeqBinOp  = Tfun tSeq2 tSeq
 tSeqBinRel = Tfun tSeq2 B
 
@@ -511,9 +527,9 @@ instance Ref Variable where { ref = preVar ref ; ref' = postVar ref }
 instance Ref Expr     where { ref = Var ref ;    ref' = Var ref' }
 
 tEvent = Tvar "Event"
-tTrace = Tseq tEvent
-tTrace2 = Tprod[tTrace,tTrace]
-tRef   = Tset tEvent
+tTrace = mkTseq tEvent
+tTrace2 = mkTprod[tTrace,tTrace]
+tRef   = mkTset tEvent
 \end{code}
 
 \subsection{DSL: Types}

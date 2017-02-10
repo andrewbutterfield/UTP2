@@ -1221,6 +1221,7 @@ codeTmap   = codeType "M" -- t2 t1
 codeTset   = codeType "S" -- t
 codeTseq   = codeType "L" -- t
 codeTseqp  = codeType "l" -- t
+codeTApp   = codeType "@" -- n ts.n ... ts.1 nm
 codeTfree  = codeType "A" -- n css.n ... css.1 nm
 codeTvar   = codeType "v" -- s
 codeTenv   = codeType "E"
@@ -1234,13 +1235,8 @@ buildType typ = [buildCmd:typ]
 
 exportType(B) = buildType codeB
 exportType(Z) = buildType codeZ
-exportType(Tprod ts) = exportList exportType ts ++ buildType codeTprod
+exportType(TApp n ts) = wrArg n ++ exportList exportType ts ++ buildType codeTApp
 exportType(Tfun t1 t2) = exportType t1 ++ exportType t2 ++ buildType codeTfun
-exportType(Tpfun t1 t2) = exportType t1 ++ exportType t2 ++ buildType codeTpfun
-exportType(Tmap t1 t2) = exportType t1 ++ exportType t2 ++ buildType codeTmap
-exportType(Tset t) = exportType t ++ buildType codeTset
-exportType(Tseq t) = exportType t ++ buildType codeTseq
-exportType(Tseqp t) = exportType t ++ buildType codeTseqp
 exportType(Tfree n css) = wrArg n ++ exportList exportTV css ++ buildType codeTfree
 exportType(Tvar s) = wrArg s ++ buildType codeTvar
 exportType(Tenv) = buildType codeTenv
@@ -1254,14 +1250,9 @@ btable0'
  = lupdate btable0
      [(codeB,      build  B Telem)
      ,(codeZ,      build  Z Telem)
-     ,(codeTprod,  buildn popType Tprod Telem)
-     ,(codeTmap,   build2 popType Tmap Telem)
      ,(codeTfun,   build2 popType Tfun Telem)
-     ,(codeTpfun,  build2 popType Tpfun Telem)
-     ,(codeTset,   build1 popType Tset Telem)
-     ,(codeTseq,   build1 popType Tseq Telem)
-     ,(codeTseqp,  build1 popType Tseqp Telem)
      ,(codeTfree,  buildn1 popTV popStr Tfree Telem)
+     ,(codeTApp,   buildn1 popTV popStr TApp Telem)
      ,(codeTvar,   build1 popStr Tvar Telem)
      ,(codeTenv,   build  Tenv Telem)
      ,(codeTerror, build1 popStr terr Telem)

@@ -52,8 +52,8 @@ and all variables are considered as being well-defined.
 \begin{code}
 typesEquality
  = lbuild
-     [ ("=", Tfun (Tprod [t,t]) B)
-     , ("/=",Tfun (Tprod [t,t]) B)
+     [ ("=", Tfun (mkTprod [t,t]) B)
+     , ("/=",Tfun (mkTprod [t,t]) B)
      ]
 
 lawsEquality
@@ -129,8 +129,8 @@ Now, relations on numbers:
 \begin{code}
 
 typesArithmetic2
- = [("=",Tfun (Tprod [t,t]) B)
-   ,("/=",Tfun (Tprod [t,t]) B)
+ = [("=",Tfun (mkTprod [t,t]) B)
+   ,("/=",Tfun (mkTprod [t,t]) B)
    ,("<",tArithRel)
    ,("<=",tArithRel)
    ,(">",tArithRel)
@@ -336,7 +336,7 @@ For now, we avoid ``dependent'' types like $T^+$.
 
 typesList
  = lbuild
-     [(":",Tfun (Tprod [t,tSeq]) tSeq)
+     [(":",Tfun (mkTprod [t,tSeq]) tSeq)
      ,("null",Tfun tSeq B)
      ,("hd",Tfun tSeq t)
      ,("tl",Tfun tSeq tSeq)
@@ -347,7 +347,7 @@ typesList
      ,("<<",tSeqBinRel)
      ,("<<=",tSeqBinRel)
      ,("--",tSeqBinOp)
-     ,("ix",Tfun (Tprod [tSeq,Z]) t)
+     ,("ix",Tfun (mkTprod [tSeq,Z]) t)
      ,("elems",Tfun tSeq tSet)
      ]
 

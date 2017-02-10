@@ -23,13 +23,8 @@ instantiateType mctxt binds pat
  = bT pat
  where
    bT (Tvar tv) = bevalT mctxt binds tv
-   bT (Tprod ts) = Tprod (map bT ts)
-   bT (Tmap t1 t2) = Tmap (bT t1) (bT t2)
    bT (Tfun t1 t2) = Tfun (bT t1) (bT t2)
-   bT (Tpfun t1 t2) = Tpfun (bT t1) (bT t2)
-   bT (Tset t) = Tset (bT t)
-   bT (Tseq t) = Tseq (bT t)
-   bT (Tseqp t) = Tseqp (bT t)
+   bT (TApp nm ts) = TApp nm (map bT ts)
    bT (Tfree nm css) = Tfree nm (map bC css)
    bT t = t
 
@@ -206,7 +201,7 @@ suspectRoot (Rsv SCR gs)   =  Gen $ Lst ("?SCR")
 
 \newpage
 
-\textbf{THIS IS ALL OLD HAT !!!!} 
+\textbf{THIS IS ALL OLD HAT !!!!}
 Handling substitutions
 where we matched pattern:
 $$

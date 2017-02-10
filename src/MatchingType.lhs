@@ -21,16 +21,13 @@ tMatch (Terror msg _) pt = (fail "Nothing")
 
 tMatch tt Tarb = return []
 tMatch tt (Tvar v) = return [(v,tt)]
-tMatch (Tset tt) (Tset pt) = tMatch tt pt
-tMatch (Tseq tt) (Tseq pt) = tMatch tt pt
-tMatch (Tseqp tt) (Tseqp pt) = tMatch tt pt
-tMatch (Tprod tts) (Tprod pts) = tMatchs tts pts
+tMatch (TApp tfn tts) (TApp pfn pts)
+ | tfn==pfn   =  tMatchs tts pts
+ | otherwise  =  (fail "Nothing")
 tMatch (Tfree tfn tvs) (Tfree pfn pvs)
  | tfn==pfn   =  tMatchVs tvs pvs
  | otherwise  =  (fail "Nothing")
 tMatch (Tfun tta ttr) (Tfun pta ptr) = tMatchs [tta,ttr] [pta,ptr]
-tMatch (Tpfun tta ttr) (Tpfun pta ptr) = tMatchs [tta,ttr] [pta,ptr]
-tMatch (Tmap tta ttr) (Tmap pta ptr) = tMatchs [tta,ttr] [pta,ptr]
 tMatch Tenv Tenv = return []
 tMatch Z Z = return []
 tMatch B B = return []
