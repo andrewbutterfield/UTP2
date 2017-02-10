@@ -1,9 +1,2 @@
 RDAG
-PropLogic
-LogicLaws
-NonPropLogic PropLogic
-Unicode PropLogic
-UTP-Base PropLogic LogicLaws
-AlgOp LogicLaws
-Equality NonPropLogic
 .

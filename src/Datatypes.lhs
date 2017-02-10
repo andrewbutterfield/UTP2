@@ -32,14 +32,9 @@ as type-inference relies on it.
 data Type -- most general types first
  = Tarb
  | Tvar TVar
- | Tset Type
- | Tseq Type
- | Tseqp Type
- | Tprod [Type]
+ | TApp String [Type]
  | Tfree String [(String,[Type])]
  | Tfun Type Type
- | Tpfun Type Type
- | Tmap Type Type
  | Tenv
  | Z
  | B
