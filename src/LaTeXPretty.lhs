@@ -12,6 +12,7 @@ import Proof
 import Data.List
 import Data.Maybe
 import Text.ParserCombinators.Parsec.Expr
+import DSL
 import LaTeXNames
 import LaTeXSetup
 import Focus
@@ -395,7 +396,7 @@ insertLaTeXEscapes :: ISeq -> ISeq
 insertLaTeXEscapes (IString a) = (IString (escLaTeX a))
 
 insertLaTeXEscapes (ITok (P_PROOFNAME name))
-  = ITok (P_PROOFNAME (escLaTeX name))    
+  = ITok (P_PROOFNAME (escLaTeX name))
 
 insertLaTeXEscapes (ITok (P_EVARNAME name))
   = ITok (P_EVARNAME (escLaTeX name))
@@ -547,7 +548,7 @@ predSplit ppstate (a:ax)
 
     INil -> (predSplit ppstate ax)
 
-    (IAnnote _ INil) -> (predSplit ppstate ax)  
+    (IAnnote _ INil) -> (predSplit ppstate ax)
 
     (IConcat list)
       -> if linepos ppstate + iSeq_len a > lineLength (laTeXlayout ppstate)
@@ -1026,7 +1027,7 @@ toISeq_proofstep (prec,l2a) (justif,pred)
 \end{eqnarray*}
 \begin{code}
 toISeq_just :: ([Trie (Int, b)],String -> Maybe String) -> Justification -> ISeq
-toISeq_just (prec,l2a) (prfRel, fPath, inf,binding) 
+toISeq_just (prec,l2a) (prfRel, fPath, inf,binding)
  = (iConcat [ applyMacro (toISeq_prfRel prfRel)
                (iConcat ([toISeq_infer (prec,l2a) inf, fPath'']))
             , toISeq_bindingTop (prec,l2a) binding
@@ -1099,7 +1100,7 @@ in controlling the exact layout of the printing of the bindings.
      = pnl~\ppr{k_1,x_1}~pnl~\ldots~pnl~\ppr{k_n,x_n}
 \end{eqnarray*}
 \begin{code}
-toISeq_binding transf item  
+toISeq_binding transf item
  = iConcat item''
  where item'  = map (toISeq_bindingb transf) (flattenTrie item)
        item'' = if null item'
@@ -1151,7 +1152,7 @@ while the handler function \texttt{pcpredHandler} splits predicate branches.
 We see that \texttt{ISeq} generation here is mixed with post-processing
 (the use of \texttt{cBranchMapTD} here).
 \begin{code}
-proofContextToISeq layout prec pc   
+proofContextToISeq layout prec pc
   = cBranchMapTD (\x -> or[elem ALaw x,elem AConj x])
                  (cLeafMap (\x -> elem AName x)
                            ( \ (IString x) -> ITok (P_PROPNAME x)))
@@ -1373,7 +1374,7 @@ toISeq_expr (prec,l2a) curprec (Map list)
      =  \setof{~\ppr v ~|~ \ppr P ~@~ \ppr E ~}
 \end{eqnarray*}
 \begin{code}
-toISeq_expr (prec,l2a) curprec (Setc _ qvars pred expr) 
+toISeq_expr (prec,l2a) curprec (Setc _ qvars pred expr)
  = iConcat [ lstart
            , toISeq_Qvar qvars, lpipe
            , toISeq_pred (prec,l2a) curprec pred, ldot
@@ -1383,7 +1384,7 @@ toISeq_expr (prec,l2a) curprec (Setc _ qvars pred expr)
        ldot   = ITok P_AT
        lpipe  = ITok P_SEP_PIPE
 
-toISeq_expr (prec,l2a) curprec (Seqc _ qvars pred expr) 
+toISeq_expr (prec,l2a) curprec (Seqc _ qvars pred expr)
  = iConcat [ lstart
            , toISeq_Qvar qvars, lpipe
            , toISeq_pred (prec,l2a) curprec pred, ldot
@@ -1443,7 +1444,7 @@ toISeq_expr (prec,l2a) curprec (App fname expr)
      &=& \ppr{e_1}~(\annote{Bin} @ \rndr\oplus)~\ppr{e_2}
 \end{eqnarray*}
 \begin{code}
-toISeq_expr (prec,l2a) curprec (Bin opname thisprec expr1 expr2)  
+toISeq_expr (prec,l2a) curprec (Bin opname thisprec expr1 expr2)
  = iConcat [ br_s, (toISeq_expr (prec,l2a) thisprec expr1)
            , opname'
            , toISeq_expr (prec,l2a) thisprec expr2, br_e]
@@ -1564,7 +1565,7 @@ toISeq_pred (prec,l2a) curprec (TypeOf e t)
            , ITok P_HASTYPE, toISeq_type (prec,l2a) curprec t ]
            -- * ^ THIS MAY NEED TO BE FIXED *
 
-toISeq_pred (prec,l2a) curprec (Defd expr)  
+toISeq_pred (prec,l2a) curprec (Defd expr)
   = iConcat [ ITok P_DEFD, ITok P_PAREN_START
             , toISeq_expr (prec,l2a) curprec expr, ITok P_PAREN_END ]
 \end{code}
@@ -1768,40 +1769,19 @@ toISeq_type (prec,l2a) curprec (B)
 toISeq_type (prec,l2a) curprec (Z)
  = IAnnote [ATyp] (iConcat [ITok P_INTEGER])
 
-toISeq_type (prec,l2a) curprec (Tprod typelist)   
- = IAnnote [ATyp]
-     (iConcat ( [ITok P_PAREN_START]
-                ++ (intersperse (ITok P_CROSS) (map toISeq typelist))
-                ++ [ITok P_PAREN_END] ))
- where toISeq = toISeq_type (prec,l2a) curprec
-
-toISeq_type (prec,l2a) curprec (Tmap t1 t2)     
- = IAnnote [ATyp]
-      (iConcat [ ITok P_MAPSTO_START, toISeq t1
-               , ITok P_MAP, toISeq t2, ITok P_MAPSTO_END])
- where toISeq = toISeq_type (prec,l2a) curprec
+toISeq_type (prec,l2a) curprec (TApp n typelist)
+ | n==n_Tprod
+   = IAnnote [ATyp]
+       (iConcat ( [ITok P_PAREN_START]
+                  ++ (intersperse (ITok P_CROSS) (map toISeq typelist))
+                  ++ [ITok P_PAREN_END] ))
+   where toISeq = toISeq_type (prec,l2a) curprec
 
 toISeq_type (prec,l2a) curprec (Tfun t1 t2)
  = IAnnote [ATyp] (iConcat [toISeq t1, ITok P_FUN, toISeq t2])
  where toISeq = toISeq_type (prec,l2a) curprec
 
-toISeq_type (prec,l2a) curprec (Tpfun t1 t2)
- = IAnnote [ATyp] (iConcat [toISeq t1, ITok P_PFUN, toISeq t2])
- where toISeq = toISeq_type (prec,l2a) curprec
-
-toISeq_type (prec,l2a) curprec (Tset t1)
- = IAnnote [ATyp] (iConcat [ITok P_SET, toISeq t1])
- where toISeq = toISeq_type (prec,l2a) curprec
-
-toISeq_type (prec,l2a) curprec (Tseqp t1)
- = IAnnote [ATyp] (iConcat [ITok P_SEQP, toISeq t1])
- where toISeq = toISeq_type (prec,l2a) curprec
-
-toISeq_type (prec,l2a) curprec (Tseq t1)
- = IAnnote [ATyp] (iConcat [ITok P_SEQ, toISeq t1])
- where toISeq = toISeq_type (prec,l2a) curprec
-
-toISeq_type (prec,l2a) curprec (Tfree name typelist)  
+toISeq_type (prec,l2a) curprec (Tfree name typelist)
  = IAnnote [ATyp]
      (iConcat ( [ IAnnote [TypeVar] (ITok (P_TFREENAME name))
                 , ITok P_HOLDS]
@@ -1918,7 +1898,7 @@ we take a list and intersperse it in another list.
 interspersel :: [a] -> [a] -> [a]
 interspersel []    b      =  b
 interspersel _     []     =  []
-interspersel ilist (b:bs) 
+interspersel ilist (b:bs)
   = if null bs then [b] else [b]++ilist++(interspersel ilist bs)
 \end{code}
 
@@ -2051,7 +2031,7 @@ tokenToString (P_ELAMBDA)   = "\\elambda "
 tokenToString (P_PLAMBDA)   = "\\plambda "
 tokenToString (P_TVARNAME x)    = x -- no more \tvarname
 tokenToString (P_TFREENAME x)   = "\\tfreename{"++x++"}"
--- tokenToString a = show a 
+-- tokenToString a = show a
 \end{code}
 
 

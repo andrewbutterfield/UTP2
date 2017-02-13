@@ -27,7 +27,7 @@ ltx_thrySeqNo = 99
 ltx_typedefs
  = lbuild
     [ ("Char",Z)
-    , ("String",Tseq (Tvar "Char"))
+    , ("String",mkTseq (Tvar "Char"))
     ]
 \end{code}
 
@@ -90,14 +90,14 @@ ltx_precs
 
 ltx_types
  = lbuild
-    [ ("++",Tfun (Tprod [ts,ts]) ts)
+    [ ("++",Tfun (mkTprod [ts,ts]) ts)
     , ("len",Tfun ts Z)
     , ("k",Z)
     , ("nil",ts)
     ]
  where
    t = Tvar "t"
-   ts = Tseq t
+   ts = mkTseq t
 
 
 

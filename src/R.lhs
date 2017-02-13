@@ -304,7 +304,7 @@ defDOA a
                (If wait'
                   (Not (Obs (vara `mof` ref')))
                   (Obs (tr' `Equal` (tr `cat` single vara))) ))
-  where vara = Var a; tRefMember = Tprod [tEvent,tRef]
+  where vara = Var a; tRefMember = mkTprod [tEvent,tRef]
 doA = Pvar $ Std "DOA"
 defDOTHEN a = Peabs (Q [a]) (Papp csp1 (ok' /\ (Papp doA (Obs (Var a)))))
 dothen = Pvar $ Std "DOTHEN"

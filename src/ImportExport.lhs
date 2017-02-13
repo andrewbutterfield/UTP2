@@ -1252,7 +1252,7 @@ btable0'
      ,(codeZ,      build  Z Telem)
      ,(codeTfun,   build2 popType Tfun Telem)
      ,(codeTfree,  buildn1 popTV popStr Tfree Telem)
-     ,(codeTApp,   buildn1 popTV popStr TApp Telem)
+     -- ,(codeTApp,   buildn1 popStr popStr TApp Telem)
      ,(codeTvar,   build1 popStr Tvar Telem)
      ,(codeTenv,   build  Tenv Telem)
      ,(codeTerror, build1 popStr terr Telem)
