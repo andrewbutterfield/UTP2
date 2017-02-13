@@ -427,26 +427,26 @@ data Expr
  | F
  | Num Int
  | Var Variable
- | Prod [Expr]
  | App String Expr
- | Bin String Int Expr Expr
  | Equal Expr Expr
- | Set [Expr]
- | Setc TTTag QVars Pred Expr
- | Seq [Expr]
- | Seqc TTTag QVars Pred Expr
- | Map [(Expr,Expr)]
- | Cond Pred Expr Expr
- | Build String [Expr]
- | The TTTag Variable Pred -- definite description
- | Evar Variable -- meta-variable denoting an expression (or list)
  | Eabs TTTag QVars Expr -- a lambda abstraction
  | Esub Expr ESubst
+ | The TTTag Variable Pred -- definite description
  | Eerror String
  | Efocus Expr -- expression focus marker
- | EPred Pred  -- converse of 'Obs'
-               -- EPred $ Obs e   =  e
-               -- Obs $ EPred pr  =  pr
+ -- | Prod [Expr]
+ -- | Bin String Int Expr Expr
+ -- | Set [Expr]
+ -- | Setc TTTag QVars Pred Expr
+ -- | Seq [Expr]
+ -- | Seqc TTTag QVars Pred Expr
+ -- | Map [(Expr,Expr)]
+ -- | Cond Pred Expr Expr
+ -- | Build String [Expr]
+ -- | Evar Variable -- meta-variable denoting an expression (or list)
+ -- | EPred Pred  -- converse of 'Obs'
+ --               -- EPred $ Obs e   =  e
+ --               -- Obs $ EPred pr  =  pr
 
 
 
@@ -455,29 +455,15 @@ instance Eq Expr where -- we ignore type-table and focus parts
  F           == F            =  True
  (Num i)     == (Num j)      =  i == j
  (Var u)     == (Var v)      =  u == v
- (Prod es)   == (Prod fs)    =  es == fs
  (App str e) == (App txt f)  =  str == txt && e == f
- (Bin str i e1 e2) == (Bin txt j f1 f2)
-                     =  str == txt && i == j && e1 == f1 && e2 == f2
  (Equal e1 e2) == (Equal f1 f2)  =  e1 == f1 && e2 == f2
- (Set es)      == (Set fs)       =  es == fs
- (Setc _ qus p e) == (Setc _ qvs q f)
-                                   =  qus == qvs && p == q && e == f
- (Seq es)  == (Seq fs)  =  es == fs
- (Seqc _ qus p e) == (Seqc _ qvs q f)
-                                   =  qus == qvs && p == q && e == f
- (Map abs)      == (Map cds)       =  abs == cds
- (Cond p e1 e2) == (Cond q f1 f2)  =  p == q && e1 == f1 && e2 == f2
- (Build str es) == (Build txt fs)  =  str == txt && es == fs
  (The _ str p)  == (The _ txt q)   =  p == q && str == txt
- (Evar str)     == (Evar txt)      =  str == txt
  (Eabs _ qus e) == (Eabs _ qvs f)  =  e == f && qus == qvs
  (Esub e esub)  == (Esub f fsub)   =  e == f && esub == fsub
  (Eerror str)   == (Eerror txt)    =  str == txt
  (Efocus e)     == (Efocus f)      =  e == f
  (Efocus e)     == f               =  e == f
  e              == (Efocus f)      =  e == f
- (EPred p)      == (EPred q)       =  p == q
  _              == _ = False
 
 deriving instance Eq Expr => Ord Expr
@@ -487,15 +473,6 @@ We need some builders that perform
 tidying up for corner cases:
 \begin{code}
 noDecorVar = Var . noDecorVariable
-
-mkProd [e] = e
-mkProd es = Prod es
-
-mkSetc (Q []) _ _  = Set []
-mkSetc qvs p e = Setc 0 qvs p e
-
-mkSeqc (Q []) _ _  = Seq []
-mkSeqc qvs p e = Seqc 0 qvs p e
 
 mkEabs (Q []) e = e
 mkEabs qvs e = Eabs 0 qvs e
@@ -507,7 +484,6 @@ mkEsub e sub = Esub e sub
 Drop is  useful:
 \begin{code}
 eDrop (Var v)   =  v
-eDrop (Evar e)  =  e
 eDrop _         =  (Gen $ Std ee, NoDecor, ee) where ee = "eDrop?"
 \end{code}
 
@@ -515,17 +491,14 @@ Useful to know when an expression is a variable:
 \begin{code}
 isVar :: Expr -> Bool
 isVar (Var _)   =  True
-isVar (Evar _)  =  True
 isVar _         =  False
 
 getVar :: Expr -> Variable
 getVar (Var v)   =  v
-getVar (Evar v)  =  v
 getVar _         =  nullVar
 
 mgetVar :: Expr -> Maybe Variable
 mgetVar (Var v)   =  Just v
-mgetVar (Evar v)  =  Just v
 mgetVar _         =  Nothing
 \end{code}
 
@@ -620,8 +593,8 @@ deriving instance Eq Pred => Ord Pred
 We define two constructor functions to handle the \texttt{Expr}/\texttt{Pred} ``crossovers'':
 \begin{code}
 ePred (Obs e)    = e
-ePred pr         = EPred pr
-pExpr (EPred pr) = pr
+--ePred pr         = EPred pr
+--pExpr (EPred pr) = pr
 pExpr e          = Obs e
 \end{code}
 
@@ -717,7 +690,6 @@ data LElem
 isLELstV :: LElem -> Bool
 isLELstV (LVar g)          =  isLstG g
 isLELstV (LExpr (Var v))   =  isLstV v
-isLELstV (LExpr (Evar e))  =  isLstV e
 isLELstV _                 =  False
 
 isLEVar :: LElem -> Bool
@@ -807,27 +779,9 @@ eequiv T T = True
 eequiv F F = True
 eequiv (Num i1) (Num i2) = i1==i2
 eequiv (Var v1) (Var v2) = v1==v2
-eequiv (Prod es1) (Prod es2) = samelist eequiv es1 es2
 eequiv (App s1 e1) (App s2 e2) = s1==s2 && e1 `eequiv` e2
-eequiv (Bin s1 i1 e11 e21) (Bin s2 i2 e12 e22)
- = s1==s2 && i1==i2 && samelist eequiv [e11,e21] [e12,e22]
 eequiv (Equal e11 e21) (Equal e12 e22) = samelist eequiv [e11,e21] [e12,e22]
-eequiv (Set es1) (Set es2) = samelist eequiv es1 es2
-eequiv (Setc _ qs1 pr1 e1) (Setc _ qs2 pr2 e2)
- = qs1==qs2 && pr1 `pequiv` pr2 && e1 `eequiv` e2
-eequiv (Seq es1) (Seq es2) = samelist eequiv es1 es2
-eequiv (Seqc _ qs1 pr1 e1) (Seqc _ qs2 pr2 e2)
- = qs1==qs2 && pr1 `pequiv` pr2 && e1 `eequiv` e2
-eequiv (Map drs1) (Map drs2)
- = samelist eequiv (ds1++rs1) (ds2++rs2)
- where
-  (ds1,rs1) = unzip drs1
-  (ds2,rs2) = unzip drs2
-eequiv (Cond pc1 et1 ee1) (Cond pc2 et2 ee2)
- =   pc1 `pequiv` pc2 && samelist eequiv [et1,ee1] [et2,ee2]
-eequiv (Build s1 es1) (Build s2 es2) = s1==s2 && samelist eequiv es1 es2
 eequiv (The _ qs1 pr1) (The _ qs2 pr2) = qs1==qs2 && pequiv pr1 pr2
-eequiv (Evar s1) (Evar s2) = s1==s2
 eequiv (Eabs _ qs1 e1) (Eabs _ qs2 e2) = qs1==qs2 && e1 `eequiv` e2
 eequiv (Esub e1 sub1) (Esub e2 sub2)
  = e1 `eequiv` e2 && sub1 `estlequiv`  sub2
@@ -1046,17 +1000,8 @@ exprRec merge spec base ex
   exprrec = exprRec merge spec base
   exprrec2 (de,re) = merge $ map exprrec [de,re]
 
-  eRecurse (Prod exs) = merge $ map exprrec exs
   eRecurse (App _ ex) = exprrec ex
-  eRecurse (Bin _ _ ex1 ex2) = merge $ map exprrec [ex1,ex2]
   eRecurse (Equal ex1 ex2) = merge $ map exprrec [ex1,ex2]
-  eRecurse (Set exs) = merge $ map exprrec exs
-  eRecurse (Setc _ _ _ ex) = exprrec ex
-  eRecurse (Seq exs) = merge $ map exprrec exs
-  eRecurse (Seqc _ _ _ ex) = exprrec ex
-  eRecurse (Map drs) = merge $ map exprrec2 drs
-  eRecurse (Cond _ ex1 ex2) = merge $ map exprrec [ex1,ex2]
-  eRecurse (Build _ exs) = merge $ map exprrec exs
   eRecurse (Eabs _ _ ex) = exprrec ex
   eRecurse (Esub ex (Substn ssub))
     = merge $ map exprrec (ex:(map snd ssub))
@@ -1238,39 +1183,12 @@ mapPf (fp,fe) pr@(Pfocus _)
 
 mapPf (fp,fe) pr = (pr, False)
 
-mapEf (fp,fe) (Prod es) = (Prod es', or dif)
-  where (es', dif) = unzip (map fe es)
 mapEf (fp,fe) (App s e) = (App s e', dif)
   where (e', dif) = fe e
-mapEf (fp,fe) (Bin s i e1 e2) = (Bin s i e1' e2', dif1 || dif2)
-  where
-    (e1', dif1) = fe e1
-    (e2', dif2) = fe e2
 mapEf (fp,fe) (Equal e1 e2) = (Equal e1' e2', dif1 || dif2)
   where
     (e1', dif1) = fe e1
     (e2', dif2) = fe e2
-mapEf (fp,fe) (Set es) = (Set es', or dif)
-  where (es', dif) = unzip (map fe es)
-mapEf (fp,fe) (Setc tt qs pr e) = (Setc tt qs pr' e', dif1 || dif2)
-  where
-    (pr', dif1) = fp pr
-    (e', dif2) = fe e
-mapEf (fp,fe) (Seq es) = (Seq es', or dif)
-  where (es', dif) = unzip (map fe es)
-mapEf (fp,fe) (Seqc tt qs pr e) = (Seqc tt qs pr' e', dif1 || dif2)
-  where
-    (pr', dif1) = fp pr
-    (e', dif2) = fe e
-mapEf (fp,fe) (Map drs) = (Map drs', or dif)
-  where (drs', dif) = unzip (mapDRf fe drs)
-mapEf (fp,fe) (Cond pc et ee) = (Cond pc' et' ee', dif1 || dif2 || dif3)
-  where
-    (pc', dif1) = fp pc
-    (et', dif2) = fe et
-    (ee', dif3) = fe ee
-mapEf (fp,fe) (Build s es) = (Build s es', or dif)
-  where (es', dif) = unzip (map fe es)
 mapEf (fp,fe) (The tt qs pr) = (The tt qs pr', dif)
   where (pr', dif) = fp pr
 mapEf (fp,fe) (Eabs tt qs e) = (Eabs tt qs e', dif)
@@ -1279,8 +1197,6 @@ mapEf (fp,fe) (Esub e sub) = (Esub e' sub', dif1 || dif2)
   where
     (sub', dif1) = mapSf fe sub
     (e', dif2) = fe e
-mapEf (fp,fe) (EPred p) = (EPred p',dif)
- where (p', dif) = fp p
 mapEf (fp,fe) e@(Efocus _)
   = error ("mapEf cannot handle focii"++debugEshow e)
 
@@ -1348,21 +1264,11 @@ mapPSf fp (PSetU s1 s2) = (PSetU s1' s2', dif1 || dif2)
 mapPSf fp s = (s, False)
 
 
-mapE (fp,fe) (Prod es)         = Prod (map fe es)
 mapE (fp,fe) (App s e)         = App s (fe e)
-mapE (fp,fe) (Bin s i e1 e2)   = Bin s i (fe e1) (fe e2)
 mapE (fp,fe) (Equal e1 e2)     = Equal (fe e1) (fe e2)
-mapE (fp,fe) (Set es)          = Set (map fe es)
-mapE (fp,fe) (Setc tt qs pr e) = Setc tt qs (fp pr) (fe e)
-mapE (fp,fe) (Seq es)          = Seq (map fe es)
-mapE (fp,fe) (Seqc tt qs pr e) = Seqc tt qs (fp pr) (fe e)
-mapE (fp,fe) (Map drs)         = Map (mapDR fe drs)
-mapE (fp,fe) (Cond pc et ee)   = Cond (fp pc) (fe et) (fe ee)
-mapE (fp,fe) (Build s es)      = Build s (map fe es)
 mapE (fp,fe) (The tt qs pr)    = The tt qs (fp pr)
 mapE (fp,fe) (Eabs tt qs e)    = Eabs tt qs (fe e)
 mapE (fp,fe) (Esub e sub)      = Esub (fe e) (mapS fe sub)
-mapE (fp,fe) (EPred p)         = EPred $ fp p
 mapE (fp,fe) (Efocus e)        = Efocus $ fe e
 
 mapE (fp,fe) e = e
@@ -1477,21 +1383,11 @@ Folding over Expressions:
 foldE pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) e
  = f e
  where
-  f (Prod es) = g2 $ map g0 es
   f (App s e) = g1 $ g0 e
-  f (Bin s i e1 e2) = g2 $ map g0 [e1,e2]
   f (Equal e1 e2) = g2 $ map g0 [e1,e2]
-  f (Set es) = g2 $ map g0 es
-  f (Setc tt qvs p e) = g2 [f0 p, g0 e]
-  f (Seq es) = g2 $ map g0 es
-  f (Seqc tt qvs p e) = g2 [f0 p, g0 e]
-  f (Map drs) = g2 $ concat $ map gg0 drs
-  f (Cond p e1 e2) = g2 (f0 p : map g0 [e1,e2])
-  f (Build s es) = g2 $ map g0 es
   f (The tt qvs p2) = g1 $ f0 p2
   f (Eabs tt qvs e) = g1 $ g0 e
   f (Esub e sub) = g2 (g0 e : foldES g0 sub)
-  f (EPred p) = g1 $ f0 p
   f (Efocus e) = g1 $ g0 e
 
   f e = ea -- recursion must stop here !
@@ -1654,25 +1550,9 @@ The \texttt{Expr} version:
 \begin{code}
 accEseq :: (a -> Pred -> (Pred,a),a -> Expr -> (Expr,a))
             -> a -> Expr -> (Expr,a)
-accEseq (pf,ef) a (Prod es) = (Prod es',a') where (es',a') = accEseqs ef a es
 accEseq (pf,ef) a (App s e) = (App s e',a') where (e',a') = ef a e
-accEseq (pf,ef) a (Bin s i e1 e2) = (Bin s i e1' e2',a')
-  where ([e1',e2'],a') = accEseqs ef a [e1,e2]
 accEseq (pf,ef) a (Equal e1 e2) = (Equal e1' e2',a')
   where ([e1',e2'],a') = accEseqs ef a [e1,e2]
-accEseq (pf,ef) a (Set es) = (Set es',a') where (es',a') = accEseqs ef a es
-accEseq (pf,ef) a (Setc tt qs pr e) = (Setc tt qs pr' e',a'')
- where (pr',a') = pf a pr
-       (e',a'') = ef a' e
-accEseq (pf,ef) a (Seq es) = (Seq es',a') where (es',a') = accEseqs ef a es
-accEseq (pf,ef) a (Seqc tt qs pr e) = (Seqc tt qs pr' e',a'')
- where (pr',a') = pf a pr
-       (e',a'') = ef a' e
-accEseq (pf,ef) a (Map drs) = (Map drs',a') where (drs',a') = accEseqm ef a drs
-accEseq (pf,ef) a (Cond pc et ee) = (Cond pc' et' ee',a'')
-  where (pc',a') = pf a pc
-        ([et',ee'],a'') = accEseqs ef a [et,ee]
-accEseq (pf,ef) a (Build s es) = (Build s es',a') where (es',a') = accEseqs ef a es
 accEseq (pf,ef) a (The tt qs pr) = (The tt qs pr',a')
   where (pr',a') = pf a pr
 accEseq (pf,ef) a (Eabs tt qs e) = (Eabs tt qs e',a') where (e',a') = ef a e
@@ -1823,34 +1703,14 @@ dbgEshow i T               = hdr i ++ "T"
 dbgEshow i F               = hdr i ++ "F"
 dbgEshow i (Num n)         = hdr i ++ "NUM "++show n
 dbgEshow i (Var v)         = hdr i ++ "VAR " ++ dbgVshow v
-dbgEshow i (Prod es)
-  = hdr i ++ "PROD" ++ concat(map (dbgEshow (i+1)) es)
 dbgEshow i (App s e)       = hdr i ++ "APP "++s++dbgEshow (i+1) e
-dbgEshow i (Bin s p e1 e2)
- = hdr i ++ "BIN "++show p++" "++s ++dbgEshow (i+1) e1++dbgEshow (i+1) e2
 dbgEshow i (Equal e1 e2)
  = hdr i ++ "EQUAL"++dbgEshow (i+1) e1++dbgEshow (i+1) e2
-dbgEshow i (Set es)
-  = hdr i ++ "SET" ++ concat(map (dbgEshow (i+1)) es)
-dbgEshow i (Setc tt qs pr e)
-  = hdr i ++ "SETC " ++ show tt ++ ' ':dbgQSshow (i+1) qs ++ dbgPshow (i+1) pr++ dbgEshow (i+1) e
-dbgEshow i (Seq es)
-  = hdr i ++ "SEQ" ++ concat(map (dbgEshow (i+1)) es)
-dbgEshow i (Seqc tt qs pr e)
-  = hdr i ++ "SEQC " ++ show tt ++ ' ':dbgQSshow (i+1) qs ++ dbgPshow (i+1) pr++ dbgEshow (i+1) e
-dbgEshow i (Map es) = hdr i ++ "MAP" ++ concat(map (dbgMshow (i + 1)) es)
-dbgEshow i (Cond pc et ee)
- = hdr i ++ "COND"++dbgPshow (i+1) pc++dbgEshow (i+1) et++dbgEshow (i+1) ee
-dbgEshow i (Build s es)
-  = hdr i ++ "BUILD "++s ++ concat(map (dbgEshow (i+1)) es)
 dbgEshow i (The tt x pr)
   = hdr i ++ "THE "++show tt ++ " "++dbgVshow x++dbgPshow (i+1) pr
-dbgEshow i (Evar e) = hdr i ++ "EVAR " ++ dbgVshow e
 dbgEshow i (Eabs tt qs e) = hdr i ++ "EABS "++show tt++' ':dbgQSshow (i+1) qs ++ dbgEshow (i+1) e
 dbgEshow i (Esub e sub) = hdr i ++ "ESUB "++dbgESshow (i+1) sub ++ dbgEshow (i+1) e
 dbgEshow i (Eerror s) = hdr i ++ "EERROR "++s
-dbgEshow i (EPred p)
- = hdr i ++ "EPRED" ++ dbgPshow (i+1) p
 dbgEshow i (Efocus ef)
  = hdr i ++ "EFOCUS" ++ dbgEshow (i+1) ef
 
@@ -2174,19 +2034,9 @@ exprParts T                  = ("T",[],[],[])
 exprParts F                  = ("F",[],[],[])
 exprParts (Num _)            = ("Num",[],[],[])
 exprParts (Var (_,_,s))      = ("Var:"++s,[],[],[])
-exprParts (Prod es)          = ("Prod",[],es,[])
 exprParts (App s e)          = ("App",[],[e],[])
-exprParts (Bin s i e1 e2)    = ("Bin",[],[e1,e2],[])
 exprParts (Equal e1 e2)      = ("Equal",[],[e1,e2],[])
-exprParts (Set es)           = ("Set",[],es,[])
-exprParts (Setc tt qs pr e)  = ("Setc",[pr],[e],[qs])
-exprParts (Seq es)           = ("Seq",[],es,[])
-exprParts (Seqc tt qs pr e)  = ("Seqc",[pr],[e],[qs])
-exprParts (Map drs)          = ("Map",[],(uncurry (++) (unzip drs)),[])
-exprParts (Cond pc et ee)    = ("Cond",[pc],[et,ee],[])
-exprParts (Build s es)       = ("Build",[],es,[])
 exprParts (The tt x pr)      = ("The",[pr],[],[Q [x]])
-exprParts (Evar (_,_,s))     = ("EVar:"++s,[],[],[])
 exprParts (Eabs tt qs e)     = ("Eabs",[],[e],[qs])
 exprParts (Esub e (Substn ssub))
   = ( "Esub"
@@ -2194,7 +2044,6 @@ exprParts (Esub e (Substn ssub))
     , e:(map snd ssub)
     , [Q $ map fst ssub]
     )
-exprParts (EPred p) = ("Epred",[p],[],[])
 exprParts (Efocus ef) = ("Efocus",[],[ef],[])
 exprParts _ = ("expr",[],[],[])
 
@@ -2220,21 +2069,11 @@ predsOf e
 Extracting the language components is useful
 \begin{code}
 exprLang :: Expr -> [String]
-exprLang (Prod es)       = exprsLang es
 exprLang (App s e)       = exprLang e
-exprLang (Bin s i e1 e2) = exprsLang [e1,e2]
 exprLang (Equal e1 e2)   = exprsLang [e1,e2]
-exprLang (Set es)        = exprsLang es
-exprLang (Setc tt qs pr e)  = predLang pr `mrgnorm` exprLang e
-exprLang (Seq es)        = exprsLang es
-exprLang (Seqc tt qs pr e)  = predLang pr `mrgnorm` exprLang e
-exprLang (Map drs)       = exprsLang (de++re) where (de,re)=unzip drs
-exprLang (Cond pc et ee) = predLang pc `mrgnorm` exprsLang [et,ee]
-exprLang (Build s es)    = exprsLang es
 exprLang (The tt qs pr)     = predLang pr
 exprLang (Eabs tt qs e)     = exprLang e
 exprLang (Esub e sub)    = exprLang e `mrgnorm` subLang exprsLang sub
-exprLang (EPred p)     = predLang p
 exprLang (Efocus ef)     = exprLang ef
 exprLang e               = []
 
