@@ -60,34 +60,16 @@ evalExprType tts tags e
    typof F  =  B
    typof (Num i)  =  Z
    typof (Var v)  =  ttsVLookup tts v tags
-   typof (Prod es)  =  undefined -- Tprod $ map typof es
    typof (App f e)
      = case ttsLookup tts f tags of
         Tfun _ tr  ->  tr
         t          ->  Terror (f++" not a function") t
-   typof (Bin op i e1 e2)
-     = undefined
-        -- case ttsLookup tts op tags of
-        --Tfun (Tprod [_,_]) tr  ->  tr
-        --t                      ->  Terror (op++" not a bin-op.") t
    typof (Equal e1 e2)  =  B
-   typof (Set [])  =  undefined --Tset Tarb
-   typof (Set (e:_))  =  undefined -- Tset $ typof e
-   typof (Setc tag qvs pr e)  =  undefined -- evalExprType tts (tag:tags) e
-   typof (Seq [])  =  undefined -- Tseq Tarb
-   typof (Seq (e:_))  =  undefined -- Tseq $ typof e
-   typof (Seqc tag qvs pr e)  =  undefined -- evalExprType tts (tag:tags) e
-   typof (Map [])  =  undefined -- Tmap Tarb Tarb
-   typof (Map ((d,r):_))  =  undefined -- Tmap (typof d) (typof r)
-   typof (Cond pr e1 e2)  =  undefined -- typof e1
-   typof (Build str es)  =  Tfree "?" [(str,map typof es)]
    typof (The tag v pr)  =  undefined -- ttsVLookup tts v (tag:tags)
-   typof (Evar v)  =  ttsVLookup tts v tags
    typof (Eabs tag qvs e)  =  undefined -- evalExprType tts (tag:tags) e
    typof (Esub e esub)  =  typof e
    typof (Efocus e)  =  typof e
    typof (Eerror str)  =  Terror ("Eerror "++str) Tarb
-   typof (EPred pr)  =  Terror ("EPred "++show pr) B
 \end{code}
 
 \subsubsection{Type-related Equivalences}
@@ -454,7 +436,6 @@ veInj :: Variable -> Expr
 veInj = Var
 veProj :: Expr -> Maybe Variable
 veProj (Var v)    =  Just v
-veProj (Evar ev)  =  Just ev
 veProj _          =  Nothing
 
 type TTBind = SBind TVar Type
@@ -1392,7 +1373,6 @@ bevalV mctxt bind v
  | isStdV v
    = case bevalE mctxt bind v of
        Var v   ->  Left v
-       Evar v  ->  Left v
        e       ->  Left $ noDecorVariable ('?':show e)
  | otherwise
    = case bevalQ mctxt bind v of
@@ -1665,10 +1645,6 @@ predQVarInv mctxt (Peabs qvs pr) = invQVars mctxt qvs && predQVarInv mctxt pr
 
 predQVarInv mctxt pr = foldP (qVarInvFold mctxt) pr
 
-exprQVarInv mctxt (Setc _ qvs pr e)
- = invQVars mctxt qvs && predQVarInv mctxt pr && exprQVarInv mctxt e
-exprQVarInv mctxt (Seqc _ qvs pr e)
- = invQVars mctxt qvs && predQVarInv mctxt pr && exprQVarInv mctxt e
 exprQVarInv mctxt (Eabs _ qvs e) = invQVars mctxt qvs && exprQVarInv mctxt e
 
 exprQVarInv mctxt e = foldE (qVarInvFold mctxt) e
@@ -1709,10 +1685,6 @@ lPQnorm mctxt (Exists1 tt qvs pr)
 lPQnorm mctxt pr = mapP (lPQnorm mctxt,lEQnorm mctxt) pr
 
 lEQnorm :: MatchContext -> Expr -> Expr
-lEQnorm mctxt (Setc tt qvs pr e)
- = Setc tt (lQnorm mctxt qvs) (lPQnorm mctxt pr) (lEQnorm mctxt e)
-lEQnorm mctxt (Seqc tt qvs pr e)
- = Seqc tt (lQnorm mctxt qvs) (lPQnorm mctxt pr) (lEQnorm mctxt e)
 lEQnorm mctxt (Eabs tt qvs e)
  = Eabs tt (lQnorm mctxt qvs) (lEQnorm mctxt e)
 lEQnorm mctxt e = mapE (lPQnorm mctxt,lEQnorm mctxt) e
@@ -2062,9 +2034,8 @@ ealfequiv bvs (Var s1) (Var s2) = valfequiv bvs s1 s2
 \\ M \balfeqv{B_1}{B_2\setminus \setof x} x &\defs& \mapof{}, \quad \IF~x=M
 \end{eqnarray*}
 \begin{code}
-ealfequiv bvs (Evar s1) (Evar s2)      | s1==s2                       =  aok
-ealfequiv (_,bvs2) (Evar s1) (Var s2)  | s1==s2 && s2 `notElem` bvs2  =  aok
-ealfequiv (bvs1,_) (Var s1)  (Evar s2) | s1==s2 && s1 `notElem` bvs1  =  aok
+--ealfequiv (_,bvs2) (Evar s1) (Var s2)  | s1==s2 && s2 `notElem` bvs2  =  aok
+--ealfequiv (bvs1,_) (Var s1)  (Evar s2) | s1==s2 && s1 `notElem` bvs1  =  aok
 \end{code}
 \begin{eqnarray*}
    (P_1 \land Q_1) \balfeqv{B_1}{B_2} (P_2 \land Q_2)
@@ -2074,13 +2045,8 @@ ealfequiv (bvs1,_) (Var s1)  (Evar s2) | s1==s2 && s1 `notElem` bvs1  =  aok
    (Q_1 \balfeqv{B_1}{B_2} Q_2)
 \end{eqnarray*}
 \begin{code}
-ealfequiv bvs (Prod es1) (Prod es2) = alflist ealfequiv bvs es1 es2
 ealfequiv bvs (App s1 e1) (App s2 e2) | s1==s2 = ealfequiv bvs e1 e2
-ealfequiv bvs (Bin s1 _ e11 e21) (Bin s2 _ e12 e22)
- | s1==s2 =  alflist ealfequiv bvs [e11,e21] [e12,e22]
 ealfequiv bvs (Equal e11 e21) (Equal e12 e22) = alflist ealfequiv bvs [e11,e21] [e12,e22]
-ealfequiv bvs (Set es1) (Set es2) = alflist ealfequiv bvs es1 es2
-ealfequiv bvs (Seq es1) (Seq es2) = alflist ealfequiv bvs es1 es2
 \end{code}
 
 \newpage
@@ -2091,28 +2057,10 @@ ealfequiv bvs (Seq es1) (Seq es2) = alflist ealfequiv bvs es1 es2
    |_{(B_1 \cup B_2)}
 \end{eqnarray*}
 \begin{code}
-ealfequiv bvs (Setc _ (Q qs1) pr1 e1) (Setc _ (Q qs2) pr2 e2)
-                         = qalfequiv bvs ([pr1,Obs e1],qs1) ([pr2,Obs e2],qs2)
-ealfequiv bvs (Seqc _ (Q qs1) pr1 e1) (Seqc _ (Q qs2) pr2 e2)
-                         = qalfequiv bvs ([pr1,Obs e1],qs1) ([pr2,Obs e2],qs2)
 ealfequiv bvs (The _ x1 pr1) (The _ x2 pr2)
                                      = qalfequiv bvs ([pr1],[x1]) ([pr2],[x2])
 ealfequiv bvs (Eabs _ (Q qs1) e1) (Eabs _ (Q qs2) e2)
                                  = qalfequiv bvs ([Obs e1],qs1) ([Obs e2],qs2)
-
-ealfequiv bvs (Map drs1) (Map drs2)
- = alflist ealfequiv bvs (ds1++rs1) (ds2++rs2)
- where
-  (ds1,rs1) = unzip drs1
-  (ds2,rs2) = unzip drs2
-
-ealfequiv bvs (Cond pc1 et1 ee1) (Cond pc2 et2 ee2)
- = do cbnds <- palfequiv bvs pc1 pc2
-      ebnds <- alflist ealfequiv bvs [et1,ee1] [et2,ee2]
-      bijglue cbnds ebnds
-
-ealfequiv bvs (Build s1 es1) (Build s2 es2)
-  | s1==s2  =  alflist ealfequiv bvs es1 es2
 \end{code}
 \begin{eqnarray*}
    \alfSubL &\defs& \alfSubL

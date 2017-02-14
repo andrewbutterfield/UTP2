@@ -50,9 +50,6 @@ checkPredQVars pr
    wfe = exprRec mrg espc ebas
    ebas = ([],[])
 
-   espc (Setc tt (Q xs) rp be) = Just $ mrg [(xs,dupsOf xs),wfp rp,wfe be]
-   espc (Seqc tt (Q xs) rp be) = Just $ mrg [(xs,dupsOf xs),wfp rp,wfe be]
-   espc (Cond pr te fe) = Just $ mrg [wfp pr,wfe te,wfe fe]
    espc (Esub ex (Substn ssub))
      = Just $ mrg ((xs,dupsOf xs):(map wfe (ex:exs)))
      where

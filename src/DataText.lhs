@@ -687,7 +687,6 @@ Some language facilities:
 theLEVar :: LElem -> Variable
 theLEVar (LVar g)          =  mkGVar Scrpt g
 theLEVar (LExpr (Var v))   =  v
-theLEVar (LExpr (Evar e))  =  e
 theLEVar _                 =  error "theLEVar: not Variable"
 
 theLEExpr :: LElem -> Expr
@@ -1481,15 +1480,11 @@ data SynPrecClass = SPClosed | SPOpen | SPDependent
 
 \begin{code}
 exprPrecClass (App s e)        =  SPDependent
-exprPrecClass (Bin s i e1 e2)  =  SPDependent
 exprPrecClass (Equal e1 e2)    =  SPDependent
-exprPrecClass (Cond pc et ee)  =  SPOpen
-exprPrecClass (Build s es)     =  SPOpen
 exprPrecClass (The tt qs pr)      =  SPOpen
 exprPrecClass (Eabs tt qs e)      =  SPOpen
 exprPrecClass (Esub e sub)     =  SPOpen
 exprPrecClass (Eerror s)       =  SPOpen
-exprPrecClass (EPred p)        =  predPrecClass p
 exprPrecClass (Efocus ef)      =  exprPrecClass ef
 exprPrecClass _                =  SPClosed
 
@@ -1499,7 +1494,6 @@ isEDep e     =  exprPrecClass e == SPDependent  --  3
 
 ePrec (App _ _)      =  opPrec 1 exprBinGen
 ePrec (Equal _ _)    =  opPrec 1 equalName
-ePrec (Bin _ p _ _)  =  p
 ePrec (Efocus ef)    =  ePrec ef
 ePrec _              =  1
 \end{code}
@@ -1584,21 +1578,8 @@ showExpr _ T = keyTRUE
 showExpr _ F = keyFALSE
 showExpr _ (Num i) = show i
 showExpr _ (Var v) = showVar v
-showExpr _ (Evar e) =  showVar e
 showExpr _ (Eerror m) = "EERR(" ++ m ++")"
-showExpr _ (Prod es) = "(" ++ showSep 0 showExpr "," es ++ ")"
-showExpr _ (Set es) = "{" ++ showSep 0 showExpr "," es ++ "}"
 
-showExpr _ (Setc tt qs TRUE e)
-  = "{ "++ show qs ++pad _bullet++ showExpr 0 e ++" }"
-showExpr _ (Setc tt qs pr e)
-  = "{ "++ show qs ++" | "++ showPred 0 pr ++pad _bullet++ showExpr 0 e ++" }"
-
-showExpr _ (Seq es) = "["++ showSep 0 showExpr "," es ++"]"
-showExpr _ (Seqc tt qs pr e)
-  = "["++ show qs ++"|"++ showPred 0 pr ++"@"++ showExpr 0 e ++"]"
-
-showExpr _ (Map ees) = "{"++ showSep 0 mShow ", " ees ++"}"
 showExpr p (Efocus fe) = [eFocusStart]++showExpr p fe++[eFocusEnd]
 showExpr _ (Esub e s)
   | isEClosed e  =      showExpr 0 e        ++ show s
@@ -1613,23 +1594,14 @@ showExpr p (The tt x (And [rg, pr]))
 showExpr p (The tt x pr)
  = keyTHE ++ " " ++ showVar x ++ pad _bullet ++ showPred p pr
 
-showExpr p (Cond cp te ee)
- = eShow (p+1) te
-   ++ " "++ksymLCOND++" " ++ pShow 0 cp ++ " "++ksymRCOND++" "
-   ++ eShow (p+1) ee
-showExpr p (Build n es) = n ++ " " ++ showSep (p+1) eShow " " es
 showExpr p (Eabs tt qs eb)
   = ksymEABS ++ " " ++ show qs ++ pad _bullet ++ eShow (p+1) eb
 showExpr p (App "-" es) = "-" ++ eShow (p+1) es -- special case
 showExpr p e@(App v es) = v ++ " " ++ eShow (q+1) es
  where q = ePrec e
-showExpr p (Bin op q e1 e2)
-  = eShow q e1 ++" "++ op ++" "++ eShow q e2
 showExpr p e@(Equal e1 e2)
   = eShow q e1 ++" = "++ eShow q e2
   where q = ePrec e
-
-showExpr p (EPred pr) = showPred p pr
 
 -- showExpr p e = "YYYYYY(showExpr of unexpected variant)YYYYY"
 
@@ -2483,7 +2455,7 @@ We need canonical forms of \texttt{LElem}s:
 \begin{code}
 lVarSpec  = LVar $ Std lsVar
 lTypeSpec = LType (Tvar lsType)
-lExprSpec = LExpr (Evar lsEvar)
+lExprSpec = LExpr (Var lsEvar)
 lPredSpec = LPred (Pvar $ Std lsPred)
 llist le = LList [le]
 lcount le = LCount [le]
