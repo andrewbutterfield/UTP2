@@ -27,8 +27,6 @@ Library
     exposed-modules: UTP2
                    , UTP2.GUI
                    , UTP2.GUI.Threepenny
-                   , Graphics.UI.Abstract
-                   , Graphics.UI.Abstract.Threepenny
     other-modules:   About
                    , AlphaSubs
                    , Archive
@@ -41,6 +39,8 @@ Library
                    , Flatten
                    , Focus
                    , FreeBound
+                   , Graphics.UI.Abstract
+                   , Graphics.UI.Abstract.Threepenny
                    , GS3001
                    , GSLogic
                    , Heuristics
@@ -72,6 +72,9 @@ Library
                    , Theories
                    , Types
                    , UTP
+                   , UTP2.GUI.Threepenny.Home
+                   , UTP2.GUI.Threepenny.Types
+                   , UTP2.GUI.Threepenny.Util
                    , Utilities
                    , WxFiles
                    , WxProg
@@ -95,6 +98,8 @@ Library
                    , QuickCheck
                    , time
                    , threepenny-gui
+                   , transformers
+                   -- , threepenny-gui-contextmenu
                    , wxcore
                    , wx
     extensions:      FlexibleContexts

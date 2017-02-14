@@ -13,5 +13,6 @@ class Monad m => GUI m w e | m -> w e where
     gButton  :: String -> m e
     gAdd     :: e -> [e] -> m e
     gGetBody :: w -> m e
-    gLift    :: e -> m e
+    gLift    :: e -> m e -- TODO remove
     gRunIn   :: w -> m a -> IO a
+
