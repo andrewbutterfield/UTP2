@@ -129,7 +129,7 @@ cleanESubstToDo
 
 This function checks every variable in the pattern
 to see if it occurs in the binding.
-If so, it searches the test to see if it can 
+If so, it searches the test to see if it can
 find the variables to which it is bound.
 If not, we fail, otherwise the pattern variable and its binding are removed.
 Once all pattern variables have been treated this way we do a final well-formedness check.
@@ -139,9 +139,9 @@ Once all pattern variables have been treated this way we do a final well-formedn
 \begin{code}
 cleanQVarsToDo vebind qvms
  = sequence $ map (clnQVarToDo $ flattenTrie vebind) qvms
- 
-clnQVarToDo 
- :: Monad m 
+
+clnQVarToDo
+ :: Monad m
  => [(String,BObj Variable Expr)] -> QVarMatchToDo -> m QVarMatchToDo
 clnQVarToDo [] qvm  = return qvm
 clnQVarToDo ((pv,bobj):pairs) (tvs, pvs)
@@ -157,7 +157,7 @@ stdKey _                   = ""
 lstKey (Gen (Lst _),_,key) = key
 lstKey (Rsv _ _,    _,key) = key
 lstKey _                   = ""
-   
+
 -- expect std v mapping to VO(std)
 clnStdToDo pairs pvs' tvs (VO tv@(Gen (Std _),_,_))
  = case extractWrapped id tv tvs of
@@ -396,11 +396,6 @@ pMatch here mres
        tpr@(Obs (Equal te1 te2))
        ppr@(Obs (Equal (Var pv1)(Var pv2)))
  | isLstV pv1 && isLstV pv2  =  pM1Place here mres te1 te2 pv1 pv2
-
-pMatch here mres
-       tpr@(Obs (Bin op1 _ te1 te2))
-       ppr@(Obs (Bin op2 _ (Var pv1)(Var pv2)))
- | op1 == op2 && isLstV pv1 && isLstV pv2  =  pM1Place here mres te1 te2 pv1 pv2
 \end{code}
 
 \subsubsection{Matching \texttt{XXX}}
@@ -894,10 +889,6 @@ pM2Place here mres tprs ppr
    pm2place (Obs (Equal (Var pv1) (Var pv2)))
     | isLstV pv1 && isLstV pv2   =  pm2place' pm2equal tprs pv1 pv2
 
-   pm2place (Obs (Bin pop _ (Var pv1) (Var pv2)))
-    | isLstV pv1 && isLstV pv2  =  pm2place' (pm2bin pop) tprs pv1 pv2
-
-
    pm2place (Lang pnm _ [ple1,ple2] _)
     | isLELstV ple1 && isLELstV ple2
       =  pm2place' (pm2lang pnm) tprs pv1 pv2
@@ -923,10 +914,6 @@ of the appropriate type.
 
    pm2equal pv1 pv2 (Obs (Equal te1 te2)) = pm2place'' te1 te2 pv1 pv2
    pm2equal _ _ _ = fail "Nothing"
-
-   pm2bin pop pv1 pv2 (Obs (Bin top _ te1 te2))
-    | pop == top  =  pm2place'' te1 te2 pv1 pv2
-   pm2bin _ _ _ _ = fail "Nothing"
 
    pm2lang pnm pv1 pv2 (Lang tnm _ [tle1,tle2] _)
     | pnm == tnm && gotE1 && gotE2  =  pm2place'' te1 te2 pv1 pv2
@@ -954,7 +941,6 @@ expression that is a reserved list-variable
 against an single variable as a possible member of its final list.
 \begin{code}
 rlvSnglMatch mctxt pv te@(Var v)   =  rlvSnglVarMatch mctxt pv te v
-rlvSnglMatch mctxt pv te@(Evar v)  =  rlvSnglVarMatch mctxt pv te v
 rlvSnglMatch mctxt pv te           =  (fail "Nothing")
 \end{code}
 
@@ -1172,10 +1158,6 @@ eMatch here mres te (Efocus pe)
  = eMatch here mres te pe
 eMatch here mres (Efocus te) pe
  = eMatch here mres te pe
-
--- also shouldn't ocurr
-eMatch here mres (EPred tp) (EPred pp)
- = pMatch here mres tp pp
 \end{code}
 
 \begin{eqnarray*}
@@ -1205,10 +1187,10 @@ eMatch here mres te (Var pv)
 A \texttt{Evar} pattern matches an \texttt{Expr}, but must be equal
 if the pattern is a known \texttt{Evar}.
 \begin{code}
-eMatch here mres te (Evar e)
- = case tsvlookup (knownExprs (mctx here)) e of
-     Nothing  ->  mres `mrgRMR` okBindE e te
-     Just de  ->  eNameMatch mres te (e,de)
+-- eMatch here mres te (Evar e)
+-- = case tsvlookup (knownExprs (mctx here)) e of
+--     Nothing  ->  mres `mrgRMR` okBindE e te
+--     Just de  ->  eNameMatch mres te (e,de)
 \end{code}
 
 In most other cases we recurse down following expression structure
@@ -1220,31 +1202,11 @@ eMatch here mres T T = return mres
 eMatch here mres F F = return mres
 eMatch here mres (Num ti) (Num pi)
  = matchIfEq ti pi (return mres)
-eMatch here mres (Prod tes) (Prod pes)
- = eMList here mres tes pes
 eMatch here mres (App ts te) (App ps pe)
  = matchIfEq ts ps (eMatch here mres te pe)
-eMatch here mres (Bin ts ti te1 te2) (Bin ps pi pe1 pe2)
- = matchIfEq (ts,ti) (ps,pi) (eMList here mres [te1,te2] [pe1,pe2])
 eMatch here mres (Equal te1 te2) (Equal pe1 pe2)
  = eMList here mres [te1,te2] [pe1,pe2]
 
-eMatch here mres (Set tes) (Set pes)
- = eMList here mres tes pes
-eMatch here mres (Setc ttag tqvs tpr te) (Setc ptag pqvs ppr pe)
- = eQMatch here mres ttag tqvs tpr te ptag pqvs ppr pe
-eMatch here mres (Seq tes) (Seq pes)
- = eMList here mres tes pes
-eMatch here mres (Seqc ttag tqvs tpr te) (Seqc ptag pqvs ppr pe)
- = eQMatch here mres ttag tqvs tpr te ptag pqvs ppr pe
-
-eMatch here mres (Map tdrs) (Map pdrs) = fail "eMatch Map NYI"
-
-eMatch here mres (Cond tpc tet tee) (Cond ppc pet pee)
- = do mres1 <- pMatch here mres tpc ppc
-      eMList here mres1 [tet,tee]  [pet,pee]
-eMatch here mres (Build ts tes) (Build ps pes)
- = matchIfEq ts ps (eMList here mres tes pes)
 eMatch here mres (Eabs ttag tqvs te) (Eabs ptag pqvs pe)
  = do mres1 <- eMatch here' mres te pe
       qMatch here mres1 tqvs pqvs
@@ -1284,9 +1246,9 @@ will be \texttt{ename} in any case.
 eNameMatch :: Monad m
            => MatchResult -> Expr -> (Variable, Expr) -> m MatchResult
 
-eNameMatch mres (Evar t) (ename,ebody)
-  | t == ename    =  return mres
-  | otherwise     =  fail "Nothing"
+-- eNameMatch mres (Evar t) (ename,ebody)
+--  | t == ename    =  return mres
+--  | otherwise     =  fail "Nothing"
 eNameMatch mres te (ename,ebody)
   | te == ebody  =  return mres
   | otherwise     =  fail "Nothing"
