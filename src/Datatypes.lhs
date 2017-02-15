@@ -18,7 +18,7 @@ plus many aliases for \texttt{String}s.
 type Message = String
 \end{code}
 
-
+\newpage
 \subsection{Types}
 
 For now, type variables are strings:
@@ -86,7 +86,7 @@ mttsLookup tts v (tag:tags)
             Nothing  ->  mttsLookup tts v tags
 \end{code}
 
-
+\newpage
 \subsection{Variables}
 
 \input{doc/Variable-Syntax}
@@ -158,6 +158,7 @@ We adopt the following ASCII representations of these variables:
   $Scr$ & \verb"S" & $Scr'$ & \verb"S'" \\
   \hline
 \end{tabular}
+
 List variables are distinguished from ordinary variables by a postfix $\lst{}$
 (e.g. $\lst x$).
 
