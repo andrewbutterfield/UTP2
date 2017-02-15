@@ -43,7 +43,8 @@ instantiatePred mctxt bnds@(gpbnds,vebnds,ttbnds) pat
    bP pv@(Pvar r@(Lst s)) = bevalP mctxt bnds r
 
    bP (Obs (Equal (Var v1) (Var v2))) = bE2P Equal v1 v2
-   bP (Obs (Bin op p (Var v1) (Var v2))) = bE2P (Bin op p) v1 v2
+   -- REVIEW
+   --bP (Obs (Bin op p (Var v1) (Var v2))) = bE2P (Bin op p) v1 v2
    bP (Obs e) = Obs (instantiateExpr mctxt bnds e)
 
    bP (Defd e) = Defd (instantiateExpr mctxt bnds e)
@@ -97,7 +98,7 @@ Handling for 2-place atomic predicates (\texttt{binop}) with list-variables.
      es1 = bevalES mctxt bnds v1
      es2 = bevalES mctxt bnds v2
 
-     std' = Obs (binop (Seq es1) (Seq es2))
+     std' = Obs (binop (mkSeq es1) (mkSeq es2))
    -- end bE2P
 
    b2E binop (e1,e2) = Obs (binop e1 e2)
@@ -165,22 +166,11 @@ instantiateExpr mctxt bnds@(gpbnds,vebnds,ttbnds) pat
  where
 
    bE (Var v) = bevalE mctxt bnds v
-   bE (Evar e) = bevalE mctxt bnds e
-   bE (Prod es) = mkProd (map bE es)
    bE (App s e) = App s (bE e)
-   bE (Bin s i e1 e2) = Bin s i (bE e1) (bE e2)
    bE (Equal e1 e2) = Equal (bE e1) (bE e2)
-   bE (Set es) = Set (map bE es)
-   bE (Setc tt qs pr e)  = mkSetc (instantiateQ mctxt bnds qs) (instantiatePred mctxt bnds pr) (bE e)
-   bE (Seq es) = Seq (map bE es)
-   bE (Seqc tt qs pr e)  = mkSeqc (instantiateQ mctxt bnds qs) (instantiatePred mctxt bnds pr) (bE e)
-   bE (Map drs)       = Map (map bE2 drs)
-   bE (Cond pcd et ee) = Cond (instantiatePred mctxt bnds pcd) (bE et) (bE ee)
-   bE (Build s es)    = Build s (map bE es)
    bE (Eabs tt qs e)     = mkEabs (instantiateQ mctxt bnds qs) (bE e)
    bE (Esub e sub)    = mkEsub (bE e) (instantiateESub mctxt bnds sub)
    bE (Efocus fe) = Efocus $ bE fe
-   bE (EPred fp) = EPred $ instantiatePred mctxt bnds fp
    bE pat = pat
 
    bE2 (de,re) = (bE de,bE re)
@@ -268,7 +258,7 @@ lstlookup ebnds (Gen (Std _), _, key)
 lstlookup ebnds (r, _, key)
  = case tlookup ebnds key of
      Nothing        ->  []
-     Just (Seq es)  ->  es
+     -- Just (Seq es)  ->  es -- REVIEW
      Just e         ->  error ("lstlookup "++show r++", no Seq ! - "++show e)
 \end{code}
 

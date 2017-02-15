@@ -428,7 +428,7 @@ data Expr
  | F
  | Num Int
  | Var Variable
- | App String Expr
+ | App String [Expr]
  | Equal Expr Expr
  | Eabs TTTag QVars Expr -- a lambda abstraction
  | Esub Expr ESubst
@@ -449,7 +449,8 @@ data Expr
  --               -- EPred $ Obs e   =  e
  --               -- Obs $ EPred pr  =  pr
 
-
+mkSeq es = App n_Seq es
+n_Seq = "Seq"
 
 instance Eq Expr where -- we ignore type-table and focus parts
  T           == T            =  True
