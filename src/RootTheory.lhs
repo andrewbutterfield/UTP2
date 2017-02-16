@@ -440,7 +440,7 @@ pred_Ax_betaERed
    ===
    Sub (Peabs (Q [ves]) pQ) (Substn [(ve,e)])
  where
-   e  = Evar $ preVar "e"
+   e  = mkEvar "e"
    ve = preVar "E"
    ves = lstVar "E"
 

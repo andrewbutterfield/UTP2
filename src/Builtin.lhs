@@ -254,7 +254,7 @@ typesSet
 
 lawsSet -- need these !
  = [ ("~-in-{}",Not (e1 `pmof` empty))
-   , ("in-singleton",(e1 `pmof` Set [e2])===(e1 `equal` e2))
+   , ("in-singleton",(e1 `pmof` mkSet [e2])===(e1 `equal` e2))
    , ("in-union",(e1 `pmof` (s1 `unn` s2))===(e1 `pmof` s1) \/ (e1 `pmof` s2))
    , ("in-intersect",(e1 `pmof` (s1 `intsct` s2))===(e1 `pmof` s1) /\ (e1 `pmof` s2))
    , ("in-setdiff",(e1 `pmof` (s1 `sdiff` s2))===(e1 `pmof` s1) /\ Not (e1 `pmof` s2))
@@ -262,7 +262,7 @@ lawsSet -- need these !
    , ("DEF-subseteq",((s1 `psubseteq` s2)===(mkAll qx ((Var vx `pmof` s1)==>(Var vx `pmof` s2)))))
    , ("DEF-subset",((s1 `psubset` s2)===(s1 `psubseteq` s2)/\ Not (s1 `equalS` s2)))
    , ("DEF-card-empty",card empty `equalZ` zero)
-   , ("DEF-card-single",card (Set [e1]) `equalZ` one)
+   , ("DEF-card-single",card (mkSet [e1]) `equalZ` one)
    , ("DEF-card-union",( card (e1 `unn` e2) )
                        `equalZ`
                        ( ( card e1 `plus` card e2)  `minus` card ( e1 `intsct` e2) )
@@ -270,7 +270,7 @@ lawsSet -- need these !
    ]
 
 conjsSet
- = [ ("in-self", e1 `pmof` Set [e1])
+ = [ ("in-self", e1 `pmof` mkSet [e1])
    , ("union-idem", e1 `unn` e1 `equalS` e1 )
    , ("union-comm", (e1 `unn` e2) `equalS` (e2 `unn` e1) )
    , ("union-assoc", e1 `unn` (e2 `unn` e3) `equalS` ( e1 `unn` e2 ) `unn` e3 )
@@ -421,7 +421,7 @@ lawsList
     ,( "DEF-last-cons2",  lst (ex `cons` ey `cons` eys) `equal` (lst (ey `cons` eys)) )
 
     ,( "DEF-elems-nil", elems nil `equalS` empty )
-    ,( "DEF-elems-cons", elems (ex `cons` exs) `equalS` (Set [ex]) `unn` elems exs )
+    ,( "DEF-elems-cons", elems (ex `cons` exs) `equalS` (mkSet [ex]) `unn` elems exs )
 
     ]
 

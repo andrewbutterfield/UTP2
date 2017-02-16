@@ -9,6 +9,7 @@ import DSL
 import Types
 import FreeBound
 import MatchTypes
+import DataText
 import Proof
 import SideConditions
 import Laws
@@ -428,22 +429,27 @@ in side-conditions or known
 as \texttt{Evar}s.
 \begin{code}
    condExpr bvs e@(Var v)
-    | v `elemn` bvs                =  e
-    | varKey v `elemn` knownEVars  =  Evar v
-    | otherwise                    =  e
+    | isEVar v = condEVar v
+    | otherwise = condVar v
+    where
+      condEVar v
+        | v `elemn` bvs                =  mkvar v
+        | varKey v `elemn` knownEVars  =  e
+        | otherwise                    =  mkvar v
+      mkvar v = Var $ preVar $ getEVar v
+      condVar v
+        | v `elemn` bvs                =  e
+        | varKey v `elemn` knownEVars  =  mkEVar v
+        | otherwise                    =  e
 
-   condExpr bvs e@(Evar v)
-    | v `elemn` bvs                =  Var v
-    | varKey v `elemn` knownEVars  =  e
-    | otherwise                    =  Var v
-
-   condExpr bvs (Setc _ qvs rpr be)
-    = Setc 0 qvs (condPred bvs' rpr) (condExpr bvs' be)
-    where bvs' = bvs `mrgnorm` lnorm (getqvars qvs)
-
-   condExpr bvs (Seqc _ qvs rpr be)
-    = Seqc 0 qvs (condPred bvs' rpr) (condExpr bvs' be)
-    where bvs' = bvs `mrgnorm` lnorm (getqvars qvs)
+-- KEEP FOR NOW
+--    condExpr bvs (Setc _ qvs rpr be)
+--     = Setc 0 qvs (condPred bvs' rpr) (condExpr bvs' be)
+--     where bvs' = bvs `mrgnorm` lnorm (getqvars qvs)
+--
+--    condExpr bvs (Seqc _ qvs rpr be)
+--     = Seqc 0 qvs (condPred bvs' rpr) (condExpr bvs' be)
+--     where bvs' = bvs `mrgnorm` lnorm (getqvars qvs)
 
    condExpr bvs (Esub be (Substn sub))
     = Esub (condExpr bvs' be) $ Substn (ssub' ++ msub)

@@ -972,7 +972,7 @@ genDummyLangLHS lname (LangSpec les ss)
 
    inst i (LVar _)         =  LVar  $ Std  $ "v"++show i
    inst i (LType _)        =  LType $ Tvar $ "t"++show i
-   inst i (LExpr _)        =  LExpr $ Evar $ preVar $ "e"++show i
+   inst i (LExpr _)        =  LExpr $ mkEVar $ preVar $ "e"++show i
    inst i (LPred _)        =  LPred $ Pvar $ Std $ "P"++show i
    inst i (LList [])       =  LList []
    inst i (LList (le:_))   =  LList [inst i le]
@@ -1751,7 +1751,7 @@ as the matching process now handles known variables
 is a much more intelligent fashion.
 \begin{code}
 dummyOVarDef x = (varKey x,Var x)
-dummyEVarDef e = (varKey e,Evar e)
+dummyEVarDef e = (varKey e,mkEVar e)
 dummyPVarDef v = (varKey v,Pvar $ varGenRoot v)
 \end{code}
 
@@ -1847,12 +1847,9 @@ predRename (ovs,evs,pvs) renf pr
   pRen pr = mapP (pRen,eRen) pr
 
   eRen e@(Var v)
-   | v `elem` ovs  =  Var (renf v)
-   | otherwise     =  e
-
-  eRen e@(Evar f)
-   | f `elem` evs  =  Evar (renf f)
-   | otherwise     =  e
+   | isEVar v && v `elem` evs  =  mkEVar (renf v)
+   | v `elem` ovs              =  Var (renf v)
+   | otherwise                 =  e
 
   eRen (Eabs _ qvs e)
    = Eabs 0 qvs (eRen' e)
@@ -1873,8 +1870,8 @@ predRename (ovs,evs,pvs) renf pr
   subsRen ren = map (subRen ren)
 
   subRen ren (v,a) = (v,ren a)
-
 \end{code}
+
 Generating hypotheses as named laws:
 \begin{code}
 genNamedAssumptions pname ths

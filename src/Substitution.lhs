@@ -107,8 +107,10 @@ normaliseSubstn mctxt (Substn sub)
 
    expandM :: (Variable,Expr) -> [(Variable,Expr)]
    expandM (y,Var f)
-    | null tsubs && null rsubs && tlen == rlen  =  zip tgtsem (map Evar repsem)
-    | otherwise                                 =  []
+    | null tsubs && null rsubs && tlen == rlen
+       =  zip tgtsem (map mkEVar repsem)
+    | otherwise
+       =  []
     where
       (tgtsem,tsubs) = lVarDenote mctxt y
       (repsem,rsubs) = lVarDenote mctxt f
@@ -413,23 +415,7 @@ exprONSub' mctxt sc subs@(Substn subslist) e
 \\ v\!\dagger [~M\!\ddagger ~/~ M\!\dagger]
    &\defs&
    v\!\ddagger \cond{v \in \sem M} v\!\dagger
-\end{eqnarray*}
-\begin{code}
-  eOS e@(Var v)
-   | isLstV v
-       =  ( case alookupOrd msubslist v of
-             Just v'@(Var r)  ->  v' -- UNSOUND ?? root/S/decor ignored
-             _               ->  e
-          , Chgd )
-   | otherwise
-       =  ( case alookupOrd ssubslist v of
-             Just r   ->  r
-             Nothing  ->  e
-          , Chgd )
-\end{code}
-\newpage
-\begin{eqnarray*}
-  E[r/x]
+\\ E[r/x]
   &\defs&
   \left\{
   \begin{array}{lr}
@@ -439,32 +425,34 @@ exprONSub' mctxt sc subs@(Substn subslist) e
   \right.
 \end{eqnarray*}
 \begin{code}
-  eOS e@(Evar v)
-   | null freesl  =  (e,Chgd)
-   | otherwise    =  (Esub e (Substn (freesl++msubslist)),Chgd)
-   where
-     freesl = keepFreeInE ssubslist v scnf
+  eOS e@(Var v)
+   | isLstV v
+       =  ( case alookupOrd msubslist v of
+             Just v'@(Var r)  ->  v' -- UNSOUND ?? root/S/decor ignored
+             _               ->  e
+          , Chgd )
+
+   | isEVar v
+      = let freesl = keepFreeInE ssubslist v scnf
+        in if null freesl
+            then (e,Chgd)
+            else (Esub e (Substn (freesl++msubslist)),Chgd)
+
+   | otherwise
+       =  ( case alookupOrd ssubslist v of
+             Just r   ->  r
+             Nothing  ->  e
+          , Chgd )
 \end{code}
 \begin{eqnarray*}
    (e_1~e_2)[r/x] &\defs& (e_1[r/x])~(e_2[r/x])
 \\ (e_1~e_2)\sigma &\defs& (e_1\sigma)(e_2\sigma)
 \end{eqnarray*}
 \begin{code}
-  eOS (Prod es) = (Prod (fst $ chgmap eOS es),Chgd)
-  eOS (App s e) = (App s (fst $ eOS e),Chgd)
-  eOS (Bin s i e1 e2) = (Bin s i e1' e2',Chgd)
-   where [(e1',_),(e2',_)] = map eOS [e1,e2]
+  eOS (App s es) = (App s (fst $ chgmap eOS es),Chgd)
   eOS (Equal e1 e2)
    = let [(e1',_),(e2',_)] = map eOS [e1,e2]
      in (Equal e1' e2',Chgd)
-  eOS (Set es) = (Set (fst $ chgmap eOS es),Chgd)
-  eOS (Seq es) = (Seq (fst $ chgmap eOS es),Chgd)
-  eOS (Map drs)
-   = (Map (map eOS2 drs),Chgd)
-    where eOS2 (e,f) = (fst $ eOS e,fst $ eOS f)
-  eOS (Cond pc et ee)
-   = (Cond (predONSub mctxt sc subs pc) (fst $ eOS et) (fst $ eOS ee),Chgd)
-  eOS (Build s es)    = (Build s (fst $ chgmap eOS es),Chgd)
 \end{code}
 \newpage
 \begin{eqnarray*}
@@ -480,26 +468,6 @@ exprONSub' mctxt sc subs@(Substn subslist) e
      (nvars',alfa',subs') = binderSubstnBits bvars fext subslist
      fext = extendOrdVars (exprFreeOVars nullMatchContext e)
 
-  eOS se@(Setc _ bvars pr e)
-   = case alfa' of
-       Nothing  ->  (Setc 0 nvars' (predONSub mctxt sc subs' pr)(exprONSub mctxt sc subs' e),Chgd)
-       (Just alf)  -> (Setc 0 nvars' (predONSub mctxt sc subs' (predONSub mctxt sc alf pr))
-                                  (exprONSub mctxt sc subs' (exprONSub mctxt sc alf e)),Chgd)
-   where
-     (nvars',alfa',subs') = binderSubstnBits bvars fext subslist
-     fext = extendOrdVars (exprFreeOVars nullMatchContext e
-                           ++ predFreeOVars nullMatchContext pr)
-
-
-  eOS se@(Seqc _ bvars pr e)
-   = case alfa' of
-       Nothing  ->  (Seqc 0 nvars' (predONSub mctxt sc subs' pr)(exprONSub mctxt sc subs' e),Chgd)
-       (Just alf)  -> (Seqc 0 nvars' (predONSub mctxt sc subs' (predONSub mctxt sc alf pr))
-                                  (exprONSub mctxt sc subs' (exprONSub mctxt sc alf e)),Chgd)
-   where
-     (nvars',alfa',subs') = binderSubstnBits bvars fext subslist
-     fext = extendOrdVars (exprFreeOVars nullMatchContext e
-                           ++ predFreeOVars nullMatchContext pr)
 \end{code}
 \begin{eqnarray*}
    (e~\sigma_1)\sigma_2 &\defs& e(\sigma_1 ; \sigma_2)
@@ -713,10 +681,6 @@ prNonTrivSub  _                  =  True
 \end{code}
 
 
-
-
-
-
 \subsubsection{Predicate/Expression Substitution}
 
 This substitution replaces
@@ -726,21 +690,8 @@ exprPSub :: Pred -> GenRoot -> Expr -> Expr
 exprPSub r x e
  = ePS e
  where
-  ePS (Prod es)
-   = Prod (map ePS es)
-  ePS (App s e) = App s (ePS e)
-  ePS (Bin s i e1 e2)  = Bin s i (ePS e1) (ePS e2)
+  ePS (App s es) = App s (map ePS es)
   ePS (Equal e1 e2)  = Equal (ePS e1) (ePS e2)
-  ePS (Set es) = Set (map (ePS) es)
-  ePS (Setc _ qs pr e) =  Setc 0 qs (predPSub r x pr) (ePS e)
-  ePS (Seq es) = Seq (map (ePS) es)
-  ePS (Seqc _ qs pr e) = Seqc 0 qs (predPSub r x pr) (ePS e)
-  ePS (Map drs)
-   = Map (map ePS2 drs)
-   where ePS2 (e,f) = (ePS e,ePS f)
-  ePS (Cond pc et ee)
-    = Cond (predPSub r x pc) (ePS et) (ePS ee)
-  ePS (Build s es)  = Build s (map ePS es)
   ePS (Eabs tt ss e) =  Eabs 0 ss (ePS e)
   ePS (Efocus ef) = Efocus $ ePS ef
   ePS e               = e

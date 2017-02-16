@@ -116,6 +116,10 @@ isEvar _= False
 getEvar ('E':'_':nm) = nm
 getEvar e = error ("'"++e++"' is not an Evar!")
 
+mkEVar  = mkEvar . showVar
+isEVar = isEvar . showVar
+getEVar = getEvar . showVar
+
 
 evx = mkEvar x
 evy = mkEvar y
@@ -333,6 +337,7 @@ domOfDefn nm app dod
 \subsection{DSL: Arithmetic}
 
 \begin{code}
+precsArithmetic1 :: [(String,(Int,Assoc))]
 precsArithmetic1
  = [("+",(250,AssocLeft))
    ,("-",(250,AssocLeft))
@@ -352,7 +357,7 @@ infixl 7 `divd`
 infixl 7 `divdiv`
 infixl 7 `modulo`
 
-neg m       = App "neg" m
+neg m       = App "neg" [m]
 plus m n    = mkBin "+"   (precLkp precsArithmetic1 "+") m n
 minus m n   = mkBin "-"   (precLkp precsArithmetic1 "-") m n
 mul m n     = mkBin "*"   (precLkp precsArithmetic1 "*") m n
@@ -366,6 +371,7 @@ tArithBinOp = Tfun tNum2 Z
 zero = Num 0
 one = Num 1
 
+precsArithmetic2  :: [(String,(Int,Assoc))]
 precsArithmetic2
  = [("<",(240,AssocNone))
    ,("<=",(240,AssocNone))
@@ -408,6 +414,7 @@ s1 = mkEvar n_s1
 s2 = mkEvar n_s2
 s3 = mkEvar n_s3
 
+precsSet  :: [(String,(Int,Assoc))]
 precsSet
  = [ ("in",(280,AssocNone))
    , ("intsct",(270,AssocLeft))
@@ -453,6 +460,7 @@ psubseteq s t = Obs (s `subsetEq` t)
 \subsection{DSL: Lists}
 
 \begin{code}
+precsList :: [(String,(Int,Assoc))]
 precsList
  = [ (":",(260,AssocRight))
    , ("++",(250,AssocRight))
@@ -486,19 +494,19 @@ mkProd = App n_tuple
 infixr 8 `cons`
 
 cons e s = mkBin ":"     (precLkp precsList ":") e s
-lnull s  = App "null"  s
-hd s     = App "hd"    s
-tl s     = App "tl"    s
+lnull s  = App "null"  [s]
+hd s     = App "hd"    [s]
+tl s     = App "tl"    [s]
 sngll e  = mkSeq [e]
-frnt s   = App "frnt"  s
-lst s    = App "lst"   s
-len s    = App "len"   s
+frnt s   = App "frnt"  [s]
+lst s    = App "lst"   [s]
+len s    = App "len"   [s]
 cat s t  = mkBin "++"    (precLkp precsList "++") s t
 pfx s t  = mkBin "<<="   (precLkp precsList "<<=") s t
 spfx s t = mkBin "<<"    (precLkp precsList "<<") s t
 ssub s t = mkBin "--"    (precLkp precsList "--") s t
 ix s i   = App "ix" [s,i]
-elems s  = App "elems" s
+elems s  = App "elems" [s]
 nil      = mkSeq []
 
 e1 `equalL` e2 = Obs (Equal e1 e2)

@@ -230,20 +230,20 @@ changePrecP precs pred@(Lang s i lelems synspec)
 changePrecP _ p = p
 
 changePrecE :: [Trie Precedences.Precs] -> Expr ->  Expr
-changePrecE precs expr@(Bin s i e1 e2)
- =  Bin s i' e1 e2
- where
-  i' = case mres of
-         Nothing -> i
-         Just (r,_)  -> r
-  mres = tslookup precs s
+--changePrecE precs expr@(Bin s i e1 e2)
+changePrecE precs expr@(App nm [e1,e2])
+ | isBin nm
+   = let (op,i) = getBin nm
+         mres = tslookup precs op
+         i' = case mres of
+                Nothing    -> i
+                Just (r,_) -> r
+     in mkBin op i' e1 e2
 
 changePrecE _ e =  e
 \end{code}
 
-
 The Proof precedence synchroniser
-
 \begin{code}
 precsProofSync :: SyncFun Proof
 precsProofSync thstk proof

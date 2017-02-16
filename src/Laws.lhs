@@ -774,7 +774,8 @@ trySubstMatch mctxt binds todo@(subt, subp, lctxt)
    mtchMatrix = map (mtchRow stdt) stdp
    mtchRow ts p = map (mtchPair p) ts
    mtchPair p@(vp,ep) t@(vt,et)
-    =  do res <- eMatch lctxt noBinding (Prod [Var vt,et]) (Prod [Var vp,ep])
+    =  do res <- eMatch lctxt noBinding
+                  (mkProd [Var vt,et]) (mkProd [Var vp,ep])
           return (p,t,res)
 
    validBinding Nothing   =  0
@@ -1369,8 +1370,8 @@ translateSideCondIC fovs mctxt ctxtsc (gpbnds,vebnds,ttbnds) sc
 
    trE enm = case tlookup vebnds enm of
               Just (TO e)    ->  e
-              Just (VSO vs)  ->  Evar $ queryVString $ show vs
-              _              ->  Evar $ queryVString enm
+              Just (VSO vs)  ->  mkEVar $ queryVString $ show vs
+              _              ->  mkEVar $ queryVString enm
 
    trP pnm = case tlookup gpbnds pnm of
               Just (TO pr)   ->  pr
@@ -1472,7 +1473,6 @@ We also adjust the ranking based on the kind of matching%
 }%
 :
 \begin{code}
-
 rankAdjust :: MatchContext -> Pred -> MatchType -> Rank -> Rank
 rankAdjust mctxt lawpart       All   rank = 100*rank  -- complete matches are very valuable
 rankAdjust mctxt lawpart       LEqv  rank = 10*rank   -- prefer equivalences
@@ -1483,21 +1483,21 @@ rankAdjust mctxt (Pvar root) TREqv rank
      Nothing   ->  rank `div` 5   -- trivial matches  are usually uninteresting
      (Just _)  ->  5 * rank       -- except if it applies to "known" predicates
 
-rankAdjust mctxt (Obs (Evar name)) TREqv rank
- = case tsvlookup (knownExprs mctxt) name of
-     Nothing   ->  rank `div` 5   -- trivial matches  are usually uninteresting
-     (Just _)  ->  5 * rank       -- except if it applies to "known" expressions
+rankAdjust mctxt (Obs (Var v)) TREqv rank
+ | isEVar v
+ = case tsvlookup (knownExprs mctxt) v of
+     Nothing -> rank `div` 5 -- trivial matches  are usually uninteresting
+     (Just _) -> 5 * rank -- except if it applies to "known" expressions
 
-rankAdjust mctxt (Obs (Var name)) TREqv rank
- = case tsvlookup (knownObs mctxt) name of
-   (Just _)  ->  10 * rank       -- except if it applies to observational variables
+ | otherwise
+ = case tsvlookup (knownObs mctxt) v of
+   (Just _) -> 10 * rank -- except if it applies to observational variables
    Nothing
-    -> case tsvlookup (knownConsts mctxt) name of
-        (Just _)  ->  5 * rank   -- or if it applies to "known" constants
-        Nothing   ->  rank `div` 5   -- trivial matches  are usually uninteresting
+    -> case tsvlookup (knownConsts mctxt) v of
+        (Just _) -> 5 * rank  -- or if it applies to "known" constants
+        Nothing -> rank `div` 5  -- trivial matches  are usually uninteresting
 
 rankAdjust _ _ _ rank = rank
-
 \end{code}
 
 \newpage
@@ -1553,7 +1553,6 @@ applied to every law.}
 \begin{code}
 rEqvPossibilities tts (Eqv lhs rhs@(Pvar _),sc) = []
 rEqvPossibilities tts (Obs (Equal lhs rhs@(Var _)),sc) = []
-rEqvPossibilities tts (Obs (Equal lhs rhs@(Evar _)),sc) = []
 
 rEqvPossibilities tts (Eqv lhs rhs,sc)   = [( REqv, rhs,sc, tts, [lhs] )]
 rEqvPossibilities tts (Obs (Equal lhs rhs),sc)
@@ -1618,9 +1617,7 @@ upon them from time to time.
 \begin{code}
 treqvPossibilities tts (Eqv lhs rhs@(Pvar _),sc)
      = [( TREqv, rhs, sc, tts, [lhs] )]
-treqvPossibilities tts (Obs (Equal lhs rhs@(Var _)),sc)
-      = [( TREqv, Obs rhs, sc, tts, [Obs lhs] )]
-treqvPossibilities tts (Obs (Equal lhs rhs@(Evar _)),sc)
+treqvPossibilities tts (Obs (Equal lhs rhs@(Var v)),sc)
       = [( TREqv, Obs rhs, sc, tts, [Obs lhs] )]
 -- treqvPossibilities tts (Obs (Equal lhs rhs@(Var _)),sc)
 --       = [( TREqv, Obs rhs, sc, tts, [Obs lhs] )]
