@@ -8,6 +8,7 @@ import Datatypes
 import DataText
 import Utilities
 import MatchTypes
+import DSL
 
 import Data.List
 \end{code}

@@ -153,27 +153,12 @@ setTypeTags pr
    psset (PSetU prset1 prset2)  =  liftM2 PSetU (psset prset1) (psset prset2)
    psset prset  =  return prset
 
-
-   eset (Prod es)  =  fmap Prod $ mapM eset es
-   eset (App str e)  =  fmap (App str) $ eset e
-   eset (Bin str i e1 e2)  =  liftM2 (Bin str i) (eset e1) (eset e2)
+   eset (App str es)  =  fmap (App str) $ mapM eset es
    eset (Equal e1 e2)  =  liftM2 Equal (eset e1) (eset e2)
-   eset (Set es)  =  fmap Set $ mapM eset es
-   eset (Setc _  qvs pr e)  =  qset2 Setc qvs pset pr eset e
-   eset (Seq es)  =  fmap Seq $ mapM eset es
-   eset (Seqc _ qvs pr e)  =  qset2 Seqc qvs pset pr eset e
-   eset (Map drs)
-    = do let (des,res) = unzip drs
-         des' <- mapM eset des
-         res' <- mapM eset res
-         return $ Map $ zip des' res'
-   eset (Cond pr e1 e2)  =  liftM3 Cond (pset pr) (eset e1) (eset e2)
-   eset (Build str es)  =  fmap (Build str) $ mapM eset es
    eset (The _ str pr)  =  qset1 The str pset pr
    eset (Eabs _ qvs e)  =  qset1 Eabs qvs eset e
    eset (Esub e esub)  =  liftM2 Esub (eset e) (sset eset esub)
    eset (Efocus e)  =  fmap Efocus $ eset e
-   eset (EPred pr)  =  fmap EPred $ pset pr
    eset e  =  return e
 
    qset1 quant qvs tset thing
@@ -251,17 +236,8 @@ recBoundTVars mctxt pr
    psrec tts (PSetU prrec1 prrec2)  =  liftM12 PSetU tts psrec prrec1 psrec prrec2
    psrec tts prrec  =  return (prrec, tts)
 
-   erec tts (Prod es)  =  app12 Prod $ mapM12 erec tts es
-   erec tts (App str e)  =  fmap12 (App str) erec tts e
-   erec tts (Bin str i e1 e2)  =  liftM12 (Bin str i) tts erec e1 erec e2
+   erec tts (App str es)  =  app12 (App str) $ mapM12 erec tts es
    erec tts (Equal e1 e2)  =  liftM12 Equal tts erec e1 erec e2
-   erec tts (Set es)  =  app12 Set $ mapM12 erec tts es
-   erec tts (Setc tt qvs pr e)  =  qrec2 tts Setc tt qvs prec pr erec e
-   erec tts (Seq es)  =  app12 Seq $ mapM12 erec tts es
-   erec tts (Seqc tt qvs pr e)  =  qrec2 tts Seqc tt qvs prec pr erec e
-   erec tts (Map drs)  =  app12 Map $ mrec tts drs
-   erec tts (Cond pr e1 e2)  =  liftM13 Cond tts prec pr erec e1 erec e2
-   erec tts (Build str es)  =  app12 (Build str) $ mapM12 erec tts es
    erec tts (The tt v pr)
     = do tv <- newu
          let vtyps = tsingle (varKey v) $ tag2tvar tv
@@ -271,7 +247,6 @@ recBoundTVars mctxt pr
    erec tts (Eabs tt qvs e)  =  qrec tts Eabs tt qvs erec e
    erec tts (Esub e esub)  =  liftM12 Esub tts erec e (srec erec) esub
    erec tts (Efocus e)  =  fmap12 Efocus erec tts e
-   erec tts (EPred pr)  =  fmap12 EPred prec tts pr
    erec tts e  =  return (e, tts)
 
    qrec tts quant tt qvs@(Q vs) trec thng
@@ -480,41 +455,54 @@ For variables, get a type variable setup:
          return (vtyp, (vt0', tts, []))
 \end{code}
 
-There is no constraint on product types:
+Applications introduce many equations:
 \begin{code}
-   ehvst vt0 tts tags (Prod es)
-     = do (ts', (vt0', tts', teqs')) <- eshvst vt0 tts tags es
-          return (mkTprod ts', (vt0', tts', teqs'))
-\end{code}
+   -- ehvst vt0 tts tags (Bin op i e1 e2)
+   ehvst vt0 tts tags (App nm [e1,e2])
+    | isBin nm
+      = do let (op,i) = getBin nm
+           (optyp, vt0') <- recVarType mctxt vt0 tts (preVar op) tags
+           (t1, (vt0'', tts'', teqs'')) <- ehvst vt0' tts tags e1
+           (t2, (vt0''', tts''', teqs''')) <- ehvst vt0'' tts'' tags e2
+           rtv <- newu
+           let rtyp = tag2tvar rtv
+           return ( rtyp, (vt0''', tts'''
+                          , (optyp,Tfun (mkTprod [t1,t2]) rtyp):teqs''++teqs''')
+                  )
 
-Applications/Conditions introduce equations:
-\begin{code}
-   ehvst vt0 tts tags (App f e)
-    = do (ftyp, vt0') <- recVarType mctxt vt0 tts (preVar f) tags
-         (atyp, (vt0'', tts'', teqs'')) <- ehvst vt0' tts tags e
-         rtv <- newu
-         let rtyp = tag2tvar rtv
-         return ( rtyp, (vt0'', tts'', (ftyp,Tfun atyp rtyp):teqs''))
+   ehvst vt0 tts tags (App nm es)
 
-   ehvst vt0 tts tags (Bin op i e1 e2)
-    = do (optyp, vt0') <- recVarType mctxt vt0 tts (preVar op) tags
-         (t1, (vt0'', tts'', teqs'')) <- ehvst vt0' tts tags e1
-         (t2, (vt0''', tts''', teqs''')) <- ehvst vt0'' tts'' tags e2
-         rtv <- newu
-         let rtyp = tag2tvar rtv
-         return ( rtyp, (vt0''', tts'''
-                        , (optyp,Tfun (mkTprod [t1,t2]) rtyp):teqs''++teqs''')
-                )
+   -- ehvst vt0 tts tags (Set es)
+    | nm==n_set
+      = do (ts', (vt0', tts', teqs')) <- eshvst vt0 tts tags es
+           case ts' of
+             [] -> do stv <- newu
+                      let styp = tag2tvar stv
+                      return (mkTset styp, (vt0', tts', teqs'))
+             (t:ts) -> return (mkTset t, (vt0', tts', tlisteq t ts ++ teqs'))
+
+   -- ehvst vt0 tts tags (Seq es)
+    | nm==n_seq
+      = do (ts', (vt0', tts', teqs')) <- eshvst vt0 tts tags es
+           case ts' of
+             [] -> do stv <- newu
+                      let styp = tag2tvar stv
+                      return (mkTseq styp, (vt0', tts', teqs'))
+             (t:ts) -> return (mkTseq t, (vt0', tts', tlisteq t ts ++ teqs'))
+
+   -- ehvst vt0 tts tags (App nm es)
+    | otherwise
+      = do (ftyp, vt0') <- recVarType mctxt vt0 tts (preVar nm) tags
+           (ts', (vt0'', tts'', teqs'')) <- eshvst vt0' tts tags es
+           let atyp = mkTprod ts'
+           rtv <- newu
+           let rtyp = tag2tvar rtv
+           return ( rtyp, (vt0'', tts'', (ftyp,Tfun atyp rtyp):teqs''))
 
    ehvst vt0 tts tags (Equal e1 e2)
     = do (t1, (vt0', tts', teqs'))    <- ehvst vt0 tts tags e1
          (t2, (vt0'', tts'', teqs'')) <- ehvst vt0' tts' tags e2
          return ( B, ( vt0'', tts'', (t1,t2):teqs'++teqs''))
-
-   ehvst vt0 tts tags (Cond pr e1 e2)
-    = do (t1, (vt0', tts', teqs')) <- ehvst vt0 tts tags e1
-         (t2, (vt0'', tts'', teqs'')) <- ehvst vt0' tts' tags e2
-         return ( t1, (vt0'', tts'', (t1,t2):teqs'++teqs''))
 \end{code}
 
 Abstraction is the dual of application:
@@ -533,44 +521,30 @@ Abstraction is the dual of application:
                         , (vt0', tts', teqs'))
 \end{code}
 
-Sets, Sequences and Map enumerations introduce many equations:
-\begin{code}
-   ehvst vt0 tts tags (Set es)
-    = do (ts', (vt0', tts', teqs')) <- eshvst vt0 tts tags es
-         case ts' of
-           [] -> do stv <- newu
-                    let styp = tag2tvar stv
-                    return (mkTset styp, (vt0', tts', teqs'))
-           (t:ts) -> return (mkTset t, (vt0', tts', tlisteq t ts ++ teqs'))
+%%% KEEP FOR FUTURE USE
+%Maps
+%\begin{code}
+%   ehvst vt0 tts tags (Map drs)
+%    = do let (des,res) = unzip drs
+%         (dts', (vt0', tts', teqs')) <- eshvst vt0 tts tags des
+%         (rts', (vt0'', tts'', teqs'')) <- eshvst vt0' tts' tags res
+%         let tqs = teqs'++teqs''
+%         case (dts',rts') of
+%           ([],[]) -> do dtv <- newu ; let dtyp = tag2tvar dtv
+%                         rtv <- newu ; let rtyp = tag2tvar rtv
+%                         return (Tfun dtyp rtyp, (vt0'', tts'', tqs))
+%           (dt:dts,rt:rts) -> return (Tfun dt rt,
+%                                       (vt0'', tts'', tlisteq dt dts
+%                                                      ++ tlisteq rt rts
+%                                                      ++ tqs))
+%\end{code}
 
-   ehvst vt0 tts tags (Seq es)
-    = do (ts', (vt0', tts', teqs')) <- eshvst vt0 tts tags es
-         case ts' of
-           [] -> do stv <- newu
-                    let styp = tag2tvar stv
-                    return (mkTseq styp, (vt0', tts', teqs'))
-           (t:ts) -> return (mkTseq t, (vt0', tts', tlisteq t ts ++ teqs'))
-
-   ehvst vt0 tts tags (Map drs)
-    = do let (des,res) = unzip drs
-         (dts', (vt0', tts', teqs')) <- eshvst vt0 tts tags des
-         (rts', (vt0'', tts'', teqs'')) <- eshvst vt0' tts' tags res
-         let tqs = teqs'++teqs''
-         case (dts',rts') of
-           ([],[]) -> do dtv <- newu ; let dtyp = tag2tvar dtv
-                         rtv <- newu ; let rtyp = tag2tvar rtv
-                         return (Tfun dtyp rtyp, (vt0'', tts'', tqs))
-           (dt:dts,rt:rts) -> return (Tfun dt rt,
-                                       (vt0'', tts'', tlisteq dt dts
-                                                      ++ tlisteq rt rts
-                                                      ++ tqs))
-\end{code}
-
-Comprehensions have the type of the given expression
-\begin{code}
-   ehvst vt0 tts tags (Setc tt qvs pr e) = cmphvst vt0 tts (tt:tags) pr e
-   ehvst vt0 tts tags (Seqc tt qvs pr e)  =  cmphvst vt0 tts (tt:tags) pr e
-\end{code}
+%%% KEEP FOR FUTURE USE
+%Comprehensions have the type of the given expression
+%\begin{code}
+%   ehvst vt0 tts tags (Setc tt qvs pr e) = cmphvst vt0 tts (tt:tags) pr e
+%   ehvst vt0 tts tags (Seqc tt qvs pr e)  =  cmphvst vt0 tts (tt:tags) pr e
+%\end{code}
 
 Substitution:
 \begin{code}
@@ -583,22 +557,10 @@ Substitution:
 
 Odds and ends:
 \begin{code}
-   ehvst vt0 tts tags (Evar str)  =  return (Tarb, (vt0, tts, []))
    ehvst vt0 tts tags (Eerror s) = return ( Terror ("Eerror "++s) Tarb
                                           , (vt0,tts,[])
                                           )
    ehvst vt0 tts tags (Efocus e)  =  ehvst vt0 tts tags e
-   ehvst vt0 tts tags (EPred pr)
-    = do ph <- phvst vt0 tts tags pr
-         return (Tarb, ph)
-\end{code}
-
-Free types are currently poorly supported.
-For now we can only guess the top-level type name
-\begin{code}
-   ehvst vt0 tts tags (Build str es)
-    = do (ts', eh) <- eshvst vt0 tts tags es
-         return (Tfree "?" [(str,ts')], eh)
 \end{code}
 
 Comprehensions:
@@ -1114,22 +1076,11 @@ that does special \texttt{Efocus} handling
 \end{code}
 
 Next, a top-level handler, that looks
-for top-level \texttt{Var}s and \texttt{Evar}s,
+for top-level \texttt{Var}s,
 which should of course be viewed as being boolean
 (but lets not assert that here for now !):
 \begin{code}
   bldtop (Var v) vt tt
-   = do t <- newtvar
-        let vt' = insTVentry v t vt
-        res <- flookup gamma v
-        case res of
-          (Just typ)
-            -> do typ' <- freshType typ
-                  return (t,vt',insTentry t typ' tt,[],Nothing)
-          -- Nothing -> return (t,vt',insTentry t B tt,[],Nothing)
-          Nothing -> return (t,vt',tt,[],Nothing)
-
-  bldtop (Evar v) vt tt
    = do t <- newtvar
         let vt' = insTVentry v t vt
         res <- flookup gamma v
@@ -1222,17 +1173,6 @@ Variables
           (Just typ)
             -> do typ' <- freshType typ
                   return (t,vt',insTentry t typ' tt,[],Nothing)
-
-  bld gamma (Evar e) vt tt
-   = do t <- newtvar
-        let vt' = insTVentry e t vt
-        res <- flookup gamma e
-        case res of
-          Nothing          -> return (t,vt',tt,[],Nothing)
-          (Just (Tvar _))  -> return (t,vt',tt,[],Nothing)
-          (Just typ)
-            -> do typ' <- freshType typ
-                  return (t,vt',insTentry t typ' tt,[],Nothing)
 \end{code}
 
 Abstraction
@@ -1259,59 +1199,6 @@ Abstraction
     mmap (td:tds) tr = Tfun td (mmap tds tr)
 \end{code}
 
-Applications
-\begin{eqnarray*}
-   bldTT_\Gamma (f~a,vt,tt)
-   &\defs& (t,vt',tt')
-\\ \WHERE && new~t
-\\  && (t_a,vt_a,tt_a) = bldTT_\Gamma(a,vt,tt)
-\\ && (vt',tt') = (vt_a,tt_a \oplus t_a \mapsto D, t \mapsto R), \qquad \Gamma(f) = D \fun R
-\\ && (vt',tt') = (vt_a,tt_a), \qquad f \notin \Gamma
-\end{eqnarray*}
-\begin{code}
-  bld gamma (App f a) vt tt
-   = do t <- newtvar
-        (ta,vta,tta,_,ft) <- bld gamma a vt tt
-        res <- flookup gamma (preVar f)
-        case res of
-         Nothing  ->  return(t,vta,tta,[ta],ft)
-         (Just (Tfun td tr))  -> addDR t tr ta td vta tta ft
-         (Just typ) -> do let typ' = terr f typ
-                          let tt' = insTentry t typ' tta
-                          return (t,vta,tt',[ta],ft)
-   where terr f t = Terror ("'Fun' "++f++" has type ") t
-
-  bld gamma (Bin op _ e1 e2) vt tt
-   = do t <- newtvar
-        (t1,vt1,tt1,_,ft1) <- bld gamma e1 vt tt
-        (t2,vt2,tt2,_,ft2) <- bld gamma e2 vt1 tt1
-        let ft = ft1 `fuse` ft2
-        res <- flookup gamma $ preVar op
-        case res of
-         Nothing  ->  return(t,vt2,tt2,[t1,t2],ft)
-         (Just (Tfun td@(TApp tcn [ta,tb]) tr))
-           | tcn==n_Tprod  -> addBIN t tr t1 ta t2 tb vt2 tt2 ft
-         (Just typ) -> do let typ' = terr op typ
-                          let tt' = insTentry t typ' tt2
-                          return (t,vt2,tt',[t1,t2],ft)
-   where terr op t = Terror ("'Binop' "++op++" has type ") t
-
-  bld gamma (Equal e1 e2) vt tt
-   = do t <- newtvar
-        (t1,vt1,tt1,_,ft1) <- bld gamma e1 vt tt
-        (t2,vt2,tt2,_,ft2) <- bld gamma e2 vt1 tt1
-        let ft = ft1 `fuse` ft2
-        ta <- fmap Tvar newtvar
-        addBIN t B t1 ta t2 ta vt2 tt2 ft
-
-  bld gamma (Cond _ e1 e2) vt tt
-   = do t <- newtvar
-        (t1,vt1,tt1,_,ft1) <- bld gamma e1 vt tt
-        (t2,vt2,tt2,_,ft2) <- bld gamma e2 vt1 tt1
-        let ft = ft1 `fuse` ft2
-        tc <- fmap Tvar newtvar
-        addBIN t tc t1 tc t2 tc vt2 tt2 ft
-\end{code}
 
 Substitution (a fusion of application and abstraction !)
 \begin{eqnarray*}
@@ -1333,6 +1220,37 @@ Substitution (a fusion of application and abstraction !)
      (xs,es) = unzip ssub
 \end{code}
 
+Binary Operators
+\\\textbf{(need to get correct type rules here!)}
+\begin{eqnarray*}
+   bldTT_\Gamma (f~a,vt,tt)
+   &\defs& (t,vt',tt')
+\\ \WHERE && new~t
+\\  && (t_a,vt_a,tt_a) = bldTT_\Gamma(a,vt,tt)
+\\ && (vt',tt') = (vt_a,tt_a \oplus t_a \mapsto D, t \mapsto R), \qquad \Gamma(f) = D \fun R
+\\ && (vt',tt') = (vt_a,tt_a), \qquad f \notin \Gamma
+\end{eqnarray*}
+\begin{code}
+  -- bld gamma (Bin op _ e1 e2) vt tt
+  bld gamma (App nm [e1,e2]) vt tt
+    | isBin nm
+       = do let op = fst $ getBin nm
+            t <- newtvar
+            (t1,vt1,tt1,_,ft1) <- bld gamma e1 vt tt
+            (t2,vt2,tt2,_,ft2) <- bld gamma e2 vt1 tt1
+            let ft = ft1 `fuse` ft2
+            res <- flookup gamma $ preVar op
+            case res of
+             Nothing  ->  return(t,vt2,tt2,[t1,t2],ft)
+             (Just (Tfun td@(TApp tcn [ta,tb]) tr))
+               | tcn==n_Tprod  -> addBIN t tr t1 ta t2 tb vt2 tt2 ft
+             (Just typ) -> do let typ' = terr op typ
+                              let tt' = insTentry t typ' tt2
+                              return (t,vt2,tt',[t1,t2],ft)
+       where terr op t = Terror ("'Binop' "++op++" has type ") t
+
+\end{code}
+
 Product
 \begin{eqnarray*}
    bldTT_\Gamma ((e1,\ldots,e_n),vt,tt)
@@ -1344,53 +1262,97 @@ Product
 \\ && (vt',tt') = (vt_n,tt_n \oplus t \mapsto t_1 \times \ldots \times t_n)
 \end{eqnarray*}
 \begin{code}
-
-  bld gamma (Prod es) vt tt
-   = do t <- newtvar
-        (ts,vtn,ttn,_,ft) <- blds gamma es vt tt
-        let typs = map Tvar ts
-        return(t,vtn,insTentry t (mkTprod typs) ttn,[],ft)
+  bld gamma (App nm es) vt tt
+    | nm == n_tuple
+       = do t <- newtvar
+            (ts,vtn,ttn,_,ft) <- blds gamma es vt tt
+            let typs = map Tvar ts
+            return(t,vtn,insTentry t (mkTprod typs) ttn,[],ft)
 \end{code}
 
 Sets, Sequences, \ldots (see \texttt{addBOX} defn. above)
 \begin{code}
-  bld gamma (Set es)     vt tt  =  addBOX mkTset es vt tt
-  bld gamma (Seq es)     vt tt  =  addBOX mkTseq es vt tt
-  bld gamma (Seqc _ _ _ e) vt tt  =  addBOX mkTseq [e] vt tt
-  bld gamma (Setc _ _ pr e) vt tt
-   =  do t <- newtvar
-         (ts,vtr,ttr,_,fr) <- blds gamma (exprsOf pr) vt tt
-         (t',vt',tt',tc,fs) <- bld gamma e vtr ttr
-         return (t,vt',insTentry t (mkTset (Tvar t')) tt',tc,fr `fuse` fs)
+  -- bld gamma (App nm es) vt tt
+    | nm == n_set  =  addBOX mkTset es vt tt
+    | nm == n_seq  =  addBOX mkTseq es vt tt
+--   bld gamma (Seqc _ _ _ e) vt tt  =  addBOX mkTseq [e] vt tt
+--   bld gamma (Setc _ _ pr e) vt tt
+--    =  do t <- newtvar
+--          (ts,vtr,ttr,_,fr) <- blds gamma (exprsOf pr) vt tt
+--          (t',vt',tt',tc,fs) <- bld gamma e vtr ttr
+--          return (t,vt',insTentry t (mkTset (Tvar t')) tt',tc,fr `fuse` fs)
 \end{code}
 
-Maps
+%%% RETAIN JUST IN CASE
+%Maps
+%\begin{eqnarray*}
+%   bldTT_\Gamma (\mapof{d_i \mapsto r_i},vt,tt)
+%   &\defs& (t,vt',tt')
+%\\ \WHERE && new~t, td, tr
+%\\  && (t_1,vt_1,tt_1) = bldTT_\Gamma(d_1,vt,tt)
+%\\  && \vdots
+%\\  && (t_n,vt_n,tt_n) = bldTT_\Gamma(d_n,vt_{n-1},tt_{n-1})
+%\\  && (t_{n+1},vt_{n+1},tt_{n+1}) = bldTT_\Gamma(r_1,vt_n,t_n)
+%\\  && \vdots
+%\\  && (t_{2n},vt_{2n},tt_{2n}) = bldTT_\Gamma(r_n,vt_{2n-1},tt_{2n-1})
+%\\ && vt' = vt_{2n} \oplus td \mapsto t_1 \ldots t_n
+%                     \oplus tr \mapsto t_{n+1} \ldots t_{2n}
+%\\ && tt' = tt_{2n} \oplus t \mapsto (t_d \pfun t_r)
+%\end{eqnarray*}
+%\begin{code}
+%  bld gamma (Map drs) vt tt
+%   = do t <- newtvar
+%        td <- newtvar
+%        tr <- newtvar
+%        (tds,vtd,ttd,_,ft1) <- blds gamma (map fst drs) vt tt
+%        (trs,vtr,ttr,_,ft2) <- blds gamma (map snd drs) vtd ttd
+%        let ft = ft1 `fuse` ft2
+%        let vtp = insTeList td tds vtr
+%        let vt' = insTeList tr trs vtp
+%        let tt' = insTentry t (Tfun (Tvar td) (Tvar tr)) ttr
+%        return (t,vt',tt',[],ft)
+%\end{code}
+
+Applications
 \begin{eqnarray*}
-   bldTT_\Gamma (\mapof{d_i \mapsto r_i},vt,tt)
+   bldTT_\Gamma (f~a,vt,tt)
    &\defs& (t,vt',tt')
-\\ \WHERE && new~t, td, tr
-\\  && (t_1,vt_1,tt_1) = bldTT_\Gamma(d_1,vt,tt)
-\\  && \vdots
-\\  && (t_n,vt_n,tt_n) = bldTT_\Gamma(d_n,vt_{n-1},tt_{n-1})
-\\  && (t_{n+1},vt_{n+1},tt_{n+1}) = bldTT_\Gamma(r_1,vt_n,t_n)
-\\  && \vdots
-\\  && (t_{2n},vt_{2n},tt_{2n}) = bldTT_\Gamma(r_n,vt_{2n-1},tt_{2n-1})
-\\ && vt' = vt_{2n} \oplus td \mapsto t_1 \ldots t_n
-                     \oplus tr \mapsto t_{n+1} \ldots t_{2n}
-\\ && tt' = tt_{2n} \oplus t \mapsto (t_d \pfun t_r)
+\\ \WHERE && new~t
+\\  && (t_a,vt_a,tt_a) = bldTT_\Gamma(a,vt,tt)
+\\ && (vt',tt') = (vt_a,tt_a \oplus t_a \mapsto D, t \mapsto R), \qquad \Gamma(f) = D \fun R
+\\ && (vt',tt') = (vt_a,tt_a), \qquad f \notin \Gamma
 \end{eqnarray*}
 \begin{code}
-  bld gamma (Map drs) vt tt
+  bld gamma (App f es) vt tt
    = do t <- newtvar
-        td <- newtvar
-        tr <- newtvar
-        (tds,vtd,ttd,_,ft1) <- blds gamma (map fst drs) vt tt
-        (trs,vtr,ttr,_,ft2) <- blds gamma (map snd drs) vtd ttd
+        -- (ta,vta,tta,_,ft) <- bld gamma a vt tt
+        (ts,vtn,ttn,_,ft) <- blds gamma es vt tt
+        let td = mkTprod $ map Tvar ts
+        tes <- newtvar
+        res <- flookup gamma (preVar f)
+        case res of
+         Nothing  ->  return(t,vtn,ttn,[tes],ft)
+         (Just (Tfun td tr)) -> addDR t tr tes td vtn ttn ft
+         (Just typ) -> do let typ' = terr f typ
+                          let tt' = insTentry t typ' ttn
+                          return (t,vtn,tt',ts,ft)
+   where terr f t = Terror ("'Fun' "++f++" has type ") t
+
+-- old code for product
+--   bld gamma (App nm es) vt tt
+--     | nm == n_tuple
+--        = do t <- newtvar
+--             (ts,vtn,ttn,_,ft) <- blds gamma es vt tt
+--             let typs = map Tvar ts
+--             return(t,vtn,insTentry t (mkTprod typs) ttn,[],ft)
+
+  bld gamma (Equal e1 e2) vt tt
+   = do t <- newtvar
+        (t1,vt1,tt1,_,ft1) <- bld gamma e1 vt tt
+        (t2,vt2,tt2,_,ft2) <- bld gamma e2 vt1 tt1
         let ft = ft1 `fuse` ft2
-        let vtp = insTeList td tds vtr
-        let vt' = insTeList tr trs vtp
-        let tt' = insTentry t (Tfun (Tvar td) (Tvar tr)) ttr
-        return (t,vt',tt',[],ft)
+        ta <- fmap Tvar newtvar
+        addBIN t B t1 ta t2 ta vt2 tt2 ft
 \end{code}
 
 Definite description:

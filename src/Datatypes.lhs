@@ -305,7 +305,7 @@ rPartition = partition isRsvV
 \end{code}
 
 
-
+\newpage
 \subsection{Quantifier Variables}
 
 We want to be able to match predicates and expressions
@@ -347,7 +347,7 @@ lqnorm = Q . lnorm . outQ
 (Normalising these lists is also useful)
 
 
-
+\newpage
 \subsection{Substitutions}
 
 Substitutions associate a list of things (types,expressions,predicates)
@@ -419,7 +419,7 @@ qvunzipWith :: (v -> Variable) -> Substn v a -> ([a],[Variable])
 qvunzipWith toV sub = setsnd (map toV ) $ qvunzip sub
 \end{code}
 
-
+\newpage
 \subsection{Expressions}
 
 \begin{code}
@@ -448,9 +448,6 @@ data Expr
  -- | EPred Pred  -- converse of 'Obs'
  --               -- EPred $ Obs e   =  e
  --               -- Obs $ EPred pr  =  pr
-
-mkSeq es = App n_Seq es
-n_Seq = "Seq"
 
 instance Eq Expr where -- we ignore type-table and focus parts
  T           == T            =  True

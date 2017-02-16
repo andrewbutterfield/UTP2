@@ -36,10 +36,6 @@ is concerned:
 pFocus :: Pred -> Pred
 pFocus (Obs e)  =  Obs $ Efocus e
 pFocus pr       =  Pfocus pr
-
-eFocus :: Expr -> Expr
-eFocus (EPred pr)  =  EPred $ Pfocus pr
-eFocus e           =  Efocus e
 \end{code}
 
 \newpage
@@ -237,37 +233,15 @@ downEF :: Int -> Expr -> Maybe (Expr, FContext -> FContext)
 
 downEF n (Efocus e) = downEF n e
 
-downEF _ (App s e)        =  Just(e, ctxtMxd)
+downEF n (App s es)       =  downEFs ctxtMxd n es
 downEF _ (Eabs tag qs e)
   =  Just(e, ctxtPush (getqovars qs,tag) . ctxtMxd)
-downEF 1 (Bin s i e1 e2)  =  Just(e1, ctxtMxd)
-downEF 2 (Bin s i e1 e2)  =  Just(e2, ctxtMxd)
 downEF 1 (Equal e1 e2)    =  Just(e1, ctxtMxd)
 downEF 2 (Equal e1 e2)    =  Just(e2, ctxtMxd)
 
--- remember, this renders as " et <| pc |> ee "
-downEF 1 (Cond pc et ee)  =  Just(et, ctxtMxd)
-downEF 2 (Cond pc et ee)  =  Just(ePred pc, ctxtMxd)
-downEF 3 (Cond pc et ee)  =  Just(ee, ctxtMxd)
-
-downEF n (Prod es)    = downEFs ctxtMxd n es
-downEF n (Set es)     = downEFs ctxtMxd n es
-downEF n (Seq es)     = downEFs ctxtMxd n es
-downEF n (Build s es) = downEFs ctxtMxd n es
-
 downEF _ (The tag x pr) = Just (ePred pr, ctxtPush ([x],tag) . ctxtMxd)
-downEF 1 (Setc tag qs pr e) = Just (ePred pr, ctxtPush (getqovars qs,tag) . ctxtMxd)
-downEF 2 (Setc tag qs pr e) = Just (e, ctxtPush (getqovars qs,tag) . ctxtMxd)
-
-downEF 1 (Seqc tag qs pr e) = Just (ePred pr, ctxtPush (getqovars qs,tag) . ctxtMxd)
-downEF 2 (Seqc tag qs pr e) = Just (e, ctxtPush (getqovars qs,tag) . ctxtMxd)
 
 downEF _ (Esub e sub)   = Just (e, ctxtMxd)
-
-downEF i (EPred pr)
- = case downPF i pr of
-     Nothing  ->  Nothing
-     Just (pr', ctxt)  -> Just (ePred pr', ctxt . ctxtMxd)
 
 downEF _ e = Nothing
 
@@ -381,28 +355,10 @@ irepEF :: Expr -> Int -> Expr -> Expr
 
 irepEF ne i (Efocus e) = irepEF ne i e  -- we drop the focus !
 
-irepEF ne _ (App s e)       = App s ne
+irepEF ne i (App s es)      = irepEFs ne i (App s) es
 irepEF ne _ (Eabs tt qs e)  = Eabs 0 qs ne
-irepEF ne 1 (Bin s i e1 e2) = Bin s i ne e2
-irepEF ne 2 (Bin s i e1 e2) = Bin s i e1 ne
 irepEF ne 1 (Equal e1 e2)   = Equal ne e2
 irepEF ne 2 (Equal e1 e2)   = Equal e1 ne
-
--- remember, this renders as " et <| pc |> ee "
-irepEF ne         1 (Cond pc et ee) = Cond pc ne ee
-irepEF ne         2 (Cond pc et ee) = Cond (pExpr ne) ne ee
-irepEF ne         3 (Cond pc et ee) = Cond pc et ne
-
-irepEF ne i (Prod es)    = irepEFs ne i Prod      es
-irepEF ne i (Set es)     = irepEFs ne i Set       es
-irepEF ne i (Seq es)     = irepEFs ne i Seq       es
-irepEF ne i (Build s es) = irepEFs ne i (Build s) es
-
-irepEF ne         1 (Setc tt qs pr e) = Setc 0 qs (pExpr ne) e
-irepEF ne         2 (Setc tt qs pr e) = Setc 0 qs pr ne
-
-irepEF ne         1 (Seqc tt qs pr e) = Seqc 0 qs (pExpr ne) e
-irepEF ne         2 (Seqc tt qs pr e) = Seqc 0 qs pr ne
 
 irepEF ne _ (Esub e sub)    = Esub ne sub
 
@@ -580,21 +536,12 @@ predBranches (Pfocus pr) = predBranches pr
 predBranches _ = 0
 
 exprBranches :: Expr -> Int
-exprBranches (App s e)        =  1
-exprBranches (Eabs tt qs e)      =  1
-exprBranches (Bin s i e1 e2)  =  2
+exprBranches (App s es)       = length es
+exprBranches (Eabs tt qs e)   =  1
 exprBranches (Equal e1 e2)    =  2
-exprBranches (Cond pc et ee)  =  3
-exprBranches (Prod es)        = length es
-exprBranches (Set es)         = length es
-exprBranches (Seq es)         = length es
-exprBranches (Build s es)     = length es
 exprBranches (The tt x pr)    = 1
-exprBranches (Setc tt qs pr e)           = 2
-exprBranches (Seqc tt qs pr e)           = 2
 exprBranches (Esub e (Substn sub)) = 1 + length sub
 exprBranches (Efocus e)               = exprBranches e
-exprBranches (EPred pr) = predBranches pr
 exprBranches _                        = 0
 \end{code}
 

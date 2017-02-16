@@ -8,6 +8,7 @@ import Datatypes
 import Precedences
 import DataText
 
+import Data.Char
 import Text.ParserCombinators.Parsec.Expr
 \end{code}
 
@@ -108,13 +109,21 @@ pS = Pvar $ Std nS
 x = "x"
 y = "y"
 z = "z"
-evx = Evar $ preVar x
-evy = Evar $ preVar y
-evz = Evar $ preVar z
+
+mkEvar nm = Var $ preVar ("E_"++nm) -- REVIEW
+isEvar ('E':'_':_) = True
+isEvar _= False
+getEvar ('E':'_':nm) = nm
+getEvar e = error ("'"++e++"' is not an Evar!")
+
+
+evx = mkEvar x
+evy = mkEvar y
+evz = mkEvar z
 
 n_e = "e"
 e_xs = qvarr "es"
-e = Evar $ preVar n_e
+e = mkEvar n_e
 \end{code}
 
 We introduce some quantifier meta-variables:
@@ -272,9 +281,26 @@ e2_ys = qvarr "ys"
 n_e3 = "e3"
 e3_zs = qvarr "zs"
 
-e1 = Evar $ preVar n_e1
-e2 = Evar $ preVar n_e2
-e3 = Evar $ preVar n_e3
+e1 = mkEvar n_e1
+e2 = mkEvar n_e2
+e3 = mkEvar n_e3
+
+mkBin nm i e1 e2 = App ('_':nm++'_':show i) [e1,e2]
+
+isBin ('_':rest)
+ = let (nm,_i) = break (=='_') rest
+   in case _i of
+     ('_':i) | not (null i) && all isDigit i  ->  True
+     _ -> False
+isBin _ = False
+
+-- valid only if isBin is True
+getBin :: String -> (String,Int)
+getBin (_:rest)
+ = let (nm,_i) = break (=='_') rest
+   in  (nm,read $ tail _i)
+
+
 \end{code}
 
 
@@ -288,7 +314,7 @@ precsEquality
      ]
 
 eq m n  = Equal m n
-ne m n  = Bin neqName (precOf precsEquality neqName) m n
+ne m n  = mkBin neqName (precOf precsEquality neqName) m n
 
 infix 5 `equal`
 infix 5 `neq`
@@ -316,8 +342,8 @@ precsArithmetic1
    ,("mod",(260,AssocLeft))
    ]
 
-nn = Evar $ preVar "n"
-mn = Evar $ preVar "m"
+nn = mkEvar "n"
+mn = mkEvar "m"
 
 infixl 6 `plus`
 infixl 6 `minus`
@@ -327,12 +353,12 @@ infixl 7 `divdiv`
 infixl 7 `modulo`
 
 neg m       = App "neg" m
-plus m n    = Bin "+"   (precLkp precsArithmetic1 "+") m n
-minus m n   = Bin "-"   (precLkp precsArithmetic1 "-") m n
-mul m n     = Bin "*"   (precLkp precsArithmetic1 "*") m n
-divd m n    = Bin "/"   (precLkp precsArithmetic1 "/") m n
-divdiv m n  = Bin "div" (precLkp precsArithmetic1 "div") m n
-modulo m n  = Bin "mod" (precLkp precsArithmetic1 "mod") m n
+plus m n    = mkBin "+"   (precLkp precsArithmetic1 "+") m n
+minus m n   = mkBin "-"   (precLkp precsArithmetic1 "-") m n
+mul m n     = mkBin "*"   (precLkp precsArithmetic1 "*") m n
+divd m n    = mkBin "/"   (precLkp precsArithmetic1 "/") m n
+divdiv m n  = mkBin "div" (precLkp precsArithmetic1 "div") m n
+modulo m n  = mkBin "mod" (precLkp precsArithmetic1 "mod") m n
 
 tNum2 = mkTprod [Z,Z]
 tArithBinOp = Tfun tNum2 Z
@@ -352,10 +378,10 @@ infix 5 `le`
 infix 5 `gt`
 infix 5 `ge`
 
-lt m n  = Bin "<"  (precLkp precsArithmetic2 "<") m n
-le m n  = Bin "<=" (precLkp precsArithmetic2 "<=") m n
-gt m n  = Bin ">"  (precLkp precsArithmetic2 ">") m n
-ge m n  = Bin ">=" (precLkp precsArithmetic2 ">=") m n
+lt m n  = mkBin "<"  (precLkp precsArithmetic2 "<") m n
+le m n  = mkBin "<=" (precLkp precsArithmetic2 "<=") m n
+gt m n  = mkBin ">"  (precLkp precsArithmetic2 ">") m n
+ge m n  = mkBin ">=" (precLkp precsArithmetic2 ">=") m n
 
 tArithRel = Tfun tNum2 B
 
@@ -378,9 +404,9 @@ n_s1 = "s1"
 n_s2 = "s2"
 n_s3 = "s3"
 
-s1 = Evar $ preVar n_s1
-s2 = Evar $ preVar n_s2
-s3 = Evar $ preVar n_s3
+s1 = mkEvar n_s1
+s2 = mkEvar n_s2
+s3 = mkEvar n_s3
 
 precsSet
  = [ ("in",(280,AssocNone))
@@ -397,18 +423,21 @@ tSetBinOp = Tfun tSet2 tSet
 tSetRel = Tfun tSet2 B
 tMmbr = mkTprod [t,tSet]
 
+n_set = "set"
+mkSet = App n_set
+
 infix 8 `mof`
 infixl 6 `unn`
 infixl 7 `intsct`
 
-mof e s      = Bin "in"       (precLkp precsSet "in") e s
-subset s t   = Bin "subset"   (precLkp precsSet "subset") s t
-subsetEq s t = Bin "subseteq" (precLkp precsSet "subseteq") s t
-unn s t      = Bin "union"    (precLkp precsSet "union") s t
-intsct s t   = Bin "intsct"   (precLkp precsSet "intsct") s t
-sdiff s t    = Bin "\\"       (precLkp precsSet "\\") s t
-card s       = App "card"     s
-empty        = Set []
+mof e s      = mkBin "in"       (precLkp precsSet "in") e s
+subset s t   = mkBin "subset"   (precLkp precsSet "subset") s t
+subsetEq s t = mkBin "subseteq" (precLkp precsSet "subseteq") s t
+unn s t      = mkBin "union"    (precLkp precsSet "union") s t
+intsct s t   = mkBin "intsct"   (precLkp precsSet "intsct") s t
+sdiff s t    = mkBin "\\"       (precLkp precsSet "\\") s t
+card s       = App "card"     [s]
+empty        = mkSet []
 
 infix 5 `equalS`
 infix 5 `neqS`
@@ -436,9 +465,9 @@ n_l1 = "l1"
 n_l2 = "l2"
 n_l3 = "l3"
 
-l1 = Evar $ preVar n_l1
-l2 = Evar $ preVar n_l2
-l3 = Evar $ preVar n_l3
+l1 = mkEvar n_l1
+l2 = mkEvar n_l2
+l3 = mkEvar n_l3
 
 n_ell = "ell"
 vell = Var $ preVar n_ell
@@ -450,23 +479,27 @@ tSeq2 = mkTprod [tSeq,tSeq]
 tSeqBinOp  = Tfun tSeq2 tSeq
 tSeqBinRel = Tfun tSeq2 B
 
+n_seq = "seq" ; mkSeq = App n_seq
+n_tuple = "tuple"
+mkProd = App n_tuple
+
 infixr 8 `cons`
 
-cons e s = Bin ":"     (precLkp precsList ":") e s
+cons e s = mkBin ":"     (precLkp precsList ":") e s
 lnull s  = App "null"  s
 hd s     = App "hd"    s
 tl s     = App "tl"    s
-sngll e  = Seq [e]
+sngll e  = mkSeq [e]
 frnt s   = App "frnt"  s
 lst s    = App "lst"   s
 len s    = App "len"   s
-cat s t  = Bin "++"    (precLkp precsList "++") s t
-pfx s t  = Bin "<<="   (precLkp precsList "<<=") s t
-spfx s t = Bin "<<"    (precLkp precsList "<<") s t
-ssub s t = Bin "--"    (precLkp precsList "--") s t
-ix s i   = App "ix"    (Prod [s,i])
+cat s t  = mkBin "++"    (precLkp precsList "++") s t
+pfx s t  = mkBin "<<="   (precLkp precsList "<<=") s t
+spfx s t = mkBin "<<"    (precLkp precsList "<<") s t
+ssub s t = mkBin "--"    (precLkp precsList "--") s t
+ix s i   = App "ix" [s,i]
 elems s  = App "elems" s
-nil      = Seq []
+nil      = mkSeq []
 
 e1 `equalL` e2 = Obs (Equal e1 e2)
 e1 `neqL` e2   = Not (e1 `equalL` e2)
@@ -475,10 +508,10 @@ plnull s = Obs (lnull s)
 ppfx s t  = Obs (s `pfx` t)
 pspfx s t = Obs (s `spfx` t)
 
-ss = Evar $ preVar "s"
-tt = Evar $ preVar "t"
-uu = Evar $ preVar "u"
-ii = Evar $ preVar "i"
+ss = mkEvar "s"
+tt = mkEvar "t"
+uu = mkEvar "u"
+ii = mkEvar "i"
 \end{code}
 
 \subsection{DSL: UTP Theories}

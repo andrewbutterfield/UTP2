@@ -510,32 +510,12 @@ Expressions:
 \begin{code}
 exprFVSet :: MatchContext -> Expr -> FVSetExpr
 exprFVSet mctxt (Var s)         = fvsEnum [s]
-exprFVSet mctxt (Prod es)       = exprsFVSet mctxt es
-exprFVSet mctxt (App s e)       = exprFVSet mctxt e
-exprFVSet mctxt (Bin s i e1 e2) = exprsFVSet mctxt [e1,e2]
+exprFVSet mctxt (App s es)       = exprsFVSet mctxt es
 exprFVSet mctxt (Equal e1 e2)   = exprsFVSet mctxt [e1,e2]
-exprFVSet mctxt (Set es)        = exprsFVSet mctxt es
-exprFVSet mctxt (Seq es)        = exprsFVSet mctxt es
-exprFVSet mctxt (Map drs)       = exprsFVSet mctxt (des++res)
-                                      where (des,res)=unzip drs
-exprFVSet mctxt (Cond pc et ee) = fvsUnion [ predFVSet mctxt pc
-                                                , exprsFVSet
-                                                mctxt [et,ee]]
-exprFVSet mctxt (Build s es)    = exprsFVSet mctxt es
-exprFVSet mctxt (Setc tt qs pr e)  = fvsUnion [ predFVSet mctxt pr
-                                                , exprFVSet
-                                                mctxt e
-                                                ] `fvsDiff`
-                                                getqvars qs
-exprFVSet mctxt (Seqc tt qs pr e)  = fvsUnion [ predFVSet mctxt pr
-                                                , exprFVSet
-                                                mctxt e
-                                                ] `fvsDiff`
-                                                getqvars qs
 exprFVSet mctxt (The tt x pr)      = predFVSet mctxt pr `fvsDiff` [x]
 exprFVSet mctxt (Eabs tt qs e)     = exprFVSet mctxt e
                                         `fvsDiff` getqvars qs
-exprFVSet mctxt (Evar s)        = fvsNameE $ varKey s
+-- exprFVSet mctxt (Evar s) = fvsNameE $ varKey s -- REVIEW
 exprFVSet mctxt (Esub e sub)    = esubFVSet mctxt
                                           (exprFVSet mctxt e)
                                           sub
@@ -723,25 +703,14 @@ efreeovars mctxt bs fs (Var v)
 The rest is mainly recursive boilerplate...
 \begin{code}
 efreeovars mctxt bs fs (Eabs _ qs e)     =  efreeovars mctxt (bs+|+qs) fs e
-efreeovars mctxt bs fs (Setc _ qs pr e)
-             = seq2 (bs+|+qs) fs (pfreeovars mctxt) pr (efreeovars mctxt) e
-efreeovars mctxt bs fs (Seqc _ qs pr e)
-             = seq2 (bs+|+qs) fs (pfreeovars mctxt) pr (efreeovars mctxt) e
 
 efreeovars mctxt bs fs (Esub e sub)
  = let efs = exprFreeOVars mctxt e
    in sfreevars (efreeovars mctxt) bs fs efs (qvunzip sub)
 
-efreeovars mctxt bs fs (Cond pc et ee)
- = seq2 bs fs (pfreeovars mctxt) pc (seq2s (efreeovars mctxt)) [et,ee]
-efreeovars mctxt bs fs (Prod es)       = seq2s (efreeovars mctxt) bs fs es
-efreeovars mctxt bs fs (App s e)       = efreeovars mctxt bs fs e
-efreeovars mctxt bs fs (Bin s i e1 e2) = seq2s (efreeovars mctxt) bs fs [e1,e2]
+efreeovars mctxt bs fs (App s es)
+ = seq2s (efreeovars mctxt) bs fs es
 efreeovars mctxt bs fs (Equal e1 e2)   = seq2s (efreeovars mctxt) bs fs [e1,e2]
-efreeovars mctxt bs fs (Set es)        = seq2s (efreeovars mctxt) bs fs es
-efreeovars mctxt bs fs (Seq es)        = seq2s (efreeovars mctxt) bs fs es
-efreeovars mctxt bs fs (Map drs)       = seq2s (efreeovars mctxt) bs fs (mflat drs)
-efreeovars mctxt bs fs (Build s es)    = seq2s (efreeovars mctxt) bs fs es
 efreeovars mctxt bs fs (The _ x pr)  = pfreeovars mctxt (x:bs) fs pr
 
 efreeovars mctxt bs fs (Efocus ef)     = efreeovars mctxt bs fs ef
@@ -856,30 +825,18 @@ predsFreeEVars mctxt = lnorm . seq2s (pfreeevars mctxt) [] []
 \end{code}
 
 \begin{code}
-efreeevars mctxt bs fs (Evar s)
- | s `elem` bs  =  fs
- | otherwise    =  (s:fs)
+-- efreeevars mctxt bs fs (Evar s)  -- REVIEW
+-- | s `elem` bs  =  fs
+-- | otherwise    =  (s:fs)
 
 efreeevars mctxt bs fs (Esub e sub)
  = let efs = efreeevars mctxt [] [] e in
        sfreevars (efreeevars mctxt) bs fs efs (qvunzip sub)
 
-efreeevars mctxt bs fs (Prod es)       = seq2s (efreeevars mctxt) bs fs es
-efreeevars mctxt bs fs (App s e)       = efreeevars mctxt bs fs e
-efreeevars mctxt bs fs (Bin s i e1 e2) = seq2s (efreeevars mctxt) bs fs [e1,e2]
-efreeevars mctxt bs fs (Equal e1 e2)   = seq2s (efreeevars mctxt) bs fs [e1,e2]
-efreeevars mctxt bs fs (Set es)        = seq2s (efreeevars mctxt) bs fs es
-efreeevars mctxt bs fs (Seq es)        = seq2s (efreeevars mctxt) bs fs es
-efreeevars mctxt bs fs (Setc _ qs pr e)
- = seq2 bs fs (pfreeevars mctxt) pr (efreeevars mctxt) e
-efreeevars mctxt bs fs (Seqc _ qs pr e)
- = seq2 bs fs (pfreeevars mctxt) pr (efreeevars mctxt) e
-efreeevars mctxt bs fs (Map drs)
- = seq2s (efreeevars mctxt) bs fs (mflat drs)
-efreeevars mctxt bs fs (Cond pc et ee)
- = seq2 bs fs (pfreeevars mctxt) pc (seq2s (efreeevars mctxt)) [et,ee]
-efreeevars mctxt bs fs (Build s es)
+efreeevars mctxt bs fs (App s es)
  = seq2s (efreeevars mctxt) bs fs es
+efreeevars mctxt bs fs (Equal e1 e2)
+ = seq2s (efreeevars mctxt) bs fs [e1,e2]
 efreeevars mctxt bs fs (The _ qs pr)
  = pfreeevars mctxt bs fs pr
 efreeevars mctxt bs fs (Eabs _ (Q qs) e)
@@ -957,22 +914,9 @@ efreepvars mctxt bs fs (Esub e sub)
  = let efs = efreeovars mctxt [] [] e in
        sfreevars (efreepvars mctxt) bs fs efs (qvunzip sub)
 
-efreepvars mctxt bs fs (Prod es)       = seq2s (efreepvars mctxt) bs fs es
-efreepvars mctxt bs fs (App s e)       = efreepvars mctxt bs fs e
-efreepvars mctxt bs fs (Bin s i e1 e2) = seq2s (efreepvars mctxt) bs fs [e1,e2]
-efreepvars mctxt bs fs (Equal e1 e2)   = seq2s (efreepvars mctxt) bs fs [e1,e2]
-efreepvars mctxt bs fs (Set es)        = seq2s (efreepvars mctxt) bs fs es
-efreepvars mctxt bs fs (Seq es)        = seq2s (efreepvars mctxt) bs fs es
-efreepvars mctxt bs fs (Setc _ qs pr e)
- = seq2 bs fs (pfreepvars mctxt) pr (efreepvars mctxt) e
-efreepvars mctxt bs fs (Seqc _ qs pr e)
- = seq2 bs fs (pfreepvars mctxt) pr (efreepvars mctxt) e
-efreepvars mctxt bs fs (Map drs)
- = seq2s (efreepvars mctxt) bs fs (mflat drs)
-efreepvars mctxt bs fs (Cond pc et ee)
- = seq2 bs fs (pfreepvars mctxt) pc (seq2s (efreepvars mctxt)) [et,ee]
-efreepvars mctxt bs fs (Build s es)
- = seq2s (efreepvars mctxt) bs fs es
+efreepvars mctxt bs fs (App s es) = seq2s (efreepvars mctxt) bs fs es
+efreepvars mctxt bs fs (Equal e1 e2)
+ = seq2s (efreepvars mctxt) bs fs [e1,e2]
 efreepvars mctxt bs fs (The _ qs pr)
  = pfreepvars mctxt bs fs pr
 efreepvars mctxt bs fs (Eabs _ qs e)
@@ -1101,13 +1045,8 @@ predAllOVars pr                    = lnorm $ foldP allOVarsFold pr
 qOVar ov = (ov,Vonly)
 
 exprAllOVars (Var s) = [(s,VorT)]
-exprAllOVars (Evar s) = [(s,VorT)]
-exprAllOVars (App s e) = exprAllOVars e -- ignore s for now
-exprAllOVars (Bin s _ e1 e2) = lnorm (exprAllOVars e1++exprAllOVars e2)
-exprAllOVars (Setc _ (Q vs) p e)
- = lnorm (map qOVar vs ++ predAllOVars p ++ exprAllOVars e)
-exprAllOVars (Seqc _ (Q vs) p e)
- = lnorm (map qOVar vs ++ predAllOVars p ++ exprAllOVars e)
+exprAllOVars (App s es)  -- ignore s for now
+ = concat $ map exprAllOVars es
 exprAllOVars (The _ x p2) = lnorm ([(x,Vonly)] ++ predAllOVars p2)
 exprAllOVars (Eabs _ (Q vs) e)  =  lnorm (map qOVar vs ++ exprAllOVars e)
 exprAllOVars (Esub e esub) = lnorm (exprAllOVars e ++ esubOVars esub)
@@ -1167,9 +1106,6 @@ forcePredInductionVar ivar pr
  = mapP (forcePredInductionVar ivar, forceExprInductionVar ivar) pr
 
 forceExprInductionVar :: Variable -> Expr -> Expr
-forceExprInductionVar ivar e@(Evar evar)
- | evar == ivar  =  Var evar  -- found induction variable, force it
- | otherwise     =  e
 forceExprInductionVar ivar e
  = mapE (forcePredInductionVar ivar, forceExprInductionVar ivar) e
 \end{code}
