@@ -1596,9 +1596,7 @@ showExpr p (The tt x pr)
 
 showExpr p (Eabs tt qs eb)
   = ksymEABS ++ " " ++ show qs ++ pad _bullet ++ eShow (p+1) eb
-showExpr p (App "-" es) = "-" ++ eShow (p+1) es -- special case
-showExpr p e@(App v es) = v ++ " " ++ eShow (q+1) es
- where q = ePrec e
+showExpr p (App n es) = n ++ "(" ++ showSep 0 eShow "," es ++ ")"
 showExpr p e@(Equal e1 e2)
   = eShow q e1 ++" = "++ eShow q e2
   where q = ePrec e

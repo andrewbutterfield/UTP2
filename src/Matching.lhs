@@ -1202,8 +1202,8 @@ eMatch here mres T T = return mres
 eMatch here mres F F = return mres
 eMatch here mres (Num ti) (Num pi)
  = matchIfEq ti pi (return mres)
-eMatch here mres (App ts te) (App ps pe)
- = matchIfEq ts ps (eMatch here mres te pe)
+eMatch here mres (App ts tes) (App ps pes)
+ = eMList here mres tes pes
 eMatch here mres (Equal te1 te2) (Equal pe1 pe2)
  = eMList here mres [te1,te2] [pe1,pe2]
 

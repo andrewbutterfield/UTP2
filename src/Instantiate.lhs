@@ -166,7 +166,7 @@ instantiateExpr mctxt bnds@(gpbnds,vebnds,ttbnds) pat
  where
 
    bE (Var v) = bevalE mctxt bnds v
-   bE (App s e) = App s (bE e)
+   bE (App s es) = App s (map bE es)
    bE (Equal e1 e2) = Equal (bE e1) (bE e2)
    bE (Eabs tt qs e)     = mkEabs (instantiateQ mctxt bnds qs) (bE e)
    bE (Esub e sub)    = mkEsub (bE e) (instantiateESub mctxt bnds sub)

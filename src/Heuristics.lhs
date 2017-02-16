@@ -226,10 +226,10 @@ exprSize T               = 1
 exprSize F               = 1
 exprSize (Num i)         = 2
 exprSize (Var s)         = 2
-exprSize (App s e)       = 2 + exprSize e
+exprSize (App s es)      = 2 + esSize es
 exprSize (Equal e1 e2)   = 2 + esSize [e1,e2]
-exprSize (The _ x pr)      = 12 + predSize pr
-exprSize (Eabs _ qs e)     = 2 + qSize qs + exprSize e
+exprSize (The _ x pr)    = 12 + predSize pr
+exprSize (Eabs _ qs e)   = 2 + qSize qs + exprSize e
 exprSize (Esub e sub)    = 2 + exprSize e + sSize sub
 exprSize _               = 20
 \end{code}
@@ -457,7 +457,7 @@ mrkPDef msg = (msg,Ppabs (qvar "P") (Pvar $ Std "P"))
 markP = Pvar $ Std " P"
 mrkPLaw msg = (msg,(badRank,(Eqv (errPMrk msg markP) markP,SCtrue)))
 
-errEMrk msg e = App msg e
+errEMrk msg e = App msg [e]
 markE = Var $ preVar " e"
 mrkELaw msg = (msg,(badRank,(Obs (Equal (errEMrk msg markE) markE),SCtrue)))
 \end{code}

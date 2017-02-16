@@ -457,7 +457,7 @@ instance Eq Expr where -- we ignore type-table and focus parts
  F           == F            =  True
  (Num i)     == (Num j)      =  i == j
  (Var u)     == (Var v)      =  u == v
- (App str e) == (App txt f)  =  str == txt && e == f
+ (App str es) == (App txt fs)  =  str == txt && es == fs
  (Equal e1 e2) == (Equal f1 f2)  =  e1 == f1 && e2 == f2
  (The _ str p)  == (The _ txt q)   =  p == q && str == txt
  (Eabs _ qus e) == (Eabs _ qvs f)  =  e == f && qus == qvs
@@ -781,7 +781,7 @@ eequiv T T = True
 eequiv F F = True
 eequiv (Num i1) (Num i2) = i1==i2
 eequiv (Var v1) (Var v2) = v1==v2
-eequiv (App s1 e1) (App s2 e2) = s1==s2 && e1 `eequiv` e2
+eequiv (App s1 es1) (App s2 es2) = s1==s2 && es1 `esequiv` es2
 eequiv (Equal e11 e21) (Equal e12 e22) = samelist eequiv [e11,e21] [e12,e22]
 eequiv (The _ qs1 pr1) (The _ qs2 pr2) = qs1==qs2 && pequiv pr1 pr2
 eequiv (Eabs _ qs1 e1) (Eabs _ qs2 e2) = qs1==qs2 && e1 `eequiv` e2
@@ -789,6 +789,10 @@ eequiv (Esub e1 sub1) (Esub e2 sub2)
  = e1 `eequiv` e2 && sub1 `estlequiv`  sub2
 
 eequiv _ _ = False
+
+esequiv [] [] = True
+esequiv (e1:es1) (e2:es2) = e1 `eequiv` e2 && es1 `esequiv` es2
+esequiv _ _ = False
 \end{code}
 
 Substitution equivalence:
@@ -992,7 +996,6 @@ typeRec merge spec base ty
 \subsubsection{\texttt{Expr} Single Recursion}
 
 \begin{code}
-
 exprRec merge spec base ex
  = case spec ex of
      (Just res)  ->  res
@@ -1002,13 +1005,12 @@ exprRec merge spec base ex
   exprrec = exprRec merge spec base
   exprrec2 (de,re) = merge $ map exprrec [de,re]
 
-  eRecurse (App _ ex) = exprrec ex
+  eRecurse (App _ exs) = merge $ map exprrec exs
   eRecurse (Equal ex1 ex2) = merge $ map exprrec [ex1,ex2]
   eRecurse (Eabs _ _ ex) = exprrec ex
   eRecurse (Esub ex (Substn ssub))
     = merge $ map exprrec (ex:(map snd ssub))
   eRecurse _ = base
-
 \end{code}
 
 \subsubsection{\texttt{Pred} Single Recursion}
@@ -1185,8 +1187,8 @@ mapPf (fp,fe) pr@(Pfocus _)
 
 mapPf (fp,fe) pr = (pr, False)
 
-mapEf (fp,fe) (App s e) = (App s e', dif)
-  where (e', dif) = fe e
+mapEf (fp,fe) (App s es) = (App s es', or difs)
+  where (es',difs) = unzip $ map fe es
 mapEf (fp,fe) (Equal e1 e2) = (Equal e1' e2', dif1 || dif2)
   where
     (e1', dif1) = fe e1
@@ -1266,7 +1268,7 @@ mapPSf fp (PSetU s1 s2) = (PSetU s1' s2', dif1 || dif2)
 mapPSf fp s = (s, False)
 
 
-mapE (fp,fe) (App s e)         = App s (fe e)
+mapE (fp,fe) (App s es)         = App s (map fe es)
 mapE (fp,fe) (Equal e1 e2)     = Equal (fe e1) (fe e2)
 mapE (fp,fe) (The tt qs pr)    = The tt qs (fp pr)
 mapE (fp,fe) (Eabs tt qs e)    = Eabs tt qs (fe e)
@@ -1385,7 +1387,7 @@ Folding over Expressions:
 foldE pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) e
  = f e
  where
-  f (App s e) = g1 $ g0 e
+  f (App s es) = g2 $ map g0 es
   f (Equal e1 e2) = g2 $ map g0 [e1,e2]
   f (The tt qvs p2) = g1 $ f0 p2
   f (Eabs tt qvs e) = g1 $ g0 e
@@ -1393,9 +1395,6 @@ foldE pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) e
   f (Efocus e) = g1 $ g0 e
 
   f e = ea -- recursion must stop here !
-
-  gg0 (d,r) = [g0 d, g0 r]
-
 -- end foldE
 \end{code}
 
@@ -1552,7 +1551,8 @@ The \texttt{Expr} version:
 \begin{code}
 accEseq :: (a -> Pred -> (Pred,a),a -> Expr -> (Expr,a))
             -> a -> Expr -> (Expr,a)
-accEseq (pf,ef) a (App s e) = (App s e',a') where (e',a') = ef a e
+accEseq (pf,ef) a (App s es) = (App s es',a')
+  where (es',a') = accEseqs ef a es
 accEseq (pf,ef) a (Equal e1 e2) = (Equal e1' e2',a')
   where ([e1',e2'],a') = accEseqs ef a [e1,e2]
 accEseq (pf,ef) a (The tt qs pr) = (The tt qs pr',a')
@@ -1705,7 +1705,8 @@ dbgEshow i T               = hdr i ++ "T"
 dbgEshow i F               = hdr i ++ "F"
 dbgEshow i (Num n)         = hdr i ++ "NUM "++show n
 dbgEshow i (Var v)         = hdr i ++ "VAR " ++ dbgVshow v
-dbgEshow i (App s e)       = hdr i ++ "APP "++s++dbgEshow (i+1) e
+dbgEshow i (App s es)
+ = hdr i ++ "APP "++s++concat (map (dbgEshow (i+1)) es)
 dbgEshow i (Equal e1 e2)
  = hdr i ++ "EQUAL"++dbgEshow (i+1) e1++dbgEshow (i+1) e2
 dbgEshow i (The tt x pr)
@@ -1716,7 +1717,6 @@ dbgEshow i (Eerror s) = hdr i ++ "EERROR "++s
 dbgEshow i (Efocus ef)
  = hdr i ++ "EFOCUS" ++ dbgEshow (i+1) ef
 
--- Code to show map domain and range
 
 dbgDshow NoDecor = "NODECOR"
 dbgDshow Pre = "PRE"
@@ -2036,7 +2036,7 @@ exprParts T                  = ("T",[],[],[])
 exprParts F                  = ("F",[],[],[])
 exprParts (Num _)            = ("Num",[],[],[])
 exprParts (Var (_,_,s))      = ("Var:"++s,[],[],[])
-exprParts (App s e)          = ("App",[],[e],[])
+exprParts (App s es)          = ("App",[],es,[])
 exprParts (Equal e1 e2)      = ("Equal",[],[e1,e2],[])
 exprParts (The tt x pr)      = ("The",[pr],[],[Q [x]])
 exprParts (Eabs tt qs e)     = ("Eabs",[],[e],[qs])
@@ -2071,7 +2071,7 @@ predsOf e
 Extracting the language components is useful
 \begin{code}
 exprLang :: Expr -> [String]
-exprLang (App s e)       = exprLang e
+exprLang (App s es)       = exprsLang es
 exprLang (Equal e1 e2)   = exprsLang [e1,e2]
 exprLang (The tt qs pr)     = predLang pr
 exprLang (Eabs tt qs e)     = exprLang e

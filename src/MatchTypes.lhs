@@ -2045,8 +2045,10 @@ ealfequiv bvs (Var s1) (Var s2) = valfequiv bvs s1 s2
    (Q_1 \balfeqv{B_1}{B_2} Q_2)
 \end{eqnarray*}
 \begin{code}
-ealfequiv bvs (App s1 e1) (App s2 e2) | s1==s2 = ealfequiv bvs e1 e2
-ealfequiv bvs (Equal e11 e21) (Equal e12 e22) = alflist ealfequiv bvs [e11,e21] [e12,e22]
+ealfequiv bvs (App s1 es1) (App s2 es2) | s1==s2
+  = alflist ealfequiv bvs es1 es2
+ealfequiv bvs (Equal e11 e21) (Equal e12 e22)
+  = alflist ealfequiv bvs [e11,e21] [e12,e22]
 \end{code}
 
 \newpage
