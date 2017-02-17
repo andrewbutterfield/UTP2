@@ -420,8 +420,32 @@ qvunzipWith toV sub = setsnd (map toV ) $ qvunzip sub
 \end{code}
 
 \newpage
+\subsection{Terms}
+
+We can posit a very general notion of terms ($t$),
+within which we can also embed some other term syntax ($s$).
+Terms are parameterised by a notion of constants ($k$)
+and variables ($v$)
+and with some fixed notion of names ($n$).
+\begin{eqnarray*}
+   n &\in& Names
+\\ k &\in& Constants
+\\ v &\in& Variables
+\\ \ell &\in& ListVar
+\\ vs \in VarList &=& (v | \ell)^*
+\\ s &\in& Syntax (other)
+\\ t \in Term~k~v~s
+   &::=& k
+\\ & | & v
+\\ & | & n(t,\dots,t)
+\\ & | & n~vs~@ (t,\dots,t)
+\\ & | & [s]
+\end{eqnarray*}
+
+\newpage
 \subsection{Expressions}
 
+We have a very simple gneen
 \begin{code}
 data Expr
  = T
