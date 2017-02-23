@@ -39,9 +39,5 @@ To run UTP2 using Electron you'll first need Node and npm.
 
 Install Electron globally: `npm install -g electron`
 
-Then to build and run on port 8000:
-```
-stack build
-stack exec UTP2-threepenny 8000
-```
+To run on port 8000: `stack exec UTP2-threepenny 8000`
 

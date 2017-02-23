@@ -3,15 +3,18 @@ module Main where
 
 import Control.Concurrent  (forkIO, threadDelay)
 import Control.Monad       (void)
+import Paths_UTP2          (getDataFileName)
 import System.Environment  (getArgs)
-import System.Process      (spawnCommand)
+import System.Process      (spawnProcess)
 import UTP2.GUI.Threepenny (start)
 
 main :: IO ()
 main = do
-    [port] <- getArgs
+    [portArg] <- getArgs
+    let port = read portArg
     forkIO $ void $ do
         threadDelay $ 1 * 1000000 -- 1 second
-        spawnCommand $ "electron electron.js " ++ port
-    start $ read port
+        electronMain <- getDataFileName "electron.js"
+        spawnProcess "electron" [electronMain, portArg]
+    start port
 \end{code}

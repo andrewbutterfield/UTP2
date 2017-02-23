@@ -22,6 +22,7 @@ data-files:          UTP2-alert.wav
                      UTP2-note.wav
                      UTP2-scream.wav
                      static/css/materialize.css
+                     electron.js
 
 Library
     hs-source-dirs:  src
