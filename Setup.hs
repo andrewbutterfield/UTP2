@@ -1,5 +1,5 @@
 -- Build .app bundles with the cabal-macosx package
--- Modeled after the excellent documentation on 
+-- Modeled after the excellent documentation on
 -- https://github.com/gimbo/cabal-macosx/tree/master/examples
 {-# LANGUAGE CPP #-}
 

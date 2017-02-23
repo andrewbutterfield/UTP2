@@ -9,9 +9,9 @@ import UTP2.GUI.Threepenny (start)
 
 main :: IO ()
 main = do
-    [port, static] <- getArgs
+    [port] <- getArgs
     forkIO $ void $ do
         threadDelay $ 1 * 1000000 -- 1 second
         spawnCommand $ "electron electron.js " ++ port
-    start (read port) static
+    start $ read port
 \end{code}

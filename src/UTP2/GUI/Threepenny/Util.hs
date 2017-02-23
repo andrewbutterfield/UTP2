@@ -1,5 +1,6 @@
 module UTP2.GUI.Threepenny.Util where
 
+import           Control.Monad               (void)
 import           Control.Monad.Trans.Class   (lift)
 import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Core
@@ -26,3 +27,24 @@ mkButton :: String -> UTP2 Element
 mkButton text =
   lift $ UI.button # set UI.class_ "waves-effect waves-light btn"
                    # set UI.text text
+
+-- File Selection --------------------------------------------------------------
+
+-- |Returns a file selector element that executes the given action on value
+-- change of the file selector.
+fileSelector :: String -> UTP2 Element
+fileSelector text = do
+    let id = "fileSelectorId"
+    selector <- lift $ UI.input # set UI.type_ "file"
+                                # set UI.text text
+                                # set UI.id_ id
+    lift $ on UI.valueChange selector $ const $ void $ do
+      filepath <- selectorPath id
+      liftIO $ putStrLn "File selected"
+      liftIO $ putStrLn filepath
+    return selector
+
+selectorPath :: String -> UI String
+selectorPath id = callFunction $
+    ffi "document.getElementById(%1).files[0].path" id
+

@@ -15,7 +15,8 @@ mkHome = do
     text      <- textB $ "Workspace " ++ workspace
     theories  <- mkTheories
     proofs    <- mkProofs
-    lift $ element top #+ map element [text, theories, proofs]
+    selector  <- fileSelector "Selector"
+    lift $ element top #+ map element [text, theories, proofs, selector]
 
 -- |Theories in the home window.
 mkTheories :: UTP2 Element

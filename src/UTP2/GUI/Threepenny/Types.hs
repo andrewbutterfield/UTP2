@@ -7,7 +7,7 @@ import           Graphics.UI.Threepenny
 -- |Enironment/config the app requires.
 data Env = Env { eWorkspace :: FilePath }
 
--- |Monad the ap runs in.
+-- |Monad the app runs in.
 type UTP2 a = ReaderT Env UI a
 
 -- |Run the UTP2 monad.

@@ -35,7 +35,13 @@ The project should now build with stack.
 
 ### Threepenny
 
-To run UTP2 with the web-based Threepenny gui on port 8000:
+To run UTP2 using Electron you'll first need Node and npm.
 
-`stack exec UTP2-threepenny 8000 src/threepenny-static`
+Install Electron globally: `npm install -g electron`
+
+Then to build and run on port 8000:
+```
+stack build
+stack exec UTP2-threepenny 8000
+```
 
