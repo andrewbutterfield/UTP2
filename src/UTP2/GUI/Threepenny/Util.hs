@@ -12,6 +12,7 @@ import           UTP2.GUI.Threepenny.Types
 styledText :: [(String, String)] -> String -> UTP2 Element
 styledText style text = lift $ UI.div # set UI.text  text
                                       # set UI.style style
+
 -- |Italics text.
 textI :: String -> UTP2 Element
 textI = styledText [("font-style", "italic")]
@@ -24,16 +25,15 @@ textB = styledText [("font-style", "bold")]
 
 -- |Materialize-styled button with given text.
 mkButton :: String -> UTP2 Element
-mkButton text =
-  lift $ UI.button # set UI.class_ "waves-effect waves-light btn"
-                   # set UI.text text
+mkButton text = lift $ UI.button # set UI.class_ "waves-effect waves-light btn"
+                                 # set UI.text text
 
 -- File Selection --------------------------------------------------------------
 
 -- |Returns a file selector element that executes the given action on value
 -- change of the file selector.
-fileSelector :: String -> UTP2 Element
-fileSelector text = do
+fileSelector :: String -> [String -> UI a] -> UTP2 Element
+fileSelector text actions = do
     let id = "fileSelectorId"
     selector <- lift $ UI.input # set UI.type_ "file"
                                 # set UI.text text
@@ -42,6 +42,7 @@ fileSelector text = do
       filepath <- selectorPath id
       liftIO $ putStrLn "File selected"
       liftIO $ putStrLn filepath
+      mapM ($ filepath) actions
     return selector
 
 selectorPath :: String -> UI String

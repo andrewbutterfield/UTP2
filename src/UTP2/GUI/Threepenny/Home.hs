@@ -15,7 +15,7 @@ mkHome = do
     text      <- textB $ "Workspace " ++ workspace
     theories  <- mkTheories
     proofs    <- mkProofs
-    selector  <- fileSelector "Selector"
+    selector  <- fileSelector "Selector" []
     lift $ element top #+ map element [text, theories, proofs, selector]
 
 -- |Theories in the home window.

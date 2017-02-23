@@ -2,7 +2,9 @@
   CLOSED: [2017-02-23 Thu 14:55]
 * DONE Instructions to run app-threepenny
   CLOSED: [2017-02-23 Thu 15:25]
-* TODO Install Electron as local dependency
-* TODO Execute given actions on file selection
-* TODO Integrate threepenny-gui-contextmenu
-* TODO Add unique ID generator to UTP2 monad
+* DONE Install Electron as local dependency
+  CLOSED: [2017-02-23 Thu 18:28]
+* DONE [#A] Execute given actions on file selection
+  CLOSED: [2017-02-23 Thu 18:54]
+* TODO [#A] Integrate threepenny-gui-contextmenu
+* TODO [#C] Add unique ID generator to UTP2 monad
