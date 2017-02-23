@@ -184,3 +184,6 @@ moduledeps
 *.hi
 .stack-work
 *.exe
+
+# Node
+node_modules/
