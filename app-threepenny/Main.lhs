@@ -15,6 +15,6 @@ main = do
     forkIO $ void $ do
         threadDelay $ 1 * 1000000 -- 1 second
         electronMain <- getDataFileName "electron.js"
-        spawnProcess "electron" [electronMain, portArg]
+        spawnProcess "./node_modules/.bin/electron" [electronMain, portArg]
     start port
 \end{code}
