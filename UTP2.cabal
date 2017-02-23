@@ -102,7 +102,7 @@ Library
                    , time
                    , threepenny-gui
                    , transformers
-                   -- , threepenny-gui-contextmenu
+                   , threepenny-gui-contextmenu
                    , wxcore
                    , wx
     extensions:      FlexibleContexts

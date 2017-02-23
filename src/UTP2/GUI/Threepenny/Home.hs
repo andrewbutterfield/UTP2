@@ -1,5 +1,7 @@
 module UTP2.GUI.Threepenny.Home where
 
+import           ContextMenu                 (MenuItem)
+import qualified ContextMenu                 as CM
 import           Control.Monad.Reader        (ask)
 import           Control.Monad.Trans.Class   (lift)
 import qualified Graphics.UI.Threepenny      as UI
@@ -32,6 +34,6 @@ mkProofs :: UTP2 Element
 mkProofs = do
     top    <- lift $ UI.div
     text   <- textI "Proofs"
+    lift $ CM.contextMenu [CM.actionMenuItem "foo" []] text
     button <- mkButton "."
     lift $ element top #+ map element [text, button]
-

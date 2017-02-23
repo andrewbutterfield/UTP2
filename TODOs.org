@@ -4,7 +4,12 @@
   CLOSED: [2017-02-23 Thu 15:25]
 * DONE Install Electron as local dependency
   CLOSED: [2017-02-23 Thu 18:28]
-* DONE [#A] Execute given actions on file selection
+* DONE Execute given actions on file selection
   CLOSED: [2017-02-23 Thu 18:54]
-* TODO [#A] Integrate threepenny-gui-contextmenu
-* TODO [#C] Add unique ID generator to UTP2 monad
+* DONE Add threepenny-gui-contextmenu
+  CLOSED: [2017-02-23 Thu 20:15]
+* TODO Fix contextmenu positioning
+* TODO Fix contextmenu altering source element styling
+* TODO Add unique ID generator to UTP2 monad
+* TODO Write Threepenny layout menu.
+* TODO Package as Electron app.

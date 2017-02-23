@@ -2,6 +2,14 @@ resolver: lts-4.1
 
 packages:
 - '.'
+- location:
+    git: https://github.com/HeinrichApfelmus/threepenny-gui
+    commit: HEAD
+  extra-dep: true
+- location:
+    git: https://github.com/barischj/threepenny-gui-contextmenu
+    commit: HEAD
+  extra-dep: true
 
 extra-deps:
 - aeson-0.11.3.0
