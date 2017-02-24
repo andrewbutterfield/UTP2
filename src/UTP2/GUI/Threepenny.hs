@@ -19,10 +19,6 @@ start port = do
         jsStatic = Just static -- Directory path for static content
     } $ \w -> runApp (app w) env
 
--- |The initial environement.
-initialEnv :: IO Env
-initialEnv = return Env { eWorkspace = "foo/bar" }
-
 -- |The Threepenny app.
 app :: Window -> UTP2 ()
 app window = do

@@ -16,9 +16,11 @@ argument of UI actions to run on file input value change.
 * DONE Fix contextmenu positioning
   CLOSED: [2017-02-24 Fri 16:27]
 This required changing the coordinates reported by Threepenny's JS.
-* TODO Fix contextmenu altering source element styling
 * TODO Add unique ID generator to UTP2 monad
-* TODO Write Threepenny layout menu
+Added MVar to UTP2 monad config which holds current ID integer.
+Incremented on each unique ID access.
+* TODO Write Threepenny layout functions
 * TODO Package as Electron app
 * TODO Finish home screen
 * TODO Navbar
+* TODO Fix contextmenu altering source element styling

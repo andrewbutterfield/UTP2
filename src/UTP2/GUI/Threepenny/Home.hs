@@ -13,8 +13,7 @@ import           UTP2.GUI.Threepenny.Util
 mkHome :: UTP2 Element
 mkHome = do
     top       <- lift $ UI.div
-    workspace <- eWorkspace <$> ask
-    text      <- textB $ "Workspace " ++ workspace
+    text      <- textB "Workspace"
     theories  <- mkTheories
     proofs    <- mkProofs
     selector  <- fileSelector "Selector" []
