@@ -1,15 +1,24 @@
 * DONE Demonstrate file selection
   CLOSED: [2017-02-23 Thu 14:55]
+File selection prints the full filepath to std out on value change.
 * DONE Instructions to run app-threepenny
   CLOSED: [2017-02-23 Thu 15:25]
+Instructions include installing Electron.
 * DONE Install Electron as local dependency
   CLOSED: [2017-02-23 Thu 18:28]
+Requires running the app from the root directory.
 * DONE Execute given actions on file selection
   CLOSED: [2017-02-23 Thu 18:54]
+The function which creates a file selection element should take an additional
+argument of UI actions to run on file input value change.
 * DONE Add threepenny-gui-contextmenu
   CLOSED: [2017-02-23 Thu 20:15]
-* TODO Fix contextmenu positioning
+* DONE Fix contextmenu positioning
+  CLOSED: [2017-02-24 Fri 16:27]
+This required changing the coordinates reported by Threepenny's JS.
 * TODO Fix contextmenu altering source element styling
 * TODO Add unique ID generator to UTP2 monad
-* TODO Write Threepenny layout menu.
-* TODO Package as Electron app.
+* TODO Write Threepenny layout menu
+* TODO Package as Electron app
+* TODO Finish home screen
+* TODO Navbar
