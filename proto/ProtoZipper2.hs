@@ -66,11 +66,20 @@ zend :: Z -> P
 zend ( p, [])  = p
 zend z = zend $ up z
 
+{- Highlighting -}
+
+hiOn = boldSGR
+hiOff = resetSGR
+
+eSGR n = "\ESC["++show n++"m"
+resetSGR = eSGR 0
+boldSGR  = eSGR 1
+
+bold str = boldSGR ++ str ++ resetSGR
+
 {- Highlighting by marking focus -}
 
 hi = "__hi__"
-hiOn = "<<"
-hiOff = ">>"
 
 hilite :: P -> P
 hilite p = PB hi [p]
@@ -121,6 +130,9 @@ hrender'' rfocus (PE' (EB' n before after))
     in n ++ "(" ++ commasep (rbefore ++ rfocus:rafter) ++ ")"
 
 commasep = concat . intersperse ","
+
+disp :: Z -> IO ()
+disp = putStrLn . hrender
 
 -- we need compositional rendering!
 --  render F(P,Q) = renderF (render P) (render Q)
