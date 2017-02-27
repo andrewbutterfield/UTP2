@@ -869,7 +869,7 @@ At present we:
     \item list the object variable bindings encountered on the way to the focus.
 \end{itemize}
 
-\paragraph{Polarity}
+\paragraph{Polarity}~
 
 \begin{code}
 data Polarity = Pos | Neg | Mxd deriving (Eq,Ord)
@@ -891,7 +891,7 @@ We record bindings as a variable-name list
 type Binders = [Variable]
 \end{code}
 
-\paragraph{Focus Context Definition}
+\paragraph{Focus Context Definition}~
 
 
 \begin{code}
@@ -916,7 +916,8 @@ ctxtNeg (pol,bs,tags) = (polneg pol,bs,tags)
 ctxtMxd (pol,bs,tags) = (Mxd,bs,tags)
 \end{code}
 
-\paragraph{Binders}
+\paragraph{Binders}~
+
 \begin{code}
 ctxtPush :: ([Variable],TTTag) -> FContext -> FContext
 ctxtPush (vs,tag) (pol,bs,tags) = (pol,lnorm (vs++bs),tag:tags)
