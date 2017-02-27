@@ -442,6 +442,34 @@ and with some fixed notion of names ($n$).
 \\ & | & [s]
 \end{eqnarray*}
 
+So, we expect to have two mutually recursive instantiations
+of terms: Expressions ($E$) and Predicates ($P$).
+\begin{eqnarray*}
+   E &\simeq& Term~\Int~\Chr^*~P
+\\ P &\simeq& Term~\Bool~\Chr^*~E
+\end{eqnarray*}
+
+We need to consider zippers.
+For term alone, assuming fixed $s$:
+\begin{eqnarray*}
+   t' \in Term'~k~v~s
+   &::=& n(t,\dots,t [\_]t,\dots,t)
+\\ & | & n~vs~@ (t,\dots,t [\_]t,\dots,t)
+\end{eqnarray*}
+Intuitively, if we have descended into $s$, then
+we should have $s'$ here.
+So we really have:
+\begin{eqnarray*}
+   t' \in Term'~k~v~s
+   &::=& n(t,\dots,t [\_]t,\dots,t)
+\\ & | & n~vs~@ (t,\dots,t [\_]t,\dots,t)
+\\ & | & s'
+\end{eqnarray*}
+I'm not the derivative analogy for mutual recursion
+is either partial or total derivatives,
+but rather some form of hybrid.
+
+
 \newpage
 \subsection{Expressions}
 
