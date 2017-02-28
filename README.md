@@ -35,11 +35,7 @@ The project should now build with stack.
 
 ### Threepenny
 
-To run UTP2 using Electron you'll first need Node and npm.
+To run UTP2 using Electron you need Node and npm.
 
-Then from the root directory:
-
-`npm install` to install Electron
-
-`stack exec UTP2-threepenny 8000` to run on port 8000
+Then from the root directory `./run-electron.sh`
 

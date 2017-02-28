@@ -1,26 +1,37 @@
 * DONE Demonstrate file selection
-  CLOSED: [2017-02-23 Thu 14:55]
-File selection prints the full filepath to std out on value change.
+ CLOSED: [2017-02-23 Thu 14:55]
+ File selection prints the full filepath to std out on value change.
 * DONE Instructions to run app-threepenny
-  CLOSED: [2017-02-23 Thu 15:25]
-Instructions include installing Electron.
+ CLOSED: [2017-02-23 Thu 15:25]
+ Instructions include installing Electron.
 * DONE Install Electron as local dependency
-  CLOSED: [2017-02-23 Thu 18:28]
-Requires running the app from the root directory.
+ CLOSED: [2017-02-23 Thu 18:28]
+ Requires running the app from the root directory.
 * DONE Execute given actions on file selection
-  CLOSED: [2017-02-23 Thu 18:54]
-The function which creates a file selection element should take an additional
-argument of UI actions to run on file input value change.
+ CLOSED: [2017-02-23 Thu 18:54]
+ The function which creates a file selection element should take an additional
+ argument of UI actions to run on file input value change.
 * DONE Add threepenny-gui-contextmenu
-  CLOSED: [2017-02-23 Thu 20:15]
+ CLOSED: [2017-02-23 Thu 20:15]
 * DONE Fix contextmenu positioning
-  CLOSED: [2017-02-24 Fri 16:27]
-This required changing the coordinates reported by Threepenny's JS.
-* TODO Add unique ID generator to UTP2 monad
-Added MVar to UTP2 monad config which holds current ID integer.
-Incremented on each unique ID access.
-* TODO Write Threepenny layout functions
+ CLOSED: [2017-02-24 Fri 16:27]
+ This required changing the coordinates reported by Threepenny's JavaScript,
+ switched to using a fork of Threepenny at
+ https://github.com/barischj/threepeny-gui
+* DONE Add unique ID generator to UTP2 monad
+ CLOSED: [2017-02-24 Fri 17:01]
+ Added MVar to UTP2 monad config which holds current ID integer.
+ incremented on each unique ID access.
+* TODO Discuss Threepenny event data
+  https://github.com/HeinrichApfelmus/threepenny-gui/issues/167
 * TODO Package as Electron app
+  Step one of this is starting the Threepenny server as a child process from
+  Electron instead of starting the Electron app from Haskell.
+* TODO Discuss Electron packaging
+* TODO Write Threepenny Flexbox library
 * TODO Finish home screen
 * TODO Navbar
 * TODO Fix contextmenu altering source element styling
+  Similar behaviour noticed when adding on lick handler to materialise styled
+  button. Possibly not a fault of contextmenu code.
+* TODO Add 

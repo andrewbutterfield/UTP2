@@ -22,7 +22,6 @@ data-files:          UTP2-alert.wav
                      UTP2-note.wav
                      UTP2-scream.wav
                      static/css/materialize.css
-                     electron.js
 
 Library
     hs-source-dirs:  src
@@ -121,7 +120,7 @@ Executable UTP2
 Executable UTP2-threepenny
     hs-source-dirs:  app-threepenny
     main-is:         Main.lhs
-    build-depends:   base, UTP2, process
+    build-depends:   base, UTP2
 
 Executable UTP2-abstract
     hs-source-dirs:  app-abstract
