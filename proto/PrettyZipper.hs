@@ -174,7 +174,10 @@ ppbuild n (pp:pps)
   where len = length n
 
 zpp :: Z -> PP
-zpp z = Lit "zpp nyi"
+zpp ( p, []) = hi p
+zpp ( p, (PB' n before after) : wayup) = Lit "zpp in deep NYI"
+
+hi p = Eff hiOn (ppp p) hiOff
 
 disp = display . ppp
 
