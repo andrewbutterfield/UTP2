@@ -425,8 +425,8 @@ qvunzipWith toV sub = setsnd (map toV ) $ qvunzip sub
 We can posit a very general notion of terms ($t$),
 within which we can also embed some other term syntax ($s$).
 Terms are parameterised by a notion of constants ($k$)
-and variables ($v$)
-and with some fixed notion of names ($n$).
+and with some fixed notion of variables ($v$)
+and a distinct notion of \emph{names} ($n$).
 \begin{eqnarray*}
    n &\in& Names
 \\ k &\in& Constants
@@ -434,99 +434,63 @@ and with some fixed notion of names ($n$).
 \\ \ell &\in& ListVar
 \\ vs \in VarList &=& (v | \ell)^*
 \\ s &\in& Syntax (other)
-\\ t \in Term~k~v~s
+\\ t \in Term~k~s
    &::=& k
 \\ & | & v
 \\ & | & n(t,\dots,t)
 \\ & | & n~vs~@ (t,\dots,t)
+\\ & | & t[t,\dots,t/v,\dots,v]
 \\ & | & [s]
 \end{eqnarray*}
 
 So, we expect to have two mutually recursive instantiations
 of terms: Expressions ($E$) and Predicates ($P$).
 \begin{eqnarray*}
-   E &\simeq& Term~\Int~\Chr^*~P
-\\ P &\simeq& Term~\Bool~\Chr^*~E
+   E &\simeq& Term~\Int~P
+\\ P &\simeq& Term~\Bool~E
 \end{eqnarray*}
 
 We need to consider zippers.
 For term alone, assuming fixed $s$:
 \begin{eqnarray*}
-   t' \in Term'~k~v~s
-   &::=& n(t,\dots,t [\_]t,\dots,t)
-\\ & | & n~vs~@ (t,\dots,t [\_]t,\dots,t)
+   t' \in Term'~k~s
+   &::=& n(t,\dots,t,[\_]t,\dots,t)
+\\ & | & n~vs~@ (t,\dots,t,[\_]t,\dots,t)
+\\ & | & \_[t,\dots,t/v,\dots,v]
+\\ & | & t[t,\dots,t,[\_]t,\dots,t/v,\dots,v,v,v,\dots,v]
 \end{eqnarray*}
 Intuitively, if we have descended into $s$, then
 we should have $s'$ here.
 So we really have:
 \begin{eqnarray*}
-   t' \in Term'~k~v~s
+   t' \in Term'~k~s
    &::=& n(t,\dots,t [\_]t,\dots,t)
 \\ & | & n~vs~@ (t,\dots,t [\_]t,\dots,t)
-\\ & | & s'
+\\ & | & \_[t,\dots,t/v,\dots,v]
+\\ & | & t[t,\dots,t,[\_]t,\dots,t/v,\dots,v,v,v,\dots,v]
+\\ & | & [s']
 \end{eqnarray*}
-I'm not the derivative analogy for mutual recursion
-is either partial or total derivatives,
-but rather some form of hybrid.
 
 
 \newpage
 \subsection{Expressions}
 
-We have a very simple gneen
+We have a very simple expression abstract syntax
 \begin{code}
 data Expr
- = T
- | F
- | Num Int
+ = Num Int
  | Var Variable
  | App String [Expr]
- | Equal Expr Expr
- | Eabs TTTag QVars Expr -- a lambda abstraction
- | Esub Expr ESubst
- | The TTTag Variable Pred -- definite description
- | Eerror String
- | Efocus Expr -- expression focus marker
- -- | Prod [Expr]
- -- | Bin String Int Expr Expr
- -- | Set [Expr]
- -- | Setc TTTag QVars Pred Expr
- -- | Seq [Expr]
- -- | Seqc TTTag QVars Pred Expr
- -- | Map [(Expr,Expr)]
- -- | Cond Pred Expr Expr
- -- | Build String [Expr]
- -- | Evar Variable -- meta-variable denoting an expression (or list)
- -- | EPred Pred  -- converse of 'Obs'
- --               -- EPred $ Obs e   =  e
- --               -- Obs $ EPred pr  =  pr
-
-instance Eq Expr where -- we ignore type-table and focus parts
- T           == T            =  True
- F           == F            =  True
- (Num i)     == (Num j)      =  i == j
- (Var u)     == (Var v)      =  u == v
- (App str es) == (App txt fs)  =  str == txt && es == fs
- (Equal e1 e2) == (Equal f1 f2)  =  e1 == f1 && e2 == f2
- (The _ str p)  == (The _ txt q)   =  p == q && str == txt
- (Eabs _ qus e) == (Eabs _ qvs f)  =  e == f && qus == qvs
- (Esub e esub)  == (Esub f fsub)   =  e == f && esub == fsub
- (Eerror str)   == (Eerror txt)    =  str == txt
- (Efocus e)     == (Efocus f)      =  e == f
- (Efocus e)     == f               =  e == f
- e              == (Efocus f)      =  e == f
- _              == _ = False
-
-deriving instance Eq Expr => Ord Expr
+ | Abs String [Variable] [Expr]
+ | ESub Expr ESubst
+ | EPred Pred
+ deriving (Eq, Ord)
 \end{code}
 
 We need some builders that perform
 tidying up for corner cases:
 \begin{code}
 noDecorVar = Var . noDecorVariable
-
-mkEabs (Q []) e = e
-mkEabs qvs e = Eabs 0 qvs e
 
 mkEsub e (Substn []) = e
 mkEsub e sub = Esub e sub
@@ -556,87 +520,23 @@ mgetVar _         =  Nothing
 \newpage
 \subsection{Predicates}
 
-Monadic(?) 2nd-order logic syntax
-with fundamental UTP operators explicitly represented
-($;$, $\cond{}$, $\refinedby$ and $\intchoice$),
-and general facilities for syntax extensions to cover
-programming and specification constructs.
+Again, a very simple abstract syntax:
 
 \begin{code}
 data Pred
  = TRUE
  | FALSE
- | Obs Expr
- | Defd Expr
- | TypeOf Expr Type
- | Not Pred
- | And [Pred]
- | Or [Pred]
- | Imp Pred Pred
- | Eqv Pred Pred
- | Forall TTTag QVars Pred
- | Exists TTTag QVars Pred
- | Exists1 TTTag QVars Pred
- | Univ TTTag Pred
+ | PVar Variable
+ | PApp String [Pred]
+ | PAbs String [Variable] [Pred]
  | Sub Pred ESubst
- | Pvar GenRoot -- predicate meta-variable
- -- UTP fundamentals ("open" language constructs)
- | If Pred Pred Pred
- | NDC Pred Pred
- | RfdBy Pred Pred
+ | PExpr Expr
  -- Language extensions (Lexts)
  | Lang String    -- construct name
         Int       -- precedence, if binary
         [LElem]   -- Language elements
         [SynSpec] -- Interleaving Tokens
- -- higher order stuff (logic)
- | Pforall QVars Pred  -- !!! [GenRoot]
- | Pexists QVars Pred  -- !!! [GenRoot]
- | Psub Pred PSubst
- | Psapp Pred PredSet  -- Predicate set-application
- | Psin Pred PredSet   -- Predicate set-membership
- -- higher order stuff (functions)
- | Peabs QVars Pred  -- abstracting over expression variables
- | Ppabs QVars Pred  -- abstracting over predicate variables !! [GenRoot] !!!
- | Papp Pred Pred
- | Perror String
- | Pfocus Pred   -- predicate focus marker
-
-instance Eq Pred where -- we ignore type-tables and focus
- TRUE              == TRUE               =  True
- FALSE             == FALSE              =  True
- (Obs e)           == (Obs f)            =  e == f
- (Defd e)          == (Defd f)           =  e == f
- (TypeOf e t)      == (TypeOf f u)       =  e == f && t == u
- (Not p)           == (Not q)            =  p == q
- (And ps)          == (And qs)           =  ps == qs
- (Or ps)           == (Or qs)            =  ps == qs
- (Imp p1 p2)       == (Imp q1 q2)        =  p1 == q1 && p2 == q2
- (Eqv p1 p2)       == (Eqv q1 q2)        =  p1 == q1 && p2 == q2
- (Forall _ qus p)  == (Forall _ qvs q)   =  p == q && qus == qvs
- (Exists _ qus p)  == (Exists _ qvs q)   =  p == q && qus == qvs
- (Exists1 _ qus p) == (Exists1 _ qvs q)  =  p == q && qus == qvs
- (Univ _ p)        == (Univ _ q)         =  p == q
- (Sub p esub)      == (Sub q fsub)       =  p == q && esub == fsub
- (Pvar str)        == (Pvar txt)         =  str == txt
- (If pc pt pe) == (If qc qt qe)  =  pc == qc && pt == qt && pe == qe
- (NDC p1 p2)        == (NDC q1 q2)    =  p1 == q1 && p2 == q2
- (RfdBy p1 p2)      == (RfdBy q1 q2)  =  p1 == q1 && p2 == q2
- (Lang str i ls ss) == (Lang txt j ks ts)
-   =  str == txt && i == j && ls == ks && ss == ts
- (Pforall qus p) == (Pforall qvs q)  =  qus == qvs && p == q
- (Pexists qus p) == (Pexists qvs q)  =  qus == qvs && p == q
- (Psub p psub)   == (Psub q qsub)    =  p == q && psub == qsub
- (Psapp p pset)  == (Psapp q qset)   =  p == q && pset == qset
- (Psin p pset)   == (Psin q qset)    =  p == q && pset == qset
- (Peabs qus p)   == (Peabs qvs q)    =  qus == qvs && p == q
- (Ppabs qus p)   == (Ppabs qvs q)    =  p == q && qus == qvs
- (Papp p1 p2)    == (Papp q1 q2)     =  p1 == q1 && p2 == q2
- (Perror str)    == (Perror txt)     =  str == txt
- (Pfocus p)      == (Pfocus q)       =  p == q
- (Pfocus p)      == q                =  p == q
- p               == (Pfocus q)       =  p == q
- _               == _                =  False
+ deriving (Eq, Ord)
 
 deriving instance Eq Pred => Ord Pred
 \end{code}

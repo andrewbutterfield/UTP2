@@ -3,7 +3,6 @@ module PrettyZipper where
 import Data.List
 
 data E = EK Int | EB String [E] | EP P deriving Show
-
 -- mandatory version of EP
 ep :: P -> E
 ep (PE e) = e
@@ -21,7 +20,7 @@ data E'
  = EB' String 
        [E]   -- before, in reverse order
        [E]   -- after
- | EP' P deriving Show
+ | EP' P' deriving Show
 
 data P' 
  = PB' String 
@@ -156,7 +155,7 @@ ppbuild n (pp:pps)
 
 applyEffect :: (String -> String)  -- effect
             -> PP   -- plain pp
-            -> PP 	-- effected pp
+            -> PP   -- effected pp
 applyEffect f (Lit s) = Lit $ f s
 applyEffect f (Ind i pp) = Ind i $ applyEffect f pp
 applyEffect f (Vrt pps) = vrt $ map (applyEffect f) pps
@@ -208,11 +207,11 @@ zdemo' z
       putStr "(move: u,d,l,r; exit: x) > "
       txt <- getLine
       case txt of
-      	('u':_) -> zdemo' $ up    z
-      	('l':_) -> zdemo' $ left  z
-      	('d':_) -> zdemo' $ down  z
-      	('r':_) -> zdemo' $ right z
-      	('x':_) -> putStrLn "done!"
+        ('u':_) -> zdemo' $ up    z
+        ('l':_) -> zdemo' $ left  z
+        ('d':_) -> zdemo' $ down  z
+        ('r':_) -> zdemo' $ right z
+        ('x':_) -> putStrLn "done!"
         _ -> zdemo' z
 
 ex1 = PB "A1" [ PB "B" [PK True]]
@@ -223,6 +222,7 @@ ex5 = PB "A5" [PK False, PK True, PK False]
 ex6 = PB "A6" [PK False,PE $ EK 42,PK True, PE $ EK 99]
 ex7 = PB "A7" [ex1,ex2,ex3,ex4,ex5,ex6]
 ex8 = PB "A8" [PB "B8" [PB "C8" [PB "D8" [PK True,PB "E8" []]]]]
+ex9 = pe $ EB "a4" [ep $ PB "B" [pe $ EB "c" [ep $ PB "D" [pe $ EK 42]]]]
 
 z1 = zinit ex4
 z2 = down z1
