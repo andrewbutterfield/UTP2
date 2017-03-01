@@ -182,47 +182,38 @@ zpp' p (top:waydown) = zpp'' (zpp' p waydown) top
 
 hi p = applyEffect bold $ ppp p
 
-zpp'' focus (PB' n before after )
+zpp'' child (PB' n before after )
  =  let
       rbefore = map ppp before
       rafter  = map ppp after
-    in ppbuild n (reverse rbefore ++ focus:rafter)
+    in ppbuild n (reverse rbefore ++ child:rafter)
 
-zpp'' focus (PE' (EB' n before after ))
+zpp'' child (PE' (EB' n before after ))
  =  let
       rbefore = map epp before
       rafter  = map epp after
-    in ppbuild n (reverse rbefore ++ focus:rafter)
+    in ppbuild n (reverse rbefore ++ child:rafter)
 
-
-{- 
-
-hrender :: Z -> String
-hrender ( p, wayup) = hrender' p $ reverse wayup
-
-hrender' p []  = hiOn ++ phrender p ++ hiOff
-hrender' p (top:waydown)
- = let rfocus = hrender' p waydown
-   in hrender'' rfocus top
-
-hrender'' rfocus (PB' n before after)
- =  let
-      rbefore = map phrender before
-      rafter  = map phrender after
-    in n ++ "(" ++ commasep (rbefore ++ rfocus:rafter) ++ ")"
-hrender'' rfocus (PE' (EB' n before after))
- =  let
-      rbefore = map ehrender before
-      rafter  = map ehrender after
-    in n ++ "(" ++ commasep (rbefore ++ rfocus:rafter) ++ ")"
-
-commasep = concat . intersperse ","
-
--}
-
+{- Test/Debug -}
 disp = display . ppp
 
 zdisp = display . zpp
+
+zdemo :: P -> IO ()
+zdemo = zdemo' . zinit
+
+zdemo' :: Z -> IO ()
+zdemo' z
+ = do zdisp z
+      putStr "(move: u,d,l,r; exit: x) > "
+      txt <- getLine
+      case txt of
+      	('u':_) -> zdemo' $ up    z
+      	('l':_) -> zdemo' $ left  z
+      	('d':_) -> zdemo' $ down  z
+      	('r':_) -> zdemo' $ right z
+      	('x':_) -> putStrLn "done!"
+        _ -> zdemo' z
 
 ex1 = PB "A1" [ PB "B" [PK True]]
 ex2 = PB "A2" [ pe $ EB "b" [ EB "c" [ EK 42 ]] ]
@@ -246,18 +237,3 @@ y4 = down y3
 y5 = down y4
 y6 = down y5
 
-zdemo :: P -> IO ()
-zdemo = zdemo' . zinit
-
-zdemo' :: Z -> IO ()
-zdemo' z
- = do zdisp z
-      putStr "(move: u,d,l,r; exit: x) > "
-      txt <- getLine
-      case txt of
-      	('u':_) -> zdemo' $ up    z
-      	('l':_) -> zdemo' $ left  z
-      	('d':_) -> zdemo' $ down  z
-      	('r':_) -> zdemo' $ right z
-      	('x':_) -> putStrLn "done!"
-        _ -> zdemo' z
