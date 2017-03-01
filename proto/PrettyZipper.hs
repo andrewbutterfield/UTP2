@@ -77,7 +77,6 @@ data PP
   = Lit String  -- literal string
   | Ind Int PP  -- indentation
   | Vrt [PP]    -- vertical list
-  | Eff String PP String  -- effect, using start/stop strings
   deriving Show
 
 vrt :: [PP] -> PP
@@ -90,13 +89,6 @@ render = unlines . render' 0
 render' i (Lit s) =  [indent i s]
 render' i (Ind i' pp) = render' (i+i') pp
 render' i (Vrt pps) = concat $ map (render' i) pps
-render' i (Eff s1 pp s2)
-  = case render' i pp of
-     [ln] -> [s1++ln++s2]
-     (ln:lns) -> (s1++ln):tack s2 lns
-  where
-    tack s2 [ln] = [ln++s2]
-    tack s2 (ln:lns) = ln : tack s2 lns
 
 indent i s = replicate i ' ' ++ s
 
@@ -114,7 +106,6 @@ prepend' len s (Vrt []) = Lit s
 prepend' len s (Vrt (pp:pps))
  = vrt [ prepend' len s pp
        , Ind len $ vrt pps ]
-prepend' len s (Eff s1 pp s2) = Eff s1 (prepend' len s pp) s2
 
 
 -- stick first string on first line
@@ -124,7 +115,6 @@ lprepend s0 sn (Ind i pp) = Ind i $ lprepend s0 sn pp
 lprepend s0 sn (Vrt []) = Lit s0
 lprepend s0 sn (Vrt (pp:pps))
  = vrt (prepend s0 pp : map (prepend sn) pps)
-lprepend s0 sn (Eff s1 pp s2) = Eff s1 (lprepend s0 sn pp) s2
 
 -- stick string on end of last 'line'
 append :: String -> PP -> PP
@@ -143,18 +133,7 @@ pp4 = Vrt [pp1,pp2,pp3]
 pp5 = Ind 20 pp4
 pp6 = Vrt [pp1,pp5,pp3]
 pp7 = Vrt $ map lit "AbCdEf" where lit c = Lit [c]
-{- Highlighting -}
 
-hiOn = boldSGR
-hiOff = resetSGR
-
-eSGR n = "\ESC["++show n++"m"
-resetSGR = eSGR 0
-boldSGR  = eSGR 1
-
-bold str = boldSGR ++ str ++ resetSGR
-
-{- Highlighting directly on zipper structure -}
 
 ppp :: P -> PP
 ppp (PK b)    = Lit $ show b
@@ -173,13 +152,48 @@ ppbuild n (pp:pps)
     $ Vrt (pp:pps)
   where len = length n
 
+{- Highlighting -}
+
+applyEffect :: (String -> String)  -- effect
+            -> PP   -- plain pp
+            -> PP 	-- effected pp
+applyEffect f (Lit s) = Lit $ f s
+applyEffect f (Ind i pp) = Ind i $ applyEffect f pp
+applyEffect f (Vrt pps) = vrt $ map (applyEffect f) pps
+
+{- ANSI Escape Sequence Highlighting -}
+hiOn = boldSGR
+hiOff = resetSGR
+
+eSGR n = "\ESC["++show n++"m"
+resetSGR = eSGR 0
+boldSGR  = eSGR 1
+
+bold str = boldSGR ++ str ++ resetSGR
+
+
+{- Highlighting directly on zipper structure -}
+
 zpp :: Z -> PP
 zpp ( p, wayup )  = zpp' p $ reverse wayup
 
 zpp' p [] = hi p 
 zpp' p (top:waydown) = zpp'' (zpp' p waydown) top
 
-zpp'' focus (PB' n before after ) = Lit "zpp indeep NYI"
+hi p = applyEffect bold $ ppp p
+
+zpp'' focus (PB' n before after )
+ =  let
+      rbefore = map ppp before
+      rafter  = map ppp after
+    in ppbuild n (reverse rbefore ++ focus:rafter)
+
+zpp'' focus (PE' (EB' n before after ))
+ =  let
+      rbefore = map epp before
+      rafter  = map epp after
+    in ppbuild n (reverse rbefore ++ focus:rafter)
+
 
 {- 
 
@@ -206,8 +220,6 @@ commasep = concat . intersperse ","
 
 -}
 
-hi p = Eff hiOn (ppp p) hiOff
-
 disp = display . ppp
 
 zdisp = display . zpp
@@ -221,3 +233,31 @@ ex6 = PB "A6" [PK False,PE $ EK 42,PK True, PE $ EK 99]
 ex7 = PB "A7" [ex1,ex2,ex3,ex4,ex5,ex6]
 ex8 = PB "A8" [PB "B8" [PB "C8" [PB "D8" [PK True,PB "E8" []]]]]
 
+z1 = zinit ex4
+z2 = down z1
+z3 = down z2
+z4 = down z3
+z5 = down z4
+
+y1 = zinit ex7
+y2 = down y1
+y3 = right y2
+y4 = down y3
+y5 = down y4
+y6 = down y5
+
+zdemo :: P -> IO ()
+zdemo = zdemo' . zinit
+
+zdemo' :: Z -> IO ()
+zdemo' z
+ = do zdisp z
+      putStr "(move: u,d,l,r; exit: x) > "
+      txt <- getLine
+      case txt of
+      	('u':_) -> zdemo' $ up    z
+      	('l':_) -> zdemo' $ left  z
+      	('d':_) -> zdemo' $ down  z
+      	('r':_) -> zdemo' $ right z
+      	('x':_) -> putStrLn "done!"
+        _ -> zdemo' z
