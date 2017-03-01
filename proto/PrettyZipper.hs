@@ -1,4 +1,4 @@
-module Pretty where
+module PrettyZipper where
 --import Utilities
 import Data.List
 
@@ -174,8 +174,37 @@ ppbuild n (pp:pps)
   where len = length n
 
 zpp :: Z -> PP
-zpp ( p, []) = hi p
-zpp ( p, (PB' n before after) : wayup) = Lit "zpp in deep NYI"
+zpp ( p, wayup )  = zpp' p $ reverse wayup
+
+zpp' p [] = hi p 
+zpp' p (top:waydown) = zpp'' (zpp' p waydown) top
+
+zpp'' focus (PB' n before after ) = Lit "zpp indeep NYI"
+
+{- 
+
+hrender :: Z -> String
+hrender ( p, wayup) = hrender' p $ reverse wayup
+
+hrender' p []  = hiOn ++ phrender p ++ hiOff
+hrender' p (top:waydown)
+ = let rfocus = hrender' p waydown
+   in hrender'' rfocus top
+
+hrender'' rfocus (PB' n before after)
+ =  let
+      rbefore = map phrender before
+      rafter  = map phrender after
+    in n ++ "(" ++ commasep (rbefore ++ rfocus:rafter) ++ ")"
+hrender'' rfocus (PE' (EB' n before after))
+ =  let
+      rbefore = map ehrender before
+      rafter  = map ehrender after
+    in n ++ "(" ++ commasep (rbefore ++ rfocus:rafter) ++ ")"
+
+commasep = concat . intersperse ","
+
+-}
 
 hi p = Eff hiOn (ppp p) hiOff
 
