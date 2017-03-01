@@ -153,7 +153,7 @@ We adopt the following ASCII representations of these variables:
 \begin{tabular}{|c|c||c|c|}
   \hline
   % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
-  $Obs$ & \verb"O" & $Obs'$ & \verb"O'" \\\hline
+  $PExpr$ & \verb"O" & $PExpr'$ & \verb"O'" \\\hline
   $Mdl$ & \verb"M" & $Mdl'$ & \verb"M'" \\\hline
   $Scr$ & \verb"S" & $Scr'$ & \verb"S'" \\
   \hline
@@ -493,7 +493,7 @@ tidying up for corner cases:
 noDecorVar = Var . noDecorVariable
 
 mkEsub e (Substn []) = e
-mkEsub e sub = Esub e sub
+mkEsub e sub = ESub e sub
 \end{code}
 
 Drop is  useful:
@@ -543,10 +543,10 @@ deriving instance Eq Pred => Ord Pred
 
 We define two constructor functions to handle the \texttt{Expr}/\texttt{Pred} ``crossovers'':
 \begin{code}
-ePred (Obs e)    = e
+ePred (PExpr e)    = e
 --ePred pr         = EPred pr
 --pExpr (EPred pr) = pr
-pExpr e          = Obs e
+pExpr e          = PExpr e
 \end{code}
 
 We also define smart constructors for certain constructs
@@ -591,12 +591,12 @@ mkPpabs qvs p = Ppabs qvs p
 \end{code}
 Some query functions:
 \begin{code}
-isObs (Obs _) = True
+isObs (PExpr _) = True
 isObs _       = False
 \end{code}
 Drop is handy:
 \begin{code}
-pDrop (Pvar p) = p
+pDrop (PVar p) = p
 pDrop _ = Std "?pDrop"
 \end{code}
 
@@ -646,13 +646,13 @@ isLELstV _                 =  False
 isLEVar :: LElem -> Bool
 isLEVar (LVar _)               =  True
 isLEVar (LExpr (Var _))        =  True
-isLEVar (LPred (Obs (Var _)))  =  True
+isLEVar (LPred (PExpr (Var _)))  =  True
 isLEVar _                      =  False
 
 isLEExpr :: LElem -> Bool
 isLEExpr (LVar _)         =  True
 isLEExpr (LExpr _)        =  True
-isLEExpr (LPred (Obs _))  =  True
+isLEExpr (LPred (PExpr _))  =  True
 isLEExpr _                =  False
 \end{code}
 
@@ -684,7 +684,7 @@ pequiv :: Pred -> Pred -> Bool
 
 pequiv TRUE TRUE = True
 pequiv FALSE FALSE = True
-pequiv (Obs e1) (Obs e2) = e1 `eequiv` e2
+pequiv (PExpr e1) (PExpr e2) = e1 `eequiv` e2
 pequiv (Defd e1) (Defd e2) = e1 `eequiv` e2
 pequiv (TypeOf e1 t1) (TypeOf e2 t2)
  = e1 `eequiv` e2 && t1 `tequiv` t2
@@ -714,7 +714,7 @@ pequiv (Psub pr1 sub1) (Psub pr2 sub2) = pr1 `pequiv` pr2 && sub1 `pstlequiv` su
 pequiv (Lang n1 p1 lelems1 syn1) (Lang n2 p2 lelems2 syn2)
    = n1 == n2 && p1 == p2 && syn1 == syn2 && samelist ltlequiv lelems1 lelems2
 
-pequiv (Pvar s1) (Pvar s2) = s1==s2
+pequiv (PVar s1) (PVar s2) = s1==s2
 pequiv (Peabs s1 pr1) (Peabs s2 pr2) = s1==s2 && pr1 `pequiv` pr2
 pequiv (Ppabs s1 pr1) (Ppabs s2 pr2) = s1==s2 && pr1 `pequiv` pr2
 pequiv (Papp prf1 pra1) (Papp prf2 pra2) = samelist pequiv [prf1,pra1] [prf2,pra2]
@@ -734,7 +734,7 @@ eequiv (App s1 es1) (App s2 es2) = s1==s2 && es1 `esequiv` es2
 eequiv (Equal e11 e21) (Equal e12 e22) = samelist eequiv [e11,e21] [e12,e22]
 eequiv (The _ qs1 pr1) (The _ qs2 pr2) = qs1==qs2 && pequiv pr1 pr2
 eequiv (Eabs _ qs1 e1) (Eabs _ qs2 e2) = qs1==qs2 && e1 `eequiv` e2
-eequiv (Esub e1 sub1) (Esub e2 sub2)
+eequiv (ESub e1 sub1) (ESub e2 sub2)
  = e1 `eequiv` e2 && sub1 `estlequiv`  sub2
 
 eequiv _ _ = False
@@ -958,7 +958,7 @@ exprRec merge spec base ex
   eRecurse (App _ exs) = merge $ map exprrec exs
   eRecurse (Equal ex1 ex2) = merge $ map exprrec [ex1,ex2]
   eRecurse (Eabs _ _ ex) = exprrec ex
-  eRecurse (Esub ex (Substn ssub))
+  eRecurse (ESub ex (Substn ssub))
     = merge $ map exprrec (ex:(map snd ssub))
   eRecurse _ = base
 \end{code}
@@ -1061,7 +1061,7 @@ mapEf :: (Pred -> (Pred,Bool), Expr -> (Expr,Bool)) -> Expr -> (Expr,Bool)
 
 run f e = f e
 
-mapPf (fp,fe) (Obs e) = (Obs e', dif)
+mapPf (fp,fe) (PExpr e) = (PExpr e', dif)
   where (e', dif) = fe e
 mapPf (fp,fe) (Defd e) = (Defd e', dif)
   where (e', dif) = fe e
@@ -1147,7 +1147,7 @@ mapEf (fp,fe) (The tt qs pr) = (The tt qs pr', dif)
   where (pr', dif) = fp pr
 mapEf (fp,fe) (Eabs tt qs e) = (Eabs tt qs e', dif)
   where (e', dif) = fe e
-mapEf (fp,fe) (Esub e sub) = (Esub e' sub', dif1 || dif2)
+mapEf (fp,fe) (ESub e sub) = (ESub e' sub', dif1 || dif2)
   where
     (sub', dif1) = mapSf fe sub
     (e', dif2) = fe e
@@ -1168,62 +1168,16 @@ myPredMap pr = mapP (myPredMap,myExprMap) pr
 
 Now the \texttt{mapP}/\texttt{E} boilerplate:
 \begin{code}
-mapP (fp,fe) (Obs e) = Obs (fe e)
-mapP (fp,fe) (Defd e) = Defd (fe e)
-mapP (fp,fe) (TypeOf e t) = TypeOf (fe e) t
-mapP (fp,fe) (Not pr) = Not (fp pr)
-mapP (fp,fe) (And prs) = And (map fp prs)
-mapP (fp,fe) (Or prs) = Or (map fp prs)
-mapP (fp,fe) (NDC pr1 pr2) = NDC (fp pr1) (fp pr2)
-mapP (fp,fe) (Imp pr1 pr2) = Imp (fp pr1) (fp pr2)
-mapP (fp,fe) (RfdBy pr1 pr2) = RfdBy (fp pr1) (fp pr2)
-mapP (fp,fe) (Eqv pr1 pr2) = Eqv (fp pr1) (fp pr2)
+mapP (fp,fe) (PExpr e) = PExpr (fe e)
 mapP (fp,fe) (Lang s p les ss) = Lang s p (map (mapL (fp,fe)) les) ss
-mapP (fp,fe) (If prc prt pre) = If (fp prc) (fp prt) (fp pre)
-mapP (fp,fe) (Forall tt qs pr) = Forall tt qs (fp pr)
-mapP (fp,fe) (Exists tt qs pr) = Exists tt qs (fp pr)
-mapP (fp,fe) (Exists1 tt qs pr) = Exists1 tt qs (fp pr)
-mapP (fp,fe) (Univ tt pr) = Univ tt (fp pr)
 mapP (fp,fe) (Sub pr sub) = Sub (fp pr) (mapS fe sub)
-mapP (fp,fe) (Psub pr sub) = Psub (fp pr) (mapS fp sub)
-mapP (fp,fe) (Peabs s pr) = Peabs s (fp pr)
-mapP (fp,fe) (Ppabs s pr) = Ppabs s (fp pr)
-mapP (fp,fe) (Papp prf pra) = Papp (fp prf) (fp pra)
-mapP (fp,fe) (Psapp pr spr) = Psapp (fp pr) (mapPS fp spr)
-mapP (fp,fe) (Psin pr spr) = Psin (fp pr) (mapPS fp spr)
-mapP (fp,fe) (Pforall pvs pr) = Pforall pvs (fp pr)
-mapP (fp,fe) (Pexists pvs pr) = Pexists pvs (fp pr)
-mapP (fp,fe) (Pfocus pr) = Pfocus $ fp pr
 
 mapP (fp,fe) pr = pr
 
-mapPS :: (Pred -> Pred) -> PredSet -> PredSet
-mapPS fp (PSet prs) = PSet (map fp prs)
-mapPS fp (PSetC nms pr1 pr2) = PSetC nms (fp pr1) (fp pr2)
-mapPS fp (PSetU s1 s2) = PSetU (mapPS fp s1) (mapPS fp s2)
-mapPS fp s = s
-
-mapPSf :: (Pred -> (Pred,Bool)) -> PredSet -> (PredSet, Bool)
-mapPSf fp (PSet prs) = (PSet prs', or dif)
-  where
-    (prs', dif) = unzip (map fp prs)
-mapPSf fp (PSetC nms pr1 pr2) = (PSetC nms pr1' pr2', dif1 || dif2)
-  where
-    (pr1', dif1) = fp pr1
-    (pr2', dif2) = fp pr2
-mapPSf fp (PSetU s1 s2) = (PSetU s1' s2', dif1 || dif2)
-  where
-    (s1', dif1) = mapPSf fp s1
-    (s2', dif2) = mapPSf fp s2
-mapPSf fp s = (s, False)
-
-
-mapE (fp,fe) (App s es)         = App s (map fe es)
-mapE (fp,fe) (Equal e1 e2)     = Equal (fe e1) (fe e2)
-mapE (fp,fe) (The tt qs pr)    = The tt qs (fp pr)
-mapE (fp,fe) (Eabs tt qs e)    = Eabs tt qs (fe e)
-mapE (fp,fe) (Esub e sub)      = Esub (fe e) (mapS fe sub)
-mapE (fp,fe) (Efocus e)        = Efocus $ fe e
+mapE (fp,fe) (App s es)    = App s (map fe es)
+mapE (fp,fe) (Abs s qs es) = Abs s qs (map fe es)
+mapE (fp,fe) (ESub e sub)  = ESub (fe e) (mapS fe sub)
+mapE (fp,fe) (Efocus e)    = Efocus $ fe e
 
 mapE (fp,fe) e = e
 
@@ -1299,31 +1253,10 @@ Folding over predicates:
 foldP pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) pr
  = f pr
  where
-  f (Obs e) = f1 $ g0 e
-  f (Defd e) = f1 $ g0 e
-  f (TypeOf e t) = f1 $ g0 e
-  f (Not p) = f1  $ f0 p
-  f (And ps) = f2 $ map f0 ps
-  f (Or ps) = f2 $ map f0 ps
-  f (Imp p1 p2) = f2 $ map f0 [p1,p2]
-  f (Eqv p1 p2) = f2 $ map f0 [p1,p2]
-  f (Forall tt qvs pr) = f1 $ f0 pr
-  f (Exists tt qvs pr) = f1 $ f0 pr
-  f (Exists1 tt qvs pr) = f1 $ f0 pr
-  f (Univ tt p) = f1 $ f0 p
+  f (PApp s prs) = f2 $ map f0 prs
+  f (PAbs s qvs prs) = f2 $ map f0 prs
+  f (PExpr e) = f1 $ g0 e
   f (Sub p sub) = f2 (f p : foldES g0 sub)
-  f (If pc pt pe) = f2 $ map f0 [pc,pt,pe]
-  f (NDC p1 p2) = f2 $ map f0 [p1,p2]
-  f (RfdBy p1 p2) = f2 $ map f0 [p1,p2]
-  f (Pforall vs p) = f1 $ f0 p
-  f (Pexists vs p) = f1 $ f0 p
-  f (Psub p sub) = f2 (f p : foldPS f0 sub)
-  f (Psapp p ps) = f2 (foldPP f0 ps)
-  f (Psin p ps) = f2 (foldPP f0 ps)
-  f (Peabs vs p) = f1 $ f0 p
-  f (Ppabs vs p) = f1 $ f0 p
-  f (Papp p1 p2) = f2 $ map f0 [p1,p2]
-  f (Pfocus p) = f1 $ f0 p
 
   f (Lang s i les ss) = foldL pef les
 
@@ -1339,10 +1272,8 @@ foldE pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) e
  where
   f (App s es) = g2 $ map g0 es
   f (Equal e1 e2) = g2 $ map g0 [e1,e2]
-  f (The tt qvs p2) = g1 $ f0 p2
-  f (Eabs tt qvs e) = g1 $ g0 e
-  f (Esub e sub) = g2 (g0 e : foldES g0 sub)
-  f (Efocus e) = g1 $ g0 e
+  f (Abs s qvs es) = g2 $ map g0 e
+  f (ESub e sub) = g2 (g0 e : foldES g0 sub)
 
   f e = ea -- recursion must stop here !
 -- end foldE
@@ -1419,37 +1350,10 @@ Also, the focus variants of both must always be handled explicitly.
 accPseq :: (a -> Pred -> (Pred,a),a -> Expr -> (Expr,a))
             -> a -> Pred -> (Pred,a)
 
-accPseq (pf,ef) a (Obs e) = (Obs e',a') where (e',a') = ef a e
-accPseq (pf,ef) a (Defd e) = (Defd e',a') where (e',a') = ef a e
-accPseq (pf,ef) a (TypeOf e t)
- = (TypeOf e' t,a') where (e',a') = ef a e
-
-accPseq (pf,ef) a (Not pr) = (Not pr',a') where (pr',a') = pf a pr
-accPseq (pf,ef) a (And prs)
- = (And prs',a') where (prs',a') = accPseqs pf a prs
-accPseq (pf,ef) a (Or prs)
- = (Or prs',a') where (prs',a') = accPseqs pf a prs
-accPseq (pf,ef) a (NDC pr1 pr2) = (NDC pr1' pr2',a')
-  where ([pr1',pr2'],a') = accPseqs pf a [pr1,pr2]
-accPseq (pf,ef) a (Imp pr1 pr2) = (Imp pr1' pr2',a')
-  where ([pr1',pr2'],a') = accPseqs pf a [pr1,pr2]
-accPseq (pf,ef) a (RfdBy pr1 pr2) = (RfdBy pr1' pr2',a')
-  where ([pr1',pr2'],a') = accPseqs pf a [pr1,pr2]
-accPseq (pf,ef) a (Eqv pr1 pr2) = (Eqv pr1' pr2',a')
-  where ([pr1',pr2'],a') = accPseqs pf a [pr1,pr2]
+accPseq (pf,ef) a (PExpr e) = (PExpr e',a') where (e',a') = ef a e
 
 accPseq (pf,ef) a (Lang n p les ss) = error "accPseq Lang NYI"
 
-accPseq (pf,ef) a (If prc prt pre) = (If prc' prt' pre',a')
-  where ([prc',prt',pre'],a') = accPseqs pf a [prc,prt,pre]
-
-accPseq (pf,ef) a (Forall tt qs pr) = (Forall tt qs pr',a')
-  where (pr',a') = pf a pr
-accPseq (pf,ef) a (Exists tt qs pr) = (Exists tt qs pr',a')
-  where (pr',a') = pf a pr
-accPseq (pf,ef) a (Exists1 tt qs pr) = (Exists1 tt qs pr',a')
-  where (pr',a') = pf a pr
-accPseq (pf,ef) a (Univ tt pr) = (Univ tt pr',a') where (pr',a') = pf a pr
 accPseq (pf,ef) a (Sub pr sub) = (Sub pr' sub',a'')
  where (pr',a') = pf a pr
        (sub',a'') = accESseq (pf,ef) a' sub
@@ -1457,26 +1361,6 @@ accPseq (pf,ef) a (Sub pr sub) = (Sub pr' sub',a'')
 accPseq (pf,ef) a (Psub pr sub) = (Psub pr' sub',a'')
  where (pr',a') = pf a pr
        (sub',a'') = accPSseq (pf,ef) a' sub
-accPseq (pf,ef) a (Peabs s pr)
- = (Peabs s pr',a') where (pr',a') = pf a pr
-accPseq (pf,ef) a (Ppabs s pr)
- = (Ppabs s pr',a') where (pr',a') = pf a pr
-accPseq (pf,ef) a (Papp prf pra) = (Papp prf' pra',a')
-  where ([prf',pra'],a') = accPseqs pf a [prf,pra]
-
-accPseq (pf,ef) a (Psapp pr spr)
- = (Psapp pr' spr',a'')
- where (pr',a') = pf a pr
-       (spr',a'') = accPSetseq pf a' spr
-accPseq (pf,ef) a (Psin pr spr)
- = (Psin pr' spr',a'')
- where (pr',a') = pf a pr
-       (spr',a'') = accPSetseq pf a' spr
-
-accPseq (pf,ef) a (Pforall pvs pr)
- = (Pforall pvs pr',a') where (pr',a') = pf a pr
-accPseq (pf,ef) a (Pexists pvs pr)
- = (Pforall pvs pr',a') where (pr',a') = pf a pr
 
 accPseq (pf,ef) a pr = (pr,a)
 
@@ -1503,12 +1387,9 @@ accEseq :: (a -> Pred -> (Pred,a),a -> Expr -> (Expr,a))
             -> a -> Expr -> (Expr,a)
 accEseq (pf,ef) a (App s es) = (App s es',a')
   where (es',a') = accEseqs ef a es
-accEseq (pf,ef) a (Equal e1 e2) = (Equal e1' e2',a')
-  where ([e1',e2'],a') = accEseqs ef a [e1,e2]
-accEseq (pf,ef) a (The tt qs pr) = (The tt qs pr',a')
-  where (pr',a') = pf a pr
-accEseq (pf,ef) a (Eabs tt qs e) = (Eabs tt qs e',a') where (e',a') = ef a e
-accEseq (pf,ef) a (Esub e sub) = (Esub e' sub',a'')
+accEseq (pf,ef) a (Abs tt qs es)
+ = (Abs s qs es',a') where (es',a') = accEseqs ef a e
+accEseq (pf,ef) a (ESub e sub) = (ESub e' sub',a'')
  where (e',a') = ef a e
        (sub',a'') = accESseq (pf,ef) a' sub
 accEseq (pf,ef) a e = (e,a)
@@ -1553,10 +1434,6 @@ instance Dshow QVars where dshow = debugQSshow
 instance (Dshow a,Dshow b) => Dshow (a,b) where
  dshow (a,b) = "FIRST:\n"++dshow a++"\nSECOND\n"++dshow b
 
-debugPshow (Pfocus fpr)
- = "FOCUSSED-PRED"
-   ++ hdr 1 ++ dbgPshow 2 fpr
-
 debugPshow pr = dbgPshow 0 pr
 
 debugEshow  =  dbgEshow 0
@@ -1577,56 +1454,13 @@ hdr i  = '\n':(replicate i ' ')
 
 dbgPshow i  TRUE     = hdr i ++ "TRUE"
 dbgPshow i  FALSE    = hdr i ++ "FALSE"
-dbgPshow i  (Obs e)  = hdr i ++ "OBS " ++ dbgEshow (i+1) e
-dbgPshow i  (Defd e) = hdr i ++ "DEFD " ++ dbgEshow (i+1) e
-dbgPshow i  (TypeOf e t) = hdr i ++ "TYPEOF " ++ dbgEshow (i+1) e ++ dbgTshow (i+1) t
+dbgPshow i  (PExpr e)  = hdr i ++ "OBS " ++ dbgEshow (i+1) e
 dbgPshow i  (Lang s p les ss)
   = hdr i ++ "LANG " ++ s ++ " "++show p
              ++ concat (map (dbgLshow (i+1)) les)
              ++ concat (map (dbgSSshow (i+1)) ss)
-dbgPshow i  (Not pr) = hdr i ++ "NOT" ++ dbgPshow (i+1) pr
-dbgPshow i  (And prs)
-  = hdr i ++ "AND"++concat (map (dbgPshow (i+1)) prs)
-dbgPshow i  (Or prs)
-  = hdr i ++ "OR"++concat (map (dbgPshow (i+1)) prs)
-dbgPshow i  (NDC pr1 pr2)
-  = hdr i ++ "NDC"++dbgPshow (i+1) pr1++dbgPshow (i+1) pr2
-dbgPshow i  (Imp pr1 pr2)
-  = hdr i ++ "IMP"++dbgPshow (i+1) pr1++dbgPshow (i+1) pr2
-dbgPshow i  (RfdBy pr1 pr2)
-  = hdr i ++ "RFDBY"++dbgPshow (i+1) pr1++dbgPshow (i+1) pr2
-dbgPshow i  (Eqv pr1 pr2)
-  = hdr i ++ "EQV"++dbgPshow (i+1) pr1++dbgPshow (i+1) pr2
-dbgPshow i  (If prc prt pre)
-  = hdr i ++ "IF"++dbgPshow (i+1) prc++dbgPshow (i+1) prt++dbgPshow (i+1) pre
-dbgPshow i  (Forall tt qs pr)
-  = hdr i ++ "FORALL "++show tt++' ':dbgQSshow (i+1) qs++dbgPshow (i+1) pr
-dbgPshow i  (Exists tt qs pr)
-  = hdr i ++ "EXISTS "++show tt++' ':dbgQSshow (i+1) qs++dbgPshow (i+1) pr
-dbgPshow i  (Exists1 tt qs pr)
-  = hdr i ++ "EXISTS1 "++show tt++' ':dbgQSshow (i+1) qs++dbgPshow (i+1) pr
-dbgPshow i  (Univ tt pr) = hdr i ++ "UNIV " ++ show tt++' ':dbgPshow (i+1) pr
 dbgPshow i  (Sub pr sub) = hdr i ++ "SUB" ++ dbgESshow (i+1) sub++dbgPshow (i+1) pr
-dbgPshow i  (Psub pr sub) = hdr i ++ "PSUB" ++ dbgPSshow (i+1) sub++dbgPshow (i+1) pr
-dbgPshow i  (Pvar r) = hdr i ++ "PVAR '"++dbgRshow (Gen r)++"'"
-dbgPshow i  (Ppabs qs pr)
-  = hdr i ++ "PPABS "++dbgQSshow (i+1) qs++dbgPshow (i+1) pr
-dbgPshow i  (Peabs qs pr)
-  = hdr i ++ "PEABS "++dbgQSshow (i+1) qs++dbgPshow (i+1) pr
-dbgPshow i  (Papp prf pra)
-  = hdr i ++ "PAPP"++dbgPshow (i+1) prf++dbgPshow (i+1) pra
-dbgPshow i  (Psapp pr spr)
-  = hdr i ++ "PSAPP"++dbgPshow (i+1) pr++dbgPSetshow (i+1) spr
-dbgPshow i  (Psin pr spr)
-  = hdr i ++ "PSIN"++dbgPshow (i+1) pr++dbgPSetshow (i+1) spr
-dbgPshow i  (Pforall qs pr)
-  = hdr i ++ "PFORALL "++dbgQSshow (i+1) qs++dbgPshow (i+1) pr
-dbgPshow i  (Pexists qs pr)
-  = hdr i ++ "PEXISTS "++dbgQSshow (i+1) qs++dbgPshow (i+1) pr
-dbgPshow i  (Pfocus fpr)
- = hdr i ++ "PFOCUS" ++ dbgPshow (i+1) fpr
-dbgPshow i (Perror msg) = "PERROR '" ++ msg ++ "'"
--- dbgPshow i pr = "??PWHAT??"
+dbgPshow i  (PVar r) = hdr i ++ "PVAR '"++dbgRshow (Gen r)++"'"
 
 dbgPSetshow i (PSName nm) = hdr i ++ "PSNAME '"++nm++"'"
 dbgPSetshow i (PSet prs)
@@ -1651,22 +1485,14 @@ dbgSSshow i SSNull      = hdr i ++ "SSNULL"
 dbgSSshow i (SSTok s)   = hdr i ++ "SSTOK "  ++ s
 dbgSSshow i (SSSep s)   = hdr i ++ "SSSEP "  ++ s
 
-dbgEshow i T               = hdr i ++ "T"
-dbgEshow i F               = hdr i ++ "F"
 dbgEshow i (Num n)         = hdr i ++ "NUM "++show n
 dbgEshow i (Var v)         = hdr i ++ "VAR " ++ dbgVshow v
 dbgEshow i (App s es)
  = hdr i ++ "APP "++s++concat (map (dbgEshow (i+1)) es)
-dbgEshow i (Equal e1 e2)
- = hdr i ++ "EQUAL"++dbgEshow (i+1) e1++dbgEshow (i+1) e2
-dbgEshow i (The tt x pr)
-  = hdr i ++ "THE "++show tt ++ " "++dbgVshow x++dbgPshow (i+1) pr
-dbgEshow i (Eabs tt qs e) = hdr i ++ "EABS "++show tt++' ':dbgQSshow (i+1) qs ++ dbgEshow (i+1) e
-dbgEshow i (Esub e sub) = hdr i ++ "ESUB "++dbgESshow (i+1) sub ++ dbgEshow (i+1) e
-dbgEshow i (Eerror s) = hdr i ++ "EERROR "++s
-dbgEshow i (Efocus ef)
- = hdr i ++ "EFOCUS" ++ dbgEshow (i+1) ef
-
+dbgEshow i (Abs s qs es)
+ = hdr i ++ "ABS "++s++dbgQSshow (i+1) qs ++ dbgESshow (i+1) es
+dbgEshow i (ESub e sub)
+ = hdr i ++ "ESUB "++dbgESshow (i+1) sub ++ dbgEshow (i+1) e
 
 dbgDshow NoDecor = "NODECOR"
 dbgDshow Pre = "PRE"
@@ -1889,30 +1715,16 @@ and expressions apart:
 predParts :: Pred -> (String,[Pred],[Expr],[QVars],[Type])
 predParts TRUE = ("TRUE",[],[],[],[])
 predParts FALSE = ("FALSE",[],[],[],[])
---predParts (Pvar (Std s)) = ("Pvar-"++show s,[],[],[],[])
---predParts (Pvar (Lst s)) = ("Pvar-"++show s++[listVarFlag],[],[],[],[])
-predParts (Pvar r) = ("Pvar-"++rootString (Gen r),[],[],[],[])
-predParts (Obs e) = ("Obs",[],[e],[],[])
-predParts (Defd e) = ("Defd",[],[e],[],[])
-predParts (TypeOf e t) = ("TypeOf",[],[e],[],[t])
-predParts (Not pr) = ("Not",[pr],[],[],[])
-predParts (And prs) = ("And",prs,[],[],[])
-predParts (Or prs) = ("Or",prs,[],[],[])
-predParts (NDC pr1 pr2) = ("NDC",[pr1,pr2],[],[],[])
-predParts (Imp pr1 pr2) = ("Imp",[pr1,pr2],[],[],[])
-predParts (RfdBy pr1 pr2) = ("RfdBy",[pr1,pr2],[],[],[])
-predParts (Eqv pr1 pr2) = ("Eqv",[pr1,pr2],[],[],[])
+predParts (PVar (Std s)) = ("PVar-"++show s,[],[],[],[])
+predParts (PVar (Lst s)) = ("PVar-"++show s++[listVarFlag],[],[],[],[])
+predParts (PVar r) = ("PVar-"++rootString (Gen r),[],[],[],[])
+predParts (PExpr e) = ("PExpr",[],[e],[],[])
 predParts (Lang s p les ss) = langParts s les
-predParts (If prc prt pre) = ("If",[prc,prt,pre],[],[],[])
-predParts (Forall tt qs pr) = ("Forall",[pr],[],[qs],[])
-predParts (Exists tt qs pr) = ("Exists",[pr],[],[qs],[])
-predParts (Exists1 tt qs pr) = ("Exists1",[pr],[],[qs],[])
-predParts (Univ tt pr) = ("Univ",[pr],[],[],[])
 
-predParts (Sub (Obs e) sub@(Substn ssub))
+predParts (Sub (PExpr e) sub@(Substn ssub))
    = ( "(e)Sub"
      , []
-     , [Esub e sub]
+     , [ESub e sub]
      , [Q $ map fst ssub]
      , []
      )
@@ -1924,21 +1736,6 @@ predParts (Sub pr (Substn ssub))
      , []
      )
 
-predParts (Psub pr (Substn ssub))
-   = ( "Sub"
-     , pr:(map snd ssub)
-     , []
-     , [Q $ map (rootAsVar . Gen . fst) ssub]
-     , []
-     )
-predParts (Ppabs s pr) = ("Ppabs",[pr],[],[],[])
-predParts (Papp prf pra) = ("Papp",[prf,pra],[],[],[])
-predParts (Psapp pr spr) = ("Psapp",[pr],[],[],[])
-predParts (Psin pr spr) = ("Psin",[pr],[],[],[])
-predParts (Pforall pvs pr) = ("Pforall",[pr],[],[],[])
-predParts (Pexists pvs pr) = ("Pexists",[pr],[],[],[])
-predParts (Peabs s pr) = ("Peabs",[pr],[],[],[])
-predParts (Pfocus prf) = ("Pfocus",[prf],[],[],[])
 predParts _ = ("pred",[],[],[],[])
 
 langParts s les = ("Lang-"++s,prs,es,[],ts)
@@ -1982,21 +1779,16 @@ exprsOf pr
 
 \begin{code}
 exprParts :: Expr -> (String,[Pred],[Expr],[QVars])
-exprParts T                  = ("T",[],[],[])
-exprParts F                  = ("F",[],[],[])
 exprParts (Num _)            = ("Num",[],[],[])
 exprParts (Var (_,_,s))      = ("Var:"++s,[],[],[])
 exprParts (App s es)          = ("App",[],es,[])
-exprParts (Equal e1 e2)      = ("Equal",[],[e1,e2],[])
-exprParts (The tt x pr)      = ("The",[pr],[],[Q [x]])
-exprParts (Eabs tt qs e)     = ("Eabs",[],[e],[qs])
-exprParts (Esub e (Substn ssub))
-  = ( "Esub"
+exprParts (Abs s qs es)     = ("Abs",[],es,[qs])
+exprParts (ESub e (Substn ssub))
+  = ( "ESub"
     , []
     , e:(map snd ssub)
     , [Q $ map fst ssub]
     )
-exprParts (Efocus ef) = ("Efocus",[],[ef],[])
 exprParts _ = ("expr",[],[],[])
 
 exprNPart  = fst4 . exprParts
@@ -2022,11 +1814,8 @@ Extracting the language components is useful
 \begin{code}
 exprLang :: Expr -> [String]
 exprLang (App s es)       = exprsLang es
-exprLang (Equal e1 e2)   = exprsLang [e1,e2]
-exprLang (The tt qs pr)     = predLang pr
-exprLang (Eabs tt qs e)     = exprLang e
-exprLang (Esub e sub)    = exprLang e `mrgnorm` subLang exprsLang sub
-exprLang (Efocus ef)     = exprLang ef
+exprLang (Abs s qs es)     = exprsLang es
+exprLang (ESub e sub)    = exprLang e `mrgnorm` subLang exprsLang sub
 exprLang e               = []
 
 exprsLang [] = []
@@ -2035,41 +1824,13 @@ exprsLang (e:es) = exprLang e `mrgnorm` exprsLang es
 subLang slang (Substn ssub) = slang (map snd ssub)
 
 predLang :: Pred -> [String]
-predLang (Obs e)            = exprLang e
-predLang (Defd e)           = exprLang e
-predLang (TypeOf e t)       = exprLang e
-predLang (Not pr)              = predLang pr
-predLang (And prs)             = predsLang prs
-predLang (Or prs)              = predsLang prs
-predLang (Imp pr1 pr2)         = predsLang [pr1,pr2]
-predLang (Eqv pr1 pr2)         = predsLang [pr1,pr2]
-predLang (Forall tt qs pr)        = predLang pr
-predLang (Exists tt qs pr)        = predLang pr
-predLang (Exists1 tt qs pr)       = predLang pr
-predLang (Univ tt pr)             = predLang pr
+predLang (PExpr e)            = exprLang e
 predLang (Sub pr sub)          = predLang pr `mrgnorm` subLang exprsLang sub
-predLang (If prc prt pre)      = predsLang [prc,prt,pre]
-predLang (NDC pr1 pr2)         = predsLang [pr1,pr2]
-predLang (RfdBy pr1 pr2)       = predsLang [pr1,pr2]
 predLang (Lang s p les ss)     = insnorm s (langsLang les)
-predLang (Peabs s pr)          = predLang pr
-predLang (Ppabs s pr)          = predLang pr
-predLang (Papp prf pra)        = predsLang [prf,pra]
-predLang (Psapp pr spr)        = predLang pr `mrgnorm` psetLang spr
-predLang (Psin pr spr)         = predLang pr `mrgnorm` psetLang spr
-predLang (Pforall pvs pr)      = predLang pr
-predLang (Pexists pvs pr)      = predLang pr
-predLang (Psub pr sub)         = predLang pr `mrgnorm` subLang predsLang sub
-predLang (Pfocus prf)          = predLang prf
 predLang pr                    = []
 
 predsLang [] = []
 predsLang (pr:prs) = predLang pr `mrgnorm` predsLang prs
-
-psetLang (PSet prs) = predsLang prs
-psetLang (PSetC _ pr1 pr2) = predsLang [pr1,pr2]
-psetLang (PSetU s1 s2) = psetLang s1 `mrgnorm` psetLang s2
-psetLang _ = []
 
 langLang :: LElem -> [String]
 langLang (LExpr e)    = exprLang e
@@ -2084,13 +1845,13 @@ langsLang (le:les) = langLang le `mrgnorm` langsLang les
 
 
 
-\subsubsection{Pvar table building}
+\subsubsection{PVar table building}
 
-Building tables from \texttt{Pvar}-value lists:
+Building tables from \texttt{PVar}-value lists:
 \begin{code}
 plupdate :: Trie t -> [(Pred, t)] -> Trie t
 plupdate = foldr mkpentry
-mkpentry (Pvar (Std f),t) trie = tupdate f t trie
-mkpentry (Pvar (Lst f),t) trie = tupdate (f++"$") t trie
+mkpentry (PVar (Std f),t) trie = tupdate f t trie
+mkpentry (PVar (Lst f),t) trie = tupdate (f++"$") t trie
 mkpentry _          trie = trie
 \end{code}
