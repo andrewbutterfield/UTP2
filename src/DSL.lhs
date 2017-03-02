@@ -71,7 +71,7 @@ Often we want an name, variable, qvar-list and expression called ``x'' (say),
 so it is worth giving a  declaration building function for this usage
 \begin{code}
 declNVQE :: (String -> Variable) -> String -> (String,Variable,QVars,Expr)
-declNVQE mkv s = (s,v,q,e) where { v = mkv s; q = Q [v]; e = Var v }
+declNVQE mkv s = (s,v,q,e) where { v = mkv s; q =  [v]; e = Var v }
 
 declPreNVQE,declPostNVQE,declLstNVQE,declLst'NVQE
  :: String -> (String,Variable,QVars,Expr)
@@ -97,14 +97,14 @@ nQ = "Q"
 nR = "R"
 nS = "S"
 
-pA = Pvar $ Std nA
-pB = Pvar $ Std nB
-pC = Pvar $ Std nC
-pD = Pvar $ Std nD
-pP = Pvar $ Std nP
-pQ = Pvar $ Std nQ
-pR = Pvar $ Std nR
-pS = Pvar $ Std nS
+pA = PVar $ genRootAsVar $ Std nA
+pB = PVar $ genRootAsVar $ Std nB
+pC = PVar $ genRootAsVar $ Std nC
+pD = PVar $ genRootAsVar $ Std nD
+pP = PVar $ genRootAsVar $ Std nP
+pQ = PVar $ genRootAsVar $ Std nQ
+pR = PVar $ genRootAsVar $ Std nR
+pS = PVar $ genRootAsVar $ Std nS
 
 x = "x"
 y = "y"
@@ -133,12 +133,12 @@ e = mkEvar n_e
 We introduce some quantifier meta-variables:
 \begin{code}
 nx = varKey vx ; vx = preVar "x" ; vx' = postVar "x";  qx = qvar nx; eqx = Var $ preVar nx
-nxs = varKey vxs ; vxs = lstVar "x" ; qxs = Q [vxs]
-qxxs = Q [vx,vxs]
+nxs = varKey vxs ; vxs = lstVar "x" ; qxs =  [vxs]
+qxxs =  [vx,vxs]
 
 ny = varKey vy ; vy = preVar "y" ; vy' = postVar "y"; qy = qvar ny; eqy = Var $ preVar ny
-nys = varKey vys ; vys = lstVar "y" ; qys = Q [vys]
-qyys = Q [vy,vys]
+nys = varKey vys ; vys = lstVar "y" ; qys =  [vys]
+qyys =  [vy,vys]
 
 nz = "z"; vz = preVar nz; vz' = postVar nz; qz = qvar nz; eqz = Var $ preVar nz
 
@@ -148,18 +148,18 @@ nEs = "Es" ; qEs = qvarr nEs
 nFs = "Fs" ; qFs = qvarr nFs
 qEsFs = qvarrs [nEs,nFs]
 
-vP = preVar nP; qP = Q [vP]
-nPs = varKey vPs; vPs = lstVar "P" ; qPs = Q [vPs]
-nQs = varKey vQs; vQs = lstVar "Q" ; qQs = Q [vQs]
-qPPs = Q [vP,vPs]
+vP = preVar nP; qP =  [vP]
+nPs = varKey vPs; vPs = lstVar "P" ; qPs =  [vPs]
+nQs = varKey vQs; vQs = lstVar "Q" ; qQs =  [vQs]
+qPPs =  [vP,vPs]
 
 qPsQs = mkQ [vPs,vQs]
 \end{code}
 
 \subsection{Predicate meta-Variable Lookup}
-Lookup taking a \texttt{Pvar}:
+Lookup taking a \texttt{PVar}:
 \begin{code}
-pVarLookup table (Pvar r) = tlookup table $ show r
+pVarLookup table (PVar r) = tlookup table $ show r
 pVarLookup _      _         = Nothing
 \end{code}
 
@@ -168,27 +168,33 @@ pVarLookup _      _         = Nothing
 
 \begin{code}
 infixl 4 ===
-p === q = Eqv p q
+p === q = mkEqv p q
 
+n_Imp = "Imp"
+mkImp p q  = PApp n_Imp [p,q]
 infixr 5 ==>
-p ==> q = Imp p q
+p ==> q = mkImp p q
 
 infixl 6 \/
-p \/ q = Or [p,q]
+p \/ q = mkOr [p,q]
 
 infixl 7 /\
-p /\ q = And [p,q]
+p /\ q = mkAnd [p,q]
 
+n_If = "If"
+mkIf c p q =  PApp n_If [c,p,q]
 infixl 8 <|
 p <| c = (p,c)
 infixl 8 |>
-(p,c) |> q = If c p q
+(p,c) |> q = mkIf c p q
 
 infixl 9 >>>
 p >>> q = Lang compName 50 [LPred p,LPred q] [SSNull,SSTok compName,SSNull]
 
+n_RfdBy = "RfdBy"
+mkRfdBy c s = PApp n_RfdBy [c,s]
 infixl 4 |=
-s |= c = RfdBy c s
+s |= c = mkRfdBy c s
 
 infixl 4 =|
 c =| s  =  Lang "=|" 40 [LPred c,LPred s] [SSNull,SSTok "=|",SSNull]
@@ -232,16 +238,16 @@ boolOpTypes = lbuild
 
 Legacy code from when quantifiers had explicit ranges.
 \begin{code}
-mkAll  = Forall 0
-mkAny  = Exists 0
-mkAny1  = Exists1 0
+mkAll  = mkForall
+mkAny  = mkExists
+mkAny1  = mkExists1
 \end{code}
 
 New code because ranges have gone
 \begin{code}
-rForall q r p   =  Forall 0 q (r ==> p)
-rExists q r p   =  Exists 0 q (r /\ p)
-rExists1 q r p  =  Exists1 0 q (r /\ p)
+rForall q r p   =  mkForall q (r ==> p)
+rExists q r p   =  mkExists q (r /\ p)
+rExists1 q r p  =  mkExists1 q (r /\ p)
 \end{code}
 
 
@@ -251,7 +257,7 @@ x_NotFreeIn_e = vx `notEfree` n_e
 xNFinA = SCnotFreeIn PredM [vx] nA
 
 nN = "N"
-pN = Pvar $ Std nN
+pN = PVar $ genRootAsVar $ Std nN
 xNFinN = SCnotFreeIn PredM [vx] nN
 xsNFinN = SCnotFreeIn PredM [vxs] nN
 
@@ -264,8 +270,8 @@ xyNFinA = SCnotFreeIn PredM [vx,vy] nA
 bN = "b"
 bv = qvar bN
 bvxs = qvarsr ["b"] "xs"
-bp = Obs (Var $ preVar "b")
-nbp = Not bp
+bp = PExpr (Var $ preVar "b")
+nbp = mkNot bp
 subb p t = Sub p $ Substn [(preVar bN,t)]
 \end{code}
 
@@ -317,20 +323,22 @@ precsEquality
      , (neqName,(opPrec 1 neqName,AssocNone))
      ]
 
-eq m n  = Equal m n
+eq m n  = mkEqual m n
 ne m n  = mkBin neqName (precOf precsEquality neqName) m n
 
 infix 5 `equal`
 infix 5 `neq`
 
-e1 `equal` e2 = Obs (e1 `eq` e2)
-e1 `neq` e2   = Obs (e1 `ne` e2)
+e1 `equal` e2 = PExpr (e1 `eq` e2)
+e1 `neq` e2   = PExpr (e1 `ne` e2)
 \end{code}
 
 A function to build definedness predicates:
 \begin{code}
-domOfDefn nm app dod
- = ( "DOD-"++nm , (Defd app) === dod )
+n_Defd = "Defd"
+mkDefd e = PApp n_Defd [PExpr e]
+
+domOfDefn nm app dod = ("DOD-"++nm , (mkDefd app) === dod )
 \end{code}
 
 
@@ -393,13 +401,13 @@ tArithRel = Tfun tNum2 B
 
 infix 5 `equalZ`
 infix 5 `neqZ`
-m `equalZ` n = Obs (Equal m n)
-m `neqZ` n   = Not (m `equalZ` n)
+m `equalZ` n = PExpr (mkEqual m n)
+m `neqZ` n   = mkNot (m `equalZ` n)
 
-lthan m n  =  Obs (lt m n)
-leq m n    =  Obs (le m n)
-gthan m n  =  Obs (gt m n)
-geq m n    =  Obs (ge m n)
+lthan m n  =  PExpr (lt m n)
+leq m n    =  PExpr (le m n)
+gthan m n  =  PExpr (gt m n)
+geq m n    =  PExpr (ge m n)
 \end{code}
 
 
@@ -449,12 +457,12 @@ empty        = mkSet []
 infix 5 `equalS`
 infix 5 `neqS`
 
-e1 `equalS` e2 = Obs (Equal e1 e2)
-e1 `neqS` e2   = Not (e1 `equalS` e2)
+e1 `equalS` e2 = PExpr (mkEqual e1 e2)
+e1 `neqS` e2   = mkNot (e1 `equalS` e2)
 
-pmof e s = Obs (e `mof` s)
-psubset s t = Obs (s `subset` t)
-psubseteq s t = Obs (s `subsetEq` t)
+pmof e s = PExpr (e `mof` s)
+psubset s t = PExpr (s `subset` t)
+psubseteq s t = PExpr (s `subsetEq` t)
 \end{code}
 
 \subsection{DSL: Lists}
@@ -509,12 +517,12 @@ ix s i   = App "ix" [s,i]
 elems s  = App "elems" [s]
 nil      = mkSeq []
 
-e1 `equalL` e2 = Obs (Equal e1 e2)
-e1 `neqL` e2   = Not (e1 `equalL` e2)
+e1 `equalL` e2 = PExpr (mkEqual e1 e2)
+e1 `neqL` e2   = mkNot (e1 `equalL` e2)
 
-plnull s = Obs (lnull s)
-ppfx s t  = Obs (s `pfx` t)
-pspfx s t = Obs (s `spfx` t)
+plnull s = PExpr (lnull s)
+ppfx s t  = PExpr (s `pfx` t)
+pspfx s t = PExpr (s `spfx` t)
 
 ss = mkEvar "s"
 tt = mkEvar "t"
@@ -528,7 +536,7 @@ ii = mkEvar "i"
 
 
 We need to associate a list of observational variables
-with the \texttt{Pvar}s here, which will always include $ok$ and $wait$,
+with the \texttt{PVar}s here, which will always include $ok$ and $wait$,
 so we use a special name: "\_OBS" to cover the rest.
 
 We use Haskell classes to allow us to use one identifier
@@ -539,13 +547,13 @@ class Ok t           where   ok,              ok'                         :: t
 instance Ok String   where { ok = "ok" ;      ok' = "ok'" }
 instance Ok Variable where { ok = preVar ok ; ok' = postVar ok }
 instance Ok Expr     where { ok = Var ok ;    ok' = Var ok' }
-instance Ok Pred     where { ok = Obs ok ;    ok' = Obs ok' }
+instance Ok Pred     where { ok = PExpr ok ;    ok' = PExpr ok' }
 
 class Wait t           where   wait,                wait'                 :: t
 instance Wait String   where { wait = "wait" ;      wait' = "wait'" }
 instance Wait Variable where { wait = preVar wait ; wait' = postVar wait }
 instance Wait Expr     where { wait = Var wait ;    wait' = Var wait' }
-instance Wait Pred     where { wait = Obs wait ;    wait' = Obs wait' }
+instance Wait Pred     where { wait = PExpr wait ;    wait' = PExpr wait' }
 \end{code}
 
 \subsection{Observational Variables}
