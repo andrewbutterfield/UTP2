@@ -1632,8 +1632,7 @@ keyLQUOTE   =  "`"       -- language quotation
 keyDEFD     =  "DEFD"
 \end{code}
 \begin{code}
-instance Show Pred where
-  show p                    = pShow 0 p
+predShow p = pShow 0 p
 
 pShow 0 pr = showPred 0 pr
 pShow pouter pr
@@ -1645,49 +1644,19 @@ pShow pouter pr
 
 showPred _ TRUE    = keyTRUE
 showPred _ FALSE   = keyFALSE
-showPred _ (Pvar pr) = show pr
-showPred _ (Perror m) = "PERR(" ++ m ++")"
+showPred _ (PVar pv) = showVar pv
+
+showPred p pr@(PApp n prs)
+ = n ++ "(" ++ pShow q p1 ++ " " ++ pShow (q+1) p2
+ where q = pPrec pr
 
 showPred p (Sub pr s)
   | isPClosed pr  =       showPred p pr        ++ show s
   | otherwise     =  "("++showPred 0 pr ++ ")" ++ show s
 
-showPred p (Psub pr s)
-  | isPClosed pr  =       showPred p pr        ++ show s
-  | otherwise     =  "("++showPred 0 pr ++ ")" ++ show s
+showPred p pr@(PExpr e)  =  showExpr p e
 
-showPred p pr@(Obs e)  =  showExpr p e
 
-showPred p (Defd e) = keyDEFD ++"("++show e++")"
-
-showPred p (TypeOf e t)
- | isEClosed e  =        show e        ++ keySTRTYP++show t++keyENDTYP
- | otherwise    = "(" ++ show e ++ ")" ++ keySTRTYP++show t++keyENDTYP
-
-showPred _ (Univ tt pr) = keyDLSQBR++" "++showPred 0 pr++" "++keyDRSQBR
-
-showPred p pr@(Papp p1 p2) = pShow q p1 ++ " " ++ pShow (q+1) p2
- where q = pPrec pr
-
-showPred p pr@(Psapp pr1 spr)
- = pShow q pr1 ++ " " ++ showPredSet (q+1) spr
- where q = pPrec pr
-
-showPred p pr@(Psin pr1 spr)
- = pShow q pr1 ++ " IN " ++ showPredSet q spr
- where q = pPrec pr
-
-showPred _ (Pforall qs pr)
- = keyPFORALL ++ " " ++ show qs ++ pad _bullet ++ showPred 0 pr
-
-showPred _ (Pexists qs pr)
- = keyPEXISTS ++ " " ++ show qs ++ pad _bullet ++ showPred 0 pr
-
-showPred p (Ppabs qs pr)
- = ksymPPABS ++ " " ++ show qs ++ pad _bullet ++ showPred 0 pr
-
-showPred _ (Peabs qs pr)
- = ksymPEABS ++ " " ++ show qs ++ pad _bullet ++ showPred 0 pr
 
 showPred p pr@(Lang s q les ss)
   | isBinSpec (LangSpec les ss) = showLang q les ss
@@ -1696,56 +1665,8 @@ showPred p pr@(Lang s q les ss)
   --     else showLang q les ss
   | otherwise = keyLQUOTE++showLang 0 les ss++keyLQUOTE
 
-showPred p (Pfocus pr) = [pFocusStart]++showPred p pr++[pFocusEnd]
 
--- showPred p (Exists tt qs (And [rg, pr]))
---  | rg == TRUE  =  keyEXISTS ++ " " ++ show qs
---                             ++ pad _bullet ++ pShow p pr
---  | otherwise   =  keyEXISTS ++ " " ++ show qs
---                             ++ " | " ++ showPred 0 rg
---                             ++ pad _bullet ++ pShow p pr
 
-showPred p (Exists tt qs pr)
- = keyEXISTS ++ " " ++ show qs ++ pad _bullet ++ pShow p pr
-
--- showPred p (Exists1 tt qs (And [rg, pr]))
---  | rg == TRUE  =  keyEXISTS1 ++ " " ++ show qs
---                             ++ pad _bullet ++ pShow p pr
---  | otherwise   =  keyEXISTS1 ++ " " ++ show qs
---                             ++ " | " ++ showPred 0 rg
---                             ++ pad _bullet ++ pShow p pr
-
-showPred p (Exists1 tt qs pr)
- = keyEXISTS1 ++ " " ++ show qs ++ pad _bullet ++ pShow (p+1) pr
-
--- showPred p (Forall tt qs (Imp rg pr))
---  | rg == TRUE  =  keyFORALL ++ " " ++ show qs
---                             ++ pad _bullet ++ pShow p pr
---  | otherwise   =  keyFORALL ++ " " ++ show qs
---                             ++ " | " ++ showPred 0 rg
---                             ++ pad _bullet ++ pShow p pr
-
-showPred p (Forall tt qs pr)
- = keyFORALL ++ " " ++ show qs ++ pad _bullet ++ pShow (p+1) pr
-
-showPred p (If cp tp ep)
- = pShow (p+1) tp
-   ++ " "++ksymLCOND++" " ++ showPred 0 cp ++ " "++ksymRCOND++" "
-   ++ pShow (p+1) ep
-showPred p pr@(Eqv p1 p2)  = pShow q p1 ++ pad _equiv ++ pShow q p2
- where q = pPrec pr
-showPred p pr@(Imp p1 p2)  = pShow q p1 ++ pad _implies ++ pShow q p2
- where q = pPrec pr
-showPred p pr@(RfdBy p1 p2)  = pShow q p1 ++ pad _sqsubseteq ++ pShow q p2
- where q = pPrec pr
-showPred p pr@(Not pr') = keyLNOT++pShow q pr'
- where q = pPrec pr
-showPred p pr@(Or ps)   = showSep q pShow (pad _lor) ps
- where q = pPrec pr
-showPred p pr@(NDC p1 p2)   = pShow q p1 ++ pad _sqcap ++ pShow q p2
- where q = pPrec pr
-showPred p pr@(And ps)  = showSep q pShow (pad _land) ps
- where q = pPrec pr
 
 -- showPred p pr = "XXXXXX(showPred of unexpected variant)XXXXXX"
 \end{code}
@@ -1761,31 +1682,6 @@ endPFocus   = '!'
 deepFocus   = '_'
 \end{code}
 
-Now, displaying predicate sets.
-\begin{code}
-instance Show PredSet where show ps = showPredSet 0 ps
-
-showPredSet _ (PSName nm) = nm
-
-showPredSet _ (PSet spr)
- = keyDLCBR ++ showSep 0 showPred "," spr ++ keyDRCBR
-
-showPredSet _ (PSetC qs pr1 pr2)
- = keyDLCBR
-   ++" "++show qs
-   ++" | "++showPred 0 pr1
-   ++pad _bullet++showPred 0 pr2
-   ++" "++keyDRCBR
-
-showPredSet p (PSetU s1 s2)
- | q <= p     =  "(" ++ psetu 0 ++ ")"
- | otherwise  =  psetu q
- where
-   q = opPrec 1 psunionName
-   psetu q = showPredSet q s1
-              ++" "++psunionName++" "
-              ++showPredSet q s2
-\end{code}
 
 
 \subsection{Parsing \texttt{Pred}/\texttt{Expr}}
@@ -2209,8 +2105,7 @@ $$
   x_1,\ldots,x_m
 $$
 \begin{code}
-instance Show QVars where
- show (Q qs) = mkSepList ',' $ map showVar qs
+showQVars qs = mkSepList ',' $ map showVar qs
 \end{code}
 
 
@@ -2454,7 +2349,7 @@ We need canonical forms of \texttt{LElem}s:
 lVarSpec  = LVar $ Std lsVar
 lTypeSpec = LType (Tvar lsType)
 lExprSpec = LExpr (Var lsEvar)
-lPredSpec = LPred (Pvar $ Std lsPred)
+lPredSpec = LPred (PVar $ noDecorVariable lsPred)
 llist le = LList [le]
 lcount le = LCount [le]
 \end{code}
@@ -2607,7 +2502,7 @@ for the construct name as well:
 mkBinLang (LangSpec [_,_] ss@[SSNull,SSTok oname,SSNull]) prec left right
  = Lang oname prec [left,right] ss
 mkBinLang lspec prec left right
- = Perror ("mkBinLang: lspec not binary - "++show lspec)
+ = perror ("mkBinLang: lspec not binary - "++show lspec)
 \end{code}
 
 Checking a Lang construct for infixity is also useful:

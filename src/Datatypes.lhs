@@ -447,7 +447,10 @@ data Expr
  | Abs String TTTag [Variable] [Expr]
  | ESub Expr ESubst
  | EPred Pred
- deriving (Eq, Ord)
+ deriving (Eq, Ord, Show)
+
+n_Eerror = "EXPR_ERR: "
+eerror str = App (n_Eerror ++ str) []
 
 type ESubst = Substn Variable Expr
 \end{code}
@@ -501,7 +504,10 @@ data Pred
         Int       -- precedence, if binary
         [LElem]   -- Language elements
         [SynSpec] -- Interleaving Tokens
- deriving (Eq, Ord)
+ deriving (Eq, Ord, Show)
+
+n_Perror = "PRED_ERR: "
+perror str = PApp (n_Perror ++ str) []
 
 type PSubst = Substn GenRoot  Pred
 \end{code}
