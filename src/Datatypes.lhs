@@ -543,6 +543,9 @@ mkOr [] = FALSE
 mkOr [pr] = pr
 mkOr prs = PApp "Or" prs
 
+n_Eqv = "Eqv"
+mkEqv pr1 pr2 = PApp n_Eqv [pr1,pr2]
+
 n_Forall = "Forall"
 mkForall ([]) p = p
 mkForall qvs p = PAbs "Forall" 0 qvs [p]

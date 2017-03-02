@@ -183,55 +183,24 @@ to use this measure as a base for their calculations.
 \begin{code}
 predSize TRUE                = 0
 predSize FALSE               = 0
-predSize (Obs e)           = 2
-predSize (TypeOf e t)      = 4 + exprSize e
-predSize (Defd e)          = 2 + exprSize e
-predSize (Not pr)            = 2 + predSize pr
-predSize (And prs)           = 2 + psSize prs
-predSize (Or prs)            = 2 + psSize prs
-predSize (Imp pr1 pr2)       = 3 + psSize [pr1,pr2]
-predSize (NDC pr1 pr2)       = 3 + psSize [pr1,pr2]
-predSize (RfdBy pr1 pr2)     = 3 + psSize [pr1,pr2]
-predSize (Eqv pr1 pr2)       = 6 + (psSize [pr1,pr2])
-predSize (If prc prt pre )   = 6 + psSize [prc,prt,pre]
-predSize (Forall _ qs pr)      = 10 + qSize qs + predSize pr
-predSize (Exists _ qs pr)      = 10 + qSize qs + predSize pr
-predSize (Exists1 _ qs pr)     = 10 + qSize qs + predSize pr
-predSize (Univ _ pr)           = 3 + predSize pr
+predSize (PVar s)            = 2
+predSize (PApp _ prs )       = 6 + psSize prs
+predSize (PAbs _  _ qs prs)  = 10 + qSize qs + psSize prs
 predSize (Sub pr sub)        = 4 + predSize pr + sSize sub
-predSize (Psub pr sub)       = 5 + predSize pr + sSize sub
 predSize (Lang s p les ss)   = 1 -- want to encourage language matches
-predSize (Pvar s)            = 2
-predSize (Ppabs qs pr)       = 5 + qSize qs + predSize pr
-predSize (Papp prf pra)      = 3 + psSize [prf,pra]
-predSize (Psapp pr spr)      = 5 + predSize pr + psetRank spr
-predSize (Psin pr spr)       = 5 + predSize pr + psetRank spr
-predSize (Pforall qs pr)     = 10 + qSize qs + predSize pr
-predSize (Pexists qs pr)     = 10 + qSize qs + predSize pr
-predSize (Peabs qs pr)       = 5 + qSize qs + predSize pr
-predSize _                   = 20
+predSize (TypeOf e t)        = 4 + exprSize e
+predSize (PExpr e)           = exprSize e
 \end{code}
 
-\paragraph{Predicate Sets}
-\begin{code}
-psetRank (PSName _)          =  2
-psetRank (PSet prs)          =  2 + psSize prs
-psetRank (PSetC qs pr1 pr2)  =  4 + qSize qs + psSize [pr1,pr2]
-psetRank (PSetU s1 s2)       =  4 + psetRank s1 + psetRank s2
-\end{code}
 
 \paragraph{Expressions}
 \begin{code}
-exprSize T               = 1
-exprSize F               = 1
-exprSize (Num i)         = 2
-exprSize (Var s)         = 2
-exprSize (App s es)      = 2 + esSize es
-exprSize (Equal e1 e2)   = 2 + esSize [e1,e2]
-exprSize (The _ x pr)    = 12 + predSize pr
-exprSize (Eabs _ qs e)   = 2 + qSize qs + exprSize e
-exprSize (Esub e sub)    = 2 + exprSize e + sSize sub
-exprSize _               = 20
+exprSize (Num i)           = 2
+exprSize (Var s)           = 2
+exprSize (App s es)        = 2 + esSize es
+exprSize (Abs _ _ qs es)   = 2 + qSize qs + esSize es
+exprSize (ESub e sub)      = 2 + exprSize e + sSize sub
+exprSize (EPred pr)        = predSize pr
 \end{code}
 \paragraph{Bits and Pieces}
 \begin{code}
@@ -239,7 +208,7 @@ psSize = sum . (map predSize)
 
 esSize = sum . (map exprSize)
 
-qSize (Q vs)  =  2 + length vs
+qSize vs  =  2 + length vs
 
 sSize (Substn sub) = length sub
 \end{code}
@@ -452,12 +421,12 @@ is that of the identity predicate transformer:
 badRank :: Rank
 badRank = (-666666)
 
-errPMrk msg pred = Papp (Pvar $ Std msg) pred
-mrkPDef msg = (msg,Ppabs (qvar "P") (Pvar $ Std "P"))
-markP = Pvar $ Std " P"
-mrkPLaw msg = (msg,(badRank,(Eqv (errPMrk msg markP) markP,SCtrue)))
+errPMrk msg pred = PApp "errormark" [(PVar $ genRootAsVar $ Std msg), pred]
+mrkPDef msg = (msg,PAbs "errormark" 0 (qvar "P") [markP])
+markP = PVar $ genRootAsVar $ Std " P"
+mrkPLaw msg = (msg,(badRank,(mkEqv (errPMrk msg markP) markP,SCtrue)))
 
-errEMrk msg e = App msg [e]
+errEMrk msg e = App "errormark" [Var msg, e]
 markE = Var $ preVar " e"
-mrkELaw msg = (msg,(badRank,(Obs (Equal (errEMrk msg markE) markE),SCtrue)))
+mrkELaw msg = (msg,(badRank,(PExpr (mkEqual (errEMrk msg markE) markE),SCtrue)))
 \end{code}
