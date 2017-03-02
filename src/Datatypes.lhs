@@ -19,6 +19,78 @@ type Message = String
 \end{code}
 
 \newpage
+\subsection{Substitutions}
+
+Substitutions associate a list of things (types,expressions,predicates)
+with some (quantified) variables.
+This is just
+\begin{code}
+data Substn v a
+ = Substn [( v   -- variable type
+           , a   -- replacement object
+           )]
+ deriving (Eq,Ord)
+
+type VSubst = Substn Variable Variable
+\end{code}
+
+It helps to convert \texttt{Substn} into pairs of lists
+or lists of pairs (assuming no meta-variables, and correct matching),
+and vice-versa:
+\begin{code}
+unwrapQV  (Substn ssub)  =  twist $ unzip $ ssub
+sublistQV (Substn ssub)  =  map twist ssub
+mkSubs a v       =  Substn [(v,a)]
+packlistQV subs  =  Substn (map twist subs)
+packflipQV subs  =  Substn subs -- now a misnomer
+\end{code}
+The use of \texttt{twist} here is because
+the new revised \texttt{Substn} datatype
+now puts entries in association-list order \texttt{(from,to)}
+rather than substitution notation order \texttt{[to/from]},
+which was the basis for the old%
+\footnote{pre May 27th 2010}
+datatype.
+
+We provide a constructor
+that supports the old type, where we had a list of things and
+a corresponding \texttt{Variable},
+as well as a destructor that returns \texttt{QVars}.
+
+(We note that \texttt{QVars} have been demoted
+from \texttt{data} to \texttt{type}
+and will be phased out).
+\begin{code}
+mkQsubst as xs = Substn $ zip xs as
+
+mkSubQ (Substn ssub) =  map fst ssub
+\end{code}
+
+It is useful to be able to partition substitutions on Variables
+between those that are standard and those that are list:
+\begin{code}
+sPartition :: [(Variable,a)] -> ([(Variable,a)],[(Variable,a)])
+sPartition = partition (isStdV . fst)
+\end{code}
+
+
+
+Mapping across \texttt{Substn} types is also helpful:
+\begin{code}
+mapSub :: (a -> b) -> Substn v a -> Substn v b
+mapSub f (Substn ssub)
+ = Substn (map (lift f) ssub)
+ where lift f (v,a) = (v,f a)
+\end{code}
+
+\begin{code}
+qvunzip :: Substn v a -> ([a],[v])
+qvunzip (Substn sub) = twist $ unzip sub
+
+qvunzipWith :: (v -> Variable) -> Substn v a -> ([a],[Variable])
+qvunzipWith toV sub = setsnd (map toV ) $ qvunzip sub
+\end{code}
+
 \subsection{Types}
 
 For now, type variables are strings:
@@ -41,6 +113,8 @@ data Type -- most general types first
  | Terror String Type
  deriving (Eq,Ord)
 
+type TSubst = Substn String   Type
+
 nonTypeCons Tarb      =  True
 nonTypeCons (Tvar _)  =  True
 nonTypeCons Tenv      =  True
@@ -49,42 +123,7 @@ nonTypeCons B         =  True
 nonTypeCons _         =  False
 \end{code}
 
-When we do type-inference,
-we need to maintain tables mapping variables to types.
-Given the presence of binders/quantifiers,
-these tables need to be nested.
-We shall use integer tags to identify the tables:
-\begin{code}
-type TTTag = Int
-\end{code}
 
-At each level we have a table mapping variables to types,
-and then we maintain a master table mapping type-table tags to such
-tables:
-\begin{code}
-type VarTypes = Trie Type                -- Var -+-> Type
-type TVarTypes = Trie Type               -- TVar -+-> Type
-type TypeTables = Btree TTTag VarTypes
-\end{code}
-Quantifiers induce nested scopes which we capture as a list of
-type-table tags. Tag 0 is special and always denotes the topmost global
-table.
-
-Given type-tables, and a list of \texttt{TTTag}s,
-lookup the type of a variable w.r.t. those,
-returning \texttt{Tarb} if nothing found.
-This facilitates early matching before types have been inferred.
-\begin{code}
-mttsLookup :: TypeTables -> Variable -> [TTTag] -> Type
-mttsLookup tts v [] = Tarb
-mttsLookup tts v (tag:tags)
- = case btlookup tts tag of
-     Nothing  ->  Tarb
-     Just vtyps
-       -> case tvlookup vtyps v of
-            Just t   ->  t
-            Nothing  ->  mttsLookup tts v tags
-\end{code}
 
 \newpage
 \subsection{Variables}
@@ -304,119 +343,43 @@ rPartition :: [Variable] -> ([Variable],[Variable])
 rPartition = partition isRsvV
 \end{code}
 
-
 \newpage
-\subsection{Quantifier Variables}
-
-We want to be able to match predicates and expressions
-against laws involving quantifiers in a flexible manner,
-so we need to represent quantified variables, and lists of them
-as well as variables that can match against these.
-Generally we want to match against a specified list of
-variables, and then ``all the rest''.
+\subsection{Type-Tables}
+When we do type-inference,
+we need to maintain tables mapping variables to types.
+Given the presence of binders/quantifiers,
+these tables need to be nested.
+We shall use integer tags to identify the tables:
 \begin{code}
-data QVars
- = Q{outQ::[Variable]}
- deriving (Eq,Ord)
-
-mkQ :: [Variable] -> QVars
-mkQ = Q . lnorm
-
-snglQ :: Variable -> QVars
-snglQ v = Q [v]
-
-qvarmrg (Q qs) (Q rs) = mkQ (qs++rs)
-
-qsmrg :: QVars -> QVars -> QVars -- no normalisation for subst-lists!
-(Q qs) `qsmrg` (Q rs)  = Q (qs ++ rs)
-
--- except when we explicitly want it!
-(Q as) `mrgqnorm` (Q bs) = Q (as `mrgnorm` bs)
+type TTTag = Int
 \end{code}
 
-We get observation variables  and ``multiple'' meta-variables
-from quantifier lists:
+At each level we have a table mapping variables to types,
+and then we maintain a master table mapping type-table tags to such
+tables:
 \begin{code}
-getqovars = filter isStdV . outQ
-getqqvars = filter isLstV . outQ
-getqvars  = outQ
-
-lqnorm :: QVars -> QVars
-lqnorm = Q . lnorm . outQ
+type VarTypes = Trie Type                -- Var -+-> Type
+type TVarTypes = Trie Type               -- TVar -+-> Type
+type TypeTables = Btree TTTag VarTypes
 \end{code}
-(Normalising these lists is also useful)
+Quantifiers induce nested scopes which we capture as a list of
+type-table tags. Tag 0 is special and always denotes the topmost global
+table.
 
-
-\newpage
-\subsection{Substitutions}
-
-Substitutions associate a list of things (types,expressions,predicates)
-with some (quantified) variables.
-This is just
+Given type-tables, and a list of \texttt{TTTag}s,
+lookup the type of a variable w.r.t. those,
+returning \texttt{Tarb} if nothing found.
+This facilitates early matching before types have been inferred.
 \begin{code}
-data Substn v a
- = Substn [( v   -- variable type
-           , a   -- replacement object
-           )]
- deriving (Eq,Ord)
-
-type VSubst = Substn Variable Variable
-type TSubst = Substn String   Type
-type ESubst = Substn Variable Expr
-type PSubst = Substn GenRoot  Pred
-\end{code}
-
-It helps to convert \texttt{Substn} into pairs of lists
-or lists of pairs (assuming no meta-variables, and correct matching),
-and vice-versa:
-\begin{code}
-unwrapQV  (Substn ssub)  =  twist $ unzip $ ssub
-sublistQV (Substn ssub)  =  map twist ssub
-mkSubs a v       =  Substn [(v,a)]
-packlistQV subs  =  Substn (map twist subs)
-packflipQV subs  =  Substn subs -- now a misnomer
-\end{code}
-The use of \texttt{twist} here is because
-the new revised \texttt{Substn} datatype
-now puts entries in association-list order \texttt{(from,to)}
-rather than substitution notation order \texttt{[to/from]},
-which was the basis for the old%
-\footnote{pre May 27th 2010}
-datatype.
-
-We provide a constructor
-that supports the old type, where we had a list of things and
-a corresponding \texttt{Variable},
-as well as a destructor that returns QVars:
-\begin{code}
-mkQsubst as xs = Substn $ zip xs as
-
-mkSubQ (Substn ssub) =  map fst ssub
-\end{code}
-
-It is useful to be able to partition substitutions on Variables
-between those that are standard and those that are list:
-\begin{code}
-sPartition :: [(Variable,a)] -> ([(Variable,a)],[(Variable,a)])
-sPartition = partition (isStdV . fst)
-\end{code}
-
-
-
-Mapping across \texttt{Substn} types is also helpful:
-\begin{code}
-mapSub :: (a -> b) -> Substn v a -> Substn v b
-mapSub f (Substn ssub)
- = Substn (map (lift f) ssub)
- where lift f (v,a) = (v,f a)
-\end{code}
-
-\begin{code}
-qvunzip :: Substn v a -> ([a],[v])
-qvunzip (Substn sub) = twist $ unzip sub
-
-qvunzipWith :: (v -> Variable) -> Substn v a -> ([a],[Variable])
-qvunzipWith toV sub = setsnd (map toV ) $ qvunzip sub
+mttsLookup :: TypeTables -> Variable -> [TTTag] -> Type
+mttsLookup tts v [] = Tarb
+mttsLookup tts v (tag:tags)
+ = case btlookup tts tag of
+     Nothing  ->  Tarb
+     Just vtyps
+       -> case tvlookup vtyps v of
+            Just t   ->  t
+            Nothing  ->  mttsLookup tts v tags
 \end{code}
 
 \newpage
@@ -485,6 +448,8 @@ data Expr
  | ESub Expr ESubst
  | EPred Pred
  deriving (Eq, Ord)
+
+type ESubst = Substn Variable Expr
 \end{code}
 
 We need some builders that perform
@@ -538,7 +503,7 @@ data Pred
         [SynSpec] -- Interleaving Tokens
  deriving (Eq, Ord)
 
-deriving instance Eq Pred => Ord Pred
+type PSubst = Substn GenRoot  Pred
 \end{code}
 
 We define two constructor functions to handle the \texttt{Expr}/\texttt{Pred} ``crossovers'':
@@ -560,33 +525,33 @@ mkOr [] = FALSE
 mkOr [pr] = pr
 mkOr prs = Or prs
 
-mkForall (Q []) p = p
+mkForall ([]) p = p
 mkForall qvs (Imp TRUE p) = Forall 0 qvs p
 mkForall qvs p = Forall 0 qvs p
 
-mkExists (Q []) p = p
+mkExists ([]) p = p
 mkExists qvs (And [TRUE,p]) = Exists 0 qvs p
 mkExists qvs p = Exists 0 qvs p
 
-mkExists1 (Q []) p = FALSE
+mkExists1 ([]) p = FALSE
 mkExists1 qvs p = Exists1 0 qvs p
 
 mkSub p (Substn []) = p
 mkSub p sub = Sub p sub
 
-mkPforall (Q []) p  = p
+mkPforall ([]) p  = p
 mkPforall qvs p = Pforall qvs p
 
-mkPexists (Q []) p  = p
+mkPexists ([]) p  = p
 mkPexists qvs p = Pexists qvs p
 
 mkPsub p (Substn []) = p
 mkPsub p sub = Psub p sub
 
-mkPeabs (Q []) p  = p
-mkPeabs qvs p = Peabs qvs p
+mkPeabs ([]) p  = p
+mkPeabs qvs p = PAbs qvs p
 
-mkPpabs (Q []) p  = p
+mkPpabs ([]) p  = p
 mkPpabs qvs p = Ppabs qvs p
 \end{code}
 Some query functions:
@@ -599,6 +564,56 @@ Drop is handy:
 pDrop (PVar p) = p
 pDrop _ = Std "?pDrop"
 \end{code}
+
+\newpage
+\subsection{Quantifier Variables}
+
+We want to be able to match predicates and expressions
+against laws involving quantifiers in a flexible manner,
+so we need to represent quantified variables, and lists of them
+as well as variables that can match against these.
+Generally we want to match against a specified list of
+variables, and then ``all the rest''.
+
+We have changed \texttt{QVars}
+from a \texttt{data}-type
+to a \texttt{type}-synonym.
+Functions below are to be deprecated.
+\begin{code}
+type QVars = [Variable]
+
+mkQ :: [Variable] -> QVars
+mkQ = lnorm
+
+snglQ :: Variable -> QVars
+snglQ v = [v]
+
+qvarmrg qs rs = mkQ (qs++rs)
+
+qsmrg :: QVars -> QVars -> QVars -- no normalisation for subst-lists!
+qs `qsmrg` rs  = qs ++ rs
+
+-- except when we explicitly want it!
+as `mrgqnorm` bs = as `mrgnorm` bs
+\end{code}
+
+We get observation variables  and ``multiple'' meta-variables
+from quantifier lists:
+\begin{code}
+getqovars = filter isStdV
+getqqvars = filter isLstV
+getqvars  = id
+
+lqnorm :: QVars -> QVars
+lqnorm =  lnorm
+\end{code}
+(Normalising these lists is also useful)
+
+
+
+
+
+
 
 
 \subsection{Predicate Sets}
@@ -674,6 +689,8 @@ data LangSpec = LangSpec [LElem] [SynSpec] deriving (Eq,Ord)
 
 \subsection{Equality}
 
+These are old definitions used when type-table information
+was stored in expressions and predicates
 We want to define equality that ignores type-inference markings
 (\texttt{TTTag}s).
 
@@ -715,9 +732,9 @@ pequiv (Lang n1 p1 lelems1 syn1) (Lang n2 p2 lelems2 syn2)
    = n1 == n2 && p1 == p2 && syn1 == syn2 && samelist ltlequiv lelems1 lelems2
 
 pequiv (PVar s1) (PVar s2) = s1==s2
-pequiv (Peabs s1 pr1) (Peabs s2 pr2) = s1==s2 && pr1 `pequiv` pr2
+pequiv (PAbs s1 pr1) (PAbs s2 pr2) = s1==s2 && pr1 `pequiv` pr2
 pequiv (Ppabs s1 pr1) (Ppabs s2 pr2) = s1==s2 && pr1 `pequiv` pr2
-pequiv (Papp prf1 pra1) (Papp prf2 pra2) = samelist pequiv [prf1,pra1] [prf2,pra2]
+pequiv (PApp prf1 pra1) (PApp prf2 pra2) = samelist pequiv [prf1,pra1] [prf2,pra2]
 
 pequiv _ _ = False
 \end{code}
@@ -956,8 +973,7 @@ exprRec merge spec base ex
   exprrec2 (de,re) = merge $ map exprrec [de,re]
 
   eRecurse (App _ exs) = merge $ map exprrec exs
-  eRecurse (Equal ex1 ex2) = merge $ map exprrec [ex1,ex2]
-  eRecurse (Eabs _ _ ex) = exprrec ex
+  eRecurse (Abs _ _ exs) = merge map exprrec exs
   eRecurse (ESub ex (Substn ssub))
     = merge $ map exprrec (ex:(map snd ssub))
   eRecurse _ = base
@@ -977,25 +993,9 @@ predRec merge spec base pr
 
   predrec = predRec merge spec base
 
-  pRecurse (Not pr) = predrec pr
-  pRecurse (And prs) = merge $ map predrec prs
-  pRecurse (Or prs) = merge $ map predrec prs
-  pRecurse (Imp pr1 pr2) = merge $ map predrec [pr1,pr2]
-  pRecurse (Eqv pr1 pr2) = merge $ map predrec [pr1,pr2]
-  pRecurse (Forall _ _ pr) = predrec pr
-  pRecurse (Exists _ _ pr) = predrec pr
-  pRecurse (Exists1 _ _  pr) = predrec pr
-  pRecurse (Univ _ pr) = predrec pr
   pRecurse (Sub pr _) = predrec pr
-  pRecurse (Psub pr _) = predrec pr
-  pRecurse (If pr1 pr2 pr3) = merge $ map predrec [pr1,pr2,pr3]
-  pRecurse (NDC pr1 pr2) = merge $ map predrec [pr1,pr2]
-  pRecurse (RfdBy pr1 pr2) = merge $ map predrec [pr1,pr2]
-  pRecurse (Peabs _ pr) = predrec pr
-  pRecurse (Ppabs _ pr) = predrec pr
-  pRecurse (Papp pr1 pr2) = merge $ map predrec [pr1,pr2]
-  pRecurse (Pforall _ pr) = predrec pr
-  pRecurse (Pexists _ pr) = predrec pr
+  pRecurse (PAbs _ _ prs) = merge $ map predrec prs
+  pRecurse (PApp _ prs) = merge $ map predrec prs
   pRecurse _ = base
 \end{code}
 
@@ -1063,96 +1063,26 @@ run f e = f e
 
 mapPf (fp,fe) (PExpr e) = (PExpr e', dif)
   where (e', dif) = fe e
-mapPf (fp,fe) (Defd e) = (Defd e', dif)
-  where (e', dif) = fe e
-mapPf (fp,fe) (TypeOf e t) = (TypeOf e' t, dif)
-  where (e', dif) = fe e
-mapPf (fp,fe) (Not pr) = (Not pr', dif)
-  where (pr', dif) = fp pr
-mapPf (fp,fe) (And prs) = (And prs', or dif)
-  where (prs', dif) = unzip (map fp prs)
-mapPf (fp,fe) (Or prs) = (Or prs', or dif)
-  where (prs', dif) = unzip (map fp prs)
-mapPf (fp,fe) (NDC pr1 pr2) = (NDC pr1' pr2', dif1 || dif2)
-  where
-  (pr1', dif1) = fp pr1
-  (pr2', dif2) = fp pr2
-mapPf (fp,fe) (Imp pr1 pr2) = (Imp pr1' pr2', dif1 || dif2)
-  where
-  (pr1', dif1) = fp pr1
-  (pr2', dif2) = fp pr2
-mapPf (fp,fe) (RfdBy pr1 pr2) = (RfdBy pr1' pr2', dif1 || dif2)
-  where
-  (pr1', dif1) = fp pr1
-  (pr2', dif2) = fp pr2
-mapPf (fp,fe) (Eqv pr1 pr2) = (Eqv pr1' pr2', dif1 || dif2)
-  where
-  (pr1', dif1) = fp pr1
-  (pr2', dif2) = fp pr2
 mapPf (fp,fe) (Lang s p les ss) = (Lang s p les' ss, or dif)
   where (les', dif) = unzip (map (mapLf (fp,fe)) les)
-mapPf (fp,fe) (If prc prt pre) = (If prc' prt' pre', dif1 || dif2 || dif3)
-  where
-  (prc', dif1) = fp prc
-  (prt', dif2) = fp prt
-  (pre', dif3) = fp pre
-mapPf (fp,fe) (Forall tt qs pr) = (Forall tt qs pr', dif)
-  where (pr', dif) = fp pr
-mapPf (fp,fe) (Exists tt qs pr) = (Exists tt qs pr', dif)
-  where (pr', dif) = fp pr
-mapPf (fp,fe) (Exists1 tt qs pr) = (Exists1 tt qs pr', dif)
-  where (pr', dif) = fp pr
-mapPf (fp,fe) (Univ tt pr) = (Univ tt pr', dif)
-  where (pr', dif) = fp pr
 mapPf (fp,fe) (Sub pr sub) = (Sub pr' sub', dif1 || dif2)
   where
     (pr', dif1) = fp pr
     (sub', dif2) = mapSf fe sub
-mapPf (fp,fe) (Psub pr sub) = (Psub pr' sub', dif1 || dif2)
-  where
-    (pr', dif1) = fp pr
-    (sub', dif2) = mapSf fp sub
-mapPf (fp,fe) (Peabs s pr) = (Peabs s pr', dif)
-  where (pr', dif) = fp pr
-mapPf (fp,fe) (Ppabs s pr) = (Ppabs s pr', dif)
-  where (pr', dif) = fp pr
-mapPf (fp,fe) (Papp prf pra) = (Papp prf' pra', dif1 || dif2)
-  where
-    (prf', dif1) = fp prf
-    (pra', dif2) = fp pra
-mapPf (fp,fe) (Psapp pr spr) = (Psapp pr' spr', dif1 || dif2)
-  where
-    (pr', dif1) = fp pr
-    (spr', dif2) = mapPSf fp spr
-mapPf (fp,fe) (Psin pr spr) = (Psin pr' spr', dif1 || dif2)
-  where
-    (pr', dif1) = fp pr
-    (spr', dif2) = mapPSf fp spr
-mapPf (fp,fe) (Pforall pvs pr) = (Pforall pvs pr', dif)
-  where (pr', dif) = fp pr
-mapPf (fp,fe) (Pexists pvs pr) = (Pforall pvs pr', True)
-  where (pr', _) = fp pr
-mapPf (fp,fe) pr@(Pfocus _)
-  = error ("mapP cannot handle focii"++debugPshow pr)
+
+mapPf (fp,fe) (PAbs s vs prs) = (PAbs s vs prs', or difs)
+  where (prs', difs) = unzip $ map (mapPf (fp,fe)) prs
 
 mapPf (fp,fe) pr = (pr, False)
 
 mapEf (fp,fe) (App s es) = (App s es', or difs)
   where (es',difs) = unzip $ map fe es
-mapEf (fp,fe) (Equal e1 e2) = (Equal e1' e2', dif1 || dif2)
-  where
-    (e1', dif1) = fe e1
-    (e2', dif2) = fe e2
-mapEf (fp,fe) (The tt qs pr) = (The tt qs pr', dif)
-  where (pr', dif) = fp pr
-mapEf (fp,fe) (Eabs tt qs e) = (Eabs tt qs e', dif)
-  where (e', dif) = fe e
+mapEf (fp,fe) (Abs s qs es) = (Abs s qs es', or difs)
+  where (es',difs) = unzip $ map fe es
 mapEf (fp,fe) (ESub e sub) = (ESub e' sub', dif1 || dif2)
   where
     (sub', dif1) = mapSf fe sub
     (e', dif2) = fe e
-mapEf (fp,fe) e@(Efocus _)
-  = error ("mapEf cannot handle focii"++debugEshow e)
 
 mapEf (fp,fe) e = (e, False)
 \end{code}
@@ -1177,7 +1107,6 @@ mapP (fp,fe) pr = pr
 mapE (fp,fe) (App s es)    = App s (map fe es)
 mapE (fp,fe) (Abs s qs es) = Abs s qs (map fe es)
 mapE (fp,fe) (ESub e sub)  = ESub (fe e) (mapS fe sub)
-mapE (fp,fe) (Efocus e)    = Efocus $ fe e
 
 mapE (fp,fe) e = e
 
@@ -1271,7 +1200,6 @@ foldE pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) e
  = f e
  where
   f (App s es) = g2 $ map g0 es
-  f (Equal e1 e2) = g2 $ map g0 [e1,e2]
   f (Abs s qvs es) = g2 $ map g0 e
   f (ESub e sub) = g2 (g0 e : foldES g0 sub)
 
@@ -1358,10 +1286,6 @@ accPseq (pf,ef) a (Sub pr sub) = (Sub pr' sub',a'')
  where (pr',a') = pf a pr
        (sub',a'') = accESseq (pf,ef) a' sub
 
-accPseq (pf,ef) a (Psub pr sub) = (Psub pr' sub',a'')
- where (pr',a') = pf a pr
-       (sub',a'') = accPSseq (pf,ef) a' sub
-
 accPseq (pf,ef) a pr = (pr,a)
 
 accPseqs pf a [] = ([],a)
@@ -1387,8 +1311,8 @@ accEseq :: (a -> Pred -> (Pred,a),a -> Expr -> (Expr,a))
             -> a -> Expr -> (Expr,a)
 accEseq (pf,ef) a (App s es) = (App s es',a')
   where (es',a') = accEseqs ef a es
-accEseq (pf,ef) a (Abs tt qs es)
- = (Abs s qs es',a') where (es',a') = accEseqs ef a e
+accEseq (pf,ef) a (Abs s qs es) = (Abs s qs es',a')
+ where (es',a') = accEseqs ef a es
 accEseq (pf,ef) a (ESub e sub) = (ESub e' sub',a'')
  where (e',a') = ef a e
        (sub',a'') = accESseq (pf,ef) a' sub
@@ -1517,8 +1441,8 @@ dbgVSshow vs = "<"
 debugQSshow :: QVars -> String
 debugQSshow = dbgQSshow 0
 
-dbgQSshow i (Q [])  = hdr i ++ "QVARS(empty)"
-dbgQSshow i (Q qs)
+dbgQSshow i ( [])  = hdr i ++ "QVARS(empty)"
+dbgQSshow i ( qs)
  = hdr i ++ "QVARS:"
    ++ (concat $ map ( (hdr (i+1) ++) . dbgVshow ) qs)
 
@@ -1725,14 +1649,14 @@ predParts (Sub (PExpr e) sub@(Substn ssub))
    = ( "(e)Sub"
      , []
      , [ESub e sub]
-     , [Q $ map fst ssub]
+     , [map fst ssub]
      , []
      )
 predParts (Sub pr (Substn ssub))
    = ( "Sub"
      , [pr]
      , map snd ssub
-     , [Q $ map fst ssub]
+     , [map fst ssub]
      , []
      )
 
@@ -1787,7 +1711,7 @@ exprParts (ESub e (Substn ssub))
   = ( "ESub"
     , []
     , e:(map snd ssub)
-    , [Q $ map fst ssub]
+    , [map fst ssub]
     )
 exprParts _ = ("expr",[],[],[])
 
