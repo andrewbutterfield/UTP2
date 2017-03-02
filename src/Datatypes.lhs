@@ -515,37 +515,48 @@ pExpr e          = PExpr e
 \end{code}
 
 We also define smart constructors for certain constructs
-to deal with corner cases:
+to deal with corner cases.
+
+THIS NEEDS TO GO TO A SPECIAL "builtins" MODULE
+
 \begin{code}
+n_And = "And"
 mkAnd [] = TRUE
 mkAnd [pr] = pr
 mkAnd prs = PApp "And" prs
 
+n_Or = "Or"
 mkOr [] = FALSE
 mkOr [pr] = pr
 mkOr prs = PApp "Or" prs
 
+n_Forall = "Forall"
 mkForall ([]) p = p
 mkForall qvs p = PAbs "Forall" 0 qvs [p]
 
+n_Exists = "Exists"
 mkExists ([]) p = p
 mkExists qvs p = PAbs "Exists" 0 qvs [p]
 
+n_Exists1 = "Exists1"
 mkExists1 ([]) p = FALSE
 mkExists1 qvs p = PAbs "Exists1" 0 qvs [p]
 
 mkSub p (Substn []) = p
 mkSub p sub = Sub p sub
 
+n_Pforall = "Pforall"
 mkPforall ([]) p  = p
 mkPforall qvs p = PAbs "Pforall" 0 qvs [p]
 
+n_Pexists = "Pexists"
 mkPexists ([]) p  = p
 mkPexists qvs p = PAbs "Pexists" 0 qvs [p]
 
 mkPsub p (Substn []) = p
 mkPsub p sub = Sub p $ mapSub EPred sub
 
+n_Peabs = "Peabs"
 mkPeabs ([]) p  = p
 mkPeabs qvs p = PAbs "Peabs" 0 qvs [p]
 \end{code}

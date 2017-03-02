@@ -24,22 +24,19 @@ is concerned:
     as such a step.
   \item
     So, for example, performing a \texttt{down 2} where the current focus is
-    \texttt{Eqv p (Obs e)} moves the focus to be on expression \texttt{e},
-    rather than on predicate \texttt{(Obs e)}.
-    This means that \texttt{Pfocus (Obs e)} should never occur,
-    but instead be represented as \texttt{Obs (Efocus e)}.
-  \item
-    In effect, the focus marker should be pushed in through a transition
-    to the deepest possible location.
+    \texttt{Eqv p (PExpr e)} moves the focus to be on expression \texttt{e},
+    rather than on predicate \texttt{(PExpr e)}.
 \end{itemize}
-\begin{code}
-pFocus :: Pred -> Pred
-pFocus (Obs e)  =  Obs $ Efocus e
-pFocus pr       =  Pfocus pr
-\end{code}
+
+The focussing is now going to be done using a proper zipper,
+as prototyped in \texttt{proto/PrettyZipper}.
 
 \newpage
 \subsection{Focus Datatypes}
+
+
+ALL OF THIS IS TO BE CHANGED
+
 
 ``Focus'' is the mechanism for restricting attention
 to part of a predicate or expression.
