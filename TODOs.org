@@ -1,17 +1,16 @@
 * Vision
-** Threepenny app packagable as a distributable
-** Expose Threepenny event data
-** Threepenny flexbox library
-** Threepenny right-click menu library
-** Full Threepenny UTP2 app
+** DESIGN Threepenny app packaged as a distributable
+** IMPLEMENT Expose Threepenny event data
+** DONE Threepenny flexbox library
+   CLOSED: [2017-03-02 Thu 13:24]
+** IMPLEMENT Threepenny right-click menu library
+** IMPLEMENT Full Threepenny UTP2 app
 
-   
 * TODO Finish home screen
 * TODO Navbar
 * TODO Fix contextmenu altering source element styling
   Similar behaviour noticed when adding on click handler to materialise styled
   button. Possibly not a fault of contextmenu code.
-* DESIGN Write Threepenny Flexbox library
 * DESIGN Package as Electron app
   https://github.com/HeinrichApfelmus/threepenny-gui/issues/111
 ** DONE Electron as main entry point
@@ -24,6 +23,8 @@
 ** Write instructions
 * IMPLEMENT Expose Threepenny event data
   https://github.com/HeinrichApfelmus/threepenny-gui/issues/167
+* DONE Write Threepenny Flexbox library
+  CLOSED: [2017-03-02 Thu 13:11]
 * DONE Demonstrate file selection
  CLOSED: [2017-02-23 Thu 14:55]
  File selection prints the full filepath to std out on value change.
@@ -48,4 +49,5 @@
  CLOSED: [2017-02-24 Fri 17:01]
  Added MVar to UTP2 monad config which holds current ID integer.
  incremented on each unique ID access.
+ 
  

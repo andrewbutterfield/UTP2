@@ -1,4 +1,4 @@
-{
+ {
   "dependencies": {
     "electron": "^1.4.15",
     "freeport": "^1.0.5",
