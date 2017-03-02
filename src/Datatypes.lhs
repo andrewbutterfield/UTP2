@@ -444,7 +444,7 @@ data Expr
  = Num Int
  | Var Variable
  | App String [Expr]
- | Abs String [Variable] [Expr]
+ | Abs TTTag String [Variable] [Expr]
  | ESub Expr ESubst
  | EPred Pred
  deriving (Eq, Ord)
@@ -493,7 +493,7 @@ data Pred
  | FALSE
  | PVar Variable
  | PApp String [Pred]
- | PAbs String [Variable] [Pred]
+ | PAbs TTTag String [Variable] [Pred]
  | Sub Pred ESubst
  | PExpr Expr
  -- Language extensions (Lexts)
