@@ -40,43 +40,23 @@ instantiatePred :: MatchContext -> Binding -> Pred -> Pred
 instantiatePred mctxt bnds@(gpbnds,vebnds,ttbnds) pat
  = bP pat
  where
-   bP pv@(Pvar r@(Std s)) = bevalP mctxt bnds r
-   bP pv@(Pvar r@(Lst s)) = bevalP mctxt bnds r
+   bP pv@(PVar v)
+    | isStdV v  = bevalP mctxt bnds $ varGenRoot v
+    | isLstV v  = bevalP mctxt bnds $ varGenRoot v
 
-   bP (Obs (Equal (Var v1) (Var v2))) = bE2P Equal v1 v2
-   -- REVIEW
-   --bP (Obs (Bin op p (Var v1) (Var v2))) = bE2P (Bin op p) v1 v2
-   bP (Obs e) = Obs (instantiateExpr mctxt bnds e)
-
-   bP (Defd e) = Defd (instantiateExpr mctxt bnds e)
-   bP (TypeOf e t) = TypeOf (instantiateExpr mctxt bnds e) (instantiateType mctxt bnds t)
-   bP (Not pr) = Not (bP pr)
-   bP (And prs) = mkAnd (map bP prs)
-   bP (Or prs) = mkOr (map bP prs)
-   bP (NDC pr1 pr2) = NDC (bP pr1) (bP pr2)
-   bP (Imp pr1 pr2) = Imp (bP pr1) (bP pr2)
-   bP (RfdBy pr1 pr2) = RfdBy (bP pr1) (bP pr2)
-   bP (Eqv pr1 pr2) = Eqv (bP pr1) (bP pr2)
-
-   bP (If prc prt pre) = If (bP prc) (bP prt) (bP pre)
-   bP (Forall tt qs pr) = mkForall (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Exists tt qs pr) = mkExists (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Exists1 tt qs pr) = mkExists1 (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Univ tt pr) = Univ 0 (bP pr)
+   bP (PApp nm prs) = PApp nm (map bP prs)
+   bP (PAbs nm tt qs prs)
+      = PAbs nm 0  (instantiateQ mctxt bnds qs) (map bP prs)
    bP (Sub pr sub) = mkSub (bP pr) (instantiateESub mctxt bnds sub)
-   bP (Ppabs qs pr) = mkPpabs (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Papp prf pra) = Papp (bP prf) (bP pra)
-   bP (Psapp pr spr) = Psapp (bP pr) (bPS spr)
-   bP (Psin pr spr) = Psin (bP pr) (bPS spr)
-   bP (Pforall qs pr) = mkPforall (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Pexists qs pr) = mkPexists (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Psub pr sub) = mkPsub (bP pr) (instantiatePSub mctxt bnds sub)
-   bP (Peabs qs pr) = mkPeabs (instantiateQ mctxt bnds qs) (bP pr)
 
    bP (Lang nm p [le1,le2] ss) = bL2P nm p ss le1 le2
    bP (Lang nm p les ss) = Lang nm p (bLES les) ss
 
-   bP (Pfocus fpr) = Pfocus $ bP fpr
+   bP (TypeOf e t) = TypeOf (instantiateExpr mctxt bnds e) (instantiateType mctxt bnds t)
+
+   bP (PExpr (App nm [Var v1, Var v2]))
+    | nm == n_Equal = bE2P mkEqual v1 v2
+   bP (PExpr e) = PExpr (instantiateExpr mctxt bnds e)
 
    bP pat = pat
 \end{code}
@@ -93,16 +73,16 @@ Handling for 2-place atomic predicates (\texttt{binop}) with list-variables.
      -- v1,v2 non-list, so instantiate a single binop
      e1 = bevalE mctxt bnds v1
      e2 = bevalE mctxt bnds v2
-     std = Obs (binop e1 e2)
+     std = PExpr (binop e1 e2)
 
      -- v1 and v2 are list-vars, so see if they expand to lists
      es1 = bevalES mctxt bnds v1
      es2 = bevalES mctxt bnds v2
 
-     std' = Obs (binop (mkSeq es1) (mkSeq es2))
+     std' = PExpr (binop (mkSeq es1) (mkSeq es2))
    -- end bE2P
 
-   b2E binop (e1,e2) = Obs (binop e1 e2)
+   b2E binop (e1,e2) = PExpr (binop e1 e2)
 \end{code}
 
 Doing it all for languages:
@@ -131,14 +111,6 @@ Doing it all for languages:
 
 Other \texttt{instantiatePred mctxt} auxilliaries:
 \begin{code}
-   bPS (PSName n)
-    = case bevalP mctxt bnds $ Std $ psName n of
-        (Pvar (Std n'))  ->  PSName n'
-        pr               ->  PSName ('?':show pr)
-   bPS (PSet prs) = PSet (map bP prs)
-   bPS (PSetC qs pr1 pr2) = PSetC (instantiateQ mctxt bnds qs) (bP pr1) (bP pr2)
-   bPS (PSetU s1 s2) = PSetU (bPS s1) (bPS s2)
-
    bLES = map bLE
 
    bLE (LVar g)
@@ -153,9 +125,9 @@ Other \texttt{instantiatePred mctxt} auxilliaries:
    bLE (LList les)  = LList  $ map bLE les
    bLE (LCount les) = LCount $ map bLE les
 
-   bPV pvs = map (stripPvar . bP . Pvar . Std . psName) pvs
+   bPV pvs = map (stripPvar . bP . PVar . genRootAsVar . Std . psName) pvs
 
-   stripPvar (Pvar r) = show r
+   stripPvar (PVar r) = show r
    stripPvar pr       = "?PredSet-Name-expected?"
 \end{code}
 
@@ -168,10 +140,8 @@ instantiateExpr mctxt bnds@(gpbnds,vebnds,ttbnds) pat
 
    bE (Var v) = bevalE mctxt bnds v
    bE (App s es) = App s (map bE es)
-   bE (Equal e1 e2) = Equal (bE e1) (bE e2)
-   bE (Eabs tt qs e)     = mkEabs (instantiateQ mctxt bnds qs) (bE e)
-   bE (Esub e sub)    = mkEsub (bE e) (instantiateESub mctxt bnds sub)
-   bE (Efocus fe) = Efocus $ bE fe
+   bE (Abs s tt qs es) = Abs s tt (instantiateQ mctxt bnds qs) (map bE es)
+   bE (ESub e sub)    = mkEsub (bE e) (instantiateESub mctxt bnds sub)
    bE pat = pat
 
    bE2 (de,re) = (bE de,bE re)
@@ -292,7 +262,7 @@ instantiatePSub mctxt bnds@(gpbnds,vebnds,_) (Substn sub)
 
    instantiatePV gpbnds r
     = case tglookup gpbnds r of
-       Just (TO (Pvar r'))  ->  r'
+       Just (TO (PVar v'))  ->  varGenRoot v'
        Just (TO pr)         ->  Std $ "?"++show pr++"?"
        _                    ->  r
 
@@ -301,17 +271,18 @@ instantiatePSub mctxt bnds@(gpbnds,vebnds,_) (Substn sub)
        Just (VSO rs)  ->  rs
        _              ->  [r]
 
-   instantiatePS gpbnds (Pvar r)
+   instantiatePS gpbnds (PVar v)
     = case tglookup gpbnds r of
-       Just (VSO rs)  ->  map Pvar rs
-       _              ->  [Pvar r]
-   instantiatePS _ pr = [Pvar (Lst ('?':show pr++"$"))]
+       Just (VSO rs)  ->  map (PVar .genRootAsVar) rs
+       _              ->  [PVar v]
+    where r = varGenRoot v
+   instantiatePS _ pr = [PVar $ genRootAsVar (Lst ('?':show pr++"$"))]
 \end{code}
 
 Handle quantifier variables.
 \begin{code}
-instantiateQ mctxt bnds (Q xs)
- = Q $ concat $ map brv xs
+instantiateQ mctxt bnds ( xs)
+ =  concat $ map brv xs
  where
    brv x = case bevalV mctxt bnds x of
             Left x    ->  [x]
