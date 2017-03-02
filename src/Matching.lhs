@@ -307,7 +307,7 @@ We need to extend bound variable lists
 when matching under quantifiers.
 \begin{code}
 (+<) :: [Variable] -> QVars -> [Variable]
-vs +< (Q xs) = lnorm (vs++xs)
+vs +< ( xs) = lnorm (vs++xs)
 
 (+<<) :: [Variable] -> (Substn Variable a) -> [Variable]
 vs +<< (Substn sub) = lnorm (vs++map fst sub)
@@ -316,11 +316,11 @@ vs +<< (Substn sub) = lnorm (vs++map fst sub)
 \newpage
 \subsection{Basic Predicate Matching}
 
-We do not match the \texttt{Pvar} $\_UNINT$ marking an uninterpreted language
+We do not match the \texttt{PVar} $\_UNINT$ marking an uninterpreted language
 construct:
 \begin{code}
 nameUNINT = "_UNINT"
-predUNINT = Pvar $ Std nameUNINT
+predUNINT = PVar $ genRootAsVar $ Std nameUNINT
 \end{code}
 
 \begin{code}
@@ -333,26 +333,27 @@ pMatch :: (Functor m, Monad m)
 \end{code}
 
 
-\subsubsection{Matching \texttt{Pvar}}
+\subsubsection{Matching \texttt{PVar}}
 
-\texttt{Pvar} $\_UNINT$ never matches anything.
-A \texttt{Pvar} that is defined,
+\texttt{PVar} $\_UNINT$ never matches anything.
+A \texttt{PVar} that is defined,
 matches itself or its definition (\texttt{pNameMatch}).
-Otherwise it matches anything, except an \texttt{Obs} whose type is not \texttt{B}.
+Otherwise it matches anything, except an \texttt{PExpr} whose type is not \texttt{B}.
 \begin{eqnarray*}
    \MRPUnInstN && \MRPUnInst
 \\ \MRPKnownN && \MRPKnown
 \\ \MRPUnKnownN && \MRPUnKnown
 \end{eqnarray*}
 \begin{code}
-pMatch here mres tpr (Pvar p)
- | p == Std nameUNINT  =  (fail "Nothing")
+pMatch here mres tpr (PVar p)
+ | g == Std nameUNINT  =  (fail "Nothing")
  | otherwise
-    = case tslookup (knownPreds (mctx here)) (genRootString p) of
-       Just dpr  ->  pNameMatch mres tpr (p,dpr)
-       Nothing   ->  freePMatch p tpr
+    = case tslookup (knownPreds (mctx here)) (varKey p) of
+       Just dpr  ->  pNameMatch mres tpr (g,dpr)
+       Nothing   ->  freePMatch g tpr
  where
-   freePMatch p (Obs te)
+   g = varGenRoot p
+   freePMatch p (PExpr te)
     | not ((evalExprType (ttts here) (ttags here) te) `tlequiv` B)
                      =  (fail "Nothing")
    freePMatch p tpr  =  mres `mrgRMR` okBindP p tpr
@@ -377,10 +378,10 @@ we need also to look for 2-place atomic predicate conjunctions:
 \\ \MRTwoPlaceLessN && \MRTwoPlaceLess
 \end{eqnarray*}
 \begin{code}
-pMatch here mres (And tprs) (And pprs)
- = pMList here mres tprs pprs
-pMatch here mres (And tprs) ppr
- = pM2Place here mres (conjDeepFlatten tprs) ppr
+pMatch here mres (PApp tnm tprs) (PApp pnm pprs)
+ | tnm==n_And && tnm==pnm  =  pMList here mres tprs pprs
+pMatch here mres (PApp tnm tprs) ppr
+ | tnm==n_And  =  pM2Place here mres (conjDeepFlatten tprs) ppr
 \end{code}
 
 \subsubsection{Matching \texttt{XXX}}
@@ -393,9 +394,10 @@ predicates that use meta variables:
 \end{eqnarray*}
 \begin{code}
 pMatch here mres
-       tpr@(Obs (Equal te1 te2))
-       ppr@(Obs (Equal (Var pv1)(Var pv2)))
- | isLstV pv1 && isLstV pv2  =  pM1Place here mres te1 te2 pv1 pv2
+       tpr@(PExpr (App tnm [te1,te2]))
+       ppr@(PExpr (App pnm [Var pv1, Var pv2]))
+ | tnm==n_Equal && tnm==pnm && isLstV pv1 && isLstV pv2
+    =  pM1Place here mres te1 te2 pv1 pv2
 \end{code}
 
 \subsubsection{Matching \texttt{XXX}}
@@ -430,20 +432,7 @@ pMatch here mres (Lang tn tp tles tss) (Lang pn pp ples pss)
 Expressions (Atomic Predicates):
 We only match expressions whose types are compatible
 \begin{code}
-pMatch here mres (Obs te) (Obs pe)
- | ttype `tlequiv` ptype
-    = eMatch here mres te pe
- | otherwise  =  (fail "Nothing")
- where
-   ttype = evalExprType (ttts here) (ttags here) te
-   ptype = evalExprType (ptts here) (ptags here) pe
-\end{code}
-
-\subsubsection{Matching \texttt{XXX}}
-
-
-\begin{code}
-pMatch here mres (Defd te) (Defd pe)
+pMatch here mres (PExpr te) (PExpr pe)
  | ttype `tlequiv` ptype
     = eMatch here mres te pe
  | otherwise  =  (fail "Nothing")
@@ -475,20 +464,8 @@ into predicate sub-components:
    \MRCompositeN && \MRComposite
 \end{eqnarray*}
 \begin{code}
-pMatch here mres (Not tpr) (Not ppr)
- = pMatch here mres tpr ppr
-pMatch here mres (Or tprs) (Or pprs)
- = pMList here mres tprs pprs
-pMatch here mres (NDC t1 t2) (NDC p1 p2)
- = pMList here mres [t1,t2] [p1,p2]
-pMatch here mres (Imp t1 t2) (Imp p1 p2)
- = pMList here mres [t1,t2] [p1,p2]
-pMatch here mres (RfdBy t1 t2) (RfdBy p1 p2)
- = pMList here mres [t1,t2] [p1,p2]
-pMatch here mres (Eqv t1 t2) (Eqv p1 p2)
- = pMList here mres [t1,t2] [p1,p2]
-pMatch here mres (If t1 t2 t3) (If p1 p2 p3)
- = pMList here mres [t1,t2,t3] [p1,p2,p3]
+pMatch here mres (PApp tnm tprs) (PApp pnm pprs)
+ | tnm==pnm = pMList here mres tprs pprs
 \end{code}
 
 \newpage
@@ -509,22 +486,8 @@ For now we do not support the following:
    \MRNullQuantON && \MRNullQuantO
 \end{eqnarray*}
 \begin{code}
-pMatch here mres (Forall ttag tqv tpr) (Forall ptag pqv ppr)
- = pQMatch here mres ttag tqv tpr ptag pqv ppr
-
-pMatch here mres tpr (Forall ptag pqv ppr)
- = do qvmr <- qMatchNull mres pqv
-      pMatch here qvmr tpr ppr
-
-pMatch here mres (Exists ttag tqv tpr) (Exists ptag pqv ppr)
- = pQMatch here mres ttag tqv tpr ptag pqv ppr
-
-pMatch here mres tpr (Exists ptag pqv ppr)
- = do qvmr <- qMatchNull mres pqv
-      pMatch here qvmr tpr ppr
-
-pMatch here mres (Exists1 ttag tqv tpr) (Exists1 ptag pqv ppr)
- = pQMatch here mres ttag tqv tpr ptag pqv ppr
+pMatch here mres (PAbs tnm ttag tqv tprs) (PAbs pnm ptag pqv pprs)
+ | tnm==pnm  =  pQMatch here mres ttag tqv tprs ptag pqv pprs
 \end{code}
 
 \subsubsection{Matching \texttt{XXX}}
@@ -541,13 +504,13 @@ and so should become $[f_1 \implies f_2] \land ok$,
 where $f_1$ and $f_2$ are fresh,
 before its use in matching.
 \begin{code}
-pMatch here mres (Univ ttag tpr) (Univ ptag ppr)
- = pMatch here' mres tpr ppr
- where here' = here{ ttags=ttag:(ttags here)
-                   , ptags=ptag:(ptags here)
-                   , tbvs=(tbvs here) -- plus freevars of tpr?
-                   , pbvs=(pbvs here) -- plus freevars of ppr
-                   }
+-- pMatch here mres (Univ ttag tpr) (Univ ptag ppr)
+--  = pMatch here' mres tpr ppr
+--  where here' = here{ ttags=ttag:(ttags here)
+--                    , ptags=ptag:(ptags here)
+--                    , tbvs=(tbvs here) -- plus freevars of tpr?
+--                    , pbvs=(pbvs here) -- plus freevars of ppr
+--                    }
 \end{code}
 
 \subsubsection{Matching \texttt{XXX}}
@@ -562,45 +525,11 @@ pMatch here mres (Sub tpr tsub) (Sub ppr psub)
   = do bodymr <- pMatch here mres tpr ppr
        (tsub',psub') <- esMCondition bodymr tsub psub
        esMatch here bodymr tsub' psub'
-
-pMatch here mres (Psub tpr tsub) (Psub ppr psub)
-  = do bodymr <- pMatch here mres tpr ppr
-       (tsub',psub') <- psMCondition bodymr tsub psub
-       psMatch here bodymr tsub' psub'
 \end{code}
 
-\subsubsection{Matching \texttt{XXX}}
+\subsubsection{Matching Done}
 
-
-Higher-order stuff:
 \begin{code}
-pMatch here mres (Ppabs tqv tpr) (Ppabs pqv ppr)
- = pPQMatch here mres tqv tpr pqv ppr
-
-pMatch here mres (Papp t1 t2) (Papp p1 p2)
- = pMList here mres [t1,t2] [p1,p2]
-
-pMatch here mres (Psapp tp1 ts1) (Psapp tp2 ts2)
- = do pmres <- pMatch here mres tp1 tp2
-      psetMatch here pmres ts1 ts2
-
-pMatch here mres (Psin tp1 ts1) (Psin tp2 ts2)
- = do pmres <- pMatch here mres tp1 tp2
-      psetMatch here pmres ts1 ts2
-
-pMatch here mres (Pforall tqv tpr) (Pforall pqv ppr)
- = pPQMatch here mres tqv tpr pqv ppr
-
-pMatch here mres (Pexists tqv tpr) (Pexists pqv ppr)
- = pPQMatch here mres tqv tpr pqv ppr
-
-pMatch here mres (Peabs tqv tpr) (Peabs pqv ppr)
- = pPQMatch here mres tqv tpr pqv ppr
-
--- ignore focii (they shouldn't appear here, but...)
-pMatch here mres (Pfocus tpr) ppr = pMatch here mres tpr ppr
-pMatch here mres tpr (Pfocus ppr) = pMatch here mres tpr ppr
-
 pMatch _ _ _ _ = (fail "Nothing")
 \end{code}
 
@@ -623,7 +552,7 @@ pMList _ _ _ _ = fail "Nothing"
 \subsubsection{Known PVar Matching}
 
 Here we have matched test predicate \texttt{tpr}
-against Pvar \texttt{pname}, a known predicate mapped to \texttt{pbody}.
+against PVar \texttt{pname}, a known predicate mapped to \texttt{pbody}.
 It must either be equal to \texttt{pname}, or \texttt{pbody}.
 We give a binding if we match the \texttt{pbody}, so that the replacement,
 if the law is applied,
@@ -633,8 +562,8 @@ can match the test form.
 \end{eqnarray*}
 \begin{code}
 pNameMatch :: Monad m => MatchResult -> Pred -> (GenRoot,Pred) -> m MatchResult
-pNameMatch mres tpr@(Pvar tname) (pname,pbody)
-  | tname == pname    =  return mres
+pNameMatch mres tpr@(PVar tname) (pname,pbody)
+  | varGenRoot tname == pname    =  return mres
 pNameMatch mres tpr (pname,pbody)
   | tpr == pbody  =  mres `mrgRMR` okBindP pname tpr -- is == too strong here ?
   | otherwise     =  fail "Nothing"
@@ -644,8 +573,8 @@ pNameMatch mres tpr (pname,pbody)
 
 With type-tags
 \begin{code}
-pQMatch here mres ttag tqv tpr ptag pqv ppr
- = do bodymr <- pMatch here' mres tpr ppr
+pQMatch here mres ttag tqv tprs ptag pqv pprs
+ = do bodymr <- pMList here' mres tprs pprs
       (tqv',pqv') <- qMCondition bodymr tqv pqv
       qMatch here bodymr tqv' pqv'
  where here' = here{ ttags=ttag:(ttags here)
@@ -886,8 +815,9 @@ pM2Place here mres tprs ppr
  = pm2place ppr
  where
 
-   pm2place (Obs (Equal (Var pv1) (Var pv2)))
-    | isLstV pv1 && isLstV pv2   =  pm2place' pm2equal tprs pv1 pv2
+   pm2place (PExpr (App nm  [Var pv1, Var pv2]))
+    | nm==n_Equal && isLstV pv1 && isLstV pv2
+       =  pm2place' pm2equal tprs pv1 pv2
 
    pm2place (Lang pnm _ [ple1,ple2] _)
     | isLELstV ple1 && isLELstV ple2
@@ -912,7 +842,8 @@ of the appropriate type.
          mres1 <- check2PlaceBind (mctx here) mres pv1 es1
          check2PlaceBind (mctx here) mres1 pv2 es2
 
-   pm2equal pv1 pv2 (Obs (Equal te1 te2)) = pm2place'' te1 te2 pv1 pv2
+   pm2equal pv1 pv2 (PExpr (App nm [te1,te2]))
+    | nm==n_Equal = pm2place'' te1 te2 pv1 pv2
    pm2equal _ _ _ = fail "Nothing"
 
    pm2lang pnm pv1 pv2 (Lang tnm _ [tle1,tle2] _)
@@ -1033,36 +964,6 @@ lvSnglMatch mctxt pv te
  | otherwise  =  return te
 \end{code}
 
-
-\subsubsection{Predicate Set Matching}
-
-Predicate Set matching is rudimentary at present.
-\begin{code}
-psetMatch :: (Functor m, Monad m)
-          => LocalContext
-          -> MatchResult
-          -> PredSet -> PredSet
-          -> m MatchResult
-
-psetMatch here mres (PSName tn) (PSName pn)
- = mres `mrgRMR` okBindP (Std $ psName pn) (Pvar $ Std tn)
-
-psetMatch here mres (PSet tprs) (PSet pprs)
- = pMList here mres tprs pprs
-
-psetMatch here mres (PSetC tqv tp1 tp2) (PSetC pqv pp1 pp2)
- = do bodymr <- pMList here' mres [tp1,tp2] [pp1,pp2]
-      qMatch here bodymr tqv pqv
- where here' = here{ tbvs=(tbvs here) +< tqv
-                   , pbvs=(pbvs here) +< pqv }
-
-psetMatch here mres (PSetU ts1 ts2) (PSetU ps1 ps2)
- = do mres1 <- psetMatch here mres ts1 ps1
-      psetMatch here mres1 ts2 ps2
-
-psetMatch here mres _ _ = fail "Nothing"
-\end{code}
-
 \newpage
 \subsubsection{Pred-Substitution Matching}
 
@@ -1090,8 +991,8 @@ psMatch here mres (Substn tssub) (Substn pssub)
  where
    (us,ps) = unzip pssub
    (vs,qs) = unzip tssub
-   us' = map Pvar us
-   vs' = map Pvar vs
+   us' = map (PVar . genRootAsVar) us
+   vs' = map (PVar . genRootAsVar) vs
 \end{code}
 
 
@@ -1150,14 +1051,6 @@ eMatch :: (Functor m, Monad m)
        -> MatchResult
        -> Expr -> Expr
        -> m MatchResult
-
--- shouldn't occur, but we simply ignore focii...
-eMatch here mres (Efocus te) (Efocus pe)
- = eMatch here mres te pe
-eMatch here mres te (Efocus pe)
- = eMatch here mres te pe
-eMatch here mres (Efocus te) pe
- = eMatch here mres te pe
 \end{code}
 
 \begin{eqnarray*}
@@ -1198,23 +1091,21 @@ In most other cases we recurse down following expression structure
    \MRCompositeN && \MRComposite
 \end{eqnarray*}
 \begin{code}
-eMatch here mres T T = return mres
-eMatch here mres F F = return mres
 eMatch here mres (Num ti) (Num pi)
  = matchIfEq ti pi (return mres)
 eMatch here mres (App ts tes) (App ps pes)
  = eMList here mres tes pes
-eMatch here mres (Equal te1 te2) (Equal pe1 pe2)
- = eMList here mres [te1,te2] [pe1,pe2]
 
-eMatch here mres (Eabs ttag tqvs te) (Eabs ptag pqvs pe)
- = do mres1 <- eMatch here' mres te pe
-      qMatch here mres1 tqvs pqvs
- where here' = here{ ttags = ttag:(ttags here)
-                   , ptags = ptag:(ptags here)
-                   , tbvs = (tbvs here) +< tqvs
-                   , pbvs = (pbvs here) +< pqvs }
-eMatch here mres (Esub te tsub) (Esub pe psub)
+eMatch here mres (Abs tnm ttag tqvs tes) (Abs pnm ptag pqvs pes)
+ | tnm==pnm
+    = do mres1 <- eMList here' mres tes pes
+         qMatch here mres1 tqvs pqvs
+    where here' = here{ ttags = ttag:(ttags here)
+                      , ptags = ptag:(ptags here)
+                      , tbvs = (tbvs here) +< tqvs
+                      , pbvs = (pbvs here) +< pqvs }
+
+eMatch here mres (ESub te tsub) (ESub pe psub)
   = do mres1 <- esMatch here mres tsub psub
        eMatch here' mres1 te pe
  where here' = here{ tbvs = (tbvs here) +<< tsub
@@ -1478,7 +1369,7 @@ A representative set of the new meta-matching rules:
 
 \MRLISTVAR
 
-Note, for example, that $Obs$ can match itself,
+Note, for example, that $PExpr$ can match itself,
 the explicit list of its variables, or any combination
 of $Mdl$, $Var$ and their explicit variable lists.
 The rules regarding decoration matching are, \emph{ceteris paribus},
@@ -1663,11 +1554,11 @@ If not found, we fail.
 qMCondition :: Monad m
             => MatchResult -> QVars -> QVars -> m ( QVars, QVars )
 
-qMCondition ((_,vebnds,_),_,_) (Q tqv) (Q pqv)
+qMCondition ((_,vebnds,_),_,_) ( tqv) ( pqv)
  = qMcond [] tqv pqv
  where
 
-   qMcond pcv tqv [] = return (Q tqv, Q $ reverse pcv)
+   qMcond pcv tqv [] = return ( tqv, reverse pcv)
    qMcond pcv tqv (pv:pqv)
     = case tvlookup vebnds pv of
        Nothing    ->  qMcond (pv:pcv) tqv pqv -- not matched, so keep
@@ -1737,7 +1628,7 @@ qMatch :: Monad m
        -> QVars             -- pattern QVars
        -> m MatchResult
 
-qMatch here mres (Q tvs) (Q pvs)
+qMatch here mres ( tvs) ( pvs)
  = do let (prvs,pgvs) = partition isRsvV pvs
       let (tks,tus,tls,tRs) = classifyVars (isKnownObsVar . mctx) here tvs
       let tRos = concat $ map denotePair tRs
@@ -2072,7 +1963,7 @@ qMatchNull :: Monad m
            -> QVars             -- pattern QVars
            -> m MatchResult
 
-qMatchNull mres (Q qs)
+qMatchNull mres ( qs)
  | all isGenV qs = mres `mrgMR` (injQLbind $ map bindnull qs)
  | otherwise  =  fail "Nothing"
  where bindnull (_,_,vs) = (vs,[])

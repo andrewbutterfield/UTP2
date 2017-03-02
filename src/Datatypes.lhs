@@ -489,7 +489,8 @@ mgetVar _         =  Nothing
 \newpage
 \subsection{Predicates}
 
-Again, a very simple abstract syntax:
+Again, a very simple abstract syntax,
+but with the add of a typing hook:
 
 \begin{code}
 data Pred
@@ -505,6 +506,7 @@ data Pred
         Int       -- precedence, if binary
         [LElem]   -- Language elements
         [SynSpec] -- Interleaving Tokens
+ | TypeOf Expr Type
  deriving (Eq, Ord, Show)
 
 
@@ -570,6 +572,9 @@ mkPsub p sub = Sub p $ mapSub EPred sub
 n_Peabs = "Peabs"
 mkPeabs ([]) p  = p
 mkPeabs qvs p = PAbs "Peabs" 0 qvs [p]
+
+n_Equal = "Equal"
+mkEqual e1 e2 = App n_Equal [e1,e2]
 \end{code}
 Some query functions:
 \begin{code}
