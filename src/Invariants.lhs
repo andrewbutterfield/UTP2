@@ -39,25 +39,21 @@ checkPredQVars pr
     where (xs',dups') = mrg rest
    pbas = ([],[])
 
-   pspc (Obs e) = Just $ wfe e
-   pspc (Defd e) = Just $ wfe e
-   pspc (TypeOf e typ) = Just $ wfe e
-   pspc (Forall tt (Q xs) bp) = Just $ mrg ((xs,dupsOf xs):[wfp bp])
-   pspc (Exists tt (Q xs) bp) = Just $ mrg ((xs,dupsOf xs):[wfp bp])
-   pspc (Exists1 tt (Q xs) bp) = Just $ mrg ((xs,dupsOf xs):[wfp bp])
+   pspc (PExpr e) = Just $ wfe e
+   pspc (PAbs nm  tt xs bps) = Just $ mrg ((xs,dupsOf xs):map wfp bps)
    pspc _ = Nothing
 
    wfe = exprRec mrg espc ebas
    ebas = ([],[])
 
-   espc (Esub ex (Substn ssub))
+   espc (ESub ex (Substn ssub))
      = Just $ mrg ((xs,dupsOf xs):(map wfe (ex:exs)))
      where
        xs = map fst ssub
        exs = map snd ssub
    espc _ = Nothing
 
-checkExprQVars e = checkPredQVars (Obs e)
+checkExprQVars e = checkPredQVars (PExpr e)
 \end{code}
 
 For now we don't fix this:
