@@ -10,6 +10,7 @@ mrgTree = M.unionWith (++)
 
 lhsLog     =  "_lhs.log"
 importLog  =  "_import.log"
+impbyLog   =  "_importedBy.log"
 treeLog    =  "_hierarchy.log"
 cyclesLog  =  "_cycles.log"
 wxLog      =  "_wxTree.log"
@@ -24,6 +25,10 @@ main
       let tree = lhs `mrgTree` imports
       writeFile treeLog $ treeShow tree
       putStrLn ("Written "++treeLog)
+
+      let rtree = invert tree
+      writeFile impbyLog $ treeShow rtree
+      putStrLn ("Written "++impbyLog)
 
       let lhsKeys = M.keys lhs
 
@@ -118,4 +123,12 @@ reachable tree name
      (Just children) 
        ->  nub (children ++ concat (map (reachable tree) children))
 
-
+invert :: Tree -> Tree
+invert tree
+ = let
+ 	tlist = M.toList tree
+ 	rtlists = concat $ map twist tlist
+   in foldl mrgTree M.empty rtlists
+  where
+  	  twist (s,ss) = map (twst s) ss
+  	  twst s1 s2   = M.fromList [(s2,[s1])]
