@@ -56,20 +56,15 @@ evalExprType tts tags e
  = typof e
  where
 
-   typof T  =  B
-   typof F  =  B
    typof (Num i)  =  Z
    typof (Var v)  =  ttsVLookup tts v tags
-   typof (App f e)
-     = case ttsLookup tts f tags of
+   typof (App n es)
+     = case ttsLookup tts n tags of
         Tfun _ tr  ->  tr
-        t          ->  Terror (f++" not a function") t
-   typof (Equal e1 e2)  =  B
-   typof (The tag v pr)  =  undefined -- ttsVLookup tts v (tag:tags)
-   typof (Eabs tag qvs e)  =  undefined -- evalExprType tts (tag:tags) e
-   typof (Esub e esub)  =  typof e
-   typof (Efocus e)  =  typof e
-   typof (Eerror str)  =  Terror ("Eerror "++str) Tarb
+        t          ->  Terror (n++" not a function") t
+   typof (Abs n tag qvs e)  =  undefined -- evalExprType tts (tag:tags) e
+   typof (ESub e esub)  =  typof e
+   typof (EPred _) = B
 \end{code}
 
 \subsubsection{Type-related Equivalences}
@@ -423,9 +418,9 @@ showGPObj = showBObj (genRootString, show)
 showGPBind  :: GPBind -> String
 showGPBind = unlines' . trieShowWith showGPObj
 gpInj :: GenRoot -> Pred
-gpInj = Pvar
+gpInj = PVar . genRootAsVar
 gpProj :: Pred -> Maybe GenRoot
-gpProj (Pvar g)  =  Just g
+gpProj (PVar g)  =  Just $ varGenRoot g
 gpProj _         =  Nothing
 
 type VEBind = SBind Variable Expr
@@ -480,7 +475,7 @@ gpupdateTO :: Monad m => GenRoot -> Pred -> GPBind -> m GPBind
 gpupdateTO r = updateTO gpProj (genRootString r)
 
 gplookupTO :: Monad m => GenRoot -> GPBind -> m Pred
-gplookupTO r = lookupTO Pvar (genRootString r)
+gplookupTO r = lookupTO (PVar . genRootAsVar) (genRootString r)
 
 gpupdateVO :: Monad m => GenRoot -> GenRoot -> GPBind -> m GPBind
 gpupdateVO r = updateVO (genRootString r)
@@ -495,7 +490,7 @@ gplookupVSO :: Monad m => GenRoot -> GPBind -> m [GenRoot]
 gplookupVSO r = lookupVSO (genRootString r)
 
 gplookupTSO :: Monad m => GenRoot -> GPBind -> m [Pred]
-gplookupTSO r = lookupTSO Pvar (genRootString r)
+gplookupTSO r = lookupTSO (PVar . genRootAsVar) (genRootString r)
 
 gpupdateTSO :: Monad m => GenRoot -> [Pred] -> GPBind -> m GPBind
 gpupdateTSO r  = updateTSO gpProj (genRootString r)
@@ -960,7 +955,7 @@ noBinding :: MatchResult
 noBinding  = ( nullBinds, [], [] )
 
 deferQMatch :: QVars -> QVars -> MatchResult
-deferQMatch (Q tv) (Q pv) = ( nullBinds, [(tv,pv)], [] )
+deferQMatch tv pv = ( nullBinds, [(tv,pv)], [] )
 
 deferSMatch :: LocalContext -> ESubst -> ESubst -> MatchResult
 deferSMatch lctxt (Substn ts) (Substn ps)
@@ -1049,7 +1044,7 @@ data MatchType
  | Cnsq -- matched rhs of implication
  | LCEqv -- matched lhs of an conditional equivalence
  | RCEqv -- matched rhs of an conditional equivalence
- | TREqv -- matched single-Pvar rhs of equivalence
+ | TREqv -- matched single-PVar rhs of equivalence
  deriving (Eq,Ord,Show)
 
 stateMTyp :: MatchType -> String
@@ -1333,8 +1328,8 @@ bevalP mctxt (gpbnds,_,_) r
     Just pr -> pr
     Nothing ->
      case tslookup (knownPreds mctxt) rs of
-      Just _   ->  Pvar r
-      Nothing  ->  Pvar $ gmap ('?':) r
+      Just _   ->  PVar $ genRootAsVar r
+      Nothing  ->  PVar $ genRootAsVar $ gmap ('?':) r
  where rs = genRootString r
 
 bevalE :: MatchContext -> Binding -> Variable -> Expr
@@ -1362,11 +1357,11 @@ bevalT mctxt (_,_,ttbnds) tv
 bevalQ :: MatchContext -> Binding -> Variable -> QVars
 bevalQ _ (_,vebnds,_) v  -- mctxt ignored for now..
  | isStdV v   =  case velookupVO v vebnds of
-                   Just v   ->  Q [v]
-                   Nothing  ->  Q [varmap ('?':) v]
+                   Just v   ->  [v]
+                   Nothing  ->  [varmap ('?':) v]
  | otherwise  =  case velookupVSO v vebnds of
-                   Just vs  ->  Q vs
-                   Nothing  ->  Q [varmap ('?':) v]
+                   Just vs  ->  vs
+                   Nothing  ->  [varmap ('?':) v]
 
 bevalV :: MatchContext -> Binding -> Variable -> Either Variable [Variable]
 bevalV mctxt bind v
@@ -1376,7 +1371,7 @@ bevalV mctxt bind v
        e       ->  Left $ noDecorVariable ('?':show e)
  | otherwise
    = case bevalQ mctxt bind v of
-       Q vs  ->  Right vs
+       vs  ->  Right vs
 
 bevalES :: MatchContext -> Binding -> Variable -> [Expr]
 bevalES mctxt (_,vebnds,_) v  -- mctxt ignored
@@ -1594,8 +1589,8 @@ and next, the ``possible disjoint'' reserved-variable relation:
    (V_1\ominus X_1) \disjRSV (V_2\ominus X_2)
    &\defs&
    \exists \mu @ (V_1\setminus \mu X_1) \cap (V_2\setminus \mu X_2) = \emptyset
-\\ Obs^d \disjRSV Mdl^e &\equiv& d \neq e
-\\ Obs^d \disjRSV Scr^e &\equiv& d \neq e
+\\ PExpr^d \disjRSV Mdl^e &\equiv& d \neq e
+\\ PExpr^d \disjRSV Scr^e &\equiv& d \neq e
 \\ Mdl^d \disjRSV Scr^e &\equiv& \True
 \end{eqnarray*}
 Here we wrap a variable and its denotation together,
@@ -1620,7 +1615,7 @@ isDisjRSV r1  r2
 The invariant:
 \begin{code}
 invQVars :: MatchContext -> QVars -> Bool
-invQVars mctxt (Q qvs)
+invQVars mctxt qvs
  = sort qvs == lnorm qvs -- fails if any duplicates
    &&
    all (\ v -> all (obsCanEscapeRSV v) rsvs) obs
@@ -1638,14 +1633,13 @@ exprQVarInv :: MatchContext -> Expr -> Bool
 qVarInvFold mctxt = ( (True,predQVarInv mctxt,id,all id )
                     , (True,exprQVarInv mctxt,id,all id) )
 
-predQVarInv mctxt (Forall _ qvs pr) = invQVars mctxt qvs && predQVarInv mctxt pr
-predQVarInv mctxt (Exists _ qvs pr) = invQVars mctxt qvs && predQVarInv mctxt pr
-predQVarInv mctxt (Exists1 _ qvs pr) = invQVars mctxt qvs && predQVarInv mctxt pr
-predQVarInv mctxt (Peabs qvs pr) = invQVars mctxt qvs && predQVarInv mctxt pr
+predQVarInv mctxt (PAbs _ _ qvs prs)
+ = invQVars mctxt qvs && all (predQVarInv mctxt) prs
 
 predQVarInv mctxt pr = foldP (qVarInvFold mctxt) pr
 
-exprQVarInv mctxt (Eabs _ qvs e) = invQVars mctxt qvs && exprQVarInv mctxt e
+exprQVarInv mctxt (Abs _ _ qvs es)
+ = invQVars mctxt qvs && all (exprQVarInv mctxt) es
 
 exprQVarInv mctxt e = foldE (qVarInvFold mctxt) e
 \end{code}
@@ -1654,11 +1648,11 @@ exprQVarInv mctxt e = foldE (qVarInvFold mctxt) e
 We have code to fix things up:
 \begin{code}
 fixQVarsInv :: MatchContext -> QVars -> Maybe QVars
-fixQVarsInv mctxt (Q qvs) = Just $ lstqnorm mctxt qvs
+fixQVarsInv mctxt qvs = Just $ lstqnorm mctxt qvs
 
 lstqnorm :: MatchContext -> [Variable] -> QVars
 lstqnorm mctxt vs
- = Q $ lnorm vs'
+ = lnorm vs'
  where
    nvs = lnorm vs
    vs' = filter keep nvs
@@ -1673,20 +1667,15 @@ lstqnorm mctxt vs
 We can lift this to \texttt{QVars} and \texttt{Pred} levels:
 \begin{code}
 lQnorm :: MatchContext -> QVars -> QVars
-lQnorm mctxt (Q vs) = lstqnorm mctxt vs
+lQnorm mctxt vs = lstqnorm mctxt vs
 
 lPQnorm :: MatchContext -> Pred -> Pred
-lPQnorm mctxt (Forall tt qvs pr)
- = Forall tt (lQnorm mctxt qvs) (lPQnorm mctxt pr)
-lPQnorm mctxt (Exists tt qvs pr)
- = Exists tt (lQnorm mctxt qvs) (lPQnorm mctxt pr)
-lPQnorm mctxt (Exists1 tt qvs pr)
- = Exists1 tt (lQnorm mctxt qvs) (lPQnorm mctxt pr)
-lPQnorm mctxt pr = mapP (lPQnorm mctxt,lEQnorm mctxt) pr
+lPQnorm mctxt (PAbs nm tt qvs prs)
+ = PAbs nm tt (lQnorm mctxt qvs) (map (lPQnorm mctxt) prs)
 
 lEQnorm :: MatchContext -> Expr -> Expr
-lEQnorm mctxt (Eabs tt qvs e)
- = Eabs tt (lQnorm mctxt qvs) (lEQnorm mctxt e)
+lEQnorm mctxt (Abs nm tt qvs es)
+ = Abs nm tt (lQnorm mctxt qvs) (map (lEQnorm mctxt) es)
 lEQnorm mctxt e = mapE (lPQnorm mctxt,lEQnorm mctxt) e
 \end{code}
 
@@ -1700,7 +1689,7 @@ The invariant:
 \begin{code}
 invESubst :: MatchContext -> ESubst -> Bool
 invESubst mctxt (Substn sub)
- = invQVars mctxt (Q $ map fst sub)
+ = invQVars mctxt (map fst sub)
    &&
    all listReplList sub
  where
@@ -1723,7 +1712,7 @@ predESubstInv mctxt (Sub pr subs)
 
 predESubstInv mctxt pr = foldP (eSubInvFold mctxt) pr
 
-exprESubstInv mctxt (Esub e subs)
+exprESubstInv mctxt (ESub e subs)
  = exprESubstInv mctxt e && invESubst mctxt subs
 
 exprESubstInv mctxt e = foldE (eSubInvFold mctxt) e
@@ -1880,8 +1869,6 @@ valfequiv (bvs1,bvs2) v1 v2
 Predicate $\alpha$-equivalence:
 \begin{code}
 predAlphaEqv :: Pred -> Pred -> Bool
-predAlphaEqv (Pfocus pr1) pr2 = predAlphaEqv pr1 pr2
-predAlphaEqv pr1 (Pfocus pr2) = predAlphaEqv pr1 pr2
 predAlphaEqv pr1 pr2 = isJust $ palfequiv ([],[]) pr1 pr2
 
 palfequiv :: ([Variable],[Variable]) -> Pred -> Pred -> Maybe BIJ
@@ -1891,7 +1878,7 @@ palfequiv :: ([Variable],[Variable]) -> Pred -> Pred -> Maybe BIJ
    \alfFreeMVarL &\defs& \alfFreeMVarR
 \end{eqnarray*}
 \begin{code}
-palfequiv bvs (Pvar s1) (Pvar s2) | s1==s2  = aok
+palfequiv bvs (PVar s1) (PVar s2) | s1==s2  = aok
 \end{code}
 \begin{eqnarray*}
    \alfCompL &\defs& \alfCompR
@@ -1899,28 +1886,9 @@ palfequiv bvs (Pvar s1) (Pvar s2) | s1==s2  = aok
 \begin{code}
 palfequiv bvs TRUE TRUE = aok
 palfequiv bvs FALSE FALSE = aok
-palfequiv bvs (Obs e1) (Obs e2)   =  ealfequiv bvs e1 e2
-palfequiv bvs (Defd e1) (Defd e2)   =  ealfequiv bvs e1 e2
-palfequiv bvs (TypeOf e1 t1) (TypeOf e2 t2)
- | t1 `tlequiv` t2  = ealfequiv bvs e1 e2
-palfequiv bvs (Not pr1) (Not pr2) = palfequiv bvs pr1 pr2
-palfequiv bvs (And prs1) (And prs2) = alflist palfequiv bvs prs1 prs2
-palfequiv bvs (Or prs1) (Or prs2) = alflist palfequiv bvs prs1 prs2
-palfequiv bvs (NDC pr11 pr21) (NDC pr12 pr22)
-                                = alflist palfequiv bvs [pr11,pr21] [pr12,pr22]
-palfequiv bvs (Imp pr11 pr21) (Imp pr12 pr22)
-                                = alflist palfequiv bvs [pr11,pr21] [pr12,pr22]
-palfequiv bvs (RfdBy pr11 pr21) (RfdBy pr12 pr22)
-                                = alflist palfequiv bvs [pr11,pr21] [pr12,pr22]
-palfequiv bvs (Eqv pr11 pr21) (Eqv pr12 pr22)
-                                = alflist palfequiv bvs [pr11,pr21] [pr12,pr22]
-palfequiv bvs (If prc1 prt1 pre1) (If prc2 prt2 pre2)
-                      = alflist palfequiv bvs [prc1,prt1,pre1] [prc2,prt2,pre2]
-palfequiv bvs (Univ _ pr1) (Univ _ pr2) = palfequiv bvs pr1 pr2
-palfequiv bvs (Peabs s1 pr1) (Peabs s2 pr2) | s1==s2  =  palfequiv bvs pr1 pr2
-palfequiv bvs (Ppabs s1 pr1) (Ppabs s2 pr2) | s1==s2  =  palfequiv bvs pr1 pr2
-palfequiv bvs (Papp prf1 pra1) (Papp prf2 pra2)
-                                = alflist palfequiv bvs [prf1,pra1] [prf2,pra2]
+palfequiv bvs (PExpr e1) (PExpr e2)   =  ealfequiv bvs e1 e2
+palfequiv bvs (PApp s1 prs1) (PApp s2 prs2)
+  | s1==s2  =  alflist palfequiv bvs prs1 prs2
 palfequiv bvs (Lang n1 _ lelems1 syn1) (Lang n2 _ lelems2 syn2)
  | n1 == n2 && syn1 == syn2
    =  alflist lalfequiv bvs lelems1 lelems2
@@ -1933,14 +1901,8 @@ palfequiv bvs (Lang n1 _ lelems1 syn1) (Lang n2 _ lelems2 syn2)
    |_{(B_1 \cup B_2)}
 \end{eqnarray*}
 \begin{code}
-palfequiv bvs (Forall _ (Q qs1) pr1) (Forall _ (Q qs2) pr2)
- = qalfequiv bvs ([pr1],qs1) ([pr2],qs2)
-
-palfequiv bvs (Exists _ (Q qs1) pr1) (Exists _ (Q qs2) pr2)
- = qalfequiv bvs ([pr1],qs1) ([pr2],qs2)
-
-palfequiv bvs (Exists1 _ (Q qs1) pr1) (Exists1 _ (Q qs2) pr2)
- = qalfequiv bvs ([pr1],qs1) ([pr2],qs2)
+palfequiv bvs (PAbs n1 _ qs1 prs1) (PAbs n2 _ qs2 prs2)
+ | n1==n2 = qalfequiv bvs (prs1,qs1) (prs2,qs2)
 \end{code}
 \begin{eqnarray*}
    \alfSubL &\defs& \alfSubR
@@ -1949,17 +1911,9 @@ palfequiv bvs (Exists1 _ (Q qs1) pr1) (Exists1 _ (Q qs2) pr2)
 palfequiv bvs (Sub pr1 (Substn sub1))
               (Sub pr2 (Substn sub2))
                 = salfequiv bvs palfequiv id ealfequiv (pr1, sub1) (pr2, sub2)
-
-palfequiv bvs (Psub pr1 (Substn sub1))
-              (Psub pr2 (Substn sub2))
-      = salfequiv bvs palfequiv genRootAsVar palfequiv (pr1, sub1) (pr2, sub2)
 \end{code}
 Leftover stuff
 \begin{code}
-palfequiv bvs (Pfocus pr1) (Pfocus pr2) = palfequiv bvs pr1 pr2
-palfequiv bvs (Pfocus pr1) pr2          = palfequiv bvs pr1 pr2
-palfequiv bvs pr1 (Pfocus pr2)          = palfequiv bvs pr1 pr2
-
 palfequiv _ _ _ = Nothing
 \end{code}
 
@@ -2004,8 +1958,6 @@ salfequiv bvs beqv asVar reqv (body1, sub1) (body2, sub2)
 \newpage
 Now expressions:
 \begin{code}
-exprAlphaEqv (Efocus e1) e2 = exprAlphaEqv e1 e2
-exprAlphaEqv e1 (Efocus e2) = exprAlphaEqv e1 e2
 exprAlphaEqv e1 e2
  = case ealfequiv ([],[]) e1 e2 of
     Nothing  ->  False
@@ -2013,11 +1965,6 @@ exprAlphaEqv e1 e2
 
 ealfequiv :: ([Variable],[Variable]) -> Expr -> Expr -> Maybe BIJ
 
-ealfequiv bvs (Efocus e1) e2 = ealfequiv bvs e1 e2
-ealfequiv bvs e1 (Efocus e2) = ealfequiv bvs e1 e2
-
-ealfequiv bvs T T = aok
-ealfequiv bvs F F = aok
 ealfequiv bvs (Num i1) (Num i2) | i1==i2  = aok
 \end{code}
 \begin{eqnarray*}
@@ -2034,8 +1981,7 @@ ealfequiv bvs (Var s1) (Var s2) = valfequiv bvs s1 s2
 \\ M \balfeqv{B_1}{B_2\setminus \setof x} x &\defs& \mapof{}, \quad \IF~x=M
 \end{eqnarray*}
 \begin{code}
---ealfequiv (_,bvs2) (Evar s1) (Var s2)  | s1==s2 && s2 `notElem` bvs2  =  aok
---ealfequiv (bvs1,_) (Var s1)  (Evar s2) | s1==s2 && s1 `notElem` bvs1  =  aok
+--should be part of the previous match...
 \end{code}
 \begin{eqnarray*}
    (P_1 \land Q_1) \balfeqv{B_1}{B_2} (P_2 \land Q_2)
@@ -2047,11 +1993,8 @@ ealfequiv bvs (Var s1) (Var s2) = valfequiv bvs s1 s2
 \begin{code}
 ealfequiv bvs (App s1 es1) (App s2 es2) | s1==s2
   = alflist ealfequiv bvs es1 es2
-ealfequiv bvs (Equal e11 e21) (Equal e12 e22)
-  = alflist ealfequiv bvs [e11,e21] [e12,e22]
 \end{code}
 
-\newpage
 \begin{eqnarray*}
    (\exists x_1 @ P_1) \balfeqv{B_1}{B_2} (\exists x_2 @ P_2)
    &\defs&
@@ -2059,17 +2002,15 @@ ealfequiv bvs (Equal e11 e21) (Equal e12 e22)
    |_{(B_1 \cup B_2)}
 \end{eqnarray*}
 \begin{code}
-ealfequiv bvs (The _ x1 pr1) (The _ x2 pr2)
-                                     = qalfequiv bvs ([pr1],[x1]) ([pr2],[x2])
-ealfequiv bvs (Eabs _ (Q qs1) e1) (Eabs _ (Q qs2) e2)
-                                 = qalfequiv bvs ([Obs e1],qs1) ([Obs e2],qs2)
+ealfequiv bvs (Abs n1 _ qs1 es1) (Abs n2 _ qs2 es2)
+ | n1 == n2 = qalfequiv bvs (map PExpr es1,qs1) (map PExpr es2,qs2)
 \end{code}
 \begin{eqnarray*}
    \alfSubL &\defs& \alfSubL
 \end{eqnarray*}
 \begin{code}
-ealfequiv bvs (Esub e1 (Substn sub1))
-              (Esub e2 (Substn sub2))
+ealfequiv bvs (ESub e1 (Substn sub1))
+              (ESub e2 (Substn sub2))
                   = salfequiv bvs ealfequiv id ealfequiv (e1, sub1) (e2, sub2)
 
 ealfequiv bvs _ _ = Nothing
