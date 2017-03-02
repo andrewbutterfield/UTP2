@@ -87,16 +87,15 @@ chrLSEP = ':'  ; strLSEP = [chrLSEP]
 \end{code}
     This immediately induces a number of instances of \texttt{Show}:
 \begin{code}
-instance Show GenRoot where show = rootString . Gen
-instance Show RsvRoot where show r = rootString $ Rsv r []
-instance Show Root where show = rootString
+showGenRoot   = rootString . Gen
+showRsvRoot r = rootString $ Rsv r []
+showRoot      = rootString
 
-instance Show Decor where
-  show NoDecor        =  ""
-  show Pre            =  ""
-  show Post           =  strPOST
-  show (Subscript s)  =  chrSUBS:s
-  show Scrpt          =  "\""
+showDecor NoDecor        =  ""
+showDecor Pre            =  ""
+showDecor Post           =  strPOST
+showDecor (Subscript s)  =  chrSUBS:s
+showDecor Scrpt          =  "\""
 \end{code}
   \item
     Numerical constants begin with a digit or minus sign (\verb"-"),
@@ -692,7 +691,7 @@ theLEVar _                 =  error "theLEVar: not Variable"
 theLEExpr :: LElem -> Expr
 theLEExpr (LVar g)         =  Var $ mkGVar Scrpt g
 theLEExpr (LExpr e)        =  e
-theLEExpr (LPred (Obs e))  =  e
+theLEExpr (LPred (PExpr e))  =  e
 theLEExpr _                =  error "theLEExpr: not Expr"
 \end{code}
 We also need to parse strings into roots
@@ -785,10 +784,10 @@ decorVar d (r@(Rsv _ rs),_,_) = mkVar r d rs
 v@(Gen _,_,_) \\\ _ =  v
 (r@(Rsv _ less1),d,_) \\\ less2 =  mkVar r d (less1 `mrgnorm` less2)
 
-qnil         =  Q []
-qvar   x     =  Q [preVar x]
+qnil         =  []
+qvar   x     =  [preVar x]
 qvars  xs    =  mkQ $ map preVar xs
-qvarr  r     =  Q [lstVar r]
+qvarr  r     =  [lstVar r]
 qvarrs rs    =  mkQ $ map lstVar rs
 qvarsr xs r  =  mkQ $ (map preVar xs) ++ [lstVar r]
 
@@ -1281,8 +1280,7 @@ teKeysymbols = sbuild te_keysymbols
 \subsection{Showing a \texttt{Type}}
 
 \begin{code}
-instance Show Type where
- show t = tShow 0 t
+showType t = tShow 0 t
 
 tShow p B            = tkeyBOOL
 tShow p Z            = tkeyINT
@@ -1292,16 +1290,16 @@ tShow p (Terror s t) = "TERR(" ++ s ++ " : " ++ tShow 0 t ++ ")"
 tShow p Tarb         = tksymARB
 tShow p t
  | tp <= p  =  tksymLBR++tShow 0 t++tksymRBR
- | otherwise  =  showType tp t
+ | otherwise  =  typeShow tp t
  where tp = typeLevel t
 
 typeLevel (TApp _ _) = 1
 typeLevel (Tfree _ _) = 1
 typeLevel (Tfun _ _)  = 2
 
-showType p (Tfree n cs) = n ++ ' ':tksymAT++ (showSep 6 showCases (' ':tksymALT) cs)++"."
-showType p (Tfun d r)   = tShow (p+1) d ++ ' ':tksymFUN ++ ' ':tShow p r
-showType p t            = tShow p t
+typeShow p (Tfree n cs) = n ++ ' ':tksymAT++ (showSep 6 showCases (' ':tksymALT) cs)++"."
+typeShow p (Tfun d r)   = tShow (p+1) d ++ ' ':tksymFUN ++ ' ':tShow p r
+typeShow p t            = tShow p t
 
 showCases p (n,ts) = " "++n ++ " " ++ showSep p tShow " " ts
 \end{code}
@@ -1480,12 +1478,8 @@ data SynPrecClass = SPClosed | SPOpen | SPDependent
 
 \begin{code}
 exprPrecClass (App s e)        =  SPDependent
-exprPrecClass (Equal e1 e2)    =  SPDependent
-exprPrecClass (The tt qs pr)      =  SPOpen
-exprPrecClass (Eabs tt qs e)      =  SPOpen
-exprPrecClass (Esub e sub)     =  SPOpen
-exprPrecClass (Eerror s)       =  SPOpen
-exprPrecClass (Efocus ef)      =  exprPrecClass ef
+exprPrecClass (Abs s tt qs es) =  SPOpen
+exprPrecClass (ESub e sub)     =  SPOpen
 exprPrecClass _                =  SPClosed
 
 isEClosed e  =  exprPrecClass e == SPClosed     -- 11
@@ -1493,8 +1487,6 @@ isEOpen e    =  exprPrecClass e == SPOpen       --  7
 isEDep e     =  exprPrecClass e == SPDependent  --  3
 
 ePrec (App _ _)      =  opPrec 1 exprBinGen
-ePrec (Equal _ _)    =  opPrec 1 equalName
-ePrec (Efocus ef)    =  ePrec ef
 ePrec _              =  1
 \end{code}
 
@@ -1503,41 +1495,24 @@ ePrec _              =  1
 \begin{code}
 predPrecClass TRUE                   = SPClosed
 predPrecClass FALSE                  = SPClosed
-predPrecClass (Obs e)             = exprPrecClass e
-predPrecClass (Not pr)               = SPDependent
-predPrecClass (And prs)              = SPDependent
-predPrecClass (Or prs)               = SPDependent
-predPrecClass (NDC pr1 pr2)          = SPDependent
-predPrecClass (Imp pr1 pr2)          = SPDependent
-predPrecClass (RfdBy pr1 pr2)        = SPDependent
-predPrecClass (Eqv pr1 pr2)          = SPDependent
+predPrecClass (PExpr e)              = exprPrecClass e
 predPrecClass (Lang s p les ss)
  | isBinSpec (LangSpec les ss)       = SPDependent
  | otherwise                         = SPClosed
-predPrecClass (Univ tt pr)              = SPClosed
-predPrecClass (Pvar s)               = SPClosed
-predPrecClass (Papp prf pra)         = SPDependent
-predPrecClass (Psapp pr spr)         = SPDependent
-predPrecClass (Psin pr spr)          = SPDependent
-predPrecClass (Pfocus fpr)           = predPrecClass fpr
+predPrecClass (PVar s)               = SPClosed
+predPrecClass (PApp n s)             = SPDependent
 predPrecClass _                      = SPOpen
 
 isPClosed pr  =  predPrecClass pr == SPClosed     --  5
 isPOpen pr    =  predPrecClass pr == SPOpen       -- 11
 isPDep pr     =  predPrecClass pr == SPDependent  --  9
 
-pPrec (Papp _ _)                =  opPrec 1 predBinGen
-pPrec (Psapp _ _)               =  opPrec 1 predBinGen
-pPrec (Not pr)                  =  opPrec 1 notName
-pPrec (And prs)                 =  opPrec 1 andName
-pPrec (Or prs)                  =  opPrec 1 orName
-pPrec (NDC pr1 pr2)             =  opPrec 1 ndcName
-pPrec (Imp pr1 pr2)             =  opPrec 1 impName
-pPrec (RfdBy pr1 pr2)           =  opPrec 1 rbyName
-pPrec (Eqv pr1 pr2)             =  opPrec 1 equivName
-pPrec (Psin pr spr)             =  opPrec 1 psinName
+pPrec (PApp nm [pr])
+ | nm == n_Not                  =  opPrec 1 notName
+pPrec (PApp nm prs)
+ | nm == n_And                  =  opPrec 1 andName
+ | nm == n_Or                   =  opPrec 1 orName
 pPrec (Lang s p les ss)         =  p
-pPrec (Pfocus fpr)              =  pPrec fpr
 pPrec _                         =  1
 \end{code}
 
@@ -1563,46 +1538,28 @@ and is never called recursively by itself.
 The auxilliary function \texttt{eShow} is the one where we make
 precedence 0 level recursive calls.
 \begin{code}
-instance Show Expr where
- show e = eShow 0 e
+showExpr e = eShow 0 e
 
-eShow 0 e = showExpr 0 e
+eShow 0 e = exprShow 0 e
 eShow pouter e
- | isEClosed e       =  showExpr pouter e
- | isEOpen   e       =  "("++showExpr 0 e++")"
- | pinner <= pouter  =  "("++showExpr 0 e++")"
- | otherwise         =  showExpr pinner e
+ | isEClosed e       =  exprShow pouter e
+ | isEOpen   e       =  "("++exprShow 0 e++")"
+ | pinner <= pouter  =  "("++exprShow 0 e++")"
+ | otherwise         =  exprShow pinner e
  where pinner = ePrec e
 
-showExpr _ T = keyTRUE
-showExpr _ F = keyFALSE
-showExpr _ (Num i) = show i
-showExpr _ (Var v) = showVar v
-showExpr _ (Eerror m) = "EERR(" ++ m ++")"
-
-showExpr p (Efocus fe) = [eFocusStart]++showExpr p fe++[eFocusEnd]
-showExpr _ (Esub e s)
-  | isEClosed e  =      showExpr 0 e        ++ show s
-  | otherwise    = "("++showExpr 0 e ++ ")" ++ show s
-
-showExpr p (The tt x (And [rg, pr]))
- | rg == TRUE  =  keyTHE ++ " " ++ showVar x
-                         ++pad _bullet ++ showPred p pr
- | otherwise   =  keyTHE ++ " " ++ showVar x
-                         ++ " | " ++ showPred 0 rg
-                         ++pad _bullet ++ showPred p pr
-showExpr p (The tt x pr)
- = keyTHE ++ " " ++ showVar x ++ pad _bullet ++ showPred p pr
-
-showExpr p (Eabs tt qs eb)
-  = ksymEABS ++ " " ++ show qs ++ pad _bullet ++ eShow (p+1) eb
-showExpr p (App n es) = n ++ "(" ++ showSep 0 eShow "," es ++ ")"
-showExpr p e@(Equal e1 e2)
-  = eShow q e1 ++" = "++ eShow q e2
-  where q = ePrec e
-
--- showExpr p e = "YYYYYY(showExpr of unexpected variant)YYYYY"
-
+exprShow _ (Num i) = show i
+exprShow _ (Var v) = showVar v
+exprShow p (App n es) = n ++ "(" ++ showSep 0 eShow "," es ++ ")"
+exprShow p (Abs n tt qs es)
+ = "( "++ n
+       ++ " " ++ showQVars qs
+       ++ " @ " ++ showSep 0 eShow "," es
+       ++ ")"
+exprShow _ (ESub e s)
+  | isEClosed e  =      exprShow 0 e        ++ show s
+  | otherwise    = "("++exprShow 0 e ++ ")" ++ show s
+exprShow p (EPred pr) = showPred p pr
 
 eFocusStart = chr 171  -- start underlining
 eFocusEnd   = chr 187  -- end underlining
@@ -1647,14 +1604,18 @@ showPred _ FALSE   = keyFALSE
 showPred _ (PVar pv) = showVar pv
 
 showPred p pr@(PApp n prs)
- = n ++ "(" ++ pShow q p1 ++ " " ++ pShow (q+1) p2
- where q = pPrec pr
+ = n ++ "(" ++ showSep 0 pShow "," prs ++ ")"
+showPred p pr@(PAbs n ttt qs prs)
+ = "( " ++ n ++ " "
+     ++ showQVars qs
+     ++ " @ " ++ showSep 0 pShow "," prs
+     ++ ")"
 
 showPred p (Sub pr s)
   | isPClosed pr  =       showPred p pr        ++ show s
   | otherwise     =  "("++showPred 0 pr ++ ")" ++ show s
 
-showPred p pr@(PExpr e)  =  showExpr p e
+showPred p pr@(PExpr e)  =  exprShow p e
 
 
 
@@ -1962,16 +1923,16 @@ parseSetMap ptlt
 \subsubsection{Substitutions}
 
 \begin{code}
-instance Show (Substn Variable Expr) where
-  show (Substn sub)
+showESubst :: ESubst -> String
+showESubst (Substn sub)
     = "[ "++(showSepList ',' as)++ksymESUB++showvs qv++" ]"
     where
       as = map snd sub
       qv = map fst sub
       showvs = concat . intersperse "," . map varKey
 
-instance Show (Substn GenRoot Pred) where
-  show (Substn sub)
+showPSubst :: PSubst -> String
+showPSubst (Substn sub)
     = "[ "++(showSepList ',' as)++ksymPSUB++showns qv++" ]"
     where
       as = map snd sub
@@ -2157,28 +2118,33 @@ scKeyAnd = ";"
 pad str = " " ++ str ++ " "
 scvlist = mkSepList ',' . map varKey
 
-instance Show SideCond where
+showSideCond SCtrue = "true"
 
- show SCtrue = "true"
+showSideCond (SCisCond PredM pn)  =  scKeyCND ++ " " ++ pn
+showSideCond (SCisCond m vn)      =  scKeyCnd ++ " " ++ vn
 
- show (SCisCond PredM pn)  =  scKeyCND ++ " " ++ pn
- show (SCisCond m vn)      =  scKeyCnd ++ " " ++ vn
+showSideCond (SCnotFreeIn PredM vs pn)
+  =  pn ++ pad scKeyNFI ++ scvlist vs
+showSideCond (SCnotFreeIn m     vs vn)
+  =  vn ++ pad scKeyNfi  ++ scvlist vs
 
- show (SCnotFreeIn PredM vs pn)  =  pn ++ pad scKeyNFI ++ scvlist vs
- show (SCnotFreeIn m     vs vn)  =  vn ++ pad scKeyNfi  ++ scvlist vs
+showSideCond (SCareTheFreeOf PredM vs pn)
+  =  pn ++ pad scKeyTFO ++ scvlist vs
+showSideCond (SCareTheFreeOf m     vs vn)
+  =  vn ++ pad scKeyTfo  ++ scvlist vs
 
- show (SCareTheFreeOf PredM vs pn)  =  pn ++ pad scKeyTFO ++ scvlist vs
- show (SCareTheFreeOf m     vs vn)  =  vn ++ pad scKeyTfo  ++ scvlist vs
+showSideCond (SCcoverTheFreeOf PredM vs pn)
+  =  pn ++ pad scKeyCOV  ++ scvlist vs
+showSideCond (SCcoverTheFreeOf m     vs vn)
+  =  vn ++ pad scKeyCov   ++ scvlist vs
 
- show (SCcoverTheFreeOf PredM vs pn)  =  pn ++ pad scKeyCOV  ++ scvlist vs
- show (SCcoverTheFreeOf m     vs vn)  =  vn ++ pad scKeyCov   ++ scvlist vs
+showSideCond (SCfresh PredM v)  =  scKeyFRS ++ " " ++ varKey v
+showSideCond (SCfresh m     v)  =  scKeyFrs ++ " " ++ varKey v
 
- show (SCfresh PredM v)  =  scKeyFRS ++ " " ++ varKey v
- show (SCfresh m     v)  =  scKeyFrs ++ " " ++ varKey v
-
- show (SCAnd []) = ";!"
- show (SCAnd [sc]) = ';':show sc
- show (SCAnd scs) = concat $ intersperse (pad scKeyAnd) $ (map show scs)
+showSideCond (SCAnd []) = ";!"
+showSideCond (SCAnd [sc]) = ';':show sc
+showSideCond (SCAnd scs)
+  = concat $ intersperse (pad scKeyAnd) $ (map showSideCond scs)
 \end{code}
 
 \newpage
@@ -2259,25 +2225,23 @@ showLSep p sep [] = ""
 showLSep p sep [le] = showLE p le
 showLSep p sep (le:les) = showLE p le ++ sep ++ showLSep p sep les
 
-instance Show LElem where -- not focus safe !
- showsPrec p (LVar g) = mkshows $ show g
- showsPrec p (LType t) = mkshows $ showType p t
- showsPrec p (LExpr e) = mkshows $ showExpr p e
- showsPrec p (LPred pr) = mkshows $ showPred p pr
- showsPrec p (LList les)
-  = mkshows ("["++(concat $ intersperse ","  $ map (showLE p) les)++"]")
- showsPrec p (LCount les)
-  = mkshows ("["++(concat $ intersperse ","  $ map (showLE p) les)++"]")
+showLELem (LVar g) = show g
+showLELem (LType t) = showType t
+showLELem (LExpr e) = exprShow 0 e
+showLELem (LPred pr) = showPred 0 pr
+showLELem (LList les)
+  = ("["++(concat $ intersperse ","  $ map (showLE 0) les)++"]")
+showLELem (LCount les)
+  = ("["++(concat $ intersperse ","  $ map (showLE 0) les)++"]")
 
 mkshows s sc = s ++ sc
 \end{code}
 
 Showing Syntax Specifications
 \begin{code}
-instance Show SynSpec where
- show SSNull     = ""
- show (SSTok s)  = s
- show (SSSep s)  = s
+showSynSpec SSNull     = ""
+showSynSpec (SSTok s)  = s
+showSynSpec (SSSep s)  = s
 
 ldisp f = concat . map f
 
@@ -2292,19 +2256,19 @@ dispLE le = ' ':(show le)
 We want to output a \texttt{LElem}-list  and corresponding
 \texttt{SynSpec}-list as a textual syntax specification:
 \begin{code}
-showLangSpec [] [SSNull] = ""
-showLangSpec [] [SSTok s] = s
+showLSpec [] [SSNull] = ""
+showLSpec [] [SSTok s] = s
 
-showLangSpec (LList (le:_):les) (s:SSSep sep:srest)
- = showSS s ++ " " ++showLS le ++ '*':sep ++ " " ++ showLangSpec les srest
+showLSpec (LList (le:_):les) (s:SSSep sep:srest)
+ = showSS s ++ " " ++showLS le ++ '*':sep ++ " " ++ showLSpec les srest
 
-showLangSpec (LCount (le:_):les) (s:SSSep sep:srest)
- = showSS s ++ " " ++showLS le ++ '#':sep ++ " " ++ showLangSpec les srest
+showLSpec (LCount (le:_):les) (s:SSSep sep:srest)
+ = showSS s ++ " " ++showLS le ++ '#':sep ++ " " ++ showLSpec les srest
 
-showLangSpec (le:les) (s:srest)
- = showSS s ++ " " ++ showLS le ++ " " ++ showLangSpec les srest
+showLSpec (le:les) (s:srest)
+ = showSS s ++ " " ++ showLS le ++ " " ++ showLSpec les srest
 
-showLangSpec les srest = "ILLFORMED-LANG("++show les++" "++show srest++")"
+showLSpec les srest = "ILLFORMED-LANG("++show les++" "++show srest++")"
 
 showSS SSNull = ""
 showSS (SSTok tok) = tok
@@ -2356,8 +2320,7 @@ lcount le = LCount [le]
 
 We can now given a Show instance for LangSpec:
 \begin{code}
-instance Show LangSpec where
-  show (LangSpec les ss) = showLangSpec les ss
+showLangSpec (LangSpec les ss) = showLSpec les ss
 \end{code}
 
 \subsection{Parsing Language Specifications}

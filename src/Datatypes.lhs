@@ -29,7 +29,7 @@ data Substn v a
  = Substn [( v   -- variable type
            , a   -- replacement object
            )]
- deriving (Eq,Ord)
+ deriving (Eq,Ord,Show)
 
 type VSubst = Substn Variable Variable
 \end{code}
@@ -111,7 +111,7 @@ data Type -- most general types first
  | Z
  | B
  | Terror String Type
- deriving (Eq,Ord)
+ deriving (Eq,Ord,Show)
 
 type TSubst = Substn String   Type
 
@@ -134,16 +134,16 @@ A variable has a root and decoration.
 \begin{code}
 data GenRoot = Std String       -- single (Standard) variable
              | Lst String       -- List variables
-             deriving (Eq,Ord)
+             deriving (Eq,Ord,Show)
 
 data RsvRoot = OBS  -- all observations
              | MDL  -- model observations
              | SCR  -- script observations
-             deriving (Eq,Ord)
+             deriving (Eq,Ord,Show)
 
 data Root = Gen GenRoot
           | Rsv RsvRoot [GenRoot]
-          deriving (Eq,Ord)
+          deriving (Eq,Ord,Show)
 
 data Decor
  = NoDecor    -- for variable were decoration is irrelevant
@@ -151,7 +151,7 @@ data Decor
  | Post
  | Subscript String
  | Scrpt             -- script variables, know or unknown
- deriving (Eq,Ord)
+ deriving (Eq,Ord,Show)
 
 type Variable = ( Root      -- variable (main) root
                 , Decor     -- variable decoration
@@ -449,6 +449,7 @@ data Expr
  | EPred Pred
  deriving (Eq, Ord, Show)
 
+
 n_Eerror = "EXPR_ERR: "
 eerror str = App (n_Eerror ++ str) []
 
@@ -506,6 +507,7 @@ data Pred
         [SynSpec] -- Interleaving Tokens
  deriving (Eq, Ord, Show)
 
+
 n_Perror = "PRED_ERR: "
 perror str = PApp (n_Perror ++ str) []
 
@@ -526,6 +528,9 @@ to deal with corner cases.
 THIS NEEDS TO GO TO A SPECIAL "builtins" MODULE
 
 \begin{code}
+n_Not = "Not"
+mkNot p = PApp n_Not [p]
+
 n_And = "And"
 mkAnd [] = TRUE
 mkAnd [pr] = pr
@@ -636,7 +641,7 @@ data LElem
  | LPred Pred
  | LList [LElem] -- all of same type
  | LCount [LElem] -- same type, also same length
- deriving (Eq,Ord)
+ deriving (Eq,Ord,Show)
 
 isLELstV :: LElem -> Bool
 isLELstV (LVar g)          =  isLstG g
@@ -662,13 +667,13 @@ data SynSpec
  = SSNull
  | SSTok String
  | SSSep String
- deriving (Eq,Ord)
+ deriving (Eq,Ord,Show)
 \end{code}
 
 A Language Specification is a pairing of two lists,
 one of \texttt{LElem}, the other of \texttt{SynSpec}:
 \begin{code}
-data LangSpec = LangSpec [LElem] [SynSpec] deriving (Eq,Ord)
+data LangSpec = LangSpec [LElem] [SynSpec] deriving (Eq,Ord,Show)
 \end{code}
 
 
@@ -1345,7 +1350,7 @@ data SideCond
  | SCcoverTheFreeOf MType [Variable] String  -- Qvars, Mvar
  | SCfresh MType Variable                    -- ObsM for now
  | SCAnd [SideCond]
- deriving (Eq,Ord)
+ deriving (Eq,Ord,Show)
 
 scMetaType (SCisCond m _)            =  m
 scMetaType (SCnotFreeIn m _ _)       =  m
