@@ -65,11 +65,13 @@ fixPredQVars pr = error "fixPredQVars NYI"
 \subsection{\texttt{Lang} usage}
 
 First, we have a restriction on the use of the \texttt{LElem}-list
-in the Lang construct: A \texttt{LList} element's list may only
+in the Lang construct: A \texttt{LList}
+or \texttt{LCount} element's list may only
 contain non-\texttt{LList} \texttt{LElems} of the same type:
 \begin{code}
 checkLList [] = True
 checkLList (LList _:_) = False
+checkLList (LCount _:_) = False
 checkLList (le:les) = chkLL le les
  where
    chkLL le [] = True

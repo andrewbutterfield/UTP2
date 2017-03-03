@@ -688,9 +688,6 @@ efreeovars mctxt bs fs (ESub e sub)
 efreeovars mctxt bs fs (App s es)
  = seq2s (efreeovars mctxt) bs fs es
 
-efreeovars mctxt bs fs (Abs nm _ qs es)
- = seq2s (efreeovars mctxt) (bs+|+qs) fs es
-
 efreeovars mctxt bs fs (EPred pr)     = pfreeovars mctxt bs fs pr
 
 efreeovars mctxt  _ fs _ = fs

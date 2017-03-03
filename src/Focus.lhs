@@ -34,21 +34,12 @@ as prototyped in \texttt{proto/PrettyZipper}.
 \newpage
 \subsection{Focus Datatypes}
 
+We will adopt the type ``derivatives'' as zipper approach
+\cite{McBride-et-al-and-Huet}.
+First we address additional context information we want track
+as we move the focus.
 
-ALL OF THIS IS TO BE CHANGED
 
-
-``Focus'' is the mechanism for restricting attention
-to part of a predicate or expression.
-It is supported by both the \texttt{Expr} and \texttt{Pred}
-in that they have constructors to mark the focus
-datatypes:
-\begin{verbatim}
- data Expr = ...
-  | Efocus Expr
- data Pred = ...
-  | Pfocus  Pred
-\end{verbatim}
 
 
 \subsubsection{Focus Context}
@@ -79,7 +70,7 @@ instance Show Polarity where
 
 \paragraph{Bindings on-route}
 
-We record bindings as a variable-name list
+We record bindings as a variable  list
 \begin{code}
 type Binders = [Variable]
 \end{code}
@@ -117,18 +108,34 @@ ctxtPush (vs,tag) (pol,bs,tags) = (pol,lnorm (vs++bs),tag:tags)
 ctxtPPush vs (pol,bs,tags) = (pol,lnorm (vs++bs),tags)
 \end{code}
 
-\subsubsection{Focus Path}
+\subsubsection{Zipper Derivatives}
 
-We use a list of numbers identifying the
-relevant sub-expressions,
-from the top downwards, each paired with an \texttt{FContext}.
+First, the Expression ``derivative'':
 \begin{code}
-type FocusPath = [ ( Int       -- index into parent predicate
-                   , FContext  --  context of parent
-                   )
-                 ]
+data Expr'
+ = App' String [Expr] [Expr]
+ | Abs' String TTTag [Variable] [Expr] [Expr]
+ | ESub'1 ESubst
+ | ESub'2 Expr [Variable] [Expr] [Expr]
+ | EPred' Pred'
 \end{code}
 
+Next, the Predicate ``derivative'':
+\begin{code}
+data Pred'
+ = PApp' String [Pred] [Pred]
+ | PAbs' String TTTag [Variable] [Pred] [Pred]
+ | Sub'1  ESubst
+ | Sub'2 Pred ESubst [Variable] [Expr] [Expr]
+ | PExpr' Expr'
+ -- Language extensions (Lexts) -- NOT SUPPORTED RIGHT NOW
+ -- NEED TO ENCODE Invarants.rcheckLangSpec and similar IN DATASTRUCTURE
+--  | Lang' String    -- construct name
+--         Int       -- precedence, if binary
+--         [LElem]   -- Language elements
+--         [SynSpec] -- Interleaving Tokens
+ | TypeOf' Type
+\end{code}
 
 \subsubsection{Focussed Entities}
 
@@ -138,8 +145,7 @@ and a stack of index-context pairs.
 \begin{code}
 type FPred = ( Pred       -- Focus Predicate
              , FContext   -- Focus Context
-             , Pred       -- Top-Level Predicate
-             , FocusPath  -- path from top downto focus (with contexts)
+             , [Pred']    -- Route up to top-level
              )
 \end{code}
 
@@ -603,7 +609,7 @@ leftPFocus fpr  =  fpr
 Getting the focus parent:
 \begin{code}
 getFocusParent :: FPred -> Pred
-getFocusParent (_, _, _, []) = Perror "Top-level focus has no parent"
+getFocusParent (_, _, _, []) = perror "Top-level focus has no parent"
 getFocusParent (_, _, toppr, [_]) = toppr
 getFocusParent (fpr, ctxt, toppr, ((i,_):ics))
  = getFocusParent (fpr, ctxt, goDownPF i toppr, ics)
@@ -614,40 +620,18 @@ getFocusParent (fpr, ctxt, toppr, ((i,_):ics))
 Knowing the branching factor can be useful:
 \begin{code}
 predBranches :: Pred -> Int
-predBranches (Obs e) = exprBranches e
-predBranches (Defd e)     = 1
+predBranches (PExpr e) = exprBranches e
 predBranches (TypeOf e t) = 1
-predBranches (Not pr)  =  1
-predBranches (Univ _ pr) =  1
-predBranches (NDC pr1 pr2) = 2
-predBranches (Imp pr1 pr2) = 2
-predBranches (RfdBy pr1 pr2) = 2
-predBranches (Eqv pr1 pr2) = 2
-predBranches (Papp _ pr) = 1 -- for now
-predBranches (And prs) = length prs
-predBranches (Or prs)  = length prs
-predBranches (If prc prt pre) = 3
-predBranches (Forall tt qs pr) = 3
-predBranches (Exists tt qs pr) = 3
-predBranches (Exists1 tt qs pr) = 3
-predBranches (Pforall pvs pr) = 1
-predBranches (Pexists pvs pr) = 1
-predBranches (Peabs qs pr) = 1
-predBranches (Ppabs ss pr) = 1
-predBranches (Psapp pr spr) = 1
-predBranches (Psin pr spr) = 1
+predBranches (PApp _ prs) = length prs
+predBranches (PAbs _ tt qs prs) = length prs
 predBranches (Sub _ (Substn sub)) = 1 + length sub
 predBranches (Lang nm p les ss) = length $ filter isFocussable les
-predBranches (Pfocus pr) = predBranches pr
 predBranches _ = 0
 
 exprBranches :: Expr -> Int
 exprBranches (App s es)       = length es
-exprBranches (Eabs tt qs e)   =  1
-exprBranches (Equal e1 e2)    =  2
-exprBranches (The tt x pr)    = 1
-exprBranches (Esub e (Substn sub)) = 1 + length sub
-exprBranches (Efocus e)               = exprBranches e
+exprBranches (Eabs n tt qs es)   =  length es
+exprBranches (ESub e (Substn sub)) = 1 + length sub
 exprBranches _                        = 0
 \end{code}
 
