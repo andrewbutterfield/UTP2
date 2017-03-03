@@ -118,6 +118,7 @@ data Expr'
  | ESub'1 ESubst
  | ESub'2 Expr [Variable] [Expr] [Expr]
  | EPred' Pred'
+ deriving (Show)
 \end{code}
 
 Next, the Predicate ``derivative'':
@@ -128,13 +129,14 @@ data Pred'
  | Sub'1  ESubst
  | Sub'2 Pred ESubst [Variable] [Expr] [Expr]
  | PExpr' Expr'
+ | TypeOf' Type
  -- Language extensions (Lexts) -- NOT SUPPORTED RIGHT NOW
  -- NEED TO ENCODE Invarants.rcheckLangSpec and similar IN DATASTRUCTURE
 --  | Lang' String    -- construct name
 --         Int       -- precedence, if binary
 --         [LElem]   -- Language elements
 --         [SynSpec] -- Interleaving Tokens
- | TypeOf' Type
+ deriving (Show)
 \end{code}
 
 \subsubsection{Focussed Entities}
@@ -145,7 +147,7 @@ and a stack of index-context pairs.
 \begin{code}
 type FPred = ( Pred       -- Focus Predicate
              , FContext   -- Focus Context
-             , [Pred']    -- Route up to top-level
+             , [(Pred',FContext)]    -- Route up to top-level
              )
 \end{code}
 
@@ -153,21 +155,13 @@ type FPred = ( Pred       -- Focus Predicate
 \newpage
 \subsection{Displaying Focus}
 
-Normally, we display the third component of the quadruple
-which shows the whole predicate, with the focus highlighted in context.
+Normally, we display the whole predicate,
+with the focus highlighted in context.
 
 However, sometimes it is useful to see the whole tuple:
 \begin{code}
 showPFocus :: FPred -> String
-showPFocus ( fpr, (pol,bnd,tags), toppr, ics )
- = unlines
-    [ show fpr
-    , show pol
-      ++"{"++(concat $ intersperse "," $ map varKey bnd)++"}"
-      ++" <"++(concat $ intersperse ";" $map show tags)++">"
-    , show toppr
-    , show $ map fst ics
-    ]
+showPFocus = show
 \end{code}
 
 \newpage
@@ -186,17 +180,66 @@ $$
 $$
 \begin{code}
 setPFocus :: Pred -> FPred
-
-setPFocus pr@(Obs e)
- = ( Obs e', mxdCtxt, Obs $ Efocus e', [] ) where e' = stripEFocus e
-
-setPFocus pr
- = (pr', baseCtxt, Pfocus pr', [] ) where pr' = stripPFocus pr
+setPFocus pr@(PExpr _) = ( pr, mxdCtxt,  [] )
+setPFocus pr           = ( pr, baseCtxt, [] )
 \end{code}
 We need the case split here
-(rather than just simply calling \texttt{pFocus}),
 because the initial context is different if the top-level is an expression.
 
+
+
+\newpage
+\subsection{Moving focus down}
+
+$$
+\begin{array}{c}
+   p(\ldots \framebox{$q(r_1,r_2,\ldots)$} \ldots) @ \sigma \FExprStrut
+\\ \left.\FExprStrut\right\downarrow \texttt{down}
+\\ p(\ldots q(\framebox{$r_1$},r_2,\ldots) \ldots) @ \sigma\cat\seqof 1
+\end{array}
+$$
+\begin{code}
+downPFocus :: FPred -> FPred
+
+-- downPFocus (PApp nm prs, ctxt, wayup)
+-- downPFocus (PAbs nm tag qs prs, ctxt, wayup)
+-- downPFocus (Sub pr sub, ctxt, wayup)
+-- downPFocus (PExpr e, ctxt, wayup)
+-- downPFocus (TypeOf e t, ctxt, wayup)
+-- --downPFocus (Lang nm p les ss, ctxt, wayup)
+downPFocus pr = pr
+\end{code}
+
+
+\subsection{Moving focus up}
+
+$$
+\begin{array}{c}
+   p(\ldots \framebox{$q(\ldots,r_i,\ldots)$} \ldots) @ \sigma \FExprStrut
+\\ \texttt{up} \left\uparrow\FExprStrut\right.
+\\ p(\ldots q(\ldots,\framebox{$r_i$},\ldots) \ldots) @ \sigma\cat\seqof i
+\end{array}
+$$
+
+\begin{code}
+upPFocus :: FPred -> FPred
+
+upPFocus fpr = fpr  --- top-level
+\end{code}
+
+\newpage
+\subsubsection{Moving Focus Left/Right}
+
+\begin{code}
+rightPFocus :: FPred -> FPred
+
+rightPFocus fpr = fpr
+
+leftPFocus :: FPred -> FPred
+
+
+leftPFocus fpr  =  fpr
+\end{code}
 
 \newpage
 \subsection{Clearing Focus}
@@ -230,159 +273,6 @@ stripPFocus (Pfocus pr) = mapP (stripPFocus,stripEFocus) pr
 stripPFocus pr          = mapP (stripPFocus,stripEFocus) pr
 \end{code}
 
-
-\newpage
-\subsection{Moving focus down}
-
-We provide a number identifying the sub-expression/predicate
-to which we wish to descend.
-If the argument is not a expression/predicate
-with a sub-expression/predicate matching the number supplied,
-then no change occurs (exception: if only one sub-part is present,
-then the number is ignored).
-
-
-
-\subsubsection{Descending into Predicates}
-
-$$
-\begin{array}{c}
-   p(\ldots \framebox{$q(\ldots,r_i,\ldots)$} \ldots) @ \sigma \FExprStrut
-\\ \left.\FExprStrut\right\downarrow \texttt{down i}
-\\ p(\ldots q(\ldots,\framebox{$r_i$},\ldots) \ldots) @ \sigma\cat\seqof i
-\end{array}
-$$
-\begin{code}
-downPFocus :: Int -> FPred -> FPred
-
-downPFocus i fpr@( cfpr, ctxt, toppr, ics )
- = case downPF i cfpr of
-     Nothing        ->  fpr
-     Just (npr, cf) ->  let toppr' = rrepPF (pFocus npr) i toppr ics
-                        in  ( npr, cf ctxt , toppr', ics++[(i, ctxt)] )
-\end{code}
-
-Descending down
-\begin{code}
-downPF :: Int -> Pred -> Maybe (Pred, FContext -> FContext)
-
-downPF n (Pfocus pr) = downPF n pr
-
-downPF n (Obs e)
- = case downEF n e of
-     Nothing  ->  Nothing
-     Just (e', ctxt)  ->  Just (Obs e', ctxt . ctxtMxd)
-
-downPF n (Defd e)     = Just(Defd $ Efocus e, ctxtMxd)
-downPF n (TypeOf e t) = Just (TypeOf (Efocus e) t, ctxtMxd)
-
-downPF _ (Not pr)  =  Just(pr, ctxtNeg)
-downPF _ (Univ tag pr)
- =  Just(pr, ctxtPush (predFreeOVars nullMatchContext pr,tag))
-
-downPF 1 (NDC pr1 pr2) = Just(pr1, ctxtId)
-downPF 2 (NDC pr1 pr2) = Just(pr2, ctxtId)
-downPF 1 (Imp pr1 pr2) = Just(pr1, ctxtNeg)
-downPF 2 (Imp pr1 pr2) = Just(pr2, ctxtId)
-downPF 1 (RfdBy pr1 pr2) = Just(pr1, ctxtId)
-downPF 2 (RfdBy pr1 pr2) = Just(pr2, ctxtNeg)
-downPF 1 (Eqv pr1 pr2) = Just(pr1, ctxtMxd)
-downPF 2 (Eqv pr1 pr2) = Just(pr2, ctxtMxd)
--- downPF 1 (Papp pr1 pr2) = Nothing -- for now (matching unsound)
-downPF n (Papp _ pr) = Just(pr, ctxtMxd)
-
-downPF n (And prs) = downPFs ctxtId n prs
-downPF n (Or prs)  = downPFs ctxtId n prs
-
--- Remember: renders as  " prt <| prc |> pre "
-downPF 1 (If prc prt pre) = Just (prt, ctxtId)
-downPF 2 (If prc prt pre) = Just (prc, ctxtMxd)
-downPF 3 (If prc prt pre) = Just (pre, ctxtId)
-
-downPF _ (Forall tag qs pr) = Just(pr, ctxtPush (getqovars qs,tag))
-downPF _ (Exists tag qs pr) = Just(pr, ctxtPush (getqovars qs,tag))
-downPF _ (Exists1 tag qs pr) = Just(pr, ctxtPush (getqovars qs,tag))
-
-downPF _ (Pforall pvs pr) = Just(pr, ctxtId)
-downPF _ (Pexists pvs pr) = Just(pr, ctxtId)
-downPF _ (Peabs qs pr) = Just(pr, ctxtPPush (getqovars qs))
-downPF _ (Ppabs ss pr) = Just(pr, ctxtMxd)
-
-downPF 1 (Psapp pr spr) = Just(pr, ctxtMxd)
-downPF 1 (Psin pr spr) = Just(pr, ctxtMxd)
-
-downPF 1 (Sub pr sub) = Just(pr, ctxtId)
--- downPF n pr@(Sub spr (Substn ssub msub))
-
-downPF n (Lang nm p les ss) = downLF n les
-
-downPF _ pr = Nothing
-\end{code}
-
-Going down (total, ignores context):
-\begin{code}
-goDownPF :: Int -> Pred -> Pred
-goDown i (Obs (Efocus e)) = goDown i (Obs e)
-goDown i (Pfocus pr) = goDown i pr
-goDownPF i pr
- = case downPF i pr of
-     Nothing       ->  pr
-     Just (pr',_)  ->  pr'
-\end{code}
-
-
-Some common (predicate) descent patterns:
-\begin{code}
-downPFs cf i prs
- | 1 <= i && i <= length prs = Just (prs!!(i-1), cf)
-downPFs _ _ _ = Nothing
-\end{code}
-
-\newpage
-Stepping once down into an expression:
-\begin{code}
-downEF :: Int -> Expr -> Maybe (Expr, FContext -> FContext)
-
-downEF n (Efocus e) = downEF n e
-
-downEF n (App s es)       =  downEFs ctxtMxd n es
-downEF _ (Eabs tag qs e)
-  =  Just(e, ctxtPush (getqovars qs,tag) . ctxtMxd)
-downEF 1 (Equal e1 e2)    =  Just(e1, ctxtMxd)
-downEF 2 (Equal e1 e2)    =  Just(e2, ctxtMxd)
-
-downEF _ (The tag x pr) = Just (ePred pr, ctxtPush ([x],tag) . ctxtMxd)
-
-downEF _ (Esub e sub)   = Just (e, ctxtMxd)
-
-downEF _ e = Nothing
-
-downEFs cf i es
- | 1 <= i && i <= length es = Just (es!!(i-1), cf)
-downEFs _ _ _ = Nothing
-\end{code}
-
-
-\subsubsection{Descending into Language Constructs}
-
-Get the $n$th expression or predicate
-from a list of language elements (all others not being focusable at present):
-\begin{code}
-downLF _ []            =  Nothing
-downLF 0 _             =  Nothing
-downLF 1 (LPred pr:_)  =  Just (pr, ctxtMxd)
-downLF 1 (LExpr e:_)   =  Just (Obs e, ctxtMxd)
-downLF 1 _             =  Nothing
-downLF n (_:les)       =  downLF (n-1) les
-
-isFocussable (LPred _)  =  True
-isFocussable (LExpr _)  =  True
-isFocussable _          =  False
-
-leReplace (LPred _) pr        les = LPred pr:les
-leReplace (LExpr _) (Obs e)   les = LExpr e:les
-leReplace le        _         les = le:les
-\end{code}
 
 \newpage
 \subsection{Replacing  sub-component}
@@ -498,36 +388,6 @@ rrepPF npr i pr [] = pr  -- should never occur
 
 
 
-\newpage
-
-\subsection{Moving focus up}
-
-$$
-\begin{array}{c}
-   p(\ldots \framebox{$q(\ldots,r_i,\ldots)$} \ldots) @ \sigma \FExprStrut
-\\ \texttt{up} \left\uparrow\FExprStrut\right.
-\\ p(\ldots q(\ldots,\framebox{$r_i$},\ldots) \ldots) @ \sigma\cat\seqof i
-\end{array}
-$$
-
-\begin{code}
-upPFocus :: FPred -> FPred
-
-upPFocus fpr@(_,_,_,[]) = fpr  --- top-level
-
-upPFocus ( cpr, _, toppr, [(i,ctxt)] )
- = ( toppr', ctxt, pFocus toppr', [] )
- where toppr' = irepPF cpr i toppr
-
-upPFocus ( cpr, _, toppr, ics@((i,ctxt):ics') )
- = let
-     nxtpr = goDownPF i toppr
-     ( cpr', ctxt', nxtpr', _ ) = upPFocus ( cpr, ctxt, nxtpr, ics' )
-     toppr' = irepPF nxtpr' i toppr
-   in ( cpr', ctxt', toppr', init ics )
-\end{code}
-
-
 \subsection{Replacing Focus}
 
 $$
@@ -579,32 +439,6 @@ setPFocusPath ip pr
 
 
 
-\newpage
-\subsubsection{Moving Focus Left/Right}
-
-\begin{code}
-rightPFocus :: FPred -> FPred
-
-rightPFocus fpr@(_, _, _, []) = fpr
-
-rightPFocus fpr@(_, ctxt, toppr, ics)
- | n < predBranches ppr  =  downPFocus (n+1) $ upPFocus fpr
- where
-   n = fst $ last ics
-   ppr = getFocusParent fpr
-
-rightPFocus fpr          =  fpr
-
-leftPFocus :: FPred -> FPred
-
-leftPFocus fpr@(_, _, _, []) = fpr
-
-leftPFocus fpr @ (_, ctxt, toppr, ics)
- | n > 1  =  downPFocus (n-1) $ upPFocus fpr
- where n = fst $ last ics
-
-leftPFocus fpr  =  fpr
-\end{code}
 
 Getting the focus parent:
 \begin{code}
