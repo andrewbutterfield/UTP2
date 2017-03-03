@@ -511,15 +511,14 @@ Expressions:
 exprFVSet :: MatchContext -> Expr -> FVSetExpr
 exprFVSet mctxt (Var s)         = fvsEnum [s]
 exprFVSet mctxt (App s es)       = exprsFVSet mctxt es
-exprFVSet mctxt (Equal e1 e2)   = exprsFVSet mctxt [e1,e2]
-exprFVSet mctxt (The tt x pr)      = predFVSet mctxt pr `fvsDiff` [x]
-exprFVSet mctxt (Eabs tt qs e)     = exprFVSet mctxt e
+exprFVSet mctxt (Abs s tt qs es)     = exprsFVSet mctxt es
                                         `fvsDiff` getqvars qs
--- exprFVSet mctxt (Evar s) = fvsNameE $ varKey s -- REVIEW
-exprFVSet mctxt (Esub e sub)    = esubFVSet mctxt
+exprFVSet mctxt (ESub e sub)    = esubFVSet mctxt
                                           (exprFVSet mctxt e)
                                           sub
-exprFVSet mctxt (Efocus ef)     = exprFVSet mctxt ef
+
+exprFVSet mctxt (EPred pr)  =  predFVSet mctxt pr
+
 exprFVSet mctxt _               = fvsNull
 
 exprsFVSet :: MatchContext -> [Expr] -> FVSetExpr
@@ -578,52 +577,29 @@ returns a null set result:
 \begin{code}
 predFVSet :: MatchContext -> Pred -> FVSetExpr
 
-predFVSet mctxt (Pvar r)
+predFVSet mctxt (PVar r)
  | s == nameUNINT  =  fvsNull
  | otherwise       =  fvsNameP s
  where s = show r
 
-predFVSet mctxt (Obs e)            = exprFVSet mctxt e
-predFVSet mctxt (Defd e)            = exprFVSet mctxt e
+predFVSet mctxt (PExpr e)            = exprFVSet mctxt e
+
 predFVSet mctxt (TypeOf e t)        = exprFVSet mctxt e
-predFVSet mctxt (Not pr)              = predFVSet mctxt pr
-predFVSet mctxt (And prs)             = predsFVSet mctxt prs
-predFVSet mctxt (Or prs)              = predsFVSet mctxt prs
-predFVSet mctxt (Imp pr1 pr2)         = predsFVSet mctxt [pr1,pr2]
-predFVSet mctxt (Eqv pr1 pr2)         = predsFVSet mctxt [pr1,pr2]
-predFVSet mctxt (NDC pr1 pr2)         = predsFVSet mctxt [pr1,pr2]
-predFVSet mctxt (Papp pr1 pr2)        = predsFVSet mctxt [pr1,pr2]
 
-predFVSet mctxt (Psapp pr spr)        = fvsUnion [ predFVSet mctxt pr
-                                                 , psetFVSet mctxt spr ]
-predFVSet mctxt (Psin pr spr)         = fvsUnion [ predFVSet mctxt pr
-                                                 , psetFVSet mctxt spr ]
+predFVSet mctxt (PApp nm prs) -- NEED TO MAKE THIS nm DEPENDENT?
+  = predsFVSet mctxt prs
 
-predFVSet mctxt (If prc prt pre)      = predsFVSet mctxt [prc,prt,pre]
-predFVSet mctxt (Forall _ qs pr)        = predFVSet mctxt pr
-                                              `fvsDiff` getqvars qs
-predFVSet mctxt (Exists _ qs pr)        = predFVSet mctxt pr
-                                           `fvsDiff` getqvars qs
-predFVSet mctxt (Exists1 _ qs pr)       = predFVSet mctxt pr
-                                              `fvsDiff` getqvars qs
+predFVSet mctxt (PAbs nm _ qs prs)
+ = predsFVSet mctxt prs `fvsDiff` getqvars qs
+
 predFVSet mctxt (Sub pr sub)          = esubFVSet mctxt
                                               (predFVSet mctxt pr) sub
-predFVSet mctxt (Psub pr sub)         = predFVSet mctxt pr
-predFVSet mctxt (Peabs qs pr)          = predFVSet mctxt pr
-predFVSet mctxt (Ppabs qs pr)          = predFVSet mctxt pr
-predFVSet mctxt (Pfocus prf)          = predFVSet mctxt prf
 predFVSet mctxt lang@(Lang _ _ _ _)  = langFVSet mctxt lang
 
 predFVSet mctxt _                     = fvsNull
 
 predsFVSet :: MatchContext -> [Pred] -> FVSetExpr
 predsFVSet mctxt prs = fvsUnion $ map (predFVSet mctxt) prs
-
-psetFVSet mctxt (PSet prs)        = predsFVSet mctxt prs
-psetFVSet mctxt (PSetC _ pr1 pr2) = predsFVSet mctxt [pr1,pr2]
-psetFVSet mctxt (PSetU s1 s2)     = fvsUnion [ psetFVSet mctxt s1
-                                             , psetFVSet mctxt s2 ]
-psetFVSet mctxt _                 = fvsNull
 \end{code}
 
 Language constructs:
@@ -702,18 +678,20 @@ efreeovars mctxt bs fs (Var v)
 
 The rest is mainly recursive boilerplate...
 \begin{code}
-efreeovars mctxt bs fs (Eabs _ qs e)     =  efreeovars mctxt (bs+|+qs) fs e
+efreeovars mctxt bs fs (Abs _ _ qs es)
+  =  seq2s (efreeovars mctxt) (bs+|+qs) fs es
 
-efreeovars mctxt bs fs (Esub e sub)
+efreeovars mctxt bs fs (ESub e sub)
  = let efs = exprFreeOVars mctxt e
    in sfreevars (efreeovars mctxt) bs fs efs (qvunzip sub)
 
 efreeovars mctxt bs fs (App s es)
  = seq2s (efreeovars mctxt) bs fs es
-efreeovars mctxt bs fs (Equal e1 e2)   = seq2s (efreeovars mctxt) bs fs [e1,e2]
-efreeovars mctxt bs fs (The _ x pr)  = pfreeovars mctxt (x:bs) fs pr
 
-efreeovars mctxt bs fs (Efocus ef)     = efreeovars mctxt bs fs ef
+efreeovars mctxt bs fs (Abs nm _ qs es)
+ = seq2s (efreeovars mctxt) (bs+|+qs) fs es
+
+efreeovars mctxt bs fs (EPred pr)     = pfreeovars mctxt bs fs pr
 
 efreeovars mctxt  _ fs _ = fs
 \end{code}
@@ -735,43 +713,21 @@ tspfxlookup (trie:tries) s
 Now, do the same for predicates:
 \begin{code}
 pfreeovars :: MatchContext -> [Variable] -> [Variable] -> Pred -> [Variable]
-pfreeovars mctxt bs fs (Forall _ qs pr)
-                          = pfreeovars mctxt (bs+|+qs) fs pr
-pfreeovars mctxt bs fs (Exists _ qs pr)
-                          = pfreeovars mctxt (bs+|+qs) fs pr
-pfreeovars mctxt bs fs (Exists1 _ qs pr)
-                          = pfreeovars mctxt (bs+|+qs) fs pr
-pfreeovars mctxt bs fs (Univ _ pr) = []
+
+pfreeovars mctxt bs fs (PApp nm prs) = seq2s (pfreeovars mctxt) bs fs prs
+
+pfreeovars mctxt bs fs (PAbs nm _ qs prs)
+ = seq2s (pfreeovars mctxt) (bs+|+qs) fs prs
 
 pfreeovars mctxt bs fs (Sub pr sub)
  = let prfs = predFreeOVars mctxt pr in
        sfreevars (efreeovars mctxt) bs fs prfs (qvunzip sub)
 
-pfreeovars mctxt bs fs (Psub pr sub)
- = let prfs = predFreeOVars mctxt pr in
-       sfreevars (pfreeovars mctxt) bs fs prfs (qvunzipWith (rootVar . Gen) sub)
+pfreeovars mctxt bs fs (PExpr e) = efreeovars mctxt bs fs e
 
-pfreeovars mctxt bs fs (Obs e) = efreeovars mctxt bs fs e
-pfreeovars mctxt bs fs (Defd e) = efreeovars mctxt bs fs e
 pfreeovars mctxt bs fs (TypeOf e t) = efreeovars mctxt bs fs e
-pfreeovars mctxt bs fs (Not pr) = pfreeovars mctxt bs fs pr
-pfreeovars mctxt bs fs (And prs) = seq2s (pfreeovars mctxt) bs fs prs
-pfreeovars mctxt bs fs (Or prs) = seq2s (pfreeovars mctxt) bs fs prs
-pfreeovars mctxt bs fs (NDC pr1 pr2) = seq2s (pfreeovars mctxt) bs fs [pr1,pr2]
-pfreeovars mctxt bs fs (Imp pr1 pr2) = seq2s (pfreeovars mctxt) bs fs [pr1,pr2]
-pfreeovars mctxt bs fs (RfdBy pr1 pr2) = []
-pfreeovars mctxt bs fs (Eqv pr1 pr2) = seq2s (pfreeovars mctxt) bs fs [pr1,pr2]
+
 pfreeovars mctxt bs fs (Lang _ _ _ _) = []  -- n.s., fv not defined !
-pfreeovars mctxt bs fs (If prc prt pre) = seq2s (pfreeovars mctxt) bs fs [prc,prt,pre]
-pfreeovars mctxt bs fs (Peabs s pr) = pfreeovars mctxt bs fs pr
-pfreeovars mctxt bs fs (Ppabs s pr) = pfreeovars mctxt bs fs pr
-
--- these are almost certainly incorrect
-pfreeovars mctxt bs fs (Papp prf pra) = seq2s (pfreeovars mctxt) bs fs [prf,pra]
-pfreeovars mctxt bs fs (Pforall pvs pr) = pfreeovars mctxt bs fs pr
-pfreeovars mctxt bs fs (Pexists pvs pr) = pfreeovars mctxt bs fs pr
-
-pfreeovars mctxt bs fs (Pfocus prf)     = pfreeovars mctxt bs fs prf -- ????
 
 pfreeovars mctxt bs fs _ = fs
 \end{code}
@@ -825,24 +781,22 @@ predsFreeEVars mctxt = lnorm . seq2s (pfreeevars mctxt) [] []
 \end{code}
 
 \begin{code}
--- efreeevars mctxt bs fs (Evar s)  -- REVIEW
+-- efreeevars mctxt bs fs (Var s)  -- REVIEW
 -- | s `elem` bs  =  fs
 -- | otherwise    =  (s:fs)
 
-efreeevars mctxt bs fs (Esub e sub)
+efreeevars mctxt bs fs (ESub e sub)
  = let efs = efreeevars mctxt [] [] e in
        sfreevars (efreeevars mctxt) bs fs efs (qvunzip sub)
 
 efreeevars mctxt bs fs (App s es)
  = seq2s (efreeevars mctxt) bs fs es
-efreeevars mctxt bs fs (Equal e1 e2)
- = seq2s (efreeevars mctxt) bs fs [e1,e2]
-efreeevars mctxt bs fs (The _ qs pr)
+
+efreeevars mctxt bs fs (Abs _ _ ( qs) es)
+ = seq2s (efreeevars mctxt) (bs++qs) fs es
+
+efreeevars mctxt bs fs (EPred pr)
  = pfreeevars mctxt bs fs pr
-efreeevars mctxt bs fs (Eabs _ (Q qs) e)
- = efreeevars mctxt (bs++qs) fs e
-efreeevars mctxt bs fs (Efocus ef)
- = efreeevars mctxt bs fs ef -- ????
 
 efreeevars mctxt  _ fs _ = fs
 
@@ -850,33 +804,11 @@ pfreeevars mctxt bs fs (Sub pr sub)
  = let prfs = pfreeevars mctxt [] [] pr in
        sfreevars (efreeevars mctxt) bs fs prfs (qvunzip sub)
 
-pfreeevars mctxt bs fs (Psub pr sub)
- = let prfs = pfreeevars mctxt [] [] pr in
-       sfreevars (pfreeevars mctxt) bs fs prfs (qvunzipWith (rootVar . Gen) sub)
-
-pfreeevars mctxt bs fs (Obs e) = efreeevars mctxt bs fs e
-pfreeevars mctxt bs fs (Defd e) = efreeevars mctxt bs fs e
+pfreeevars mctxt bs fs (PExpr e) = efreeevars mctxt bs fs e
 pfreeevars mctxt bs fs (TypeOf e t) = efreeevars mctxt bs fs e
-pfreeevars mctxt bs fs (Not pr) = pfreeevars mctxt bs fs pr
-pfreeevars mctxt bs fs (And prs) = seq2s (pfreeevars mctxt) bs fs prs
-pfreeevars mctxt bs fs (Or prs) = seq2s (pfreeevars mctxt) bs fs prs
-pfreeevars mctxt bs fs (NDC pr1 pr2) = seq2s (pfreeevars mctxt) bs fs [pr1,pr2]
-pfreeevars mctxt bs fs (Imp pr1 pr2) = seq2s (pfreeevars mctxt) bs fs [pr1,pr2]
-pfreeevars mctxt bs fs (RfdBy pr1 pr2) = seq2s (pfreeevars mctxt) bs fs [pr1,pr2]
-pfreeevars mctxt bs fs (Eqv pr1 pr2) = seq2s (pfreeevars mctxt) bs fs [pr1,pr2]
+pfreeevars mctxt bs fs (PApp nm prs) = seq2s (pfreeevars mctxt) bs fs prs
 pfreeevars mctxt bs fs (Lang _ _ les _) = seq2s (pfreeevars mctxt) bs fs (lesPreds les)
-pfreeevars mctxt bs fs (If prc prt pre) = seq2s (pfreeevars mctxt) bs fs [prc,prt,pre]
-pfreeevars mctxt bs fs (Forall _ qs pr) = pfreeevars mctxt bs fs pr
-pfreeevars mctxt bs fs (Exists _ qs pr) = pfreeevars mctxt bs fs pr
-pfreeevars mctxt bs fs (Exists1 _ qs pr) = pfreeevars mctxt bs fs pr
-pfreeevars mctxt bs fs (Peabs qs pr) = pfreeevars mctxt bs fs pr
-pfreeevars mctxt bs fs (Univ _ pr) = pfreeevars mctxt bs fs pr
-pfreeevars mctxt bs fs (Ppabs _ pr) = pfreeevars mctxt bs fs pr
-
--- almost certainly incorrect
-pfreeevars mctxt bs fs (Papp prf pra) = seq2s (pfreeevars mctxt) bs fs [prf,pra]
-
-pfreeevars mctxt bs fs (Pfocus prf)     = pfreeevars mctxt bs fs prf -- ????
+pfreeevars mctxt bs fs (PAbs _ _ qs prs) = seq2s (pfreeevars mctxt) bs fs prs
 
 pfreeevars mctxt  _ fs _ = fs
 \end{code}
@@ -910,61 +842,37 @@ predsFreePVars :: MatchContext -> [Pred] -> [Variable]
 predsFreePVars mctxt = lnorm . seq2s (pfreepvars mctxt) [] []
 
 
-efreepvars mctxt bs fs (Esub e sub)
+efreepvars mctxt bs fs (ESub e sub)
  = let efs = efreeovars mctxt [] [] e in
        sfreevars (efreepvars mctxt) bs fs efs (qvunzip sub)
 
 efreepvars mctxt bs fs (App s es) = seq2s (efreepvars mctxt) bs fs es
-efreepvars mctxt bs fs (Equal e1 e2)
- = seq2s (efreepvars mctxt) bs fs [e1,e2]
-efreepvars mctxt bs fs (The _ qs pr)
- = pfreepvars mctxt bs fs pr
-efreepvars mctxt bs fs (Eabs _ qs e)
- = efreepvars mctxt bs fs e
-efreepvars mctxt bs fs (Efocus ef)
- = efreepvars mctxt bs fs ef -- ????
+efreepvars mctxt bs fs (Abs s _ qs es)
+ = seq2s (efreepvars mctxt) bs fs es
+
+efreepvars mctxt bs fs (EPred pr) = pfreepvars mctxt bs fs pr
 
 efreepvars mctxt  _ fs _ = fs
 
-pfreepvars mctxt bs fs (Pvar s)
+pfreepvars mctxt bs fs (PVar v)
  | v `elem` bs  =  fs
  | otherwise    =  v:fs
- where v = rootVar $ Gen s
-
-pfreepvars mctxt bs fs (Ppabs (Q pvs) pr) = pfreepvars mctxt (pvs++bs) fs pr
 
 pfreepvars mctxt bs fs (Sub pr sub)
  = let prfs = pfreepvars mctxt [] [] pr
    in sfreevars (efreepvars mctxt) bs fs prfs (qvunzip sub)
 
-pfreepvars mctxt bs fs (Psub pr sub)
- = let prfs = pfreepvars mctxt [] [] pr
-   in sfreevars (pfreepvars mctxt) bs fs prfs (qvunzipWith (rootVar . Gen) sub)
+pfreepvars mctxt bs fs (PExpr e) = efreepvars mctxt bs fs e
 
-pfreepvars mctxt bs fs (Obs e) = efreepvars mctxt bs fs e
-pfreepvars mctxt bs fs (Defd e) = efreepvars mctxt bs fs e
 pfreepvars mctxt bs fs (TypeOf e t) = efreepvars mctxt bs fs e
-pfreepvars mctxt bs fs (Not pr) = pfreepvars mctxt bs fs pr
-pfreepvars mctxt bs fs (And prs) = seq2s (pfreepvars mctxt) bs fs prs
-pfreepvars mctxt bs fs (Or prs) = seq2s (pfreepvars mctxt) bs fs prs
-pfreepvars mctxt bs fs (NDC pr1 pr2) = seq2s (pfreepvars mctxt) bs fs [pr1,pr2]
-pfreepvars mctxt bs fs (Imp pr1 pr2) = seq2s (pfreepvars mctxt) bs fs [pr1,pr2]
-pfreepvars mctxt bs fs (RfdBy pr1 pr2) = seq2s (pfreepvars mctxt) bs fs [pr1,pr2]
-pfreepvars mctxt bs fs (Eqv pr1 pr2) = seq2s (pfreepvars mctxt) bs fs [pr1,pr2]
-pfreepvars mctxt bs fs (Lang _ _ les _) = seq2s (pfreepvars mctxt) bs fs (lesPreds les)
-pfreepvars mctxt bs fs (If prc prt pre) = seq2s (pfreepvars mctxt) bs fs [prc,prt,pre]
-pfreepvars mctxt bs fs (Forall _ qs pr) = pfreepvars mctxt bs fs pr
-pfreepvars mctxt bs fs (Exists _ qs pr) = pfreepvars mctxt bs fs pr
-pfreepvars mctxt bs fs (Exists1 _ qs pr) = pfreepvars mctxt bs fs pr
-pfreepvars mctxt bs fs (Univ _ pr) = pfreepvars mctxt bs fs pr
-pfreepvars mctxt bs fs (Peabs _ pr) = pfreepvars mctxt bs fs pr
 
-pfreepvars mctxt bs fs (Papp prf pra) = seq2s (pfreepvars mctxt) bs fs [prf,pra]
+pfreepvars mctxt bs fs (PApp n prs) = seq2s (pfreepvars mctxt) bs fs prs
 
-pfreepvars mctxt bs fs (Pforall (Q pvs) pr) = pfreepvars mctxt (pvs++bs) fs pr
-pfreepvars mctxt bs fs (Pexists (Q pvs) pr) = pfreepvars mctxt (pvs++bs) fs pr
+pfreepvars mctxt bs fs (PAbs _ _ qs prs)
+ = seq2s (pfreepvars mctxt) bs fs prs
 
-pfreepvars mctxt bs fs (Pfocus prf)     = pfreepvars mctxt bs fs prf -- ????
+-- pfreepvars mctxt bs fs (Pforall ( pvs) pr)
+-- = pfreepvars mctxt (pvs++bs) fs pr
 
 pfreepvars mctxt  _ fs _ = fs
 \end{code}
@@ -1004,11 +912,9 @@ exprAllPVars :: Expr -> [(GenRoot,VContext)]
 allPVarsFold = ( ([],predAllPVars,id,concat)
                , ([],exprAllPVars,id,concat) )
 
-predAllPVars (Pvar r)            =  [(r,VorT)]
-predAllPVars (Pforall (Q ps) pr) =  lnorm  (map qPVar ps ++ predAllPVars pr)
-predAllPVars (Pexists (Q ps) pr) =  lnorm  (map qPVar ps ++ predAllPVars pr)
-predAllPVars (Ppabs (Q ps) pr)   =  lnorm  (map qPVar ps ++ predAllPVars pr)
-predAllPVars (Psub pr psub)      =  lnorm  (predAllPVars pr ++ psubPVars psub)
+predAllPVars (PVar v)            =  [(varGenRoot v,VorT)]
+predAllPVars (PAbs n _ ps prs)
+ = lnorm  (map qPVar ps ++ concat (map predAllPVars prs))
 predAllPVars pr                  =  lnorm $ foldP allPVarsFold pr
 
 qPVar pv = (varGenRoot pv,Vonly)
@@ -1034,22 +940,18 @@ exprAllOVars :: Expr -> [(Variable,VContext)]
 allOVarsFold = ( ([],predAllOVars,id,concat)
                , ([],exprAllOVars,id,concat) )
 
-predAllOVars (Forall _ (Q vs) p2)  = lnorm (map qOVar vs ++ predAllOVars p2)
-predAllOVars (Exists _ (Q vs) p2)  = lnorm (map qOVar vs ++ predAllOVars p2)
-predAllOVars (Exists1 _ (Q vs) p2) = lnorm (map qOVar vs ++ predAllOVars p2)
-predAllOVars (Peabs (Q vs) pr)     = lnorm (map qOVar vs ++ predAllOVars pr)
-predAllOVars (Sub pr esub)         = lnorm (predAllOVars pr ++ esubOVars esub)
-predAllOVars (Psub pr psub)        = lnorm (predAllOVars pr ++ psubOVars psub)
-predAllOVars pr                    = lnorm $ foldP allOVarsFold pr
+predAllOVars (PAbs _ _ ( vs) ps)
+  = lnorm (map qOVar vs ++ concat (map predAllOVars ps))
+predAllOVars (Sub pr esub)        = lnorm (predAllOVars pr ++ esubOVars esub)
+predAllOVars pr                   = lnorm $ foldP allOVarsFold pr
 
 qOVar ov = (ov,Vonly)
 
 exprAllOVars (Var s) = [(s,VorT)]
-exprAllOVars (App s es)  -- ignore s for now
- = concat $ map exprAllOVars es
-exprAllOVars (The _ x p2) = lnorm ([(x,Vonly)] ++ predAllOVars p2)
-exprAllOVars (Eabs _ (Q vs) e)  =  lnorm (map qOVar vs ++ exprAllOVars e)
-exprAllOVars (Esub e esub) = lnorm (exprAllOVars e ++ esubOVars esub)
+exprAllOVars (App s es) = concat $ map exprAllOVars es
+exprAllOVars (Abs _ _ vs es)
+  =  lnorm (map qOVar vs ++ concat (map exprAllOVars es))
+exprAllOVars (ESub e esub) = lnorm (exprAllOVars e ++ esubOVars esub)
 exprAllOVars e = lnorm $ foldE allOVarsFold e
 
 
@@ -1099,9 +1001,9 @@ is forced to a \texttt{Var}.
 \emph{we also need to ensure that name-capture is avoided !}
 \begin{code}
 forcePredInductionVar :: Variable -> Pred -> Pred
-forcePredInductionVar ivar pr@(Peabs qs@(Q [evar]) pbody)
+forcePredInductionVar ivar pr@(PAbs n tt qs@( [evar]) pbodys)
  | evar == ivar  =  pr     -- not free below, so ignore
- | otherwise     =  Peabs qs (forcePredInductionVar ivar pbody)
+ | otherwise     =  PAbs n tt qs (map (forcePredInductionVar ivar) pbodys)
 forcePredInductionVar ivar pr
  = mapP (forcePredInductionVar ivar, forceExprInductionVar ivar) pr
 
