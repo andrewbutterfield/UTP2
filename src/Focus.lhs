@@ -99,6 +99,11 @@ ctxtId = id
 ctxtNeg (pol,bs,tags) = (polneg pol,bs,tags)
 ctxtMxd (pol,bs,tags) = (Mxd,bs,tags)
 \end{code}
+Note: with the new simplified \texttt{Expr}/\texttt{Pred} datatypes,
+we can no longer hardwire polarity changes in this code.
+Instead we need to find a principled way to determine positive
+and negative positions in a construct from first principles.
+For now all we do is set it to ``mixed'' (\texttt{Mxd}).
 
 \paragraph{Binders}~
 
@@ -127,7 +132,7 @@ data Pred'
  = PApp' String [Pred] [Pred]
  | PAbs' String TTTag [Variable] [Pred] [Pred]
  | Sub'1  ESubst
- | Sub'2 Pred ESubst [Variable] [Expr] [Expr]
+ | Sub'2 Pred [Variable] [Expr] [Expr]
  | PExpr' Expr'
  | TypeOf' Type
  -- Language extensions (Lexts) -- NOT SUPPORTED RIGHT NOW
@@ -201,12 +206,42 @@ $$
 \begin{code}
 downPFocus :: FPred -> FPred
 
--- downPFocus (PApp nm prs, ctxt, wayup)
--- downPFocus (PAbs nm tag qs prs, ctxt, wayup)
--- downPFocus (Sub pr sub, ctxt, wayup)
--- downPFocus (PExpr e, ctxt, wayup)
--- downPFocus (TypeOf e t, ctxt, wayup)
--- --downPFocus (Lang nm p les ss, ctxt, wayup)
+-- predicates
+downPFocus (PApp nm (pr:prs), ctxt, wayup)
+ = ( pr
+   , ctxtId ctxt
+   , (PApp' nm [] prs, ctxt) : wayup )
+downPFocus (PAbs nm tag qs (pr:prs), ctxt, wayup)
+ = ( pr
+   , ctxtPush (getqovars qs,tag) ctxt
+   , (PAbs' nm tag qs [] prs, ctxt) : wayup )
+downPFocus (Sub pr sub, ctxt, wayup)
+ = ( pr
+   , ctxtId ctxt
+   , (Sub'1 sub, ctxt) : wayup )
+
+-- embedded expressions
+downPFocus (PExpr (App nm (e:es)), ctxt, wayup)
+ = ( pExpr e
+   , ctxtMxd
+   , (PExpr' (App' nm [] es), ctxt) : wayup )
+downPFocus (PExpr (Abs nm tag qs (e:es)), ctxt, wayup)
+ = ( pExpr e
+   , ctxtMxd
+   , (PExpr' (Abs' nm tag qs [] es), ctxt) : wayup )
+downPFocus (PExpr (ESub e sub), ctxt, wayup)
+ = ( pExpr e
+   , ctxtMxd
+   , (PExpr' (ESub'1 sub), ctxt) : wayup )
+
+downPFocus (TypeOf e t, ctxt, wayup)
+ = ( pExpr e
+   , ctxtMxd
+   , (TypeOf' t, ctxt) : wayup )
+
+-- need to figure this out !!!
+--downPFocus (Lang nm p les ss, ctxt, wayup)
+
 downPFocus pr = pr
 \end{code}
 
@@ -224,6 +259,14 @@ $$
 \begin{code}
 upPFocus :: FPred -> FPred
 
+upPFocus ( pr, _, (PApp' nm before after, ctxt) : wayup )
+ = ( PApp nm (reverse before++pr:after), ctxt, wayup )
+upPFocus ( pr, _, (PAbs' nm tag qs before after, ctxt) : wayup )
+ = ( PAbs nm tag qs (reverse before++pr:after), ctxt, wayup )
+upPFocus ( pr, _, (Sub'1 sub, ctxt) : wayup )
+ = ( Sub pr sub, ctxt, wayup )
+upPFocus ( PExpr e, _, (Sub'2 pr vs before after, ctxt) : wayup )
+ = ( Sub pr $ zip vs (reverse before++e:after), ctxt, wayup )
 upPFocus fpr = fpr  --- top-level
 \end{code}
 
