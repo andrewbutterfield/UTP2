@@ -259,29 +259,34 @@ $$
 \begin{code}
 upPFocus :: FPred -> FPred
 
-upPFocus ( pr, _, (PApp' nm before after, ctxt) : wayup )
- = ( PApp nm (reverse before++pr:after), ctxt, wayup )
-upPFocus ( pr, _, (PAbs' nm tag qs before after, ctxt) : wayup )
- = ( PAbs nm tag qs (reverse before++pr:after), ctxt, wayup )
-upPFocus ( pr, _, (Sub'1 sub, ctxt) : wayup )
- = ( Sub pr sub, ctxt, wayup )
-upPFocus ( PExpr e, _, (Sub'2 pr vs before after, ctxt) : wayup )
- = ( Sub pr $ zip vs (reverse before++e:after), ctxt, wayup )
-upPFocus fpr = fpr  --- top-level
-\end{code}
+upPFocus ( pr, _, above : wayup ) = upPBuild above pr wayup
+upPFocus fpr                      = fpr  --- top-level
 
-\newpage
-\subsubsection{Moving Focus Left/Right}
+upPBuild (PApp' nm before after, ctxt) pr  wayup
+ = ( PApp nm (reverse before++pr:after)
+   , ctxt, wayup )
+upPBuild (PAbs' nm tag qs before after, ctxt) pr wayup
+ = ( PAbs nm tag qs (reverse before++pr:after)
+   , ctxt, wayup )
+upPBuild (Sub'1 sub, ctxt) pr wayup
+ = ( Sub pr sub
+   , ctxt, wayup )
+upPBuild (Sub'2 pr' vs before after, ctxt) pr wayup
+ = ( Sub pr' $ zip vs (reverse before ++ ePred pr : after)
+   , ctxt, wayup )
 
-\begin{code}
-rightPFocus :: FPred -> FPred
-
-rightPFocus fpr = fpr
-
-leftPFocus :: FPred -> FPred
-
-
-leftPFocus fpr  =  fpr
+upPBuild (PExpr' (App' nm before after), ctxt) pr  wayup
+ = ( PExpr (App nm (reverse before++ePred pr:after))
+   , ctxt, wayup )
+upPBuild (PExpr' (Abs' nm tag qs before after), ctxt) pr wayup
+ = ( PExpr (PAbs nm tag qs (reverse before++ePred pr:after))
+   , ctxt, wayup )
+upPBuild (PExpr' (ESub'1 sub), ctxt) pr wayup
+ = ( PExpr (ESub (ePred pr) sub)
+   , ctxt, wayup )
+upPBuild (PExpr' (Sub'2 pr' vs before after), ctxt) pr wayup
+ = ( PExpr (Sub pr' $ zip vs (reverse before ++ ePred pr : after))
+   , ctxt, wayup )
 \end{code}
 
 \newpage
@@ -299,21 +304,22 @@ $$
 \begin{code}
 clearPFocus :: FPred -> Pred
 
-clearPFocus (_, _, toppr, _) = stripPFocus toppr
+clearPFocus ( pr, _, [] ) = pr
+clearPFocus fpr = clearPFocus $ upPFocus fpr
 \end{code}
 
-The following code is used to strip focus markers from expressions
-and predicates.
+\newpage
+\subsubsection{Moving Focus Left/Right}
+
 \begin{code}
-stripEFocus :: Expr -> Expr
+rightPFocus :: FPred -> FPred
 
-stripEFocus (Efocus e) = mapE (stripPFocus,stripEFocus) e
-stripEFocus e          = mapE (stripPFocus,stripEFocus) e
+rightPFocus fpr = fpr
 
-stripPFocus :: Pred -> Pred
+leftPFocus :: FPred -> FPred
 
-stripPFocus (Pfocus pr) = mapP (stripPFocus,stripEFocus) pr
-stripPFocus pr          = mapP (stripPFocus,stripEFocus) pr
+
+leftPFocus fpr  =  fpr
 \end{code}
 
 
