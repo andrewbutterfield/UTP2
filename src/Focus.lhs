@@ -223,20 +223,20 @@ downPFocus (Sub pr sub, ctxt, wayup)
 -- embedded expressions
 downPFocus (PExpr (App nm (e:es)), ctxt, wayup)
  = ( pExpr e
-   , ctxtMxd
+   , ctxtMxd ctxt
    , (PExpr' (App' nm [] es), ctxt) : wayup )
 downPFocus (PExpr (Abs nm tag qs (e:es)), ctxt, wayup)
  = ( pExpr e
-   , ctxtMxd
+   , ctxtMxd ctxt
    , (PExpr' (Abs' nm tag qs [] es), ctxt) : wayup )
 downPFocus (PExpr (ESub e sub), ctxt, wayup)
  = ( pExpr e
-   , ctxtMxd
+   , ctxtMxd ctxt
    , (PExpr' (ESub'1 sub), ctxt) : wayup )
 
 downPFocus (TypeOf e t, ctxt, wayup)
  = ( pExpr e
-   , ctxtMxd
+   , ctxtMxd ctxt
    , (TypeOf' t, ctxt) : wayup )
 
 -- need to figure this out !!!
@@ -272,20 +272,23 @@ upPBuild (Sub'1 sub, ctxt) pr wayup
  = ( Sub pr sub
    , ctxt, wayup )
 upPBuild (Sub'2 pr' vs before after, ctxt) pr wayup
- = ( Sub pr' $ zip vs (reverse before ++ ePred pr : after)
+ = ( Sub pr' $ Substn $ zip vs (reverse before ++ ePred pr : after)
+   , ctxt, wayup )
+upPBuild (TypeOf' t, ctxt) pr wayup
+ = ( TypeOf (ePred pr) t
    , ctxt, wayup )
 
 upPBuild (PExpr' (App' nm before after), ctxt) pr  wayup
  = ( PExpr (App nm (reverse before++ePred pr:after))
    , ctxt, wayup )
 upPBuild (PExpr' (Abs' nm tag qs before after), ctxt) pr wayup
- = ( PExpr (PAbs nm tag qs (reverse before++ePred pr:after))
+ = ( PExpr (Abs nm tag qs (reverse before++ePred pr:after))
    , ctxt, wayup )
 upPBuild (PExpr' (ESub'1 sub), ctxt) pr wayup
  = ( PExpr (ESub (ePred pr) sub)
    , ctxt, wayup )
-upPBuild (PExpr' (Sub'2 pr' vs before after), ctxt) pr wayup
- = ( PExpr (Sub pr' $ zip vs (reverse before ++ ePred pr : after))
+upPBuild (PExpr' (ESub'2 e' vs before after), ctxt) pr wayup
+ = ( PExpr (ESub e' $ Substn $ zip vs (reverse before ++ ePred pr : after))
    , ctxt, wayup )
 \end{code}
 
@@ -309,134 +312,103 @@ clearPFocus fpr = clearPFocus $ upPFocus fpr
 \end{code}
 
 \newpage
-\subsubsection{Moving Focus Left/Right}
+\subsubsection{Moving Focus Right}
 
 \begin{code}
 rightPFocus :: FPred -> FPred
 
-rightPFocus fpr = fpr
+rightPFocus ( pr, ctxt, (PApp' nm before (pr':after), ctxt') : wayup )
+ = ( pr'
+   , id ctxt -- we need a way to assess polarity here !
+   , (PApp' nm (pr:before) after, ctxt') : wayup )
+rightPFocus ( pr, ctxt, (PAbs' nm tt vs before (pr':after), ctxt') : wayup )
+ = ( pr'
+   , id ctxt -- we need a way to assess polarity here !
+   , (PAbs' nm tt vs (pr:before) after, ctxt') : wayup )
 
+rightPFocus ( pr, ctxt, (Sub'1 (Substn sub), ctxt') : wayup )
+ = ( pExpr e'
+   , ctxtMxd ctxt
+   , (Sub'2 pr vs [] es', ctxt') : wayup )
+ where
+   (vs,(e':es')) = unzip sub
+rightPFocus ( pr, ctxt, (Sub'2 bodypr vs before (e':after), ctxt') : wayup )
+ = ( pExpr e'
+   , ctxtMxd ctxt
+   , (Sub'2 bodypr vs (ePred pr:before) after, ctxt') : wayup )
+
+rightPFocus ( pr, ctxt, (PExpr' (App' nm before (e':after)), ctxt') : wayup )
+ = ( pExpr e'
+   , ctxtMxd ctxt
+   , (PExpr' (App' nm (ePred pr:before) after), ctxt') : wayup )
+rightPFocus ( pr, ctxt
+            , (PExpr' (Abs' nm tt vs before (e':after)), ctxt') : wayup )
+ = ( pExpr e'
+   , ctxtMxd ctxt
+   , (PExpr' (Abs' nm tt vs (ePred pr:before) after), ctxt') : wayup )
+
+rightPFocus ( pr, ctxt, (PExpr' (ESub'1 (Substn sub)), ctxt') : wayup )
+ = ( pExpr e'
+   , ctxtMxd ctxt
+   , (PExpr' (ESub'2 (ePred pr) vs [] es'), ctxt') : wayup )
+ where
+   (vs,(e':es')) = unzip sub
+rightPFocus ( pr, ctxt
+            , (PExpr' (ESub'2 bodye vs before (e':after)), ctxt') : wayup )
+ = ( pExpr e'
+   , ctxtMxd ctxt
+   , (PExpr' (ESub'2 bodye vs (ePred pr:before) after), ctxt') : wayup )
+
+rightPFocus fpr = fpr
+\end{code}
+
+\subsubsection{Moving Focus Left}
+
+\begin{code}
 leftPFocus :: FPred -> FPred
 
+leftPFocus ( pr, ctxt, (PApp' nm (pr':before) after, ctxt') : wayup )
+ = ( pr'
+   , id ctxt -- we need a way to assess polarity here !
+   , (PApp' nm before (pr:after), ctxt') : wayup )
+leftPFocus ( pr, ctxt, (PAbs' nm tt vs (pr':before) after, ctxt') : wayup )
+ = ( pr'
+   , id ctxt -- we need a way to assess polarity here !
+   , (PAbs' nm tt vs before (pr:after), ctxt') : wayup )
+
+leftPFocus ( pr, ctxt, (Sub'2 bodypr vs (e':before) after, ctxt') : wayup )
+ = ( pExpr e'
+   , ctxtMxd ctxt
+   , (Sub'2 bodypr vs before (ePred pr:after), ctxt') : wayup )
+leftPFocus ( pr, ctxt, (Sub'2 bodypr vs [] after, ctxt') : wayup )
+ = ( bodypr
+   , ctxtMxd ctxt
+   , (Sub'1 $ Substn $ zip vs (ePred pr:after), ctxt') : wayup )
+
+leftPFocus ( pr, ctxt, (PExpr' (App' nm (e':before) after), ctxt') : wayup )
+ = ( pExpr e'
+   , ctxtMxd ctxt
+   , (PExpr' (App' nm before (ePred pr:after)), ctxt') : wayup )
+leftPFocus ( pr, ctxt
+           , (PExpr' (Abs' nm tt vs (e':before) after), ctxt') : wayup )
+ = ( pExpr e'
+   , ctxtMxd ctxt
+   , (PExpr' (Abs' nm tt vs before (ePred pr:after)), ctxt') : wayup )
+
+leftPFocus ( pr, ctxt
+           , (PExpr' (ESub'2 bodypr vs (e':before) after), ctxt') : wayup )
+ = ( pExpr e'
+   , ctxtMxd ctxt
+   , (PExpr' (ESub'2 bodypr vs before (ePred pr:after)), ctxt') : wayup )
+leftPFocus ( pr, ctxt, (PExpr' (ESub'2 bodye vs [] after), ctxt') : wayup )
+ = ( pExpr bodye
+   , ctxtMxd ctxt
+   , (PExpr' (ESub'1 $ Substn $ zip vs (ePred pr:after)), ctxt') : wayup )
 
 leftPFocus fpr  =  fpr
 \end{code}
 
-
 \newpage
-\subsection{Replacing  sub-component}
-
-
-Replacement (Predicates):
-\begin{code}
-irepPF :: Pred -> Int -> Pred -> Pred
-
-irepPF npr i (Pfocus pr)       =  irepPF npr i pr       -- drop focus !
-irepPF npr i (Obs (Efocus e))  =  irepPF npr i $ Obs e  -- drop focus !
-
-irepPF (Obs ne) i (Obs e)  =  Obs $ irepEF ne          i e
-irepPF npr      i (Obs e)  =  Obs $ irepEF (ePred npr) i e
-
-irepPF (Obs ne) _ (Defd e)      =  Defd ne
-irepPF (Obs ne) _ (TypeOf e t)  =  TypeOf ne  t
-
-irepPF npr _ (Not pr)     =  Not npr
-irepPF npr _ (Univ tt pr) =  Univ 0 npr
-
-irepPF npr 1 (NDC pr1 pr2)     = NDC npr pr2
-irepPF npr 2 (NDC pr1 pr2)     = NDC pr1 npr
-irepPF npr 1 (Imp pr1 pr2)     = Imp npr pr2
-irepPF npr 2 (Imp pr1 pr2)     = Imp pr1 npr
-irepPF npr 1 (RfdBy pr1 pr2)   = RfdBy npr pr2
-irepPF npr 2 (RfdBy pr1 pr2)   = RfdBy pr1 npr
-irepPF npr 1 (Eqv pr1 pr2)     = Eqv npr pr2
-irepPF npr 2 (Eqv pr1 pr2)     = Eqv pr1 npr
--- irepPF npr 1 (Papp pr1 pr2) = Papp npr pr2
-irepPF npr _ (Papp pr1 pr2)    = Papp pr1 npr
-
-irepPF npr i (And prs) = irepPFs npr i And prs
-irepPF npr i (Or prs)  = irepPFs npr i Or prs
-
--- Remember: renders as  " prt <| prc |> pre "
-irepPF npr 1 (If prc prt pre) = If prc npr pre
-irepPF npr 2 (If prc prt pre) = If npr prt pre
-irepPF npr 3 (If prc prt pre) = If prc prt npr
-
-irepPF npr _ (Forall tt qs pr)  = Forall 0 qs npr
-irepPF npr _ (Exists tt qs pr)  = Exists 0 qs npr
-irepPF npr _ (Exists1 tt qs pr) = Exists1 0 qs npr
-
-irepPF npr _ (Pforall pvs pr) = Pforall pvs npr
-irepPF npr _ (Pexists pvs pr) = Pexists pvs npr
-irepPF npr _ (Peabs qs pr)    = Peabs qs npr
-irepPF npr _ (Ppabs ss pr)    = Ppabs ss npr
-
-irepPF npr 1 (Psapp pr spr) = Psapp npr spr
-irepPF npr 1 (Psin pr spr)  = Psin npr spr
-
-irepPF npr 1 (Sub pr sub) = Sub npr sub
-
-irepPF npr i (Lang nm p les ss) = irepLF nm p ss npr i les
-
-irepPF _ _ pr = pr
-
-irepPFs npr i con prs
- | 1 <= i && i <= length prs  =  con (take (i-1) prs ++ npr:drop i prs)
-irepPFs _ _ con prs           =  con prs
-
-irepLF nm p ss npr i les
- = case irep npr i les of
-    Nothing  ->  Lang nm p les ss
-    Just les' -> Lang nm p les' ss
- where
-   irep npr i [] = Nothing
-   irep npr 0 les = Nothing
-   irep npr 1 (LPred pr:les) = Just (LPred npr:les)
-   irep npr 1 (LExpr e:les) = Nothing
-   irep npr 1 les = Nothing
-   irep npr n (le:les)
-    = do les' <- irep npr (n-1) les
-         return (le:les')
-\end{code}
-
-\newpage
-Replacement (Expressions)
-\begin{code}
-irepEF :: Expr -> Int -> Expr -> Expr
-
-irepEF ne i (Efocus e) = irepEF ne i e  -- we drop the focus !
-
-irepEF ne i (App s es)      = irepEFs ne i (App s) es
-irepEF ne _ (Eabs tt qs e)  = Eabs 0 qs ne
-irepEF ne 1 (Equal e1 e2)   = Equal ne e2
-irepEF ne 2 (Equal e1 e2)   = Equal e1 ne
-
-irepEF ne _ (Esub e sub)    = Esub ne sub
-
-irepEF _ _ e  = e
-
-irepEFs ne i con es
- | 1 <= i && i <= length es  =  con (take (i-1) es ++ ne:drop i es)
-irepEFs _ _ con es           =  con es
-\end{code}
-
-\begin{code}
-rrepPF :: Pred -> Int -> Pred -> FocusPath ->  Pred
-
-rrepPF npr i (Pfocus pr) [] = irepPF npr i pr
-rrepPF npr i (Obs (Efocus e)) [] = Obs $ irepEF (ePred npr) i e
-
-rrepPF npr i currpr ((j,_):ics)
- = let
-     nxtpr = goDownPF j currpr
-     nxtpr' = rrepPF npr i nxtpr ics
-   in irepPF nxtpr' j currpr
-
-rrepPF npr i pr [] = pr  -- should never occur
-\end{code}
-
-
-
 \subsection{Replacing Focus}
 
 $$
@@ -451,72 +423,9 @@ We want to replace the focussed predicate by a given one.
 \begin{code}
 repPFocus :: Pred -> FPred -> FPred
 
-repPFocus npr (_, ctxt, Pfocus _,       []) = (npr, ctxt, pFocus npr, [])
-repPFocus npr (_, ctxt, Obs (Efocus _), []) = (npr, ctxt, pFocus npr, [])
-
-repPFocus npr (_, ctxt, toppr, ics@[(i,_)] )
- = (npr, ctxt, irepPF (pFocus npr) i toppr, ics)
-
-repPFocus npr (cpr, ctxt, toppr, ics@((i,ctxt'):ics') )
- = let
-     nxtpr = goDownPF i toppr
-     ( cpr', _, nxtpr', _) = repPFocus npr (cpr, ctxt', nxtpr, ics')
-     toppr' = irepPF nxtpr' i toppr
-   in (npr, ctxt, toppr', ics)
-
-repPFf :: (Pred -> Pred) -> FPred -> FPred
-repPFf pfun fpr
- = repPFocus (pfun $ getPFocus fpr) fpr
+repPFocus pr' ( pr, ctxt, wayup ) = ( pr', ctxt, wayup )
 \end{code}
 
-
-\subsection{Setting Focus with a Path}
-Given a focus path and a predicate
-we can set the focus according to that path,
-noting that it may fail,
-in which case the predicate is returned unchanged.
-\begin{code}
-setPFocusPath :: [Int] -> Pred -> FPred
-
-setPFocusPath ip pr
- = pathset ip $ setPFocus pr
- where
-   pathset []     fpr  =  fpr
-   pathset (i:is) fpr  =  pathset is $ downPFocus i fpr
-\end{code}
-
-
-
-
-
-Getting the focus parent:
-\begin{code}
-getFocusParent :: FPred -> Pred
-getFocusParent (_, _, _, []) = perror "Top-level focus has no parent"
-getFocusParent (_, _, toppr, [_]) = toppr
-getFocusParent (fpr, ctxt, toppr, ((i,_):ics))
- = getFocusParent (fpr, ctxt, goDownPF i toppr, ics)
-\end{code}
-
-
-\newpage
-Knowing the branching factor can be useful:
-\begin{code}
-predBranches :: Pred -> Int
-predBranches (PExpr e) = exprBranches e
-predBranches (TypeOf e t) = 1
-predBranches (PApp _ prs) = length prs
-predBranches (PAbs _ tt qs prs) = length prs
-predBranches (Sub _ (Substn sub)) = 1 + length sub
-predBranches (Lang nm p les ss) = length $ filter isFocussable les
-predBranches _ = 0
-
-exprBranches :: Expr -> Int
-exprBranches (App s es)       = length es
-exprBranches (Eabs n tt qs es)   =  length es
-exprBranches (ESub e (Substn sub)) = 1 + length sub
-exprBranches _                        = 0
-\end{code}
 
 
 
@@ -527,25 +436,59 @@ exprBranches _                        = 0
 These two function get details about the focus:
 \begin{code}
 getPFocus :: FPred -> Pred
-getPFocus (fpr, _, _, _) = stripPFocus fpr
+getPFocus (pr, _, _) = pr
 
 getPFContext :: FPred -> FContext
-getPFContext (_, ctxt, _, _) = ctxt
+getPFContext (_, ctxt, _) = ctxt
 \end{code}
 
 This function returns the top-level predicate containing the focus:
 \begin{code}
 getPFTop :: FPred -> Pred
-getPFTop (_, _, toppr, _) = toppr
+getPFTop = clearPFocus
 \end{code}
 
+
+
+
+\subsection{Setting Focus with a Path}
 
 
 Given a focus, we can extract the relevant focus path:
 \begin{code}
 getPFocusPath :: FPred -> [Int]
-getPFocusPath (_, _, _, ics) =  map fst ics
+getPFocusPath (_, _, wayup) = reverse $ map (holeIndex . fst) wayup
+
+holeIndex :: Pred' -> Int
+holeIndex (PApp' _ before _)             = 1+ length before
+holeIndex (PAbs' _ _ _ before _)         = 1 + length before
+holeIndex (Sub'1 _)                      = 1
+holeIndex (Sub'2 _ _ before _)           = 2 + length before
+holeIndex (TypeOf' _)                    = 1
+holeIndex (PExpr' (App' _ before _))     = 1 + length before
+holeIndex (PExpr' (Abs' _ _ _ before _)) = 1 + length before
+holeIndex (PExpr' (ESub'1 _))            = 1
+holeIndex (PExpr' (ESub'2 _ _ before _)) = 2 + length before
 \end{code}
+
+
+Given a focus path and a predicate
+we can set the focus according to that path,
+noting that it may fail,
+in which case the focus may be arbitrary
+\begin{code}
+setPFocusPath :: [Int] -> Pred -> FPred
+
+setPFocusPath ip pr
+ =  setpath ip $ setPFocus pr
+ where
+   setpath [] fpr = fpr
+   setpath (i:is) fpr = setpath is $ sp (i-1) $ downPFocus fpr
+   sp 0 fpr = fpr
+   sp i fpr = sp (i-1) $ rightPFocus fpr
+\end{code}
+
+
 
 
 \newpage
