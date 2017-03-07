@@ -362,41 +362,18 @@ harvestTypeEqns mctxt tts pr
  = phvst tnil tts [] pr
  where
 
-   phvst vt0 tts tags (Obs e)
+   phvst vt0 tts tags (PExpr e)
     = do (te,(vt',tts',teqs)) <- ehvst vt0 tts tags e
          return (vt',tts,(te,B):teqs) -- Obs must be boolean
-   phvst vt0 tts tags (Defd e)  =  fmap snd $ ehvst vt0 tts tags e
    phvst vt0 tts tags (TypeOf e typ)  =  fmap snd $ ehvst vt0 tts tags e
-   phvst vt0 tts tags (Not pr)  =  phvst vt0 tts tags pr
-   phvst vt0 tts tags (And prs)  =  pshvst vt0 tts tags prs
-   phvst vt0 tts tags (Or prs)  =  pshvst vt0 tts tags prs
-   phvst vt0 tts tags (Imp pr1 pr2)  =  pshvst vt0 tts tags [pr1,pr2]
-   phvst vt0 tts tags (Eqv pr1 pr2)  =  pshvst vt0 tts tags [pr1,pr2]
-   phvst vt0 tts tags (Forall tt qvs pr)  =  phvst vt0 tts (tt:tags) pr
-   phvst vt0 tts tags (Exists tt qvs pr)  =  phvst vt0 tts (tt:tags) pr
-   phvst vt0 tts tags (Exists1 tt qvs pr)  =  phvst vt0 tts (tt:tags) pr
-   phvst vt0 tts tags (Univ tt pr)  =  phvst vt0 tts (tt:tags) pr
+   phvst vt0 tts tags (PApp nm prs)  =  pshvst vt0 tts tags prs
+   phvst vt0 tts tags (PAbs nm tt qvs prs)  =  pshvst vt0 tts (tt:tags) pr
    phvst vt0 tts tags (Sub pr (Substn ssub))
     = do (vt0', tts', teqs') <- phvst vt0 tts tags pr
          (vt0'',tts'',teqs'') <- fmap snd $ eshvst vt0' tts' tags
                                           $ map snd ssub
          return (vt0'', tts'', teqs'++teqs'')
-   phvst vt0 tts tags (If prc prt pre)  =  pshvst vt0 tts tags [prc,prt,pre]
-   phvst vt0 tts tags (NDC pr1 pr2)  =  pshvst vt0 tts tags [pr1,pr2]
-   phvst vt0 tts tags (RfdBy pr1 pr2)  =  pshvst vt0 tts tags [pr1,pr2]
    phvst vt0 tts tags (Lang str i les sss)  =  lshvst vt0 tts tags les
-   phvst vt0 tts tags (Pforall qvs pr)  =  phvst vt0 tts tags pr
-   phvst vt0 tts tags (Pexists qvs pr)  =  phvst vt0 tts tags pr
-   phvst vt0 tts tags (Psub pr (Substn ssub))
-    = do (vt0', tts', teqs') <- phvst vt0 tts tags pr
-         (vt0'',tts'',teqs'') <- pshvst vt0' tts' tags $ map snd ssub
-         return (vt0'', tts'', teqs'++teqs'')
-   phvst vt0 tts tags (Psapp pr prset)  =  psethvst vt0 tts tags pr prset
-   phvst vt0 tts tags (Psin pr prset)  =  psethvst vt0 tts tags pr prset
-   phvst vt0 tts tags (Peabs qvs pr)  =  phvst vt0 tts tags pr
-   phvst vt0 tts tags (Ppabs qvs pr)  =  phvst vt0 tts tags pr
-   phvst vt0 tts tags (Papp pr1 pr2)  =  pshvst vt0 tts tags [pr1,pr2]
-   phvst vt0 tts tags (Pfocus pr)  =  phvst vt0 tts tags pr
    phvst vt0 tts tags _  =  return (vt0, tts, [])
 
    pshvst vt0 tts tags [] = return (vt0, tts, [])
@@ -422,12 +399,6 @@ harvestTypeEqns mctxt tts pr
          (vt0'', tts'', teqs'') <- sethvst vt0' tts' tags prset
          return (vt0'', tts'', teqs'++teqs'')
 
-   sethvst vt0 tts tags (PSet prs)  =  pshvst vt0 tts tags prs
-   sethvst vt0 tts tags (PSetC qvs pr1 pr2)  =  pshvst vt0 tts tags [pr1,pr2]
-   sethvst vt0 tts tags (PSetU prset1 prset2)
-    = do (vt0', tts', teqs') <- sethvst vt0 tts tags prset1
-         (vt0'', tts'', teqs'') <- sethvst vt0' tts' tags prset2
-         return (vt0'', tts'', teqs'++teqs'')
    sethvst vt0 tts tags _  =  return (vt0, tts, [])
 
    eshvst vt0 tts tags [] = return ([], (vt0, tts, []))
@@ -443,8 +414,6 @@ we get down to business.
 
 Constants are easy---just return their type:
 \begin{code}
-   ehvst vt0 tts tags T  =  return (B, (vt0, tts, []))
-   ehvst vt0 tts tags (F)  =  return (B, (vt0, tts, []))
    ehvst vt0 tts tags (Num i)  =  return (Z, (vt0, tts, []))
 \end{code}
 
@@ -457,19 +426,6 @@ For variables, get a type variable setup:
 
 Applications introduce many equations:
 \begin{code}
-   -- ehvst vt0 tts tags (Bin op i e1 e2)
-   ehvst vt0 tts tags (App nm [e1,e2])
-    | isBin nm
-      = do let (op,i) = getBin nm
-           (optyp, vt0') <- recVarType mctxt vt0 tts (preVar op) tags
-           (t1, (vt0'', tts'', teqs'')) <- ehvst vt0' tts tags e1
-           (t2, (vt0''', tts''', teqs''')) <- ehvst vt0'' tts'' tags e2
-           rtv <- newu
-           let rtyp = tag2tvar rtv
-           return ( rtyp, (vt0''', tts'''
-                          , (optyp,Tfun (mkTprod [t1,t2]) rtyp):teqs''++teqs''')
-                  )
-
    ehvst vt0 tts tags (App nm es)
 
    -- ehvst vt0 tts tags (Set es)
@@ -498,27 +454,14 @@ Applications introduce many equations:
            rtv <- newu
            let rtyp = tag2tvar rtv
            return ( rtyp, (vt0'', tts'', (ftyp,Tfun atyp rtyp):teqs''))
-
-   ehvst vt0 tts tags (Equal e1 e2)
-    = do (t1, (vt0', tts', teqs'))    <- ehvst vt0 tts tags e1
-         (t2, (vt0'', tts'', teqs'')) <- ehvst vt0' tts' tags e2
-         return ( B, ( vt0'', tts'', (t1,t2):teqs'++teqs''))
 \end{code}
 
 Abstraction is the dual of application:
 \begin{code}
-   ehvst vt0 tts tags (Eabs tt (Q vs) e) -- ignore multis for now
-    = do (btyp, (vt0', tts', teqs')) <- ehvst vt0 tts (tt:tags) e
+   ehvst vt0 tts tags (Abs nm tt vs es) -- ignore multis for now
+    = do (btyp, (vt0', tts', teqs')) <- eshvst vt0 tts (tt:tags) es
          let tqvs = qvlookup tts tt vs
          return (curriedTfun btyp tqvs, (vt0',tts',teqs'))
-
-   ehvst vt0 tts tags (The tt x pr)
-    = do (vt0', tts', teqs') <- phvst vt0 tts (tt:tags) pr
-         case qvlookup tts tt [x] of
-           [xt] -> return (xt, (vt0', tts', teqs'))
-           xts -> return( Terror ("Can't find '"++varKey x++"' in 'The'")
-                                 $ mkTprod xts
-                        , (vt0', tts', teqs'))
 \end{code}
 
 %%% KEEP FOR FUTURE USE
@@ -548,19 +491,11 @@ Abstraction is the dual of application:
 
 Substitution:
 \begin{code}
-   ehvst vt0 tts tags (Esub e (Substn ssub))
+   ehvst vt0 tts tags (ESub e (Substn ssub))
     = do (te', (vt0', tts', teqs')) <- ehvst vt0 tts tags e
          (vt0'',tts'',teqs'') <- fmap snd $ eshvst vt0' tts' tags
                                           $ map snd ssub
          return (te', (vt0'', tts'', teqs'++teqs''))
-\end{code}
-
-Odds and ends:
-\begin{code}
-   ehvst vt0 tts tags (Eerror s) = return ( Terror ("Eerror "++s) Tarb
-                                          , (vt0,tts,[])
-                                          )
-   ehvst vt0 tts tags (Efocus e)  =  ehvst vt0 tts tags e
 \end{code}
 
 Comprehensions:
@@ -870,7 +805,7 @@ topLvlExprs mctxt pr
 
    tlerror what = error ("topLvlExprs undefined for "++what)
 
-   addB (Q xs) bnds = lnorm ( xs ++ bnds )
+   addB xs bnds = lnorm ( xs ++ bnds )
 
    addU pr bnds = lnorm ( predFreeVars mctxt pr ++ bnds )
 
@@ -878,34 +813,13 @@ topLvlExprs mctxt pr
 
    predExprs bnds (TRUE)  =  []
    predExprs bnds (FALSE)  =  []
-   predExprs bnds (Obs e)  =  [(bnds,e)]
-   predExprs bnds (Defd e)  =  [(bnds,e)]
+   predExprs bnds (PExpr e)  =  [(bnds,e)]
    predExprs bnds (TypeOf e atyp)  =  [(bnds,e)]
-   predExprs bnds (Not pr)  =  predExprs bnds pr
-   predExprs bnds (And prs)  =  predsExprs bnds prs
-   predExprs bnds (Or prs)  =  predsExprs bnds prs
-   predExprs bnds (Imp pr1 pr2)  =  predsExprs bnds [pr1,pr2]
-   predExprs bnds (Eqv pr1 pr2)  =  predsExprs bnds [pr1,pr2]
-   predExprs bnds (Forall tt qvs pr)  =  predExprs (addB qvs bnds) pr
-   predExprs bnds (Exists tt qvs pr)  =  predExprs (addB qvs bnds) pr
-   predExprs bnds (Exists1 tt qvs pr)  =  predExprs (addB qvs bnds) pr
-   predExprs bnds (Univ tt pr)  =  predExprs (addU pr bnds) pr
+   predExprs bnds (PApp nm prs)  =  predsExprs bnds prs
+   predExprs bnds (PAbs nm tt qvs prs)  =  predsExprs (addB qvs bnds) prs
    predExprs bnds (Sub pr esub)  =  predExprs bnds pr ++ esubExprs bnds esub
-   predExprs bnds (Pvar str)  =  []
-   predExprs bnds (If pr1 pr2 pr3)  =  predsExprs bnds [pr1,pr2,pr3]
-   predExprs bnds (NDC pr1 pr2)  =  predsExprs bnds [pr1,pr2]
-   predExprs bnds (RfdBy pr1 pr2)  =  predsExprs bnds [pr1,pr2]
+   predExprs bnds (PVar str)  =  []
    predExprs bnds (Lang str i les sss)  =  lelemsExprs bnds les
-   predExprs bnds (Pforall qvs pr)  =  predExprs bnds pr
-   predExprs bnds (Pexists qvs pr)  =  predExprs bnds pr
-   predExprs bnds (Psub pr psub)  =  predExprs bnds pr ++ psubExprs bnds psub
-   predExprs bnds (Psapp pr prset)  =  tlerror "Psapp"
-   predExprs bnds (Psin pr prset)  =  tlerror "Psin"
-   predExprs bnds (Peabs qvs pr)  =  predExprs (addB qvs bnds) pr
-   predExprs bnds (Ppabs qvs pr)  =  predExprs bnds pr
-   predExprs bnds (Papp pr1 pr2)  =  predsExprs bnds [pr1,pr2]
-   predExprs bnds (Perror str)  =  []
-   predExprs bnds (Pfocus pr)  =  predExprs bnds pr
 
    predsExprs bnds prs = concat $ map (predExprs bnds) prs
 
@@ -1149,8 +1063,6 @@ Now, we handle different expression classes
 \\ \WHERE && new~t
 \end{eqnarray*}
 \begin{code}
-  bld gamma T vt tt = addTT B vt tt
-  bld gamma F vt tt = addTT B vt tt
   bld gamma (Num _) vt tt = addTT Z vt tt
 \end{code}
 
@@ -1184,9 +1096,8 @@ Abstraction
 \\ && (vt',tt') = (vt_e,tt_e \oplus t \mapsto t_1 \fun \ldots \fun t_n \fun t_e)
 \end{eqnarray*}
 \begin{code}
-  bld gamma (Eabs _ qs e) vt tt
+  bld gamma (Abs nm _ evs e) vt tt -- broken (we need dictionaries here)
    = do t <- newtvar
-        let evs = outQ qs
         ts <- newtvars evs
         let tvs = map Tvar ts
         let gamma' = (lbuild (zip (map varKey evs) tvs)):gamma
@@ -1211,7 +1122,7 @@ Substitution (a fusion of application and abstraction !)
 \\  && (t',vt',tt') = bldTT_\Gamma(e,vt_n \oplus x_i \mapsto t_i,tt_n)
 \end{eqnarray*}
 \begin{code}
-  bld gamma (Esub e (Substn ssub)) vt tt -- ignore mvars ????
+  bld gamma (ESub e (Substn ssub)) vt tt -- ignore mvars ????
    = do t <- newtvar
         (ts,vtn,ttn,_,ft1) <- blds gamma es vt tt
         (t',vt',tt',tc,ft2) <- bld gamma e (insTVEntries xs ts vtn) ttn
@@ -1248,7 +1159,6 @@ Binary Operators
                               let tt' = insTentry t typ' tt2
                               return (t,vt2,tt',[t1,t2],ft)
        where terr op t = Terror ("'Binop' "++op++" has type ") t
-
 \end{code}
 
 Product
@@ -1337,52 +1247,8 @@ Applications
                           let tt' = insTentry t typ' ttn
                           return (t,vtn,tt',ts,ft)
    where terr f t = Terror ("'Fun' "++f++" has type ") t
-
--- old code for product
---   bld gamma (App nm es) vt tt
---     | nm == n_tuple
---        = do t <- newtvar
---             (ts,vtn,ttn,_,ft) <- blds gamma es vt tt
---             let typs = map Tvar ts
---             return(t,vtn,insTentry t (mkTprod typs) ttn,[],ft)
-
-  bld gamma (Equal e1 e2) vt tt
-   = do t <- newtvar
-        (t1,vt1,tt1,_,ft1) <- bld gamma e1 vt tt
-        (t2,vt2,tt2,_,ft2) <- bld gamma e2 vt1 tt1
-        let ft = ft1 `fuse` ft2
-        ta <- fmap Tvar newtvar
-        addBIN t B t1 ta t2 ta vt2 tt2 ft
 \end{code}
 
-Definite description:
-\begin{eqnarray*}
-\\ bldTT_\Gamma(\theta x @ P,vt,tt)
-   &\defs& (t,vt,tt \oplus t \mapsto T), \qquad  \Gamma \infer x ::T \mbox{ in } P
-\\&&       (t,vt,tt \oplus t \mapsto t'), \qquad \mbox{otherwise}
-\\ \WHERE && new~t \quad new~t'
-\end{eqnarray*}
-\begin{code}
-  bld gamma e@(The _ v pr) vt tt
-   = do t <- newtvar
-        let tbinds = inferPredType gamma pr
-        case tvlookup tbinds v of
-          Nothing   ->  do typ' <- freshType (Tvar t)
-                           return (t,vt,insTentry t typ' tt,[],Nothing)
-          Just typ  ->  do typ' <- freshType typ
-                           return  (t,vt,insTentry t typ' tt,[],Nothing)
-\end{code}
-
-
-Focus handling:
-\begin{code}
-  bld gamma (Efocus e) vt tt
-   = do (top,vt',tt',children,ft) <- bld gamma e vt tt
-        case ft of
-          (Just _)  ->  return (error "bldTT: nested Efocii!")
-          Nothing
-           ->  return (top,vt',tt',children,Just (top,children))
-\end{code}
 
 Error handling last case.
 \begin{code}
@@ -1967,82 +1833,30 @@ obtained from \texttt{exprsOf}.
 \begin{code}
 obsTypeReplace :: [Type] -> Pred -> (Pred,[Type])
 
-obsTypeReplace (newt:newts') old@(Obs e) = (Obs e,newts')
-obsTypeReplace (newt:newts') old@(Defd e) = (Defd e,newts')
+obsTypeReplace (newt:newts') old@(PExpr e) = (PExpr e,newts')
 obsTypeReplace (newt:newts') old@(TypeOf e t) = (TypeOf e t,newts')
 
 obsTypeReplace newts TRUE = (TRUE,newts)
 obsTypeReplace newts FALSE = (FALSE,newts)
-obsTypeReplace newts pr@(Pvar _) = (pr,newts)
+obsTypeReplace newts pr@(PVar _) = (pr,newts)
 
-obsTypeReplace newts (Not pr) = (Not pr',newts')
- where (pr',newts') = obsTypeReplace newts pr
-obsTypeReplace newts (Univ _ pr) = (Univ 0 pr',newts')
- where (pr',newts') = obsTypeReplace newts pr
-obsTypeReplace newts (Forall _ qs pr) = (Forall 0 qs pr',newts')
- where (pr',newts') = obsTypeReplace newts pr
-obsTypeReplace newts (Exists _ qs pr) = (Exists 0 qs pr',newts')
- where (pr',newts') = obsTypeReplace newts pr
-obsTypeReplace newts (Exists1 _ qs pr) = (Exists1 0 qs pr',newts')
- where (pr',newts') = obsTypeReplace newts pr
-obsTypeReplace newts (Ppabs s pr) = (Ppabs s pr',newts')
- where (pr',newts') = obsTypeReplace newts pr
-obsTypeReplace newts (Peabs s pr) = (Peabs s pr',newts')
- where (pr',newts') = obsTypeReplace newts pr
-
-obsTypeReplace newts (NDC pr1 pr2) = (NDC pr1' pr2',newts')
- where ([pr1',pr2'],newts') = obsReplaces newts [pr1,pr2]
-obsTypeReplace newts (Imp pr1 pr2) = (Imp pr1' pr2',newts')
- where ([pr1',pr2'],newts') = obsReplaces newts [pr1,pr2]
-obsTypeReplace newts (RfdBy pr1 pr2) = (RfdBy pr1' pr2',newts')
- where ([pr1',pr2'],newts') = obsReplaces newts [pr1,pr2]
-obsTypeReplace newts (Eqv pr1 pr2) = (Eqv pr1' pr2',newts')
- where ([pr1',pr2'],newts') = obsReplaces newts [pr1,pr2]
-obsTypeReplace newts (Papp prf pra) = (Papp prf' pra',newts')
- where ([prf',pra'],newts') = obsReplaces newts [prf,pra]
-
--- IMPORTANT -- exprsOf only visits 1st element at present
-obsTypeReplace newts (Psapp pr spr) = (Psapp pr' spr,newts')
- where (pr',newts') = obsTypeReplace newts pr
-obsTypeReplace newts (Psin pr spr) = (Psin pr' spr,newts')
- where (pr',newts') = obsTypeReplace newts pr
-
-
-obsTypeReplace newts (Pforall pvs pr) = (Pforall pvs pr',newts')
- where (pr',newts') = obsTypeReplace newts pr
-obsTypeReplace newts (Pexists pvs pr) = (Pexists pvs pr',newts')
- where (pr',newts') = obsTypeReplace newts pr
-
-obsTypeReplace newts (And prs) = (And prs',newts')
- where (prs',newts') = obsReplaces newts prs
-obsTypeReplace newts (Or prs) = (Or prs',newts')
+obsTypeReplace newts (PApp nm prs) = (PApp nm prs',newts')
  where (prs',newts') = obsReplaces newts prs
 
-obsTypeReplace newts (If prc prt pre) = (If prc' prt' pre',newts')
- where ([prc',prt',pre'],newts') = obsReplaces newts [prc,prt,pre]
+obsTypeReplace newts (PAbs nm _ qs prs) = (PAbs nm 0 qs prs',newts')
+ where (prs',newts') = obsReplaces newts prs
 
 -- need to treat atomic predicate substitution carefully
 -- the whole thing is viewed as one expression
 
-obsTypeReplace (newt:newts') (Sub (Obs e) sub)
- = (Sub (Obs e) sub,newts')
+obsTypeReplace (newt:newts') (Sub (PExpr e) sub)
+ = (Sub (PExpr e) sub,newts')
 
 obsTypeReplace newts (Sub pr sub@(Substn ssub))
  = (Sub pr' sub,newts'')
  where
    newts' = drop (length ssub) newts
    (pr',newts'') = obsTypeReplace newts' pr
-
-obsTypeReplace newts (Psub pr sub@(Substn ssub))
- = (Psub pr' (Substn ssub'),newts'')
- where
-   (pr',newts') = obsTypeReplace newts pr
-   (vs,sprs) = unzip ssub
-   (sprs',newts'') = obsReplaces newts' sprs
-   ssub' = zip vs sprs'
-
-obsTypeReplace newts (Pfocus prf) = (Pfocus prf',newts')
- where (prf',newts') = obsTypeReplace newts prf
 
 obsTypeReplace newts (Lang s p les ss) = (Lang s p les' ss,newts')
  where (les',newts') = obsLListReplace newts les
