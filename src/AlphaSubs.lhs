@@ -160,14 +160,8 @@ For \texttt{Pred},
 we use special handling for the quantifiers,
 and then rely on \texttt{mapP} to handle the rest.
 \begin{code}
-  fbPpred usedr subf (Forall tt qs pr)
-    = fbPpquant usedr subf mkForall qs pr
-
-  fbPpred usedr subf (Exists tt qs pr)
-    = fbPpquant usedr subf mkExists qs pr
-
-  fbPpred usedr subf (Exists1 tt qs pr)
-    = fbPpquant usedr subf mkExists1 qs pr
+  fbPpred usedr subf (PAbs nm tt qs prs)
+    = fbPpquant usedr subf (PAbs nm 0) qs prs
 \end{code}
 \begin{eqnarray*}
    fbp(U,\sigma) (P[P_i/v_i])
@@ -198,16 +192,15 @@ Quantified predicate handling:
 N,\sigma\oplus\sigma')P
 \end{eqnarray*}
 \begin{code}
-  fbPpquant usedr subf quant qs pr
+  fbPpquant usedr subf quant qs prs
      = quant (qsub subf' qs)
-             (fbPpred usedr' subf' pr)
+             (map (fbPpred usedr' subf') prs)
    where
      (usedr',subf') = fbpPart usedr subf qs
 
-  fbpPart usedr subf qs
+  fbpPart usedr subf qvs
     = (usedr' `mrgnorm` rs,subf')
    where
-     qvs = outQ qs
      rs = lnorm $ map varRoot qvs
      clashes = usedr `rintersect` qvs
      (usedr',subf') = genNewV usedr subf clashes
@@ -218,7 +211,7 @@ N,\sigma\oplus\sigma')P
    | otherwise               =      rest'
    where rest' = rintersect usedr vs
 
-  qsub subf (Q qs) = Q $ map (xsub subf) qs
+  qsub subf qs = map (xsub subf) qs
 
   xsub subf v@(r@(Gen _),d,_)
     = case trlookup subf r of
@@ -237,19 +230,14 @@ the rest.
 \begin{code}
   fbPexpr usedr subf (Var v) = Var (xsub subf v)
 
-  fbPexpr usedr subf (The tt v pr)
-    = The 0 (xsub subf' v)
-          (fbPpred usedr' subf' pr)
-   where
-     (usedr',subf') = fbpPart usedr subf $ Q [v]
 
-  fbPexpr usedr subf (Eabs tt qs e)
-    = Eabs 0 (qsub subf' qs) (fbPexpr usedr' subf' e)
+  fbPexpr usedr subf (Abs nm tt qs es)
+    = Abs nm 0 (qsub subf' qs) (map (fbPexpr usedr' subf') es)
    where
      (usedr',subf') = fbpPart usedr subf qs
 
-  fbPexpr usedr subf (Esub e (Substn sub))
-    = Esub (fbPexpr usedr subf e)
+  fbPexpr usedr subf (ESub e (Substn sub))
+    = ESub (fbPexpr usedr subf e)
            (Substn (zip vs' ses'))
     where
      (vs,ses) = unzip sub
