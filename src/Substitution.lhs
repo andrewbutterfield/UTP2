@@ -228,8 +228,8 @@ binderSubstnBits :: QVars
                     , Maybe ESubst -- alpha-renaming, if required
                     , ESubst       -- revised substitution
                     )
-binderSubstnBits (Q vars) fext subslist
- = ( Q vars', alpha', Substn subslist' )
+binderSubstnBits vars fext subslist
+ = ( vars', alpha', Substn subslist' )
  where
    (subslist',subfree') = detSubsScope vars subslist
    xfree' = fext (extendOrdVars vars subfree')
@@ -297,7 +297,7 @@ Straight variable substitution for both
 single and multiple q-variables.
 \begin{code}
 qvarOSub :: MatchContext -> VSubst -> QVars -> QVars
-qvarOSub mctxt (Substn sub) (Q vs) = Q (map (areplace sub) vs)
+qvarOSub mctxt (Substn sub) vs = map (areplace sub) vs
 \end{code}
 
 
@@ -363,19 +363,6 @@ keepFreeInP sublist _    _              =  sublist
 \emph{ if a variable is fresh, how does this influence the above?}
 
 
-\subsubsection{Lifting Expressions to Predicates}
-
-An effect of some of the substitutions can be to have
-atomic predicates \texttt{(Obs \ldots)} that should be lifted to
-proper predicate equivalents---for example expression
-\texttt{Obs t T} should be converted to predicate \texttt{TRUE}.
-\begin{code}
-liftE :: Pred -> Pred
-liftE (Obs T) = TRUE
-liftE (Obs F) = FALSE
-liftE pr = mapP (liftE,id) pr
-\end{code}
-
 
 \subsubsection{Expression Substitution}
 \label{Manip.Expr.Subst}
@@ -401,9 +388,7 @@ exprONSub' mctxt sc subs@(Substn subslist) e
    k[r/x] &\defs& k
 \end{eqnarray*}
 \begin{code}
-  eOS T = (T,Chgd)
-  eOS F = (F,Chgd)
-  eOS e@(Num _) = (e,Chgd)
+  eOS e@(Num _) = (e,NoChg)
 \end{code}
 \begin{eqnarray*}
    v[r/x] &\defs& r \cond{x=v} v
@@ -436,7 +421,7 @@ exprONSub' mctxt sc subs@(Substn subslist) e
       = let freesl = keepFreeInE ssubslist v scnf
         in if null freesl
             then (e,Chgd)
-            else (Esub e (Substn (freesl++msubslist)),Chgd)
+            else (ESub e (Substn (freesl++msubslist)),Chgd)
 
    | otherwise
        =  ( case alookupOrd ssubslist v of
@@ -450,23 +435,27 @@ exprONSub' mctxt sc subs@(Substn subslist) e
 \end{eqnarray*}
 \begin{code}
   eOS (App s es) = (App s (fst $ chgmap eOS es),Chgd)
-  eOS (Equal e1 e2)
-   = let [(e1',_),(e2',_)] = map eOS [e1,e2]
-     in (Equal e1' e2',Chgd)
 \end{code}
 \newpage
+THIS NEEDS TO REFLECT THAT GENERAL ABSTRACTIONS HAVE MANY BODIES
 \begin{eqnarray*}
    (\lambda B @ e)\sigma &\defs& \lambda N' @ (e~\alpha)\sigma'
 \\&& \WHERE (N',\alpha,\sigma') = bsb~B~(extvs (\fv e))~\sigma
 \end{eqnarray*}
 \begin{code}
-  eOS ae@(Eabs _ bvars e)
+  eOS ae@(Abs nm _ bvars es)
    = case alfa' of
-       Nothing  ->  (Eabs 0 nvars' (exprONSub mctxt sc subs' e),Chgd)
-       (Just alf)  -> (Eabs 0 nvars' (exprONSub mctxt sc subs' (exprONSub mctxt sc alf e)),Chgd)
+       Nothing    ->  ( Abs nm 0 nvars'
+                         $ map (exprONSub mctxt sc subs') es
+                      , Chgd )
+       (Just alf) ->  ( Abs nm 0 nvars'
+                         $ map ( exprONSub mctxt sc subs'
+                               . exprONSub mctxt sc alf) es
+                      , Chgd )
    where
      (nvars',alfa',subs') = binderSubstnBits bvars fext subslist
-     fext = extendOrdVars (exprFreeOVars nullMatchContext e)
+     fext = extendOrdVars
+              $ concat $ map (exprFreeOVars nullMatchContext) es
 
 \end{code}
 \begin{eqnarray*}
@@ -482,7 +471,7 @@ exprONSub' mctxt sc subs@(Substn subslist) e
 
 Anything else is left untouched.
 \begin{code}
-  eOS e               = (Esub e subs,NoChg)
+  eOS e               = (ESub e subs,NoChg)
 
 emsg_sub_focus    = "exprONSub mctxt-of-Efocus"
 \end{code}
@@ -515,7 +504,7 @@ predOSub mctxt sc subs pr
 predONSub mctxt sc subs pr = fst $ predONSub' mctxt sc subs pr
 
 predONSub' mctxt sc subs@(Substn sublist) pr
- = (liftE pr',chg)
+ = pOS pr
  where
   (pr',chg) = pOS pr
   (msubslist,ssubslist) = partition (isLstV . fst) sublist
@@ -541,11 +530,11 @@ predONSub' mctxt sc subs@(Substn sublist) pr
   \right.
 \end{eqnarray*}
 \begin{code}
-  pOS pv@(Pvar p)
+  pOS pv@(PVar p)
    | null freesl  =  (pv,Chgd)
    | otherwise    =  (Sub pv (Substn freesl),Chgd)
    where
-     freesl = keepFreeInP sublist (Gen p) scnf
+     freesl = keepFreeInP sublist (varRoot p) scnf
 \end{code}
 \newpage
 \begin{eqnarray*}
@@ -555,24 +544,11 @@ predONSub' mctxt sc subs@(Substn sublist) pr
 \end{eqnarray*}
 \begin{code}
 -- Lang and RfdBy are not substitutable
-  pOS (Obs e) = (Obs e',chg)
+  pOS (PExpr e) = (pExpr e',chg)
    where (e',chg) = exprONSub' mctxt sc subs e
   pOS (TypeOf e t) = (TypeOf e' t,chg)
    where (e',chg) = exprONSub' mctxt sc subs e
-  pOS (Defd e) = (Defd e',chg)
-   where (e',chg) = exprONSub' mctxt sc subs e
-  pOS (Not pr) = (Not (fst $ pOS pr),Chgd)
-  pOS (And prs) = (mkAnd (fst $ chgmap pOS prs),Chgd)
-  pOS (Or prs) = (mkOr (fst $ chgmap pOS prs),Chgd)
-  pOS (NDC pr1 pr2) = (NDC (fst $ pOS pr1) (fst $ pOS pr2),Chgd)
-  pOS (Imp pr1 pr2) = (Imp (fst $ pOS pr1) (fst $ pOS pr2),Chgd)
-  pOS (Eqv pr1 pr2) = (Eqv (fst $ pOS pr1) (fst $ pOS pr2),Chgd)
-  pOS (If prc prt pre)
-              = (If (fst $ pOS prc) (fst $ pOS prt) (fst $ pOS pre),Chgd)
-  pOS spr@(Univ _ _) = (spr,Chgd) -- Univ has no free variables !
-
-  -- bad idea ! pOS (Ppabs s pr) = Ppabs s (pOS pr)
-  -- bad idea ! pOS (Papp prf pra) = Papp (pOS prf) (pOS pra)
+  pOS (PApp nm prs) = (PApp nm (fst $ chgmap pOS prs),Chgd)
 \end{code}
 \newpage
 \begin{eqnarray*}
@@ -582,49 +558,19 @@ predONSub' mctxt sc subs@(Substn sublist) pr
 \\&& \WHERE (N',\alpha,\sigma') = bsb~B~(extvs(\fv p))~\sigma
 \end{eqnarray*}
 \begin{code}
-  pOS qpr@(Forall _ bvars pr)
+  pOS qpr@(PAbs nm _ bvars prs)
    = case alfa' of
-       Nothing     ->  ( Forall 0 nvars' (predONSub mctxt sc subs' pr)
+       Nothing     ->  ( PAbs nm 0 nvars'
+                           $ map (predONSub mctxt sc subs') prs
                        , Chgd )
-       (Just alf)  ->  ( Forall 0 nvars' (predONSub mctxt sc subs'
-                                              (predONSub mctxt sc alf pr))
+       (Just alf)  ->  ( PAbs nm 0 nvars'
+                          $ map ( predONSub mctxt sc subs'
+                                  . predONSub mctxt sc alf ) prs
                        , Chgd )
    where
-     (nvars',alfa',subs') = binderSubstnBits bvars fext sublist
-     fext = extendOrdVars (predFreeOVars nullMatchContext pr)
-
-  pOS qpr@(Exists _ bvars pr)
-   = case alfa' of
-       Nothing     ->  ( Exists 0 nvars' (predONSub mctxt sc subs' pr)
-                       , Chgd )
-       (Just alf)  ->  ( Exists 0 nvars' (predONSub mctxt sc subs'
-                                              (predONSub mctxt sc alf pr))
-                       , Chgd )
-   where
-     (nvars',alfa',subs') = binderSubstnBits bvars fext sublist
-     fext = extendOrdVars (predFreeOVars nullMatchContext pr)
-
-  pOS qpr@(Exists1 _ bvars pr)
-   = case alfa' of
-       Nothing     ->  ( Exists1 0 nvars' (predONSub mctxt sc subs' pr)
-                       , Chgd )
-       (Just alf)  ->  ( Exists1 0 nvars' (predONSub mctxt sc subs'
-                                              (predONSub mctxt sc alf pr))
-                       , Chgd )
-   where
-     (nvars',alfa',subs') = binderSubstnBits bvars fext sublist
-     fext = extendOrdVars (predFreeOVars nullMatchContext pr)
-
-  pOS ap@(Peabs bvars pr)
-   = case alfa' of
-       Nothing     ->  ( Peabs nvars' (predONSub mctxt sc subs' pr)
-                       , Chgd )
-       (Just alf)  ->  ( Peabs nvars' (predONSub mctxt sc subs'
-                                           (predONSub mctxt sc alf pr))
-                       , Chgd )
-   where
-     (nvars',alfa',subs') = binderSubstnBits bvars fext sublist
-     fext = extendOrdVars (predFreeOVars nullMatchContext pr)
+     (nvars',alfa',subs') = binderSubstnBits bvars fexts sublist
+     fexts = extendOrdVars
+              $ concat $ map (predFreeOVars nullMatchContext) prs
 \end{code}
 \newpage
 \begin{eqnarray*}
@@ -676,82 +622,43 @@ We give some pre-canned non-trivial substitution predicates:
 eNonTrivSub (t,(Var r))  =  t /= r
 eNonTrivSub  _           =  True
 
-prNonTrivSub (t,(Obs (Var r)))  =  t /= r
-prNonTrivSub  _                  =  True
+prNonTrivSub (t,(PExpr (Var r)))  =  t /= r
+prNonTrivSub  _                   =  True
 \end{code}
 
 
 \subsubsection{Predicate/Expression Substitution}
 
 This substitution replaces
-free occurrences of predicate meta-variable \texttt x by predicate \texttt r:
+free occurrences of predicate meta-variable \texttt x
+by predicate \texttt r:
 \begin{code}
 exprPSub :: Pred -> GenRoot -> Expr -> Expr
-exprPSub r x e
+exprPSub r g e
  = ePS e
  where
-  ePS (App s es) = App s (map ePS es)
-  ePS (Equal e1 e2)  = Equal (ePS e1) (ePS e2)
-  ePS (Eabs tt ss e) =  Eabs 0 ss (ePS e)
-  ePS (Efocus ef) = Efocus $ ePS ef
-  ePS e               = e
+  ePS (App s es)        = App s (map ePS es)
+  ePS (Abs nm tt ss es) = Abs nm 0 ss (map ePS es)
+  ePS (EPred pr)        = ePred $ predPSub r g pr
+  ePS (ESub e sub)      = ESub (ePS e) sub
+  ePS e                 = e
 \end{code}
 
 \newpage
 As does this:
 \begin{code}
 predPSub :: Pred -> GenRoot -> Pred -> Pred
-predPSub r x pr
+predPSub r g pr
  = pPS pr
  where
   fpvr = predFreePVars nullMatchContext r
-  pPS pv@(Pvar s)  = if s==x then r else pv
-  pPS (Obs e) = Obs (exprPSub r x e)
-  pPS (Defd e) = Defd (exprPSub r x e)
-  pPS (TypeOf e t) = TypeOf (exprPSub r x e) t
-  pPS (Not pr) = Not (pPS pr)
-  pPS (And prs) = mkAnd (map pPS prs)
-  pPS (Or prs) = mkOr (map pPS prs)
-  pPS (Imp pr1 pr2) = Imp (pPS pr1) (pPS pr2)
-  pPS (Eqv pr1 pr2) = Eqv (pPS pr1) (pPS pr2)
-  pPS (If prc prt pre) = If (pPS prc) (pPS prt) (pPS pre)
-  pPS (Forall tt ss pr) = Forall 0 ss (pPS pr)
-  pPS (Exists tt ss pr) = Exists 0 ss (pPS pr)
-  pPS (Exists1 tt ss pr) = Exists1 0 ss (pPS pr)
-  pPS (Univ tt pr) = Univ 0 (pPS pr) -- Pvars are free in Univ
-  pPS (Sub pr sub) = Sub (pPS pr) sub
-
-  pPS ap@(Ppabs qs@(Q vs) pr)
-   | v `elem` pvs                 =  ap
-   | null (pvs `intersect` fpvr)  =  Ppabs qs (pPS pr)
-   | otherwise                    =  Ppabs (Q (ws++qvs)) (pPS prw)
-   where
-     v = rootVar $ Gen x
-     (qvs,pvs) = partition isLstV vs
-     fvs = lnorm (v:(fpvr++predFreePVars nullMatchContext pr))
-     ws = map preVar $ mfreshIn (map varKey fvs) (length pvs)
-     prw = Perror ("predPSub Ppabs broken on "++show pr) -- predPSub (Pvar w) s pr
-
-  pPS (Psapp pr spr) = Psapp (pPS pr) (pPSS spr)
-  pPS (Psin pr spr)  = Psin (pPS pr) (pPSS spr)
-
-  pPS pall@(Pforall qs@(Q pvs) pr)
-   | rootVar (Gen x) `elem` pvs   =  pall
-   | otherwise                    =  Pforall qs (pPS pr)
-  pPS pany@(Pexists qs@(Q pvs) pr)
-   | rootVar (Gen x) `elem` pvs   =  pany
-   | otherwise                    =  Pexists qs (pPS pr)
-
-  pPS (Papp prf pra) = Papp (pPS prf) (pPS pra)
-
-  pPS (Peabs s pr) = Peabs s (pPS pr)
-  pPS (Pfocus prf) = Pfocus $ pPS prf
-  pPS pr  = pr
-
-  pPSS (PSet prs) = PSet (map pPS prs)
-  pPSS (PSetC nms pr1 pr2) = PSetC nms (pPS pr1) (pPS pr2)
-  pPSS (PSetU s1 s2) = PSetU (pPSS s1) (pPSS s2)
-  pPSS s = s
+  pPS pv@(PVar s)         = if s==genRootAsVar g then r else pv
+  pPS (PExpr e)           = pExpr (exprPSub r g e)
+  pPS (TypeOf e t)        = TypeOf (exprPSub r g e) t
+  pPS (PApp nm prs)       = PApp nm (map pPS prs)
+  pPS (PAbs nm tt ss prs) = PAbs nm 0 ss (map pPS prs)
+  pPS (Sub pr sub)        = Sub (pPS pr) sub
+  pPS pr                  = pr
 
 closed = qvars []
 \end{code}
@@ -806,17 +713,9 @@ predASub mctxt sc vsubs@(Substn sub) pr
     ranset = fvsEnum sran
     prset = fvsUnion [fvsEnum qvec,fvset]
 
-  pAS qpr@(Forall _ qvs pr) | alphaOk vsubs qvs pr
-    =  Forall 0 (qvarOSub mctxt vsubs qvs) (predONSub mctxt sc esubs pr)
-
-  pAS qpr@(Exists _ qvs pr) | alphaOk vsubs qvs pr
-    =  Exists 0 (qvarOSub mctxt vsubs qvs) (predONSub mctxt sc esubs pr)
-
-  pAS qpr@(Exists1 _ qvs pr) | alphaOk vsubs qvs pr
-    =  Exists1 0 (qvarOSub mctxt vsubs qvs) (predONSub mctxt sc esubs pr)
-
-  pAS qpr@(Peabs qvs pr) | alphaOk vsubs qvs pr
-    =  Peabs (qvarOSub mctxt vsubs qvs) (predONSub mctxt sc esubs pr)
+  pAS qpr@(PAbs nm _ qvs prs) | all (alphaOk vsubs qvs) prs
+    =  PAbs nm 0 (qvarOSub mctxt vsubs qvs)
+                 (map (predONSub mctxt sc esubs) prs)
 
   pAS pr  = pr
 

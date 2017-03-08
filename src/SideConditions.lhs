@@ -665,7 +665,7 @@ evalPredSideCondition mctxt goalscnf atmsc pr
 -- end evalPredSideCondition
 
 evalExprSideCondition mctxt scnf sc e
-                                 = evalPredSideCondition mctxt scnf sc (Obs e)
+                               = evalPredSideCondition mctxt scnf sc (pExpr e)
 \end{code}
 \newpage
 \paragraph{Is it a Condition?}

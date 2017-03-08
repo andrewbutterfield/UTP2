@@ -518,10 +518,13 @@ type PSubst = Substn GenRoot  Pred
 
 We define two constructor functions to handle the \texttt{Expr}/\texttt{Pred} ``crossovers'':
 \begin{code}
-ePred (PExpr e)    = e
-ePred pr         = EPred pr
-pExpr (EPred pr) = pr
-pExpr e          = PExpr e
+ePred (PExpr e)           = e
+ePred (Sub (PExpr e) sub) = ESub e sub
+ePred pr                  = EPred pr
+
+pExpr (EPred pr)            = pr
+pExpr (ESub (EPred pr) sub) = Sub pr sub
+pExpr e                     = PExpr e
 \end{code}
 
 We also define smart constructors for certain constructs
