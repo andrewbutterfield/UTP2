@@ -1022,11 +1022,18 @@ Variables
 
 Abstraction
 \begin{eqnarray*}
-   bldTT_\Gamma(\lambda x_1,\ldots,x_n @ e)
+   bldTT_\Gamma(\lambda x_1,\ldots,x_n @ e_1,\ldots,e_m)
    &\defs& (t,vt',tt')
 \\ \WHERE && new~t; new~t_1; \ldots ; new~t_n
-\\ && (t_e,vt_e,tt_e) = bldTT_{(\Gamma\oplus{x_i \mapsto t_i})}(e,vt,tt)
-\\ && (vt',tt') = (vt_e,tt_e \oplus t \mapsto t_1 \fun \ldots \fun t_n \fun t_e)
+\\  && (t'_1,vt_1,tt_1) = bldTT_\Gamma(e_1,vt,tt)
+\\  && \vdots
+\\  && (t'_m,vt_m,tt_m) = bldTT_\Gamma(e_n,vt_{m-1},tt_{m-1})
+\\ && (vt',tt')
+      =
+      (vt_m, tt_m
+             \oplus t
+             \mapsto
+             t_1 \fun \ldots \fun t_n \fun (t'_1 \times \dots \times t'_m)
 \end{eqnarray*}
 \begin{code}
   bld gamma (Abs nm _ evs es) vt tt -- broken (we need dictionaries here)
@@ -1035,7 +1042,7 @@ Abstraction
         let tvs = map Tvar ts
         let gamma' = (lbuild (zip (map varKey evs) tvs)):gamma
         (tes,vte,tte,_,ft) <- blds gamma' es vt tt
-        let typ' = mmap tvs (Tvar tes)
+        let typ' = mkTprod (map Tvar tes)
         let tt' = insTentry t typ' tte
         return (t,vte,tt',[],Nothing)
    where
