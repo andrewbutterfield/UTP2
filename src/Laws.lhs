@@ -32,17 +32,18 @@ is a predicate guaranteed to evaluate true for all (well-defined)
 values for its free variables.
 A consequence of this notion of theoremhood is the fact,
 for arbitrary $\vec x$,
-that the following three statements are equivalent:
+that the following statements are equivalent:
 \begin{enumerate}
   \item $P$ is a theorem
   \item $\forall \vec x @ P$ is a theorem
   \item $[P]$ is a theorem
+  \item $[P]$ evaluates to $\TRUE$.
 \end{enumerate}
 So when we record laws, we strip out top-level universal quantifiers,
 and do the same for any goal predicate being matched against
 an \emph{entire}%
 \footnote{
- See the section (p\pageref{sssec:law-matches}) on matching types below
+ See the section (p\pageref{sssec:law-matches}) on matching types
  for cases where we match against parts of laws.
 }
  law.
@@ -56,18 +57,19 @@ hm_stripForall = (
       , "This command does this only for a top-level focus in a Law-Reduce proof."
       ])
 
-remOuterForall (Forall _ _ p)  =  remOuterForall p
-remOuterForall (Univ _ p)      =  remOuterForall p
-remOuterForall p               =  p
+remOuterForall (PAbs nm _ _ [p])
+ | nm == n_Forall  =  remOuterForall p
+ | nm == n_Univ    =  remOuterForall p
+remOuterForall p   =  p
 \end{code}
 
 \newpage
 \subsection{Well-Formed Laws}
 
 If the top-level predicate of a law is \texttt{Eqv},
-then the lhs cannot be a single \texttt{Pvar},
+then the lhs cannot be a single \texttt{PVar},
 so laws of the form $F(A)\equiv A$ and $A \equiv F(A)$
-are both represented as \texttt{Eqv (repr-F ... Pvar "A") (Pvar"A")}.
+are both represented as \texttt{Eqv (repr-F ... PVar "A") (PVar"A")}.
 
 The (vacuous) law $A \equiv A$ is not allowed.
 This latter is a nuisance as it always matches,
@@ -85,8 +87,8 @@ Also very important is to ensure that a law
 uses unique bound variables, which can always be ensured by
 alpha-renaming.
 \begin{code}
-pred2law pr@(Eqv (Pvar s) (Pvar t)) = if s==t then TRUE else pr
-pred2law (Eqv pv@(Pvar a) rhs) = (Eqv (uniqueBinds rhs) pv)
+pred2law pr@(Eqv (PVar s) (PVar t)) = if s==t then TRUE else pr
+pred2law (Eqv pv@(PVar a) rhs) = (Eqv (uniqueBinds rhs) pv)
 pred2law pr = uniqueBinds pr
 
 uniqueBinds = freeBoundPartition mctxt0
@@ -189,7 +191,7 @@ scMatch mctxt ttts ptts ttags ptags
                  = [(bindV (parseVariable  pvar) (parseVariable  tvar),[],[])]
 scMatch mctxt ttts ptts ttags ptags
         (SCisCond PredM tvar) (SCisCond PredM pvar)
-            = [(bindP (parseGenRoot  pvar) (Pvar $ parseGenRoot  tvar),[],[])]
+            = [(bindP (parseGenRoot  pvar) (PVar $ parseGenRoot  tvar),[],[])]
 
 scMatch mctxt ttts ptts ttags ptags
         (SCfresh ObsM tvar) (SCfresh ObsM pvar)  = [(bindV pvar tvar,[],[])]
@@ -201,7 +203,7 @@ scMatch mctxt ttts ptts ttags ptags
 
 scMatch mctxt ttts ptts ttags ptags
         (SCnotFreeIn PredM tvs tvar) (SCnotFreeIn PredM pvs pvar)
- = moMerge (bindP (parseGenRoot pvar) (Pvar $ parseGenRoot tvar),[],[])
+ = moMerge (bindP (parseGenRoot pvar) (PVar $ parseGenRoot tvar),[],[])
            (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags
@@ -211,7 +213,7 @@ scMatch mctxt ttts ptts ttags ptags
 
 scMatch mctxt ttts ptts ttags ptags
         (SCareTheFreeOf PredM tvs tvar) (SCareTheFreeOf PredM pvs pvar)
- = moMerge (bindP (parseGenRoot pvar) (Pvar $ parseGenRoot tvar),[],[])
+ = moMerge (bindP (parseGenRoot pvar) (PVar $ parseGenRoot tvar),[],[])
            (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags
@@ -221,7 +223,7 @@ scMatch mctxt ttts ptts ttags ptags
 
 scMatch mctxt ttts ptts ttags ptags
         (SCcoverTheFreeOf PredM tvs tvar) (SCcoverTheFreeOf PredM pvs pvar)
- = moMerge (bindP (parseGenRoot pvar) (Pvar $ parseGenRoot tvar),[],[])
+ = moMerge (bindP (parseGenRoot pvar) (PVar $ parseGenRoot tvar),[],[])
            (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags tsc psc = []
@@ -577,7 +579,7 @@ checkPBindings types gpbinds
       allTypesBool ets
  where
    getObs []                  =  []
-   getObs ((TO (Obs e)):prs)  =  e : getObs prs
+   getObs ((TO (PExpr e)):prs)  =  e : getObs prs
    getObs (_:prs)             =  getObs prs
 \end{code}
 
@@ -1375,8 +1377,8 @@ translateSideCondIC fovs mctxt ctxtsc (gpbnds,vebnds,ttbnds) sc
 
    trP pnm = case tlookup gpbnds pnm of
               Just (TO pr)   ->  pr
-              Just (VSO vs)  ->  Pvar $ varGenRoot $ queryVString $ show vs
-              _              ->  Pvar $ varGenRoot $ queryVString pnm
+              Just (VSO vs)  ->  PVar $ varGenRoot $ queryVString $ show vs
+              _              ->  PVar $ varGenRoot $ queryVString pnm
 
    trQs = lnorm . concat
           . map (translateQVar vebnds (knownObs mctxt)
@@ -1478,12 +1480,12 @@ rankAdjust mctxt lawpart       All   rank = 100*rank  -- complete matches are ve
 rankAdjust mctxt lawpart       LEqv  rank = 10*rank   -- prefer equivalences
 rankAdjust mctxt lawpart       REqv  rank = 10*rank
 
-rankAdjust mctxt (Pvar root) TREqv rank
+rankAdjust mctxt (PVar root) TREqv rank
  = case tslookup (knownPreds mctxt) (show root) of
      Nothing   ->  rank `div` 5   -- trivial matches  are usually uninteresting
      (Just _)  ->  5 * rank       -- except if it applies to "known" predicates
 
-rankAdjust mctxt (Obs (Var v)) TREqv rank
+rankAdjust mctxt (PExpr (Var v)) TREqv rank
  | isEVar v
  = case tsvlookup (knownExprs mctxt) v of
      Nothing -> rank `div` 5 -- trivial matches  are usually uninteresting
@@ -1537,10 +1539,10 @@ to the lefthand-side of the equivalence/equality,
 returning the rhs as the replacement, if successful.
 \begin{code}
 lEqvPossibilities tts (Eqv lhs rhs,sc) = [( LEqv, lhs, sc, tts, [rhs] )]
-lEqvPossibilities tts (Obs (Equal lhs rhs),sc)
-                                = [( LEqv, Obs lhs, sc, tts, [Obs rhs] )]
--- lEqvPossibilities tts (Obs (Equal lhs rhs),sc)
---                                 = [( LEqv, Obs lhs, sc, tts, [Obs rhs] )]
+lEqvPossibilities tts (PExpr (Equal lhs rhs),sc)
+                                = [( LEqv, PExpr lhs, sc, tts, [PExpr rhs] )]
+-- lEqvPossibilities tts (PExpr (Equal lhs rhs),sc)
+--                                 = [( LEqv, PExpr lhs, sc, tts, [PExpr rhs] )]
 lEqvPossibilities _ _ = []
 \end{code}
 
@@ -1551,14 +1553,21 @@ observation or meta-variable --- i.e. matches that would always succeed.
 \emph{The completeness of this assumes that \texttt{pred2law} has been
 applied to every law.}
 \begin{code}
-rEqvPossibilities tts (Eqv lhs rhs@(Pvar _),sc) = []
-rEqvPossibilities tts (Obs (Equal lhs rhs@(Var _)),sc) = []
+rEqvPossibilities tts
+  ( PApp nm [lhs, rhs@(PVar _)], sc )
+  | nm == n_Eqv  =  []
+rEqvPossibilities tts
+  (PExpr ( App nm [lhs, rhs@(Var _)] ), sc )
+  | nm == N_Equal  =  []
 
-rEqvPossibilities tts (Eqv lhs rhs,sc)   = [( REqv, rhs,sc, tts, [lhs] )]
-rEqvPossibilities tts (Obs (Equal lhs rhs),sc)
-     = [( REqv, Obs rhs, sc, tts, [Obs lhs] )]
--- rEqvPossibilities tts (Obs (Equal lhs rhs),sc)
---      = [( REqv, Obs rhs, sc, tts, [Obs lhs] )]
+rEqvPossibilities tts
+  ( PApp nm [lhs, rhs], sc )
+  | nm == n_Eqv  =  [( REqv, rhs,sc, tts, [lhs] )]
+rEqvPossibilities tts
+  (PExpr ( App nm [lhs, rhs] ), sc )
+  | nm == n_Equal  =  [( REqv, PExpr rhs, sc, tts, [PExpr lhs] )]
+-- rEqvPossibilities tts (PExpr (Equal lhs rhs),sc)
+--      = [( REqv, PExpr rhs, sc, tts, [PExpr lhs] )]
 
 rEqvPossibilities _ _ = []
 \end{code}
@@ -1578,7 +1587,9 @@ The replacement returned is $P \land Q$%
 ,
 in keeping with the equivalent equational law $P \equiv P \land Q$.
 \begin{code}
-antePossibilities tts (Imp ante cnsq,sc) = [( Ante, ante, sc, tts, [And [ante,cnsq]] )]
+antePossibilities tts
+  ( PApp nm [ante, cnsq], sc )
+  | nm == n_Imp  =  [( Ante, ante, sc, tts, [And [ante,cnsq]] )]
 antePossibilities _ _ = []
 \end{code}
 
@@ -1586,7 +1597,9 @@ antePossibilities _ _ = []
 and matches against the consequent $Q$,
 with replacement $Q \lor P$.
 \begin{code}
-cnsqPossibilities tts (Imp ante cnsq,sc) = [( Cnsq, cnsq, sc, tts, [Or [cnsq,ante]] )]
+cnsqPossibilities tts
+  ( PApp nm [ ante, cnsq], sc )
+  | nm == n_Imp  =  [( Cnsq, cnsq, sc, tts, [Or [cnsq,ante]] )]
 cnsqPossibilities _ _ = []
 \end{code}
 
@@ -1594,8 +1607,11 @@ cnsqPossibilities _ _ = []
 matches against $Q$ in law $P \implies (Q \equiv R)$
 and uses $\seqof{P,R}$ as replacements.
 \begin{code}
-lceqvPossibilities tts (Imp ante (Eqv clhs crhs),sc)
-      = [( LCEqv, clhs, sc, tts, [ante,crhs] )]
+lceqvPossibilities tts
+  ( PApp nm1 [ ante
+             , PApp nm2 [clhs, crhs] ]
+  , sc )
+  | nm1 == n_Imp && nm2 == n_Eqv  =  [( LCEqv, clhs, sc, tts, [ante,crhs] )]
 lceqvPossibilities _ _ = []
 \end{code}
 
@@ -1603,8 +1619,11 @@ lceqvPossibilities _ _ = []
 matches against $R$ in law $P \implies (Q \equiv R)$
 and uses $\seqof{P,Q}$ as replacements.
 \begin{code}
-rceqvPossibilities tts (Imp ante (Eqv clhs crhs),sc)
-      = [( RCEqv, crhs, sc, tts, [ante,clhs] )]
+rceqvPossibilities tts
+  ( PApp nm1 [ ante
+             , PApp nm2 [clhs, crhs] ]
+  , sc )
+  | nm1 == n_Imp && nm2 == n_Eqv  =  [( RCEqv, crhs, sc, tts, [ante,clhs] )]
 rceqvPossibilities _ _ = []
 \end{code}
 
@@ -1615,14 +1634,14 @@ These are singled out for special treatment, as generally
 they are nuisance matches, but it is useful to be able to call
 upon them from time to time.
 \begin{code}
-treqvPossibilities tts (Eqv lhs rhs@(Pvar _),sc)
-     = [( TREqv, rhs, sc, tts, [lhs] )]
-treqvPossibilities tts (Obs (Equal lhs rhs@(Var v)),sc)
-      = [( TREqv, Obs rhs, sc, tts, [Obs lhs] )]
--- treqvPossibilities tts (Obs (Equal lhs rhs@(Var _)),sc)
---       = [( TREqv, Obs rhs, sc, tts, [Obs lhs] )]
--- treqvPossibilities tts (Obs (Equal lhs rhs@(Evar _)),sc)
---       = [( TREqv, Obs rhs, sc, tts, [Obs lhs] )]
+treqvPossibilities tts (PApp nm [lhs, rhs@(PVar _)],sc)
+  | nm == n_Eqv  = [( TREqv, rhs, sc, tts, [lhs] )]
+treqvPossibilities tts (PExpr (App nm [lhs,rhs@(Var _)]),sc)
+  | nm == n_Equal  = [( TREqv, PExpr rhs, sc, tts, [PExpr lhs] )]
+-- treqvPossibilities tts (PExpr (Equal lhs rhs@(Var _)),sc)
+--       = [( TREqv, PExpr rhs, sc, tts, [PExpr lhs] )]
+-- treqvPossibilities tts (PExpr (Equal lhs rhs@(Evar _)),sc)
+--       = [( TREqv, PExpr rhs, sc, tts, [PExpr lhs] )]
 
 treqvPossibilities _ _ = []
 \end{code}
@@ -1707,17 +1726,17 @@ We have matched a predicate (\texttt{tpr})
 (which may in fact be focussed onto an expression
 of non-boolean type),
 against a law to get a replacement predicate (\texttt{rep})
-(which may be an expression wrapped in \texttt{Obs}).
+(which may be an expression wrapped in \texttt{PExpr}).
 
 We have a range of combinations we may want to handle:
 
 \begin{tabular}{|l|p{1.5in}|p{1.5in}|}
   \hline
-  \texttt{tpr}$\backslash$ \texttt{rep} & Pred & Expr (inside Obs) \\
+  \texttt{tpr}$\backslash$ \texttt{rep} & Pred & Expr (inside PExpr) \\
   \hline
   Pred
   & replace Pred by Pred
-  & replace Pred by Obs Expr \\
+  & replace Pred by PExpr Expr \\
   \hline
   Focussed Expr
   & should not occur except at top-level
@@ -1729,10 +1748,10 @@ We have a range of combinations we may want to handle:
   \hline
 \end{tabular}
 
-\textbf{Deprecated: Also, any \texttt{Pvar} in the replacement, not bound to any predicate,
+\textbf{Deprecated: Also, any \texttt{PVar} in the replacement, not bound to any predicate,
 is replaced by its known equivalent.}
 
-The only variables (Pvar, Var, Evar) replaced below
+The only variables (PVar, Var, Evar) replaced below
 are those that occur explicitly in the bindings.
 \begin{code}
 hm_applyLaw = (
@@ -1747,9 +1766,9 @@ hm_applyLaw = (
     "soundness of the proof is threatened.",
     "More on this in the section about \'?\'."])
 
--- matchReplace mctxt tpr@(Obs fe@(Efocus _ eancs)) (_,(mtyp,_,bnds,reps),_)
+-- matchReplace mctxt tpr@(PExpr fe@(Efocus _ eancs)) (_,(mtyp,_,bnds,reps),_)
 --  = case instantiatePred mctxt bnds (head reps) of
---     (Obs e)  ->  Obs (repEFocus e fe)
+--     (PExpr e)  ->  PExpr (repEFocus e fe)
 --     rpred       ->  if null eancs
 --                      then rpred
 --                      else tpr  -- no replacement done
@@ -1758,7 +1777,7 @@ hm_applyLaw = (
 --  | i==0  = rpred -- no substitution focus
 --  | otherwise
 --    = case rpred of
---        (Obs e)  ->  (Sub pr (repSFocus e sub))
+--        (PExpr e)  ->  (Sub pr (repSFocus e sub))
 --        _           ->  tpr -- should never happen !!
 --  where
 --   rpred = instantiatePred mctxt bnds (head reps)
@@ -1807,18 +1826,17 @@ such that its free-variables do not overlap any \texttt{qvs}.
 \textbf{As currently formulated it does not tidy-up \texttt{qvs}.
 }
 \begin{code}
-existentialWitness mctxt sc wsubs epr@(Exists _ qvs body)
-  = Or [wpr,epr] -- put witness first
+existentialWitness mctxt sc wsubs epr@(PAbs nm _ qvs body)
+ | nm == n_Exists
+  = mkOr [wpr,epr] -- put witness first
   where
     wpr
-     | qnull qws  =  wbody
-     | otherwise  =  Exists 0 qws wbody
+     | null qws  =  wbody
+     | otherwise  =  mkExists qws wbody
     qws = remSubVars (lnorm (snd (unwrapQV wsubs))) (lnorm(getqovars qvs))
     wbody = predONSub mctxt sc wsubs body
-    qnull (Q []) = True
-    qnull _      = False
 
 existentialWitness mctxt sc wsubs pr = pr
 
-remSubVars subvs qvs = Q (qvs \\ subvs)
+remSubVars subvs qvs = (qvs \\ subvs)
 \end{code}

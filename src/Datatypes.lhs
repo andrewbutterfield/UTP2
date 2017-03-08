@@ -561,6 +561,9 @@ n_Exists1 = "Exists1"
 mkExists1 ([]) p = FALSE
 mkExists1 qvs p = PAbs "Exists1" 0 qvs [p]
 
+n_Univ = "Univ"
+mkUniv p =  PAbs n_Univ 0 [] [p]
+
 mkSub p (Substn []) = p
 mkSub p sub = Sub p sub
 
