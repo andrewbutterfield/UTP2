@@ -108,38 +108,15 @@ setTypeTags pr
  = runu 1 $ pset pr
  where
 
-   pset (Obs e)  =  fmap Obs $ eset e
-   pset (Defd e)  =  fmap Defd $ eset e
+   pset (PExpr e)  =  fmap PExpr $ eset e
    pset (TypeOf e typ) = fmap (flip TypeOf typ) $ eset e
 
-   pset (Not pr)  =  fmap Not $ pset pr
-   pset (And prs)  =  fmap And $ mapM pset prs
-   pset (Or prs)  =  fmap Or $ mapM pset prs
-   pset (Imp pr1 pr2)  =  liftM2 Imp (pset pr1) (pset pr2)
-   pset (Eqv pr1 pr2)  =  liftM2 Eqv (pset pr1) (pset pr2)
-   pset (Forall _ qvs pr) = qset1 Forall qvs pset pr
-   pset (Exists _ qvs pr)  =  qset1 Exists qvs pset pr
-   pset (Exists1 _ qvs pr)  =  qset1 Exists1 qvs pset pr
-   pset (Univ _ pr)
-    = do tt <- newu
-         pr' <- pset pr
-         return $ Univ tt pr'
-   pset (Sub pr esub)  =  liftM2 Sub (pset pr) (sset eset esub)
-   pset (If prc prt pre)  =  liftM3 If (pset prc) (pset prt) (pset pre)
-   pset (NDC pr1 pr2)  =  liftM2 NDC (pset pr1) (pset pr2)
-   pset (RfdBy pr1 pr2)  =  liftM2 RfdBy (pset pr1) (pset pr2)
+   pset (PApp nm prs)  =  fmap (PApp nm) $ mapM pset prs
+   pset (PAbs nm tt qs prs)  =  fmap (PAbs nm tt qs) $ mapM pset prs
    pset (Lang str i les sss)
     =  do les' <- mapM lset les
           return $ Lang str i les' sss
-   pset (Pforall qvs pr)  =  fmap (Pforall qvs) $ pset pr
-   pset (Pexists qvs pr)  =  fmap (Pexists qvs) $ pset pr
-   pset (Psub pr psub)  =  liftM2 Psub (pset pr) (sset pset psub)
-   pset (Psapp pr prset)  =  liftM2 Psapp (pset pr) (psset prset)
-   pset (Psin pr prset)  =  liftM2 Psapp (pset pr) (psset prset)
-   pset (Peabs qvs pr)  =  fmap (Peabs qvs) $ pset pr
-   pset (Ppabs qvs pr)  =  fmap (Ppabs qvs) $ pset pr
-   pset (Papp pr1 pr2)  =  liftM2 Papp (pset pr1) (pset pr2)
-   pset (Pfocus pr)  =  fmap Pfocus $ pset pr
+   pset (Sub pr sub)  =  liftM2 Sub (pset pr) (sset eset sub)
    pset pr  =  return pr
 
    lset (LExpr e)  =  fmap LExpr $ eset e
@@ -148,17 +125,10 @@ setTypeTags pr
    lset (LCount les)  =  fmap LCount $ mapM lset les
    lset le  =  return le
 
-   psset (PSet prs)  =  fmap PSet $ mapM pset prs
-   psset (PSetC qvs pr1 pr2)  =  liftM2 (PSetC qvs) (pset pr1) (pset pr2)
-   psset (PSetU prset1 prset2)  =  liftM2 PSetU (psset prset1) (psset prset2)
-   psset prset  =  return prset
-
    eset (App str es)  =  fmap (App str) $ mapM eset es
-   eset (Equal e1 e2)  =  liftM2 Equal (eset e1) (eset e2)
-   eset (The _ str pr)  =  qset1 The str pset pr
-   eset (Eabs _ qvs e)  =  qset1 Eabs qvs eset e
-   eset (Esub e esub)  =  liftM2 Esub (eset e) (sset eset esub)
-   eset (Efocus e)  =  fmap Efocus $ eset e
+   eset (Abs nm tt qvs es)  =  fmap (Abs nm tt qvs) $ mapM eset es
+   eset (ESub e esub)  =  liftM2 ESub (eset e) (sset eset esub)
+   eset (EPred pr) = fmap EPred $ pset pr
    eset e  =  return e
 
    qset1 quant qvs tset thing
@@ -190,39 +160,14 @@ recBoundTVars mctxt pr
  = prec [] pr
  where
 
-   prec tts (Obs e)  =  fmap12 Obs erec tts e
-   prec tts (Defd e)  =  fmap12 Defd erec tts e
+   prec tts (PExpr e)  =  fmap12 PExpr erec tts e
    prec tts (TypeOf e typ)  =  fmap12 (flip TypeOf typ) erec tts e
-   prec tts (Not pr)  =  fmap12 Not prec tts pr
-   prec tts (And prs)  =  app12 And $ mapM12 prec tts prs
-   prec tts (Or prs)  =  app12 Or $ mapM12 prec tts prs
-   prec tts (Imp pr1 pr2)  =  liftM12 Imp tts prec pr1 prec pr2
-   prec tts (Eqv pr1 pr2)  =  liftM12 Eqv tts prec pr1 prec pr2
-   prec tts (Forall tt qvs pr)  =  qrec tts Forall tt qvs prec pr
-   prec tts (Exists tt qvs pr)  =  qrec tts Exists tt qvs prec pr
-   prec tts (Exists1 tt qvs pr)  =  qrec tts Exists1 tt qvs prec pr
-   prec tts (Univ tt pr)
-    = do let vs = predFreeVars mctxt pr
-         vtyps <- qvrec tnil vs
-         let tts' = (tt,vtyps):tts
-         (pr', tts'') <- prec tts' pr
-         return (Univ tt pr', tts'')
+   prec tts (PApp nm prs)  =  app12 (PApp nm) $ mapM12 prec tts prs
+   prec tts (PAbs nm tt qs prs)  =  app12 (PAbs nm tt qs) $ mapM12 prec tts prs
    prec tts (Sub pr esub)  =  liftM12 Sub tts prec pr (srec erec) esub
-   prec tts (If prc prt pre)  =  liftM13 If tts prec prc prec prt prec pre
-   prec tts (NDC pr1 pr2)  =  liftM12 NDC tts prec pr1 prec pr2
-   prec tts (RfdBy pr1 pr2)  =  liftM12 RfdBy tts prec pr1 prec pr2
    prec tts (Lang str i les sss)
     =  do (les',tts') <- mapM12 lrec tts les
           return (Lang str i les' sss, tts')
-   prec tts (Pforall qvs pr)  =  fmap12 (Pforall qvs) prec tts pr
-   prec tts (Pexists qvs pr)  =  fmap12 (Pexists qvs) prec tts pr
-   prec tts (Psub pr psub)  =  liftM12 Psub tts prec pr (srec prec) psub
-   prec tts (Psapp pr prset)  =  liftM12 Psapp tts prec pr psrec prset
-   prec tts (Psin pr prset)  =  liftM12 Psin tts prec pr psrec prset
-   prec tts (Peabs qvs pr)  =  fmap12 (Peabs qvs) prec tts pr
-   prec tts (Ppabs qvs pr)  =  fmap12 (Ppabs qvs) prec tts pr
-   prec tts (Papp pr1 pr2)  =  liftM12 Papp tts prec pr1 prec pr2
-   prec tts (Pfocus pr)  =  fmap12 Pfocus prec tts pr
    prec tts pr  =  return (pr, tts)
 
    lrec tts (LExpr e)  =  app12 LExpr $ erec tts e
@@ -231,26 +176,14 @@ recBoundTVars mctxt pr
    lrec tts (LCount les)  =  app12 LCount $ mapM12 lrec tts les
    lrec tts le  =  return (le, tts)
 
-   psrec tts (PSet prs)  =  app12 PSet $ mapM12 prec tts prs
-   psrec tts (PSetC qvs pr1 pr2)  =  liftM12 (PSetC qvs) tts prec pr1 prec pr2
-   psrec tts (PSetU prrec1 prrec2)  =  liftM12 PSetU tts psrec prrec1 psrec prrec2
-   psrec tts prrec  =  return (prrec, tts)
-
-   erec tts (App str es)  =  app12 (App str) $ mapM12 erec tts es
-   erec tts (Equal e1 e2)  =  liftM12 Equal tts erec e1 erec e2
-   erec tts (The tt v pr)
-    = do tv <- newu
-         let vtyps = tsingle (varKey v) $ tag2tvar tv
-         let tts' = (tt,vtyps):tts
-         (pr', tts'') <- prec tts' pr
-         return (The tt v pr', tts'')
-   erec tts (Eabs tt qvs e)  =  qrec tts Eabs tt qvs erec e
-   erec tts (Esub e esub)  =  liftM12 Esub tts erec e (srec erec) esub
-   erec tts (Efocus e)  =  fmap12 Efocus erec tts e
+   erec tts (App nm es)  =  app12 (App nm) $ mapM12 erec tts es
+   erec tts (Abs nm tt qs es)  =  app12 (Abs nm tt qs) $ mapM12 erec tts es
+   erec tts (ESub e esub)  =  liftM12 ESub tts erec e (srec erec) esub
+   erec tts (EPred pr)  =  fmap12 EPred prec tts pr
    erec tts e  =  return (e, tts)
 
-   qrec tts quant tt qvs@(Q vs) trec thng
-    = do vtyps <- qvrec tnil vs
+   qrec tts quant tt qvs trec thng
+    = do vtyps <- qvrec tnil qvs
          let tts' = (tt,vtyps):tts
          (thng', tts'') <- trec tts' thng
          return (quant tt qvs thng', tts'')
@@ -261,8 +194,8 @@ recBoundTVars mctxt pr
          let vtyps' = tvupdate v (tag2tvar tv) vtyps
          qvrec vtyps' vs
 
-   qrec2 tts quant tt qvs@(Q vs) t1rec th1 t2rec th2
-    = do vtyps <- qvrec tnil vs
+   qrec2 tts quant tt qvs t1rec th1 t2rec th2
+    = do vtyps <- qvrec tnil qvs
          let tts' = (tt,vtyps):tts
          (th1', tts'') <- t1rec tts' th1
          (th2', tts''') <- t2rec tts' th2
@@ -367,7 +300,7 @@ harvestTypeEqns mctxt tts pr
          return (vt',tts,(te,B):teqs) -- Obs must be boolean
    phvst vt0 tts tags (TypeOf e typ)  =  fmap snd $ ehvst vt0 tts tags e
    phvst vt0 tts tags (PApp nm prs)  =  pshvst vt0 tts tags prs
-   phvst vt0 tts tags (PAbs nm tt qvs prs)  =  pshvst vt0 tts (tt:tags) pr
+   phvst vt0 tts tags (PAbs nm tt qvs prs)  =  pshvst vt0 tts (tt:tags) prs
    phvst vt0 tts tags (Sub pr (Substn ssub))
     = do (vt0', tts', teqs') <- phvst vt0 tts tags pr
          (vt0'',tts'',teqs'') <- fmap snd $ eshvst vt0' tts' tags
@@ -459,9 +392,9 @@ Applications introduce many equations:
 Abstraction is the dual of application:
 \begin{code}
    ehvst vt0 tts tags (Abs nm tt vs es) -- ignore multis for now
-    = do (btyp, (vt0', tts', teqs')) <- eshvst vt0 tts (tt:tags) es
+    = do (btyps, (vt0', tts', teqs')) <- eshvst vt0 tts (tt:tags) es
          let tqvs = qvlookup tts tt vs
-         return (curriedTfun btyp tqvs, (vt0',tts',teqs'))
+         return (curriedTfun (mkTprod btyps) tqvs, (vt0',tts',teqs'))
 \end{code}
 
 %%% KEEP FOR FUTURE USE
@@ -1096,13 +1029,13 @@ Abstraction
 \\ && (vt',tt') = (vt_e,tt_e \oplus t \mapsto t_1 \fun \ldots \fun t_n \fun t_e)
 \end{eqnarray*}
 \begin{code}
-  bld gamma (Abs nm _ evs e) vt tt -- broken (we need dictionaries here)
+  bld gamma (Abs nm _ evs es) vt tt -- broken (we need dictionaries here)
    = do t <- newtvar
         ts <- newtvars evs
         let tvs = map Tvar ts
         let gamma' = (lbuild (zip (map varKey evs) tvs)):gamma
-        (te,vte,tte,_,ft) <- bld gamma' e vt tt
-        let typ' = mmap tvs (Tvar te)
+        (tes,vte,tte,_,ft) <- blds gamma' es vt tt
+        let typ' = mmap tvs (Tvar tes)
         let tt' = insTentry t typ' tte
         return (t,vte,tt',[],Nothing)
    where
