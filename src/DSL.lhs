@@ -280,6 +280,27 @@ Supporting induction:
 indSub e x = Substn [(x,e)]
 \end{code}
 
+\subsubsection{DSL: Predicate Abstraction/Application}
+
+\subsubsection{Expression Variables}
+
+\begin{code}
+n_PEAbs = "PEAbs"
+peAbs qvs bodyp  =  PAbs n_PEAbs 0 qvs [bodyp]
+
+n_PEApp = "PEApp"
+peApp pfun parg = PApp n_PEApp [pfun, parg]
+\end{code}
+
+\subsubsection{Predicate Variables}
+
+\begin{code}
+n_PVAbs = "PVAbs"
+pvAbs pvs bodyp  =  PAbs n_PVAbs 0 pvs [bodyp]
+
+n_PVApp = "PVApp"
+pvApp pfun parg = PApp n_PVApp [pfun, parg]
+\end{code}
 
 \subsection{DSL: generic expressions}
 

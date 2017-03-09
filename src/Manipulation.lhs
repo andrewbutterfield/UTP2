@@ -30,20 +30,25 @@ that can be applied the focus of a goal predicate.
 
 We implement $\beta$-reduction for predicate application:
 \begin{code}
-predBetaReduce mctxt sc (Papp (Ppabs ( []) bodyp) argp)  = bodyp
-predBetaReduce mctxt sc (Papp (Ppabs ( [pv]) bodyp) argp) | isStdV pv
-  = predPSub argp (varGenRoot pv) bodyp
-predBetaReduce mctxt sc (Papp (Ppabs ( (pv:qvs)) bodyp) argp) | isStdV pv
-  = Ppabs ( qvs) $ predPSub argp (varGenRoot pv) bodyp
-
-predBetaReduce mctxt sc (Papp (PAbs ( []) bodyp) (PExpr arge))
-  = bodyp
-predBetaReduce mctxt sc (Papp (PAbs ( [ev]) bodyp) (PExpr arge)) | isStdV ev
-  = predONSub mctxt sc (mkSubs arge ev) bodyp
-predBetaReduce mctxt sc (Papp (PAbs ( (ev:qvs)) bodyp) (PExpr arge)) | isStdV ev
-  = PAbs ( qvs) $ predONSub mctxt sc (mkSubs arge ev) bodyp
-
+predBetaReduce mctxt sc pr@( PApp nm1 [PAbs nm2 _ vs [bodyp], argp] )
+  | nm1 == n_PVApp && nm2 == n_PVAbs  =  pvBetaR mctxt sc vs bodyp argp
+  | nm1 == n_PEApp && nm2 == n_PEAbs  =  peBetaR mctxt sc vs bodyp argp
 predBetaReduce mctxt sc pr = pr
+
+
+pvBetaR mctxt sc [] bodyp arg  =  bodyp
+pvBetaR mctxt sc [pv] bodyp argp
+  | isStdV pv  =  predPSub argp (varGenRoot pv) bodyp
+pvBetaR mctxt sc (pv:qvs) bodyp argp
+  | isStdV pv  =  pvAbs qvs $ predPSub argp (varGenRoot pv) bodyp
+pvBetaR mctxt sc pvs bodyp argp = pvApp (pvAbs pvs bodyp) argp
+
+peBetaR mctxt sc [] bodyp arge  =  bodyp
+peBetaR mctxt sc [ev] bodyp (PExpr arge)
+  | isStdV ev  =  predONSub mctxt sc (mkSubs arge ev) bodyp
+peBetaR mctxt sc (ev:qvs) bodyp (PExpr arge)
+ | isStdV ev  = peAbs qvs $ predONSub mctxt sc (mkSubs arge ev) bodyp
+peBetaR mctxt sc pvs bodyp argp = peApp (peAbs pvs bodyp) argp
 \end{code}
 
 \newpage
@@ -59,44 +64,40 @@ and $\Defd(v)$
 where possible, ordering lists
 and deleting (some) duplicate predicates, if requested:
 \begin{code}
--- not inside Lexts
-prTidy (cTdy,dTdy) (Defd (Var _)) = TRUE
-prTidy (cTdy,dTdy) (Not pr) = Not (prTidy (cTdy,dTdy) pr)
-prTidy (cTdy,dTdy) (And prs)
- | null prs'  =  TRUE
- | null (tail prs')  =  head prs'
- | otherwise         =  mkAnd prs'
- where prs' = cTdy (map (prTidy (cTdy,dTdy)) prs)
-prTidy (cTdy,dTdy) (Or prs)
- | null prs'  =  FALSE
- | null (tail prs')  =  head prs'
- | otherwise         =  mkOr prs'
- where prs' = dTdy (map (prTidy (cTdy,dTdy)) prs)
-prTidy (cTdy,dTdy) (NDC pr1 pr2)
-  = NDC (prTidy (cTdy,dTdy) pr1) (prTidy (cTdy,dTdy) pr2)
-prTidy (cTdy,dTdy) (Imp pr1 pr2)
-  = Imp (prTidy (cTdy,dTdy) pr1) (prTidy (cTdy,dTdy) pr2)
-prTidy (cTdy,dTdy) (Eqv pr1 pr2)
-  = Eqv (prTidy (cTdy,dTdy) pr1) (prTidy (cTdy,dTdy) pr2)
-prTidy (cTdy,dTdy) (If prc prt pre)
-  = If (prTidy (cTdy,dTdy) prc) (prTidy (cTdy,dTdy) prt) (prTidy (cTdy,dTdy) pre)
-prTidy (cTdy,dTdy) (Forall tt qvs pr)
-  = Forall 0 (lqnorm qvs) (prTidy (cTdy,dTdy) pr)
-prTidy (cTdy,dTdy) (Exists tt qvs pr)
-  = Exists 0 (lqnorm qvs) (prTidy (cTdy,dTdy) pr)
-prTidy (cTdy,dTdy) (Exists1 tt qvs pr)
-  = Exists1 0 (lqnorm qvs) (prTidy (cTdy,dTdy) pr)
-prTidy (cTdy,dTdy) (Univ tt pr) = Univ 0 (prTidy (cTdy,dTdy) pr)
+prTidy (cTdy,dTdy) (PApp nm [PExpr (Var _)])
+ | nm == n_Defd  =  TRUE
+
+prTidy (cTdy,dTdy) (PApp nm [pr])
+ | nm == n_Not  =  mkNot (prTidy (cTdy,dTdy) pr)
+
+prTidy (cTdy,dTdy) (PApp nm prs)
+ | nm == n_And  =  prTidyAnd $ cTdy prs'
+ | nm == n_Or   =  prTidyOr  $ dTdy prs'
+ | otherwise    =  PApp nm prs'
+ where prs' = map (prTidy (cTdy,dTdy)) prs
+
+prTidy (cTdy,dTdy) (PAbs nm _ qvs prs)
+  | hasUnorderedQVars nm = PAbs nm 0 (lqnorm qvs) prs'
+  | otherwise            = PAbs nm 0 qvs prs'
+  where prs' = map (prTidy (cTdy,dTdy)) prs
+
 prTidy (cTdy,dTdy) (Sub pr sub) = Sub (prTidy (cTdy,dTdy) pr) sub
-prTidy (cTdy,dTdy) (Ppabs s pr) = Ppabs s (prTidy (cTdy,dTdy) pr)
-prTidy (cTdy,dTdy) (Papp prf pra)
-  = Papp (prTidy (cTdy,dTdy) prf) (prTidy (cTdy,dTdy) pra)
-prTidy (cTdy,dTdy) (Psapp pr spr) = Psapp (prTidy (cTdy,dTdy) pr) spr
-prTidy (cTdy,dTdy) (Psin pr spr) = Psin (prTidy (cTdy,dTdy) pr) spr
-prTidy (cTdy,dTdy) (Pforall pvs pr) = Pforall pvs (prTidy (cTdy,dTdy) pr)
-prTidy (cTdy,dTdy) (Pexists pvs pr) = Pexists pvs (prTidy (cTdy,dTdy) pr)
-prTidy (cTdy,dTdy) (PAbs s pr) = PAbs s (prTidy (cTdy,dTdy) pr)
+
+-- not inside Lexts
 prTidy (cTdy,dTdy) pr = pr
+
+prTidyAnd prs
+ | null prs  =  TRUE
+ | null (tail prs)  =  head prs
+ | otherwise        =  mkAnd prs
+
+prTidyOr prs
+ | null prs  =  FALSE
+ | null (tail prs)  =  head prs
+ | otherwise         =  mkOr prs
+
+hasUnorderedQVars nm
+ = nm `elem` [n_Forall,n_Exists]
 
 predTidy nodup = prTidy (predConjTidy nodup, predDisjTidy nodup)
 
@@ -166,149 +167,150 @@ hm_predSimp = (
     " FALSE /\\ P  -->  FALSE",
     " Q \\/ FALSE  -->  Q",
     " Q \\/ TRUE   -->  TRUE"])
+
+predSimp :: Pred -> Pred
+\end{code}
+\begin{code}
+predSimp (PApp nm prs) = predAppSimp nm prs
+predSimp (PAbs nm tt qs prs) = predAbsSimp nm qs prs
+predSimp (Sub pr sub) = Sub (predSimp pr) sub
+predSimp pr = pr
 \end{code}
 
-First, casting expression truth values up to predicate level:
+THIS CODE SHOULD LOOKUP '\texttt{nm}' IN A TABLE!
 \begin{code}
-predSimp (PExpr T) = TRUE
-predSimp (PExpr F) = FALSE
+predAppSimp nm prs
+ | nm == n_Defd && length prs == 1  =  predSimpDefd pr
+ | nm == n_Not && length prs == 1   =  predSimpNot pr
+ | nm == n_And                      =  predSimpAnd prs
+ | nm == n_Or                       =  predSimpOr  prs
+ | nm == n_Imp && length prs == 2   =  predSimpImp pr1 pr2
+ | nm == n_Eqv && length prs == 2   =  predSimpEqv pr1 pr2
+ | nm == n_If  && length prs == 3   =  predSimpIf  prc prt pre
+ where
+   [pr]          = prs
+   [pr1,pr2]     = prs
+   [prc,prt,pre] = prs
+predAppSimp nm prs = PApp nm prs
 \end{code}
 
-For now, we consider that variables always denote
+ALL THIS CODE BELONGS WITH 'ROOT THEORY' STUFF
+
 \begin{code}
-predSimp (Defd (Var _)) = TRUE
+predSimpDefd (PApp nm [PExpr (Var _)])
+ | nm == n_Defd  =  TRUE              -- Vars always defined
+predSimpDefd pr  =  PApp n_Defd [pr]
 \end{code}
 
-Negation:
 \begin{code}
-predSimp (Not TRUE) = FALSE
-predSimp (Not FALSE) = TRUE
-predSimp (Not (PExpr T)) = FALSE
-predSimp (Not (PExpr F)) = TRUE
-predSimp (Not (Not pr)) = predSimp pr
-predSimp (Not pr) = Not (predSimp pr)
+predSimpNot TRUE                          = FALSE
+predSimpNot FALSE                         = TRUE
+predSimpNot (PApp nm [pr]) | nm == n_Not  =  predSimp pr
+predSimpNot pr                            = mkNot $predSimp pr
 \end{code}
 
-Conjunction and Disjunction are dual so get similar treatment:
 \begin{code}
-predSimp (And prs)
+predSimpAnd prs
  | null prs'          =  TRUE
- | length prs' == 1   = head prs'
+ | length prs' == 1   =  head prs'
  | FALSE `elem` prs'  =  FALSE
- | F `oelem` prs'     =  FALSE
  | otherwise          =  mkAnd prs'
  where prs' = remPred predIsTrue (map predSimp prs)
+\end{code}
 
-predSimp (Or prs)
+\begin{code}
+predSimpOr prs
  | null prs'          =  FALSE
- | length prs' == 1   = head prs'
+ | length prs' == 1   =  head prs'
  | TRUE `elem` prs'   =  TRUE
- | T `oelem` prs'     =  TRUE
  | otherwise          =  mkOr prs'
  where prs' = remPred predIsFalse (map predSimp prs)
 \end{code}
 
-\newpage
-Implication, Equivalence and Conditional:
 \begin{code}
-predSimp (Imp pr1 TRUE) = TRUE
-predSimp (Imp FALSE pr2) = TRUE
-predSimp (Imp TRUE pr2) = predSimp pr2
-predSimp (Imp pr1 FALSE) = Not (predSimp pr1)
-predSimp (Imp pr1 (PExpr T)) = TRUE
-predSimp (Imp (PExpr F) pr2) = TRUE
-predSimp (Imp (PExpr T) pr2) = predSimp pr2
-predSimp (Imp pr1 (PExpr F)) = Not (predSimp pr1)
-predSimp (Imp pr1 pr2) = Imp (predSimp pr1) (predSimp pr2)
-
-predSimp (Eqv TRUE pr2) = predSimp pr2
-predSimp (Eqv pr1 TRUE) = predSimp pr1
-predSimp (Eqv FALSE pr2) = Not (predSimp pr2)
-predSimp (Eqv pr1 FALSE) = Not (predSimp pr1)
-predSimp (Eqv (PExpr T) pr2) = predSimp pr2
-predSimp (Eqv pr1 (PExpr T)) = predSimp pr1
-predSimp (Eqv (PExpr F) pr2) = Not (predSimp pr2)
-predSimp (Eqv pr1 (PExpr F)) = Not (predSimp pr1)
-predSimp (Eqv pr1 pr2) = Eqv (predSimp pr1) (predSimp pr2)
-
-predSimp (If TRUE prt pre) = predSimp prt
-predSimp (If FALSE prt pre) = predSimp pre
-predSimp (If (PExpr T) prt pre) = predSimp prt
-predSimp (If (PExpr F) prt pre) = predSimp pre
-predSimp (If cond TRUE pre) = predSimp $ Or [cond, pre]
-predSimp (If cond prt TRUE) = predSimp $ Or [Not cond, prt]
-predSimp (If cond FALSE pre) = predSimp $ And [Not cond, pre]
-predSimp (If cond prt FALSE) = predSimp $ And [cond, prt]
-predSimp (If cond (PExpr T) pre) = predSimp $ Or [cond, pre]
-predSimp (If cond prt (PExpr T)) = predSimp $ Or [Not cond, prt]
-predSimp (If cond (PExpr F) pre) = predSimp $ And [Not cond, pre]
-predSimp (If cond prt (PExpr F)) = predSimp $ And [cond, prt]
-predSimp (If prc prt pre)
- = If (predSimp prc) (predSimp prt) (predSimp pre)
+predSimpImp pr1 TRUE   =  TRUE
+predSimpImp FALSE pr2  =  TRUE
+predSimpImp TRUE pr2   =  predSimp pr2
+predSimpImp pr1 FALSE  =  mkNot (predSimp pr1)
+predSimpImp pr1 pr2    =  mkImp (predSimp pr1) (predSimp pr2)
 \end{code}
+
+\begin{code}
+predSimpEqv TRUE pr2   =  predSimp pr2
+predSimpEqv pr1 TRUE   =  predSimp pr1
+predSimpEqv FALSE pr2  =  mkNot (predSimp pr2)
+predSimpEqv pr1 FALSE  =  mkNot (predSimp pr1)
+predSimpEqv pr1 pr2    =  mkEqv (predSimp pr1) (predSimp pr2)
+\end{code}
+
+\begin{code}
+predSimpIf TRUE prt pre    =  predSimp prt
+predSimpIf FALSE prt pre   =  predSimp pre
+predSimpIf cond TRUE pre   =  predSimp $ mkOr  [cond, pre]
+predSimpIf cond prt TRUE   =  predSimp $ mkOr  [mkNot cond, prt]
+predSimpIf cond FALSE pre  =  predSimp $ mkAnd [mkNot cond, pre]
+predSimpIf cond prt FALSE  =  predSimp $ mkAnd [cond, prt]
+predSimpIf prc prt pre
+ = mkIf (predSimp prc) (predSimp prt) (predSimp pre)
+\end{code}
+
+THIS CODE SHOULD LOOKUP '\texttt{nm}' IN A TABLE!
+\begin{code}
+predAbsSimp nm qs [pr]
+ | nm == n_Forall   =  predSimpForall  qs pr
+ | nm == n_Exists   =  predSimpExists  qs pr
+ | nm == n_Exists1  =  predSimpExists1 qs pr
+ | nm == n_Univ     =  predSimpUniv       pr
+predAbsSimp nm qs prs = PAbs nm 0 qs (map predSimp prs)
+\end{code}
+
+ALL THIS CODE BELONGS WITH 'ROOT THEORY' STUFF
 
 Quantification:
 \begin{code}
-predSimp (Forall _ ( []) pr) = predSimp pr
-predSimp (Forall _ qs TRUE) = TRUE
-predSimp (Forall _ qs FALSE) = FALSE
-predSimp (Forall _ qs (PExpr T)) = TRUE
-predSimp (Forall _ qs (PExpr F)) = FALSE
-predSimp (Forall _ qs pr)
- = case (predSimp pr) of
+predSimpForall [] pr     =  predSimp pr
+predSimpForall _  TRUE   =  TRUE
+predSimpForall _  FALSE  =  FALSE
+predSimpForall qs pr
+ = case predSimp pr of
+    TRUE  -> TRUE
+    FALSE -> FALSE
+    spr   -> mkForall qs spr
+\end{code}
+
+\begin{code}
+predSimpExists [] pr     =  predSimp pr
+predSimpExists qs TRUE   =  TRUE
+predSimpExists qs FALSE  =  FALSE
+predSimpExists qs pr
+ = case predSimp pr of
     TRUE -> TRUE
     FALSE -> FALSE
-    spr -> Forall 0 qs spr
+    spr -> mkExists qs spr
+\end{code}
 
-predSimp (Exists _ ( []) pr) = predSimp pr
-predSimp (Exists _ qs TRUE) = TRUE
-predSimp (Exists _ qs FALSE) = FALSE
-predSimp (Exists _ qs (PExpr T)) = TRUE
-predSimp (Exists _ qs (PExpr F)) = FALSE
-predSimp (Exists _ qs pr)
- = case (predSimp pr) of
-    TRUE -> TRUE
+\begin{code}
+predSimpExists1 [] pr     =  FALSE
+predSimpExists1 qs TRUE   =  FALSE
+predSimpExists1 qs FALSE  =  FALSE
+predSimpExists1 qs pr
+ = case predSimp pr of
+    TRUE  -> TRUE
     FALSE -> FALSE
-    spr -> Exists 0 qs spr
+    spr   -> mkExists1 qs spr
+\end{code}
 
-predSimp (Exists1 _ ( []) pr) = FALSE
-predSimp (Exists1 _ qs TRUE) = FALSE
-predSimp (Exists1 _ qs FALSE) = FALSE
-predSimp (Exists1 _ qs (PExpr T)) = FALSE
-predSimp (Exists1 _ qs (PExpr F)) = FALSE
-predSimp (Exists1 _ qs pr)
- = case (predSimp pr) of
-    TRUE -> TRUE
-    FALSE -> FALSE
-    spr -> Exists1 0 qs spr
-
-predSimp (Univ _ pr)
- = case (predSimp pr) of
+\begin{code}
+predSimpUniv pr
+ = case predSimp pr of
      TRUE   ->  TRUE
      FALSE  ->  FALSE
-     spr    ->  Univ 0 spr
+     spr    ->  mkUniv spr
 \end{code}
 
-Miscellaneous stuff:
-\begin{code}
-predSimp (Sub pr sub) = Sub (predSimp pr) sub
-predSimp (Ppabs s pr) = Ppabs s (predSimp pr)
-predSimp (Papp prf pra) = Papp (predSimp prf) (predSimp pra)
-predSimp (Psapp pr spr) = Psapp (predSimp pr) (psetSimp spr)
-predSimp (Psin pr spr) = Psin (predSimp pr) (psetSimp spr)
-predSimp (Pforall pvs pr) = Pforall pvs (predSimp pr)
-predSimp (Pexists pvs pr) = Pexists pvs (predSimp pr)
-predSimp (PAbs s pr) = PAbs s (predSimp pr)
-
-predSimp pr = pr
-\end{code}
 
 Various auxiliaries used to define the above.
 \begin{code}
-_ `oelem` []                 =  False
-e `oelem` ((PExpr e'):rest)  =  e == e' || e `oelem` rest
-e `oelem` (_:rest)          =  e `oelem` rest
-
 predIsTrue TRUE      = True
 predIsTrue _         = False
 
@@ -407,7 +409,7 @@ indicesSplitPred ixs (PApp nm prs)
 
 -- Quantifer splitting
 indicesSplitPred ixs (PAbs nm _ qvs bdps)
-  | isIndexSplittable nm = PAbs nm 0 qixd (PAbs nm 0 qnotixd bdps)
+  | isIndexSplittable nm = PAbs nm 0 qixd [PAbs nm 0 qnotixd bdps]
   where (qixd,qnotixd) = qvarsIxSplit ixs qvs
 
 indicesSplitPred _ pr = pr
@@ -488,14 +490,13 @@ up each predicate extracted from the table:
 expandPred pf preds pr
  = pf (expand [] pr)
  where
-   expand ns pr@(PVar r)
+   expand ns pr@(PVar v)
      | v `elem` ns  =  pr
      | otherwise
-        = case tslookup preds $ show r of
+        = case tslookup preds $ show v of
            Nothing  ->  pr
            (Just prdef)
             -> expand (v:ns) (pf prdef)
-     where v = rootVar $ Gen r
    expand ns (PApp nm prs) = PApp nm (map (expand ns) prs)
    expand ns (PAbs nm _ qs prs) = PAbs nm 0 qs (map (expand ns) prs)
    expand ns (Sub pr sub) = Sub (expand ns pr) sub
@@ -503,26 +504,3 @@ expandPred pf preds pr
 \end{code}
 Note that this function does not enter expressions and
 so will not expand \texttt{PVar}s inside set/sequence comprehensions at present.
-
-\newpage
-\subsection{Error as Identity Handling}
-
-\begin{code}
-manipErrLaws
- = map mrkELaw
-        [emsg_sub_focus
-        ]
-   ++
-   map mrkPLaw
-        [pmsg_free_capture
-        ,pmsg_sub_focus
-        ,pmsg_alphaNYI
-        ]
-
-manipErrPreds
- = map mrkPDef
-        [pmsg_free_capture
-        ,pmsg_sub_focus
-        ,pmsg_alphaNYI
-        ]
-\end{code}
