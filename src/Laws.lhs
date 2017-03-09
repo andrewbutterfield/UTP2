@@ -87,8 +87,10 @@ Also very important is to ensure that a law
 uses unique bound variables, which can always be ensured by
 alpha-renaming.
 \begin{code}
-pred2law pr@(Eqv (PVar s) (PVar t)) = if s==t then TRUE else pr
-pred2law (Eqv pv@(PVar a) rhs) = (Eqv (uniqueBinds rhs) pv)
+pred2law (PApp nm [PVar s, PVar t])
+ | nm == n_Eqv && s==t  =  TRUE
+pred2law (PApp nm [pv@(PVar a), rhs])
+ | nm == n_Eqv          =  (mkEqv (uniqueBinds rhs) pv)
 pred2law pr = uniqueBinds pr
 
 uniqueBinds = freeBoundPartition mctxt0
@@ -191,7 +193,7 @@ scMatch mctxt ttts ptts ttags ptags
                  = [(bindV (parseVariable  pvar) (parseVariable  tvar),[],[])]
 scMatch mctxt ttts ptts ttags ptags
         (SCisCond PredM tvar) (SCisCond PredM pvar)
-            = [(bindP (parseGenRoot  pvar) (PVar $ parseGenRoot  tvar),[],[])]
+            = [(bindP (parseGenRoot  pvar) (PVar $ parseVariable tvar),[],[])]
 
 scMatch mctxt ttts ptts ttags ptags
         (SCfresh ObsM tvar) (SCfresh ObsM pvar)  = [(bindV pvar tvar,[],[])]
@@ -203,7 +205,7 @@ scMatch mctxt ttts ptts ttags ptags
 
 scMatch mctxt ttts ptts ttags ptags
         (SCnotFreeIn PredM tvs tvar) (SCnotFreeIn PredM pvs pvar)
- = moMerge (bindP (parseGenRoot pvar) (PVar $ parseGenRoot tvar),[],[])
+ = moMerge (bindP (parseGenRoot pvar) (PVar $ parseVariable tvar),[],[])
            (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags
@@ -213,7 +215,7 @@ scMatch mctxt ttts ptts ttags ptags
 
 scMatch mctxt ttts ptts ttags ptags
         (SCareTheFreeOf PredM tvs tvar) (SCareTheFreeOf PredM pvs pvar)
- = moMerge (bindP (parseGenRoot pvar) (PVar $ parseGenRoot tvar),[],[])
+ = moMerge (bindP (parseGenRoot pvar) (PVar $ parseVariable tvar),[],[])
            (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags
@@ -223,7 +225,7 @@ scMatch mctxt ttts ptts ttags ptags
 
 scMatch mctxt ttts ptts ttags ptags
         (SCcoverTheFreeOf PredM tvs tvar) (SCcoverTheFreeOf PredM pvs pvar)
- = moMerge (bindP (parseGenRoot pvar) (PVar $ parseGenRoot tvar),[],[])
+ = moMerge (bindP (parseGenRoot pvar) (PVar $ parseVariable tvar),[],[])
            (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags tsc psc = []
@@ -1129,7 +1131,7 @@ forceMatch mctxt edivvy qdivvy bind@(gpbind,vebind,ttbind) sitab mitab msubtab
               (varKey sv++ '_':varKey (eDrop se))             -- v$_e$
               (map mkEq sreps) trie                           -- [..,u=f,..]
      where
-       mkEq (u,f) = Equal (Var u) f
+       mkEq (u,f) = mkEqual (Var u) f
 
    -- splitting it apart
    splitESBindPairs :: Trie [Expr] -> Trie [Variable] -> [(String,[Expr])]
@@ -1140,8 +1142,9 @@ forceMatch mctxt edivvy qdivvy bind@(gpbind,vebind,ttbind) sitab mitab msubtab
     where
       (vs,_es) = break (=='_') vs_es
       (us,fs) = unzip $ map eqsplit usEqFs
-      eqsplit (Equal (Var u) f) = (u,f)
-      eqsplit _                 = (preVar "eqsplit??",F)
+      eqsplit (App nm [Var u, f])
+       | nm == n_Equal  =  (u,f)
+      eqsplit _         =  (preVar "eqsplit??",EPred FALSE)
       estrie' = tenter (++) (tail _es) fs estrie         -- e$ |-> [..,f,..]
       qlist'  = tenter (++) vs us qlist                  -- v$ |-> [..,u,..]
 \end{code}
@@ -1162,7 +1165,7 @@ resolveSingleMatches vebind ((v,(a:_)):stab) mtab
       resolveSingleMatches vebind' stab' mtab'
 
 rems xs x = xs \\ [x]
-remq (Q xs) x = Q (xs \\ [x])
+remq xs x = (xs \\ [x])
 
 remRng rem tab x = map rem2 tab where rem2 (k,d) = (k,d `rem` x)
 \end{code}
@@ -1377,8 +1380,8 @@ translateSideCondIC fovs mctxt ctxtsc (gpbnds,vebnds,ttbnds) sc
 
    trP pnm = case tlookup gpbnds pnm of
               Just (TO pr)   ->  pr
-              Just (VSO vs)  ->  PVar $ varGenRoot $ queryVString $ show vs
-              _              ->  PVar $ varGenRoot $ queryVString pnm
+              Just (VSO vs)  ->  PVar $ queryVString $ show vs
+              _              ->  PVar $ queryVString pnm
 
    trQs = lnorm . concat
           . map (translateQVar vebnds (knownObs mctxt)
@@ -1538,9 +1541,12 @@ and compares the test predicate
 to the lefthand-side of the equivalence/equality,
 returning the rhs as the replacement, if successful.
 \begin{code}
-lEqvPossibilities tts (Eqv lhs rhs,sc) = [( LEqv, lhs, sc, tts, [rhs] )]
-lEqvPossibilities tts (PExpr (Equal lhs rhs),sc)
-                                = [( LEqv, PExpr lhs, sc, tts, [PExpr rhs] )]
+lEqvPossibilities tts
+  ( PApp nm [lhs, rhs], sc )
+  | nm == n_Eqv  =  [( LEqv, lhs, sc, tts, [rhs] )]
+lEqvPossibilities tts
+  (PExpr ( App nm [lhs, rhs]), sc )
+  | nm == n_Equal  =  [( LEqv, PExpr lhs, sc, tts, [PExpr rhs] )]
 -- lEqvPossibilities tts (PExpr (Equal lhs rhs),sc)
 --                                 = [( LEqv, PExpr lhs, sc, tts, [PExpr rhs] )]
 lEqvPossibilities _ _ = []
@@ -1558,7 +1564,7 @@ rEqvPossibilities tts
   | nm == n_Eqv  =  []
 rEqvPossibilities tts
   (PExpr ( App nm [lhs, rhs@(Var _)] ), sc )
-  | nm == N_Equal  =  []
+  | nm == n_Equal  =  []
 
 rEqvPossibilities tts
   ( PApp nm [lhs, rhs], sc )
@@ -1589,7 +1595,7 @@ in keeping with the equivalent equational law $P \equiv P \land Q$.
 \begin{code}
 antePossibilities tts
   ( PApp nm [ante, cnsq], sc )
-  | nm == n_Imp  =  [( Ante, ante, sc, tts, [And [ante,cnsq]] )]
+  | nm == n_Imp  =  [( Ante, ante, sc, tts, [mkAnd [ante,cnsq]] )]
 antePossibilities _ _ = []
 \end{code}
 
@@ -1599,7 +1605,7 @@ with replacement $Q \lor P$.
 \begin{code}
 cnsqPossibilities tts
   ( PApp nm [ ante, cnsq], sc )
-  | nm == n_Imp  =  [( Cnsq, cnsq, sc, tts, [Or [cnsq,ante]] )]
+  | nm == n_Imp  =  [( Cnsq, cnsq, sc, tts, [mkOr [cnsq,ante]] )]
 cnsqPossibilities _ _ = []
 \end{code}
 
@@ -1826,7 +1832,7 @@ such that its free-variables do not overlap any \texttt{qvs}.
 \textbf{As currently formulated it does not tidy-up \texttt{qvs}.
 }
 \begin{code}
-existentialWitness mctxt sc wsubs epr@(PAbs nm _ qvs body)
+existentialWitness mctxt sc wsubs epr@(PAbs nm _ qvs [body])
  | nm == n_Exists
   = mkOr [wpr,epr] -- put witness first
   where
