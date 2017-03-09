@@ -583,7 +583,7 @@ showPredicate vb fpred
 
 showFOPredicate (fpr, _, _, [])  =  show fpr
 showFOPredicate (fpr, _, _, [_])  =  ".. "++show fpr++" .."
-showFOPredicate (fpr, _, _, _)  =  "... "++show fpr++" ..."
+showFOPredicate (fpr, _, _)  =  "... "++show fpr++" ..."
 \end{code}
 
 
@@ -927,7 +927,7 @@ as some predicate.
 \begin{code}
 defnNamePrefix = "DEF "
 isDefnName lawname = defnNamePrefix `isPrefixOf` lawname
-getDefnPreds (Eqv lhs rhs)  =  Just (lhs,rhs)
+getDefnPreds (PApp nm [lhs,rhs]) | nm == n_Eqv  =  Just (lhs,rhs)
 getDefnPreds _              =  Nothing
 \end{code}
 
@@ -942,10 +942,11 @@ findDefns lawtable = fd [] lawtable
 
   fd defns [] = defns
 
-  fd defns ((lname,(((Eqv lhs rhs),sc),_,_)):rest)
-   = case (stripPrefix defnNamePrefix lname) of
-       Nothing  ->  fd defns rest
-       Just defnm  ->  fd ((defnm,lhs,rhs,sc):defns) rest
+  fd defns ((lname,(((PApp nm [lhs,rhs]),sc),_,_)):rest)
+   | nm == n_Eqv
+      = case (stripPrefix defnNamePrefix lname) of
+          Nothing  ->  fd defns rest
+          Just defnm  ->  fd ((defnm,lhs,rhs,sc):defns) rest
 
   fd defns (_:rest) = fd defns rest
 \end{code}
@@ -1547,12 +1548,13 @@ instance Show StratSpec where
   show (SSAss ss) = "Assume, then "++show ss
 
 isSCompatible SSRed         _ = True
-isSCompatible SSL2R (Eqv _ _) = True
-isSCompatible SSR2L (Eqv _ _) = True
-isSCompatible SSRB  (Eqv _ _) = True
+isSCompatible SSL2R (PApp nm [_,_]) | nm == n_Eqv  = True
+isSCompatible SSR2L (PApp nm [_,_]) | nm == n_Eqv  = True
+isSCompatible SSRB  (PApp nm [_,_]) | nm == n_Eqv  = True
 isSCompatible SSLwR         _ = True
 isSCompatible SSInd         _ = True
-isSCompatible (SSAss subs) (Imp _ rhs) = isSCompatible subs rhs
+isSCompatible (SSAss subs) (PApp nm [_,rhs])
+ | nm == n_Imp  = isSCompatible subs rhs
 isSCompatible     _        _  = False
 \end{code}
 
@@ -1597,7 +1599,7 @@ If the goal has  the form $P \equiv Q$ or $P = Q$ then three strategies apply:
 \end{tabular}
 
 \begin{code}
-    Eqv lhs rhs
+    PApp nm [lhs,rhs] | nm == n_Eqv
      -> case str of
          SSL2R  ->  ( prf'{plan=Lhs2Rhs (setPFocus lhs,fvClosed,tts,[])}, [] )
          SSR2L  ->  ( prf'{plan=Rhs2Lhs (setPFocus rhs,fvClosed,tts,[])}, [] )
@@ -1605,7 +1607,7 @@ If the goal has  the form $P \equiv Q$ or $P = Q$ then three strategies apply:
                                         (setPFocus rhs,fvClosed,tts,[])}, [] )
          _      ->  ( proof, [] )
 
-    PExpr (Equal lhs rhs)
+    PExpr (App nm [lhs,rhs]) | nm == n_Equal
      -> case str of
          SSL2R  ->  ( prf'{plan=Lhs2Rhs ( setPFocus (PExpr lhs)
                                         , fvClosed, tts, []) }
@@ -1631,7 +1633,7 @@ If the goal has  the form $P \implies Q$ then one strategy applies
 \end{tabular}
 
 \begin{code}
-    imp@(Imp lhs rhs)
+    imp@(PApp nm [lhs,rhs]) | nm == n_Imp
      -> case str of
         (SSAss subs) ->
          let (hypos,cnsq) = assumptionSplit imp in
@@ -1709,20 +1711,23 @@ assumptionSplit :: Pred -> ([Pred],Pred)
 assumptionSplit
  = replaceImplications . splitHypotheses . findConsequent []
 
-findConsequent hyps (Imp hyp rest) = findConsequent (hyp:hyps) rest
+findConsequent hyps (PApp nm [hyp,rest])
+ | nm == n_Imp  =  findConsequent (hyp:hyps) rest
 findConsequent hyps pr             = (reverse hyps,pr)
 
 splitHypotheses (hyps,cnsq)
  = (concat $ map splitHyp hyps, cnsq)
  where
-  splitHyp (And prs) = prs
-  splitHyp pr        = [pr]
+  splitHyp (PApp nm prs) | nm == n_And  =  prs
+  splitHyp pr                       = [pr]
 
 replaceImplications (hyps,cnsq)
  = (concat $ map replImpl hyps, cnsq)
  where
-   replImpl (Imp ante cnsq)
-     = [ Eqv (And [ante,cnsq]) ante,  Eqv (Or [ante,cnsq]) cnsq]
+   replImpl (PApp nm [ante,cnsq])
+     | nm == n_Imp
+       = [ mkEqv (mkAnd [ante,cnsq]) ante
+         , mkEqv (mkOr  [ante,cnsq]) cnsq ]
    replImpl pr = [pr]
 \end{code}
 
@@ -2034,31 +2039,31 @@ proofDiagnosis proof
  = diagnoseStrategy (goal proof) (plan proof)
  where
 
-  diagnoseStrategy _ (Reduce ((pr,_,_,_),_,_,_))
+  diagnoseStrategy _ (Reduce ((pr,_,_),_,_,_))
     = unlines ["Comparing curr. pred:\n\t"++dbgPshow 8 pr
               ," with TRUE"
               ,"Outcome: "++show (pr=!=TRUE)]
 
-  diagnoseStrategy (PApp nm [lhs,rhs]) (Lhs2Rhs ((pr,_,_,_),_,_,_))
+  diagnoseStrategy (PApp nm [lhs,rhs]) (Lhs2Rhs ((pr,_,_),_,_,_))
    | nm == n_Eqv
       = unlines ["Comparing curr. pred:\n\t"++dbgPshow 8 pr
                 ," with goal rhs:\n\t"++dbgPshow 8 rhs
                 ,"Outcome: "++show (pr=!=rhs)]
 
-  diagnoseStrategy (PApp nm [lhs,rhs]) (Rhs2Lhs ((pr,_,_,_),_,_,_))
+  diagnoseStrategy (PApp nm [lhs,rhs]) (Rhs2Lhs ((pr,_,_),_,_,_))
    | nm == n_Eqv
       = unlines ["Comparing curr. pred:\n\t"++dbgPshow 8 pr
                 ," with goal lhs:\n\t"++dbgPshow 8 lhs
                 ,"Outcome: "++show (pr=!=lhs)]
 
   diagnoseStrategy (PApp nm [lhs,rhs])
-                   (RedBoth brno ((lpr,_,_,_),_,_,_) ((rpr,_,_,_),_,_,_))
+                   (RedBoth brno ((lpr,_,_),_,_,_) ((rpr,_,_),_,_,_))
    | nm == n_Eqv
       = unlines ["Comparing lhs goal:\n\t"++dbgPshow 8 lpr
                 ," with rhs goal:\n\t"++dbgPshow 8 rpr
                 ,"Outcome: "++show (lpr =!= rpr)]
 
-  diagnoseStrategy goal (LawReduce _ _ ((pr,_,_,_),_,_,_))
+  diagnoseStrategy goal (LawReduce _ _ ((pr,_,_),_,_,_))
     = unlines ["Comparing curr. pred:\n\t"++dbgPshow 8 pr
               ," with goal :\n\t"++dbgPshow 8 goal
               ,"Outcome: "++show outcome]
