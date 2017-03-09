@@ -309,8 +309,6 @@ getBin :: String -> (String,Int)
 getBin (_:rest)
  = let (nm,_i) = break (=='_') rest
    in  (nm,read $ tail _i)
-
-
 \end{code}
 
 

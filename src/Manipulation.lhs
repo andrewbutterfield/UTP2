@@ -154,6 +154,8 @@ tidyPred Tall = predTidy True
 \newpage
 \subsubsection{Predicate Simplification}
 
+MOST OF THIS NEEDS TO GO TO MODULES TO DO WITH THE "ROOT-THEORY".
+
 Predicate simplification is
 essentially recursive constant-folding.
 \begin{code}
@@ -303,21 +305,14 @@ predSimp pr = pr
 
 Various auxiliaries used to define the above.
 \begin{code}
-psetSimp (PSet prs) = PSet (map predSimp prs)
-psetSimp (PSetC nms pr1 pr2) = PSetC nms (predSimp pr1) (predSimp pr2)
-psetSimp (PSetU s1 s2) = PSetU (psetSimp s1) (psetSimp s2)
-psetSimp s = s
-
 _ `oelem` []                 =  False
 e `oelem` ((PExpr e'):rest)  =  e == e' || e `oelem` rest
 e `oelem` (_:rest)          =  e `oelem` rest
 
 predIsTrue TRUE      = True
-predIsTrue (PExpr T) = True
 predIsTrue _         = False
 
 predIsFalse FALSE     = True
-predIsFalse (PExpr F) = True
 predIsFalse _         = False
 
 remPred c [] = []
@@ -330,7 +325,7 @@ remPred c (pr:prs) = if c pr then prs' else pr:prs' where prs' = remPred c prs
 This replaces a boolean-value (top-level) expression $e$ by $e \land \Defd(e)$.
 
 \begin{code}
-assertDefined pr@(PExpr e) = And [pr,Defd e]
+assertDefined pr@(PExpr e) = mkAnd [pr,mkDefd e]
 assertDefined pr         = pr
 \end{code}
 
@@ -353,12 +348,19 @@ hm_binderSplit = (
     "The advantage of this is that the unbound terms can be moved,",
     "all at once, outside the expression."])
 
-splitPred splitp (And prs) = mkAnd (joinsplit mkAnd sat notsat)
- where (sat,notsat) = partition splitp prs
-splitPred splitp (Or prs) = mkOr (joinsplit mkOr sat notsat)
+splitPred splitp (PApp nm prs)
+ | isSplittable nm  = PApp nm (joinsplit (PApp nm) sat notsat)
  where (sat,notsat) = partition splitp prs
 splitPred _ pr = pr
 \end{code}
+
+For now, we hardcode \texttt{isIndexSplittable},
+but eventually this will have to come form a table:
+\begin{code}
+isSplittable nm
+ = nm `elem` [n_And,n_Or]
+\end{code}
+
 
 We need to be careful if either sat or notsat are empty or singleton:
 \begin{code}
@@ -410,13 +412,13 @@ indicesSplitPred ixs (PAbs nm _ qvs bdps)
 
 indicesSplitPred _ pr = pr
 \end{code}
-
 For now, we hardcode \texttt{isIndexSplittable},
 but eventually this will have to come form a table:
 \begin{code}
 isIndexSplittable nm
  = nm `elem` [n_And,n_Or,n_Forall,n_Exists]
 \end{code}
+
 
 \newpage
 
