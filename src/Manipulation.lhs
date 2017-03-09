@@ -30,18 +30,18 @@ that can be applied the focus of a goal predicate.
 
 We implement $\beta$-reduction for predicate application:
 \begin{code}
-predBetaReduce mctxt sc (Papp (Ppabs (Q []) bodyp) argp)  = bodyp
-predBetaReduce mctxt sc (Papp (Ppabs (Q [pv]) bodyp) argp) | isStdV pv
+predBetaReduce mctxt sc (Papp (Ppabs ( []) bodyp) argp)  = bodyp
+predBetaReduce mctxt sc (Papp (Ppabs ( [pv]) bodyp) argp) | isStdV pv
   = predPSub argp (varGenRoot pv) bodyp
-predBetaReduce mctxt sc (Papp (Ppabs (Q (pv:qvs)) bodyp) argp) | isStdV pv
-  = Ppabs (Q qvs) $ predPSub argp (varGenRoot pv) bodyp
+predBetaReduce mctxt sc (Papp (Ppabs ( (pv:qvs)) bodyp) argp) | isStdV pv
+  = Ppabs ( qvs) $ predPSub argp (varGenRoot pv) bodyp
 
-predBetaReduce mctxt sc (Papp (Peabs (Q []) bodyp) (Obs arge))
+predBetaReduce mctxt sc (Papp (PAbs ( []) bodyp) (PExpr arge))
   = bodyp
-predBetaReduce mctxt sc (Papp (Peabs (Q [ev]) bodyp) (Obs arge)) | isStdV ev
+predBetaReduce mctxt sc (Papp (PAbs ( [ev]) bodyp) (PExpr arge)) | isStdV ev
   = predONSub mctxt sc (mkSubs arge ev) bodyp
-predBetaReduce mctxt sc (Papp (Peabs (Q (ev:qvs)) bodyp) (Obs arge)) | isStdV ev
-  = Peabs (Q qvs) $ predONSub mctxt sc (mkSubs arge ev) bodyp
+predBetaReduce mctxt sc (Papp (PAbs ( (ev:qvs)) bodyp) (PExpr arge)) | isStdV ev
+  = PAbs ( qvs) $ predONSub mctxt sc (mkSubs arge ev) bodyp
 
 predBetaReduce mctxt sc pr = pr
 \end{code}
@@ -95,7 +95,7 @@ prTidy (cTdy,dTdy) (Psapp pr spr) = Psapp (prTidy (cTdy,dTdy) pr) spr
 prTidy (cTdy,dTdy) (Psin pr spr) = Psin (prTidy (cTdy,dTdy) pr) spr
 prTidy (cTdy,dTdy) (Pforall pvs pr) = Pforall pvs (prTidy (cTdy,dTdy) pr)
 prTidy (cTdy,dTdy) (Pexists pvs pr) = Pexists pvs (prTidy (cTdy,dTdy) pr)
-prTidy (cTdy,dTdy) (Peabs s pr) = Peabs s (prTidy (cTdy,dTdy) pr)
+prTidy (cTdy,dTdy) (PAbs s pr) = PAbs s (prTidy (cTdy,dTdy) pr)
 prTidy (cTdy,dTdy) pr = pr
 
 predTidy nodup = prTidy (predConjTidy nodup, predDisjTidy nodup)
@@ -168,8 +168,8 @@ hm_predSimp = (
 
 First, casting expression truth values up to predicate level:
 \begin{code}
-predSimp (Obs T) = TRUE
-predSimp (Obs F) = FALSE
+predSimp (PExpr T) = TRUE
+predSimp (PExpr F) = FALSE
 \end{code}
 
 For now, we consider that variables always denote
@@ -181,8 +181,8 @@ Negation:
 \begin{code}
 predSimp (Not TRUE) = FALSE
 predSimp (Not FALSE) = TRUE
-predSimp (Not (Obs T)) = FALSE
-predSimp (Not (Obs F)) = TRUE
+predSimp (Not (PExpr T)) = FALSE
+predSimp (Not (PExpr F)) = TRUE
 predSimp (Not (Not pr)) = predSimp pr
 predSimp (Not pr) = Not (predSimp pr)
 \end{code}
@@ -213,67 +213,67 @@ predSimp (Imp pr1 TRUE) = TRUE
 predSimp (Imp FALSE pr2) = TRUE
 predSimp (Imp TRUE pr2) = predSimp pr2
 predSimp (Imp pr1 FALSE) = Not (predSimp pr1)
-predSimp (Imp pr1 (Obs T)) = TRUE
-predSimp (Imp (Obs F) pr2) = TRUE
-predSimp (Imp (Obs T) pr2) = predSimp pr2
-predSimp (Imp pr1 (Obs F)) = Not (predSimp pr1)
+predSimp (Imp pr1 (PExpr T)) = TRUE
+predSimp (Imp (PExpr F) pr2) = TRUE
+predSimp (Imp (PExpr T) pr2) = predSimp pr2
+predSimp (Imp pr1 (PExpr F)) = Not (predSimp pr1)
 predSimp (Imp pr1 pr2) = Imp (predSimp pr1) (predSimp pr2)
 
 predSimp (Eqv TRUE pr2) = predSimp pr2
 predSimp (Eqv pr1 TRUE) = predSimp pr1
 predSimp (Eqv FALSE pr2) = Not (predSimp pr2)
 predSimp (Eqv pr1 FALSE) = Not (predSimp pr1)
-predSimp (Eqv (Obs T) pr2) = predSimp pr2
-predSimp (Eqv pr1 (Obs T)) = predSimp pr1
-predSimp (Eqv (Obs F) pr2) = Not (predSimp pr2)
-predSimp (Eqv pr1 (Obs F)) = Not (predSimp pr1)
+predSimp (Eqv (PExpr T) pr2) = predSimp pr2
+predSimp (Eqv pr1 (PExpr T)) = predSimp pr1
+predSimp (Eqv (PExpr F) pr2) = Not (predSimp pr2)
+predSimp (Eqv pr1 (PExpr F)) = Not (predSimp pr1)
 predSimp (Eqv pr1 pr2) = Eqv (predSimp pr1) (predSimp pr2)
 
 predSimp (If TRUE prt pre) = predSimp prt
 predSimp (If FALSE prt pre) = predSimp pre
-predSimp (If (Obs T) prt pre) = predSimp prt
-predSimp (If (Obs F) prt pre) = predSimp pre
+predSimp (If (PExpr T) prt pre) = predSimp prt
+predSimp (If (PExpr F) prt pre) = predSimp pre
 predSimp (If cond TRUE pre) = predSimp $ Or [cond, pre]
 predSimp (If cond prt TRUE) = predSimp $ Or [Not cond, prt]
 predSimp (If cond FALSE pre) = predSimp $ And [Not cond, pre]
 predSimp (If cond prt FALSE) = predSimp $ And [cond, prt]
-predSimp (If cond (Obs T) pre) = predSimp $ Or [cond, pre]
-predSimp (If cond prt (Obs T)) = predSimp $ Or [Not cond, prt]
-predSimp (If cond (Obs F) pre) = predSimp $ And [Not cond, pre]
-predSimp (If cond prt (Obs F)) = predSimp $ And [cond, prt]
+predSimp (If cond (PExpr T) pre) = predSimp $ Or [cond, pre]
+predSimp (If cond prt (PExpr T)) = predSimp $ Or [Not cond, prt]
+predSimp (If cond (PExpr F) pre) = predSimp $ And [Not cond, pre]
+predSimp (If cond prt (PExpr F)) = predSimp $ And [cond, prt]
 predSimp (If prc prt pre)
  = If (predSimp prc) (predSimp prt) (predSimp pre)
 \end{code}
 
 Quantification:
 \begin{code}
-predSimp (Forall _ (Q []) pr) = predSimp pr
+predSimp (Forall _ ( []) pr) = predSimp pr
 predSimp (Forall _ qs TRUE) = TRUE
 predSimp (Forall _ qs FALSE) = FALSE
-predSimp (Forall _ qs (Obs T)) = TRUE
-predSimp (Forall _ qs (Obs F)) = FALSE
+predSimp (Forall _ qs (PExpr T)) = TRUE
+predSimp (Forall _ qs (PExpr F)) = FALSE
 predSimp (Forall _ qs pr)
  = case (predSimp pr) of
     TRUE -> TRUE
     FALSE -> FALSE
     spr -> Forall 0 qs spr
 
-predSimp (Exists _ (Q []) pr) = predSimp pr
+predSimp (Exists _ ( []) pr) = predSimp pr
 predSimp (Exists _ qs TRUE) = TRUE
 predSimp (Exists _ qs FALSE) = FALSE
-predSimp (Exists _ qs (Obs T)) = TRUE
-predSimp (Exists _ qs (Obs F)) = FALSE
+predSimp (Exists _ qs (PExpr T)) = TRUE
+predSimp (Exists _ qs (PExpr F)) = FALSE
 predSimp (Exists _ qs pr)
  = case (predSimp pr) of
     TRUE -> TRUE
     FALSE -> FALSE
     spr -> Exists 0 qs spr
 
-predSimp (Exists1 _ (Q []) pr) = FALSE
+predSimp (Exists1 _ ( []) pr) = FALSE
 predSimp (Exists1 _ qs TRUE) = FALSE
 predSimp (Exists1 _ qs FALSE) = FALSE
-predSimp (Exists1 _ qs (Obs T)) = FALSE
-predSimp (Exists1 _ qs (Obs F)) = FALSE
+predSimp (Exists1 _ qs (PExpr T)) = FALSE
+predSimp (Exists1 _ qs (PExpr F)) = FALSE
 predSimp (Exists1 _ qs pr)
  = case (predSimp pr) of
     TRUE -> TRUE
@@ -296,7 +296,7 @@ predSimp (Psapp pr spr) = Psapp (predSimp pr) (psetSimp spr)
 predSimp (Psin pr spr) = Psin (predSimp pr) (psetSimp spr)
 predSimp (Pforall pvs pr) = Pforall pvs (predSimp pr)
 predSimp (Pexists pvs pr) = Pexists pvs (predSimp pr)
-predSimp (Peabs s pr) = Peabs s (predSimp pr)
+predSimp (PAbs s pr) = PAbs s (predSimp pr)
 
 predSimp pr = pr
 \end{code}
@@ -309,15 +309,15 @@ psetSimp (PSetU s1 s2) = PSetU (psetSimp s1) (psetSimp s2)
 psetSimp s = s
 
 _ `oelem` []                 =  False
-e `oelem` ((Obs e'):rest)  =  e == e' || e `oelem` rest
+e `oelem` ((PExpr e'):rest)  =  e == e' || e `oelem` rest
 e `oelem` (_:rest)          =  e `oelem` rest
 
 predIsTrue TRUE      = True
-predIsTrue (Obs T) = True
+predIsTrue (PExpr T) = True
 predIsTrue _         = False
 
 predIsFalse FALSE     = True
-predIsFalse (Obs F) = True
+predIsFalse (PExpr F) = True
 predIsFalse _         = False
 
 remPred c [] = []
@@ -330,7 +330,7 @@ remPred c (pr:prs) = if c pr then prs' else pr:prs' where prs' = remPred c prs
 This replaces a boolean-value (top-level) expression $e$ by $e \land \Defd(e)$.
 
 \begin{code}
-assertDefined pr@(Obs e) = And [pr,Defd e]
+assertDefined pr@(PExpr e) = And [pr,Defd e]
 assertDefined pr         = pr
 \end{code}
 
@@ -399,37 +399,28 @@ hm_indexSplit = (
     ])
 
 -- And/Or splitting
-indicesSplitPred ixs (And prs) = And (joinsplit mkAnd ixd notixd)
- where (ixd,notixd) = indicesSplit ixs prs
-indicesSplitPred ixs (Or prs) = Or (joinsplit mkOr ixd notixd)
+indicesSplitPred ixs (PApp nm prs)
+ | isIndexSplittable nm = PApp nm  (joinsplit mkAnd ixd notixd)
  where (ixd,notixd) = indicesSplit ixs prs
 
 -- Quantifer splitting
-indicesSplitPred ixs (Forall _ qvs bdp)
-  = Forall 0 qixd (Forall 0 qnotixd bdp)
-  where (qixd,qnotixd) = qvarsIxSplit ixs qvs
-indicesSplitPred ixs (Exists _ qvs bdp)
-  = Exists 0 qixd (Exists 0 qnotixd bdp)
-  where (qixd,qnotixd) = qvarsIxSplit ixs qvs
-
-indicesSplitPred ixs (Pforall qvs pr)
-  = Pforall qixd (Pforall qnotixd pr)
-  where (qixd,qnotixd) = qvarsIxSplit ixs qvs
-indicesSplitPred ixs (Pexists qvs pr)
-  = Pexists qixd (Pexists qnotixd pr)
-  where (qixd,qnotixd) = qvarsIxSplit ixs qvs
-
-indicesSplitPred ixs (Peabs qvs pr)
-  = Peabs qixd (Peabs qnotixd pr)
-  where (qixd,qnotixd) = qvarsIxSplit ixs qvs
-indicesSplitPred ixs (Ppabs qvs pr)
-  = Ppabs qixd (Ppabs qnotixd pr)
+indicesSplitPred ixs (PAbs nm _ qvs bdps)
+  | isIndexSplittable nm = PAbs nm 0 qixd (PAbs nm 0 qnotixd bdps)
   where (qixd,qnotixd) = qvarsIxSplit ixs qvs
 
 indicesSplitPred _ pr = pr
 \end{code}
 
-\newpage The indices-splitting function that does the hard work:
+For now, we hardcode \texttt{isIndexSplittable},
+but eventually this will have to come form a table:
+\begin{code}
+isIndexSplittable nm
+ = nm `elem` [n_And,n_Or,n_Forall,n_Exists]
+\end{code}
+
+\newpage
+
+The indices-splitting function that does the hard work:
 \begin{code}
 indicesSplit :: Eq a => [Int] -> [a] -> ([a],[a])
 indicesSplit ixs xs
@@ -452,14 +443,14 @@ indicesSplit ixs xs
 Splitting \texttt{QVars}:
 (\emph{Needs re-writing to take account of \texttt{ixs} ordering..}.)
 \begin{code}
-qvarsIxSplit ixs (Q qs)
+qvarsIxSplit ixs ( qs)
  = qixSpl qxs [] [] 1 ixs xs
  where
    (xs,qxs) = vPartition qs
 
    qixSpl qxs dxi dxinot i ixs [] = qixSpl' dxi dxinot [] [] i ixs qxs
 
-   qixSpl qxs dxi dxinot i [] xs = (Q dxi,Q (reverse dxinot++xs++qxs))
+   qixSpl qxs dxi dxinot i [] xs = ( dxi, (reverse dxinot++xs++qxs))
 
    qixSpl qxs dxi dxinot i iixs@(ix:ixs) (x:xs)
     | i <  ix    =  qixSpl qxs dxi     (x:dxinot) i' iixs xs
@@ -468,12 +459,12 @@ qvarsIxSplit ixs (Q qs)
     where i'=i+1
 
    qixSpl' dxi dxinot dxiq dxinotq i ixs []
-    = ( Q (reverse dxi++reverse dxiq)
-      , Q (reverse dxinot++reverse dxinotq) )
+    = (  (reverse dxi++reverse dxiq)
+      ,  (reverse dxinot++reverse dxinotq) )
 
    qixSpl' dxi dxinot dxiq dxinotq i [] qxs
-    = ( Q (reverse dxi++reverse dxiq)
-      , Q (reverse dxinot++reverse dxinotq++qxs) )
+    = (  (reverse dxi++reverse dxiq)
+      ,  (reverse dxinot++reverse dxinotq++qxs) )
 
    qixSpl' dxi dxinot dxiq dxinotq i iixs@(ix:ixs) (qx:qxs)
     | i <  ix    =  qixSpl' dxi dxinot dxiq      (qx:dxinotq) i' iixs qxs
@@ -486,7 +477,7 @@ qvarsIxSplit ixs (Q qs)
 \newpage
 \subsection{Predicate Expansion}
 
-Given a predicate-table list, we fully expand all \texttt{Pvar}s
+Given a predicate-table list, we fully expand all \texttt{PVar}s
 in a predicate, descending recursively.
 This works even if the table has circular dependencies.
 A parameter function (\texttt{pf :: Pred -> Pred}) is used to clean
@@ -495,7 +486,7 @@ up each predicate extracted from the table:
 expandPred pf preds pr
  = pf (expand [] pr)
  where
-   expand ns pr@(Pvar r)
+   expand ns pr@(PVar r)
      | v `elem` ns  =  pr
      | otherwise
         = case tslookup preds $ show r of
@@ -503,42 +494,13 @@ expandPred pf preds pr
            (Just prdef)
             -> expand (v:ns) (pf prdef)
      where v = rootVar $ Gen r
-   expand ns (Not pr) = Not (expand ns pr)
-   expand ns (And prs) = mkAnd (map (expand ns) prs)
-   expand ns (Or prs) = mkOr (map (expand ns) prs)
-   expand ns (NDC pr1 pr2) = NDC (expand ns pr1) (expand ns pr2)
-   expand ns (Imp pr1 pr2) = Imp (expand ns pr1) (expand ns pr2)
-   expand ns (RfdBy pr1 pr2) = RfdBy (expand ns pr1) (expand ns pr2)
-   expand ns (Eqv pr1 pr2) = Eqv (expand ns pr1) (expand ns pr2)
-   expand ns (If prc prt pre)
-    = If (expand ns prc) (expand ns prt) (expand ns pre)
-   expand ns (Forall _ qs pr) = Forall 0 qs (expand ns pr)
-   expand ns (Exists _ qs pr) = Exists 0 qs (expand ns pr)
-   expand ns (Exists1 _ qs pr)  = Exists1 0 qs (expand ns pr)
-   expand ns (Univ _ pr) = Univ 0 (expand ns pr)
+   expand ns (PApp nm prs) = PApp nm (map (expand ns) prs)
+   expand ns (PAbs nm _ qs prs) = PAbs nm 0 qs (map (expand ns) prs)
    expand ns (Sub pr sub) = Sub (expand ns pr) sub
-   expand ns (Ppabs qs@(Q pvs) pr) = Ppabs qs (expand (pvs++ns) pr)
-   expand ns (Papp prf pra) = Papp (expand ns prf) (expand ns pra)
-
-   expand ns (Psapp pr spr) = Psapp (expand ns pr) (sexpand ns spr)
-   expand ns (Psin pr spr) = Psin (expand ns pr) (sexpand ns spr)
-
-   expand ns (Pforall qs@(Q pvs) pr) = Pforall qs (expand (pvs++ns) pr)
-   expand ns (Pexists qs@(Q pvs) pr) = Pexists qs (expand (pvs++ns) pr)
-
-   expand ns (Peabs s pr) = Peabs s (expand ns pr)
-   expand ns (Pfocus pr) = Pfocus $ expand ns pr
    expand ns pr = pr
-
-   sexpand ns (PSet prs) = PSet (map (expand ns) prs)
-   sexpand ns (PSetC qs@(Q pvs) prc pre)
-     = PSetC qs (expand ns' prc) (expand ns' pre)
-     where ns' = pvs ++ ns
-   sexpand ns (PSetU s1 s2) = PSetU (sexpand ns s1) (sexpand ns s2)
-   sexpand ns s = s
 \end{code}
 Note that this function does not enter expressions and
-so will not expand \texttt{Pvar}s inside set/sequence comprehensions at present.
+so will not expand \texttt{PVar}s inside set/sequence comprehensions at present.
 
 \newpage
 \subsection{Error as Identity Handling}
