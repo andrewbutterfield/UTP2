@@ -43,8 +43,8 @@ freeport((err, port) => {
     child.stderr.setEncoding('utf8');
     child.stdout.on('data', console.log);
     child.stderr.on('data', console.log);
-    child.on('close', code =>
-      console.log(`child process exited with code ${code}`));
+    child.on('close', () =>
+      console.log('Threepenny process exited'));
 
     // Wait until the Threepenny server is ready for connections.
     waitOn({ resources: [url], timeout }, (err_) => {
@@ -57,9 +57,7 @@ freeport((err, port) => {
   // for applications and their menu bar to stay active until the user quits
   // explicitly with Cmd + Q
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
+    app.quit();
   });
 
   // Kill the child process when quitting Electron.
