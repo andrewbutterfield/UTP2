@@ -422,8 +422,10 @@ $$
 We want to replace the focussed predicate by a given one.
 \begin{code}
 repPFocus :: Pred -> FPred -> FPred
-
 repPFocus pr' ( pr, ctxt, wayup ) = ( pr', ctxt, wayup )
+
+repPFf :: (Pred -> Pred) -> FPred -> FPred
+repPFf f ( pr, ctxt, wayup ) = ( f pr, ctxt, wayup )
 \end{code}
 
 

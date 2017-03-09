@@ -276,7 +276,7 @@ dummyProof = Proof "-?-" "-dummy-"
                "whodunnit?"
                []
 
-nonsense = Pvar $ Std "Nonsense"
+nonsense = PVar $ Std "Nonsense"
 
 proofLaw proof = (pname proof, (goal proof, side proof))
 
@@ -743,7 +743,7 @@ There are four namespaces:
 typenames (\texttt{Tvar});
 observations variables (\texttt{Var});
 expression-names (\texttt{Evar});
-and predicate-names (\texttt{Pvar}).
+and predicate-names (\texttt{PVar}).
 Quantified variables do not feature in these tables.
 \begin{code}
 data Theory
@@ -754,7 +754,7 @@ data Theory
            , typedefs :: Trie Type         -- TVar
            , consts :: Trie Expr           -- Var
            , exprs  :: Trie Expr           -- Evar
-           , preds  :: Trie Pred           -- Pvar
+           , preds  :: Trie Pred           -- PVar
            -- symbol tables
            , obs    :: Trie ObsKind        -- Var
            , precs  :: Trie Precs          -- Var
@@ -973,7 +973,7 @@ genDummyLangLHS lname (LangSpec les ss)
    inst i (LVar _)         =  LVar  $ Std  $ "v"++show i
    inst i (LType _)        =  LType $ Tvar $ "t"++show i
    inst i (LExpr _)        =  LExpr $ mkEVar $ preVar $ "e"++show i
-   inst i (LPred _)        =  LPred $ Pvar $ Std $ "P"++show i
+   inst i (LPred _)        =  LPred $ PVar $ Std $ "P"++show i
    inst i (LList [])       =  LList []
    inst i (LList (le:_))   =  LList [inst i le]
    inst i (LCount [])      =  LCount []
@@ -1464,7 +1464,7 @@ addLaw name law@(pred,sc,ttbl) (pc:rest) -- updates the top-most context
 
 
 We will want to post-process any change to the current (goal) predicate
-to ensure that the underlying type of any \texttt{Obs} component is correctly set:
+to ensure that the underlying type of any \texttt{PExpr} component is correctly set:
 \begin{code}
 fixFType :: TheoryStack -> FPred -> (FPred, TypeTables)
 fixFType mstk fpr = fpredTypeTables (mkMatchContext mstk) fpr
@@ -1473,7 +1473,7 @@ fixType :: TheoryStack -> Pred -> (Pred, TypeTables)
 fixType mstk pr = predTypeTables (mkMatchContext mstk) pr
 
 ushow  = ushow' . clearPFocus
-ushow' (Obs e) = "Obs("++show e++")"
+ushow' (PExpr e) = "PExpr("++show e++")"
 ushow' pr = fst5 (predParts pr) ++ "(" ++ show pr  ++")"
 \end{code}
 
@@ -1605,17 +1605,17 @@ If the goal has  the form $P \equiv Q$ or $P = Q$ then three strategies apply:
                                         (setPFocus rhs,fvClosed,tts,[])}, [] )
          _      ->  ( proof, [] )
 
-    Obs (Equal lhs rhs)
+    PExpr (Equal lhs rhs)
      -> case str of
-         SSL2R  ->  ( prf'{plan=Lhs2Rhs ( setPFocus (Obs lhs)
+         SSL2R  ->  ( prf'{plan=Lhs2Rhs ( setPFocus (PExpr lhs)
                                         , fvClosed, tts, []) }
                     , [] )
-         SSR2L  ->  ( prf'{plan=Rhs2Lhs ( setPFocus (Obs rhs)
+         SSR2L  ->  ( prf'{plan=Rhs2Lhs ( setPFocus (PExpr rhs)
                                         , fvClosed, tts, []) }
                     , [] )
-         SSRB   ->  ( prf'{plan=RedBoth 1 ( setPFocus (Obs lhs)
+         SSRB   ->  ( prf'{plan=RedBoth 1 ( setPFocus (PExpr lhs)
                                           , fvClosed, tts, [])
-                                          ( setPFocus (Obs rhs)
+                                          ( setPFocus (PExpr rhs)
                                           , fvClosed, tts, []) }
                     , [] )
          _      ->  ( proof, [] )
@@ -1636,7 +1636,6 @@ If the goal has  the form $P \implies Q$ then one strategy applies
         (SSAss subs) ->
          let (hypos,cnsq) = assumptionSplit imp in
          let (assTh,hfv) = mkAssumptionTheory (pname proof) hypos mstk in
-         -- let cnsq' = predRename hfv hypRename cnsq in
          let (subprf,substk) = setStrategy mstk subs
                                    prf'{goal=cnsq,plan=NoStrategy} tts
          in
@@ -1752,7 +1751,7 @@ is a much more intelligent fashion.
 \begin{code}
 dummyOVarDef x = (varKey x,Var x)
 dummyEVarDef e = (varKey e,mkEVar e)
-dummyPVarDef v = (varKey v,Pvar $ varGenRoot v)
+dummyPVarDef v = (varKey v,PVar $ varGenRoot v)
 \end{code}
 
 We need to supply a generic dummmy-definition build function,
@@ -1768,109 +1767,6 @@ buildDummyDefs mkdummy vs tabs
         (Just _) ->  bdd ddefs vs
 \end{code}
 
-
-Renaming specified variables in an expression or predicate
-(now no longer required for assumption strategies).
-\begin{code}
-exprRename fvs renf e = e'
- where (Obs e') = predRename fvs renf (Obs e)
-
-predRename (ovs,evs,pvs) renf pr
- = pRen pr
- where
-
-
-  pRen pr@(Pvar p)
-   | p `elem` pvs  =  Pvar $ varGenRoot $ renf $ rootVar $ Gen p
-   | otherwise     =  pr
-
-  pRen (Forall _ qvs bpr)
-   = Forall 0 qvs (pRen' bpr)
-   where
-     ovs' = ovs \\ getqovars qvs
-     pRen' = predRename (ovs',evs,pvs) renf
-
-  pRen (Exists _ qvs bpr)
-   = Exists 0 qvs (pRen' bpr)
-   where
-     ovs' = ovs \\ getqovars qvs
-     pRen' = predRename (ovs',evs,pvs) renf
-
-  pRen (Exists1 _ qvs bpr)
-   = Exists1 0 qvs (pRen' bpr)
-   where
-     ovs' = ovs \\ getqovars qvs
-     pRen' = predRename (ovs',evs,pvs) renf
-
-  pRen (Peabs qvs pr)
-   = Peabs qvs (pRen' pr)
-   where
-     ovs' = ovs \\ getqovars qvs
-     pRen' = predRename (ovs',evs,pvs) renf
-
-  pRen (Univ _ pr)
-   = Univ 0 (pRen' pr)
-   where
-     pRen' = predRename ([],evs,pvs) renf
-
-  pRen (Sub pr (Substn subs))
-   = Sub (pRen' pr) $ Substn (subsRen eRen ssubs++msubs)
-   where
-     (ssubs,msubs) = sPartition subs
-     ovs' = ovs \\ map fst ssubs
-     pRen' = predRename (ovs',evs,pvs) renf
-
-  pRen (Pforall qs@(Q vs) pr)
-   = Pforall qs (pRen' pr)
-   where
-     pvs' = pvs \\ (map varGenRoot vs)
-     pRen' = predRename (ovs,evs,pvs') renf
-
-  pRen (Pexists qs@(Q vs) pr)
-   = Pexists qs (pRen' pr)
-   where
-     pvs' = pvs \\ (map varGenRoot vs)
-     pRen' = predRename (ovs,evs,pvs') renf
-
-  pRen (Ppabs qs@(Q vs) pr)
-   = Ppabs qs (pRen' pr)
-   where
-     pvs' = pvs \\ (map varGenRoot vs)
-     pRen' = predRename (ovs,evs,pvs') renf
-
-  pRen (Psub pr (Substn subs))
-   = Psub (pRen' pr) $ Substn $ subsRen pRen subs
-   where
-     pvs' = pvs \\ map fst subs
-     pRen' = predRename (ovs,evs,pvs') renf
-
-  pRen pr = mapP (pRen,eRen) pr
-
-  eRen e@(Var v)
-   | isEVar v && v `elem` evs  =  mkEVar (renf v)
-   | v `elem` ovs              =  Var (renf v)
-   | otherwise                 =  e
-
-  eRen (Eabs _ qvs e)
-   = Eabs 0 qvs (eRen' e)
-   where
-     ovs' = ovs \\ getqovars qvs
-     eRen' = exprRename (ovs',evs,pvs) renf
-
-  eRen (Esub e (Substn subs))
-   = Esub (eRen' e) $ Substn (subsRen eRen ssubs ++ msubs)
-   where
-     (ssubs,msubs) = sPartition subs
-     ovs' = ovs \\ map fst ssubs
-     eRen' = exprRename (ovs',evs,pvs) renf
-
-  eRen e = mapE (pRen,eRen) e
-
-
-  subsRen ren = map (subRen ren)
-
-  subRen ren (v,a) = (v,ren a)
-\end{code}
 
 Generating hypotheses as named laws:
 \begin{code}
@@ -1910,7 +1806,6 @@ mkAssumptionTheory pname hs thstk
    let odfns = buildDummyDefs dummyOVarDef ovs (map consts thstk) in
    let edfns = buildDummyDefs dummyEVarDef evs (map exprs  thstk) in
    let pdfns = buildDummyDefs dummyPVarDef pvs (map preds  thstk) in
-   -- let hs' = map (predRename hfv hypRename) hs in
    let mctxt = mkMatchContext thstk in
    let ths = map (predTypeTables mctxt) hs in
    let hlaws = genNamedAssumptions pname ths in
@@ -2002,16 +1897,18 @@ The target depends in general on the goal and strategy:
 \begin{code}
 proofTarget :: Pred -> Strategy -> Pred
 proofTarget _           (Reduce _)                  =  TRUE
-proofTarget (Eqv _ rhs) (Lhs2Rhs _)                 =  rhs
-proofTarget (Eqv lhs _) (Rhs2Lhs _)                 =  lhs
-proofTarget (Eqv _ _)   (RedBoth 1 _ (rfpr,_,_,_))  =  clearPFocus rfpr
-proofTarget (Eqv _ _)   (RedBoth 2 (lfpr,_,_,_) _)  =  clearPFocus lfpr
+proofTarget (PApp nm [_,rhs]) (Lhs2Rhs _) | nm == n_Eqv  =  rhs
+proofTarget (PApp nm [lhs,_]) (Rhs2Lhs _) | nm == n_Eqv  =  lhs
+proofTarget (PApp nm [_,_])   (RedBoth 1 _ (rfpr,_,_,_))
+ | nm == n_Eqv  =  clearPFocus rfpr
+proofTarget (PApp nm [_,_])   (RedBoth 2 (lfpr,_,_,_) _)
+ | nm == n_Eqv  =  clearPFocus lfpr
 proofTarget goal        (LawReduce _ _ _)           =  goal
 
-proofTarget (Imp _ cnsq) (Assume _ strategy)
-    = proofTarget cnsq strategy
+proofTarget (PApp nm [_,cnsq]) (Assume _ strategy)
+ | nm == n_Imp  = proofTarget cnsq strategy
 
-proofTarget _ st = Perror "proofTarget - bad strategy"
+proofTarget _ st = perror "proofTarget - bad strategy"
 \end{code}
 
 \newpage
@@ -2039,20 +1936,28 @@ checkProof proof = proof{ plan=plan' , done= done' }
   checkStrategy sc _ tgt (Reduce ps@(fpr,fvs,_,_))
     = (clearPFocus fpr =!= tgt, Reduce (setPSFreeVars mctxt sc ps))
 
-  checkStrategy sc (Eqv lhs rhs) tgt (Lhs2Rhs ps@(fpr,fvs,_,_))
-   = (dbg "chkStrat-L2R.done = " ((dbg "chkStrat-L2R.fpr  = " (clearPFocus  fpr)) =!= (dbg "chkStrat-L2R.tgt  = " tgt)), Lhs2Rhs (setPSFreeVars mctxt sc ps))
+  checkStrategy sc (PApp nm [lhs,rhs]) tgt (Lhs2Rhs ps@(fpr,fvs,_,_))
+   | nm == n_Eqv
+     = ( dbg "chkStrat-L2R.done = "
+         ((dbg "chkStrat-L2R.fpr  = "(clearPFocus  fpr))
+           =!=
+          (dbg "chkStrat-L2R.tgt  = " tgt))
+       , Lhs2Rhs (setPSFreeVars mctxt sc ps) )
 
-  checkStrategy sc (Eqv lhs rhs) tgt st@(Rhs2Lhs ps@(fpr,fvs,_,_))
-   = (clearPFocus fpr =!= tgt, Rhs2Lhs (setPSFreeVars mctxt sc ps))
+  checkStrategy sc (PApp nm [lhs,rhs]) tgt st@(Rhs2Lhs ps@(fpr,fvs,_,_))
+   | nm == n_Eqv
+     = (clearPFocus fpr =!= tgt, Rhs2Lhs (setPSFreeVars mctxt sc ps))
 
-  checkStrategy sc (Eqv lhs rhs) tgt st@(RedBoth i lps@(lfpr,lfvs,_,_)
-                                                   rps@(rfpr,rfvs,_,_))
-    = if clearPFocus lfpr =!= clearPFocus rfpr
-       then (True,RedBoth 0 lps' rps')
-       else (False,RedBoth i lps' rps')
-    where
-      lps' = setPSFreeVars mctxt sc lps
-      rps' = setPSFreeVars mctxt sc rps
+  checkStrategy sc (PApp nm [lhs,rhs]) tgt
+                                       st@( RedBoth i lps@(lfpr,lfvs,_,_)
+                                                      rps@(rfpr,rfvs,_,_) )
+   | nm == n_Eqv
+      = if clearPFocus lfpr =!= clearPFocus rfpr
+        then (True,RedBoth 0 lps' rps')
+        else (False,RedBoth i lps' rps')
+     where
+       lps' = setPSFreeVars mctxt sc lps
+       rps' = setPSFreeVars mctxt sc rps
 
 -- the current proof predicate is a law,
 -- (as it was obtained by reduction from a starting law)
@@ -2063,9 +1968,10 @@ checkProof proof = proof{ plan=plan' , done= done' }
     = (remOuterForall (clearPFocus fpr) =!= remOuterForall tgt
       , LawReduce nm sc (setPSFreeVars mctxt goalsc ps) )
 
-  checkStrategy sc (Imp _ cnsq) tgt st@(Assume cnsq' strategy)
-    = (done',Assume cnsq' strategy')
-    where (done',strategy') = checkStrategy sc cnsq' tgt strategy
+  checkStrategy sc (PApp nm [_,cnsq]) tgt st@(Assume cnsq' strategy)
+   | nm == n_Imp
+      = (done',Assume cnsq' strategy')
+      where (done',strategy') = checkStrategy sc cnsq' tgt strategy
 
   checkStrategy _ _ _ st = (False,st)
 
@@ -2096,13 +2002,12 @@ replaceQVar q ivar ilaw  -- replace q by ivar
  = rQ ilaw
  where
    rQ (TypeOf (Var v) t) = TypeOf (Var (rv v)) t
-   rQ (And prs) = And (map rQ prs)
-   rQ (Imp pr1 pr2) = Imp (rQ pr1) (rQ pr2)
-   rQ (Forall _ qs pr) = (Forall 0 (rq qs) (rQ pr))
+   rQ (PApp nm prs) = PApp nm (map rQ prs)
+   rQ (PAbs nm _ qs pr) = (PAbs nm 0 (rq qs) (rQ pr))
    rQ (Sub pr sub) = Sub (rQ pr) (rqs sub)
    rQ pr = pr
 
-   rq (Q qs) = Q $ (map rv vs) ++ rest where (vs,rest) = vPartition qs
+   rq qs = (map rv vs) ++ rest where (vs,rest) = vPartition qs
 
    rqs (Substn sub) = Substn (map rsub sub)
 
@@ -2134,21 +2039,24 @@ proofDiagnosis proof
               ," with TRUE"
               ,"Outcome: "++show (pr=!=TRUE)]
 
-  diagnoseStrategy (Eqv lhs rhs) (Lhs2Rhs ((pr,_,_,_),_,_,_))
-    = unlines ["Comparing curr. pred:\n\t"++dbgPshow 8 pr
-              ," with goal rhs:\n\t"++dbgPshow 8 rhs
-              ,"Outcome: "++show (pr=!=rhs)]
+  diagnoseStrategy (PApp nm [lhs,rhs]) (Lhs2Rhs ((pr,_,_,_),_,_,_))
+   | nm == n_Eqv
+      = unlines ["Comparing curr. pred:\n\t"++dbgPshow 8 pr
+                ," with goal rhs:\n\t"++dbgPshow 8 rhs
+                ,"Outcome: "++show (pr=!=rhs)]
 
-  diagnoseStrategy (Eqv lhs rhs) (Rhs2Lhs ((pr,_,_,_),_,_,_))
-    = unlines ["Comparing curr. pred:\n\t"++dbgPshow 8 pr
-              ," with goal lhs:\n\t"++dbgPshow 8 lhs
-              ,"Outcome: "++show (pr=!=lhs)]
+  diagnoseStrategy (PApp nm [lhs,rhs]) (Rhs2Lhs ((pr,_,_,_),_,_,_))
+   | nm == n_Eqv
+      = unlines ["Comparing curr. pred:\n\t"++dbgPshow 8 pr
+                ," with goal lhs:\n\t"++dbgPshow 8 lhs
+                ,"Outcome: "++show (pr=!=lhs)]
 
-  diagnoseStrategy (Eqv lhs rhs)
+  diagnoseStrategy (PApp nm [lhs,rhs])
                    (RedBoth brno ((lpr,_,_,_),_,_,_) ((rpr,_,_,_),_,_,_))
-    = unlines ["Comparing lhs goal:\n\t"++dbgPshow 8 lpr
-              ," with rhs goal:\n\t"++dbgPshow 8 rpr
-              ,"Outcome: "++show (lpr =!= rpr)]
+   | nm == n_Eqv
+      = unlines ["Comparing lhs goal:\n\t"++dbgPshow 8 lpr
+                ," with rhs goal:\n\t"++dbgPshow 8 rpr
+                ,"Outcome: "++show (lpr =!= rpr)]
 
   diagnoseStrategy goal (LawReduce _ _ ((pr,_,_,_),_,_,_))
     = unlines ["Comparing curr. pred:\n\t"++dbgPshow 8 pr
@@ -2264,12 +2172,12 @@ of \texttt{Focus.repPFocus} and variants (e.g. \texttt{repPFf}).
 to do this.
 
 
-\subsubsection{\texttt{Pvar} by definition}
+\subsubsection{\texttt{PVar} by definition}
 \begin{code}
 repFocus penv fpr
  = repPFf (replaceNamedPred penv) fpr
 
-replaceNamedPred penv pr@(Pvar name)
+replaceNamedPred penv pr@(PVar name)
  = case lkpProofEnv preds (show name) penv of
      []       ->  pr
      (pr':_)  ->  pr'
@@ -2277,7 +2185,7 @@ replaceNamedPred penv pr = pr
 \end{code}
 
 
-\subsubsection{Recursively expand \texttt{Pvar}s}
+\subsubsection{Recursively expand \texttt{PVar}s}
 \begin{code}
 expandFocus penv fpr = repPFocus (expandPred id penv (getPFocus fpr)) fpr
 \end{code}
@@ -2292,13 +2200,16 @@ assertDefFocus fpr = repPFocus (assertDefined (getPFocus fpr)) fpr
 redFocus mctxt sc ptables fpr
  = ( repPFf (reduceApp mctxt sc ptables) fpr
    , Chgd ) -- for now
-reduceApp mctxt sc ptables ap@(Papp _ _)
-  = predBetaReduce mctxt sc ap
+
+reduceApp mctxt sc ptables ap@(PApp nm [_,_])
+  | nm == n_PVApp  =  predBetaReduce mctxt sc ap
+
 reduceApp mctxt sc ptables asub@(Sub pr subs)
  = case chgd of
     Chgd  ->  pr'
     _     ->  asub
   where (pr',chgd) = predOSub mctxt sc subs pr
+
 reduceApp _ _ _ pr = pr
 \end{code}
 
@@ -2360,9 +2271,9 @@ hm_propEqPred = (
     "  e=f /\\ ... focus ...    or  e=f => .... focus ....",
     "If the focus matches e (f) precisely, it is replaced by f (e)."])
 
-propEqPred fpr@(Obs e,_,_,ics)
+propEqPred fpr@(PExpr e,_,_,ics)
  | null replcs  =  fpr
- | otherwise =  repPFocus (Obs e') fpr
+ | otherwise =  repPFocus (PExpr e') fpr
  where
    replcs = lookupEqReplacements e ics
    e' = head replcs
@@ -2395,17 +2306,20 @@ findAndEqRepl e n (pr:prs)
  | n == 1  =  findAndEqRepl e 0 prs
  | otherwise
     = ( case pr of
-         Obs (Equal e1 e2)  ->  equalRepl e e1 e2
-         _                  ->  []
+         PExpr (App nm [e1,e2]) | nm == n_Equal
+           ->  equalRepl e e1 e2
+         _ ->  []
       ) ++ findAndEqRepl e (n-1) prs
 \end{code}
 
 When searching an implication antecedent
 its either an equality, or a conjunction.
 \begin{code}
-findAnteEqRepl e (Obs (Equal e1 e2))  =  equalRepl e e1 e2
-findAnteEqRepl e (And prs)            =  findAndEqRepl e 0 prs
-findAnteEqRepl _ _                   =  []
+findAnteEqRepl e (PExpr (App nm [e1, e2]))
+ | nm == n_Equal    =  equalRepl e e1 e2
+findAnteEqRepl e (PApp nm prs)
+ | nm == n_And      =  findAndEqRepl e 0 prs
+findAnteEqRepl _ _  =  []
 \end{code}
 
 Now, deciding do we have equality of expressions:
@@ -2559,22 +2473,22 @@ prematureEnding :: [Theory] -> Proof -> (Bool,Proof)
 prematureEnding penv prf
  = case (goal prf) of
 
-     Eqv glhs grhs
+     (PApp nm [glhs, grhs]) | nm == n_Eqv
        -> case (plan prf) of
 
            Lhs2Rhs (lhs',_,_,_)
              -> if isTrue $ getPFTop lhs'
                  then (True,prf{goal=glhs, done=True})
-                 else (True,prf{goal=Eqv glhs (clearPFocus lhs'), done=True})
+                 else (True,prf{goal=mkEqv glhs (clearPFocus lhs'), done=True})
 
            Rhs2Lhs (rhs',_,_,_)
              -> if isTrue $ getPFTop rhs'
                  then (True,prf{goal=grhs, done=True})
-                 else (True,prf{goal=Eqv grhs (clearPFocus rhs'), done=True})
+                 else (True,prf{goal=mkEqv grhs (clearPFocus rhs'), done=True})
 
            RedBoth _ (lhs',_,_,_) (rhs',_,_,_)
-             -> (True,prf{goal=And [ Eqv glhs (clearPFocus lhs')
-                                   , Eqv grhs (clearPFocus rhs')
+             -> (True,prf{goal=mkAnd [ mkEqv glhs (clearPFocus lhs')
+                                   , mkEqv grhs (clearPFocus rhs')
                                    ], done=True})
 
            _ -> (False,prf)
@@ -2582,11 +2496,10 @@ prematureEnding penv prf
      gpred
        -> case (plan prf) of
            Reduce (cpred',_,_,_)
-             -> (True,prf{goal=Eqv gpred (clearPFocus cpred'), done=True})
+             -> (True,prf{goal=mkEqv gpred (clearPFocus cpred'), done=True})
 
            _ -> (False,prf)
  where
    isTrue TRUE           =  True
-   isTrue (Pfocus TRUE)  =  True
    isTrue _              =  False
 \end{code}
