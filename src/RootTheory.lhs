@@ -26,6 +26,7 @@ from these axioms. Here we do not follow the pattern of \cite{gries.93},
 but instead a more classical view, with an emphasis on dual properties,
 distributions and properties of implication.
 
+
 \subsection{Useful definitions}
 
 \begin{code}
@@ -201,7 +202,7 @@ law_Ax_AllOScope = mkRootLaw "Ax-all-x-scope" pred_Ax_AllOScope sc_Ax_AllOScope
 \subsubsection{Axiom \protect\AXAllEScopeN}
 $$\AXAllEScope$$
 \begin{code}
-pred_Ax_AllEScope = Pvar (Std "ExprQuantNotSupported") ==> TRUE
+pred_Ax_AllEScope = PVar (Std "ExprQuantNotSupported") ==> TRUE
 
 sc_Ax_AllEScope = SCtrue
 
@@ -237,7 +238,7 @@ law_Ax_orAllOScope = mkRootLaw "Ax-\\/-all-x-scope" pred_Ax_orAllOScope sc_Ax_or
 \subsubsection{Axiom \protect\AXorAllEScopeN}
 $$\AXorAllEScope$$
 \begin{code}
-pred_Ax_orAllEScope = Pvar (Std "ExprQuantNotSupported") ==> TRUE
+pred_Ax_orAllEScope = PVar (Std "ExprQuantNotSupported") ==> TRUE
 
 sc_Ax_orAllEScope = SCtrue
 
@@ -272,7 +273,7 @@ law_Ax_allODistr = freeRootLaw "Ax-all-O-distr" pred_Ax_allODistr
 $$\AXallODistr$$
 \begin{code}
 pred_Ax_allEDistr
- = Pvar (Std "ExprQuantNotSupported") ==> TRUE
+ = PVar (Std "ExprQuantNotSupported") ==> TRUE
 
 law_Ax_allEDistr = freeRootLaw "Ax-all-E-distr" pred_Ax_allEDistr
 \end{code}
@@ -304,7 +305,7 @@ law_Ax_allOInst = freeRootLaw "Ax-all-x-inst" pred_Ax_allOInst
 \subsubsection{Axiom \protect\AXallEInstN}
 $$\AXallEInst$$
 \begin{code}
-pred_Ax_allEInst = Pvar (Std "ExprQuantNotSupported") ==> TRUE
+pred_Ax_allEInst = PVar (Std "ExprQuantNotSupported") ==> TRUE
 law_Ax_allEInst = freeRootLaw "Ax-all-E-inst" pred_Ax_allEInst
 \end{code}
 
@@ -340,7 +341,7 @@ law_Ax_anyODef = freeRootLaw "Ax-any-x-def" pred_Ax_anyODef
 \subsubsection{Axiom \protect\AXanyEDefN}
 $$\AXanyEDef$$
 \begin{code}
-pred_Ax_anyEDef = Pvar (Std "ExprQuantNotSupported") ==> TRUE
+pred_Ax_anyEDef = PVar (Std "ExprQuantNotSupported") ==> TRUE
 law_Ax_anyEDef = freeRootLaw "Ax-any-E-def" pred_Ax_anyEDef
 \end{code}
 
@@ -431,30 +432,9 @@ We also provide them as matchable laws that apply when
 we have explicit substitutions.
 \begin{code}
 pred_Ax_betaORed
- = Pvar (Std "ExprLambdaApplicationNotSupported") ==> TRUE
+ = PVar (parseVariable "ExprLambdaApplicationNotSupported") ==> TRUE
 
 law_Ax_betaORed = freeRootLaw "Ax_betaORed" pred_Ax_betaORed
-
-pred_Ax_betaERed
- = Papp (Peabs (Q [ve,ves]) pQ) $ Obs e
-   ===
-   Sub (Peabs (Q [ves]) pQ) (Substn [(ve,e)])
- where
-   e  = mkEvar "e"
-   ve = preVar "E"
-   ves = lstVar "E"
-
-law_Ax_betaERed = freeRootLaw "Ax_betaERed" pred_Ax_betaERed
-
-pred_Ax_betaPRed
- = Papp (Ppabs (Q [p,ps]) pQ) pR
-   ===
-   Psub (Ppabs (Q [ps]) pQ) (Substn [(varGenRoot ps,pR)])
- where
-   p = preVar "P"
-   ps = lstVar "P"
-
-law_Ax_betaPRed = freeRootLaw "Ax_betaPRed" pred_Ax_betaPRed
 \end{code}
 
 \newpage
@@ -506,23 +486,15 @@ pred_Ax_TRUE_OSubst
  = (Sub TRUE $ Substn [(vxs,Var $ lstVar "e")]) === TRUE
 law_Ax_TRUE_OSubst = freeRootLaw "Ax-TRUE-xSubst" pred_Ax_TRUE_OSubst
 
-pred_Ax_TRUE_ESubst = Pvar (Std "TRUEESubstNotSupported") ==> TRUE
+pred_Ax_TRUE_ESubst = PVar (Std "TRUEESubstNotSupported") ==> TRUE
 law_Ax_TRUE_ESubst = freeRootLaw "Ax-TRUE-ESubst" pred_Ax_TRUE_ESubst
-
-pred_Ax_TRUE_PSubst
- = (Psub TRUE $ Substn [(Std nPs,Pvar $ Std nQs)]) === TRUE
-law_Ax_TRUE_PSubst = freeRootLaw "Ax-TRUE-PSubst" pred_Ax_TRUE_PSubst
 
 pred_Ax_FALSE_OSubst
  = (Sub FALSE $ Substn [(vxs,Var $ lstVar "e")]) === FALSE
 law_Ax_FALSE_OSubst = freeRootLaw "Ax-FALSE-xSubst" pred_Ax_FALSE_OSubst
 
-pred_Ax_FALSE_ESubst = Pvar (Std "FALSEESubstNotSupported") ==> FALSE
+pred_Ax_FALSE_ESubst = PVar (Std "FALSEESubstNotSupported") ==> FALSE
 law_Ax_FALSE_ESubst = freeRootLaw "Ax-FALSE-ESubst" pred_Ax_FALSE_ESubst
-
-pred_Ax_FALSE_PSubst
- = (Psub FALSE $ Substn [(Std nPs,Pvar $ Std nQs)]) === FALSE
-law_Ax_FALSE_PSubst = freeRootLaw "Ax-FALSE-PSubst" pred_Ax_FALSE_PSubst
 \end{code}
 
 

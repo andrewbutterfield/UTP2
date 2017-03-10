@@ -360,6 +360,12 @@ mkDefd e = PApp n_Defd [PExpr e]
 domOfDefn nm app dod = ("DOD-"++nm , (mkDefd app) === dod )
 \end{code}
 
+Definite description:
+\begin{code}
+n_The = "The"
+mkThe x pr = Abs n_The 0 [x] [EPred pr]
+\end{code}
+
 
 \subsection{DSL: Arithmetic}
 
