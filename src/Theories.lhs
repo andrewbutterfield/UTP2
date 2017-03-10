@@ -385,6 +385,8 @@ fullLawLookup _ _ _ = Nothing
 
 \subsection{Assertion Conditioning}
 
+THIS IS ALL VERY SUSPECT GIVEN THE REVEWING TO OCCUR
+
 We want to condition assertions, with respect to a stack of theories,
 so that the use of \texttt{Var} and \texttt{Evar} satisfy
 the following guidelines:
@@ -405,14 +407,8 @@ conditionAsn theories (lawpred,sc)
    knownVars = known obs `mrgnorm` known consts
    knownEVars = known exprs `mrgnorm` (trieDom . fst . partitionSC) sc
 
-   condPred bvs (Forall _ qvs bpr)
-    = Forall 0 qvs (condPred bvs' bpr)
-    where bvs' = bvs `mrgnorm` lnorm (getqvars qvs)
-   condPred bvs (Exists _ qvs bpr)
-    = Exists 0 qvs (condPred bvs' bpr)
-    where bvs' = bvs `mrgnorm` lnorm (getqvars qvs)
-   condPred bvs (Exists1 _ qvs bpr)
-    = Exists1 0 qvs (condPred bvs' bpr)
+   condPred bvs (PAbs nm _ qvs bprs)
+    = PAbs nm 0 qvs (map (condPred bvs') bprs)
     where bvs' = bvs `mrgnorm` lnorm (getqvars qvs)
 
    condPred bvs (Sub bpr (Substn sub))
@@ -442,17 +438,8 @@ as \texttt{Evar}s.
         | varKey v `elemn` knownEVars  =  mkEVar v
         | otherwise                    =  e
 
--- KEEP FOR NOW
---    condExpr bvs (Setc _ qvs rpr be)
---     = Setc 0 qvs (condPred bvs' rpr) (condExpr bvs' be)
---     where bvs' = bvs `mrgnorm` lnorm (getqvars qvs)
---
---    condExpr bvs (Seqc _ qvs rpr be)
---     = Seqc 0 qvs (condPred bvs' rpr) (condExpr bvs' be)
---     where bvs' = bvs `mrgnorm` lnorm (getqvars qvs)
-
-   condExpr bvs (Esub be (Substn sub))
-    = Esub (condExpr bvs' be) $ Substn (ssub' ++ msub)
+   condExpr bvs (ESub be (Substn sub))
+    = ESub (condExpr bvs' be) $ Substn (ssub' ++ msub)
     where (ssub,msub) = sPartition sub
           bvs' = bvs `mrgnorm` lnorm (map fst ssub)
           ssub' = mapsnd (condExpr bvs) ssub
