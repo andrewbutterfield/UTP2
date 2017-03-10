@@ -616,3 +616,21 @@ precsType
    , ("-+>",(10,AssocRight))
    ]
 \end{code}
+
+\subsection{DSL Bits and Pieces}
+
+Here are some incarnations of old Pred/Expr constructs now gone,
+but still used, in particular  by the document text parser.
+\begin{code}
+n_Cond = "Cond"
+mkCond p e1 e2 = App n_Cond [ePred p,e1,e2]
+
+n_Papp = "Papp"
+mkPapp pf pa = PApp n_Papp [pf, pa]
+
+n_NDC = "NDC"
+mkNDC p1 p2 = PApp n_NDC [p1,p2]
+
+\end{code}
+
+

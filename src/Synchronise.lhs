@@ -19,10 +19,15 @@ This module provides facilities to allow the entire internal state
 of \Saoithin\ to be synchronised with changes made in theory tables.
 Examples of such synchronisations include:
 \begin{itemize}
-  \item Modifying the hardwired precedences of \texttt{Bin}
-  or infix \texttt{Lang} expressions
-   when a precedence table entry has changed.
+  \item
+    Modifying the hardwired precedences of \texttt{Bin}
+    or infix \texttt{Lang} expressions
+    when a precedence table entry has changed.
+    \\
+    THIS WILL BECOME COMPLETELY REDUNDANT
+    AS WE WILL NO LONGER HAVE HARDWIRED PRECEDENCES
 \end{itemize}
+
 
 The top level function pulls out the theory/proof state,
 applies a pair of synchronisation functions,
@@ -85,7 +90,7 @@ type Synchroniser
 \newpage
 \subsection{The Precedence Synchroniser}
 
-The precedence synchroniser looks for every occurence
+The precedence synchroniser looks for every occurrence
 of the \texttt{Expr Bin} variant
 and the \texttt{Pred Lang} variant,
 and sets their precedence values to those found by looking
@@ -276,12 +281,17 @@ syncPlan thstk proof precs
  where plan' = plan proof
 
 syncStrategy  thstk precs NoStrategy = NoStrategy
-syncStrategy  thstk precs (Reduce  prfSctn) = Reduce  (syncProofSection thstk precs prfSctn)
-syncStrategy  thstk precs (Lhs2Rhs prfSctn) = Lhs2Rhs (syncProofSection thstk precs prfSctn)
-syncStrategy  thstk precs (Rhs2Lhs prfSctn) = Rhs2Lhs (syncProofSection thstk precs prfSctn)
+syncStrategy  thstk precs (Reduce  prfSctn)
+ = Reduce  (syncProofSection thstk precs prfSctn)
+syncStrategy  thstk precs (Lhs2Rhs prfSctn)
+ = Lhs2Rhs (syncProofSection thstk precs prfSctn)
+syncStrategy  thstk precs (Rhs2Lhs prfSctn)
+ = Rhs2Lhs (syncProofSection thstk precs prfSctn)
 syncStrategy  thstk precs (RedBoth int prfSctn prfSctn')
- = RedBoth int(syncProofSection thstk precs prfSctn) (syncProofSection thstk precs prfSctn')
-syncStrategy  thstk precs (LawReduce str sc prfSctn) = LawReduce str sc (syncProofSection thstk precs prfSctn)
+ = RedBoth int (syncProofSection thstk precs prfSctn)
+               (syncProofSection thstk precs prfSctn')
+syncStrategy  thstk precs (LawReduce str sc prfSctn)
+ = LawReduce str sc (syncProofSection thstk precs prfSctn)
 syncStrategy  thstk precs (Assume pred strat)
  = Assume (changePrecedenceP precs pred) (syncStrategy thstk precs strat)
 
@@ -289,8 +299,8 @@ syncProofSection :: TheoryStack -> [Trie Precs] ->  ProofSection -> ProofSection
 syncProofSection thstk precs (fpred, fvset, ttbl, arg)
  = ( syncFPred precs fpred, fvset, ttbl, ( map (syncProofStep precs) arg))
 
-syncFPred precs (fpr, ctxt, toppr, ics)
- = (changePrecedenceP precs fpr, ctxt, changePrecedenceP precs toppr, ics)
+syncFPred precs (pr, ctxt, wayup)
+ = (changePrecedenceP precs pr, ctxt, wayup)
 
 -- deprecated
 syncArgument :: TheoryStack -> [Trie Precs] -> Argument -> Argument

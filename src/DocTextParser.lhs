@@ -445,7 +445,7 @@ or ``/='' we need to lookup the type and predicate tables to see
 what kind of entity we have, and,  if lacking entries in those
 table, we must adopt a convention to distinguish
 differing variables
-In order to construct \texttt{Pvar}s,
+In order to construct \texttt{PVar}s,
 we need to know the relevant free variables,
 which shall always be the observation variables
 associated with a designated theory.
@@ -579,10 +579,10 @@ str2predvar theories qvs thetypeof v
                                   else buildVar SynValu)
  where
    s = varKey v
-   buildVar SynValu = Obs (Var v)
-   buildVar SynExpr = Obs (Evar v)
-   buildVar SynPred = Pvar $ Std s
-   buildVar SynType = Pvar $ Std s -- shouldn't happen
+   buildVar SynValu = PExpr (Var v)
+   buildVar SynExpr = PExpr (Var v)
+   buildVar SynPred = PVar v
+   buildVar SynType = PVar v -- shouldn't happen
 \end{code}
 
 
@@ -617,9 +617,9 @@ The null case may now arise!
 
    t2p qvs (TEPnull)                 = Left "naked null TEP !"
 
-   t2p qvs (TEPperr string) = Right (Obs (Eerror ("PRD:"++string)))
-   t2p qvs (TEPeerr string) = Right (Obs (Eerror string))
-   t2p qvs (TEPterr string) = Right (Obs (Eerror ("TYP:"++string)))
+   t2p qvs (TEPperr string) = Right (PExpr (eerror ("PRD:"++string)))
+   t2p qvs (TEPeerr string) = Right (PExpr (eerror string))
+   t2p qvs (TEPterr string) = Right (PExpr (eerror ("TYP:"++string)))
 \end{code}
 
 \subsubsection{Converting \texttt{TEPnum}}
@@ -627,7 +627,7 @@ The null case may now arise!
 We simply return an ill-typed (numeric) atomic predicate,
 which should end up inside a well-typed atomic predicate later on.
 \begin{code}
-   t2p qvs (TEPnum i) = Right (Obs (Num i))
+   t2p qvs (TEPnum i) = Right (PExpr (Num i))
 \end{code}
 
 \subsubsection{Converting \texttt{TEPname}}
@@ -671,14 +671,14 @@ We split the factor list into two components,
 with the first being reversed (see \texttt{factor2p} for why).
 \begin{code}
    t2p qvs (TEPfactor [])
-    = return (Perror "Empty-Predicate")
+    = return (perror "Empty-Predicate")
 
    t2p qvs (TEPfactor [tep]) = t2p qvs tep
 
    t2p qvs (TEPfactor [TEPname defd,tep])
     | defd == keyDEFD
         = do e <- tep2expr theories qvs tep
-             return (Defd e)
+             return (mkDefd e)
 
    t2p qvs (TEPfactor [tepe,TEPtype tept])
     = do e <- tep2expr theories qvs tepe
@@ -688,8 +688,8 @@ with the first being reversed (see \texttt{factor2p} for why).
    t2p qvs (TEPfactor teps)
     = do let res = fsplit [] teps
          case res of
-           Left msg -> return (Perror msg)
-           Right ([],subt) -> return (Perror ("Naked-Substitutions:"++show subt))
+           Left msg -> return (perror msg)
+           Right ([],subt) -> return (perror ("Naked-Substitutions:"++show subt))
            Right (terp,subt)
             -> factor2p qvs terp subt
     where
@@ -739,23 +739,23 @@ with the first being reversed (see \texttt{factor2p} for why).
       buildPredOp p1 p2
         | opname == andName    =  return (p1 /\ p2)
         | opname == orName     =  return (p1 \/ p2)
-        | opname == ndcName    =  return (NDC p1 p2)
+        | opname == ndcName    =  return (mkNDC p1 p2)
         | opname == impName    =  return (p1 ==> p2)
-        | opname == rbyName    =  return (RfdBy p1 p2)
+        | opname == rbyName    =  return (mkRfdBy p1 p2)
         | opname == compName   =  return (p1 >>> p2)
         | opname == equivName  =  return (p1 === p2)
-        | opname == psinName   =  return (mkPsin p1 p2)
+        -- | opname == psinName   =  return (mkPsin p1 p2)
         | otherwise            =  return (mklang opname p1 p2)
 
-      buildExprOp ((lat,rat),rst) (Obs e1) (Obs e2) -- we expect both arguments to be Obs
-        | opname == "="  =  return (Obs (Equal e1 e2)) -- assuming lat=rat
-        | otherwise      =  return (Obs (Bin opname p e1 e2))
+      buildExprOp ((lat,rat),rst) (PExpr e1) (PExpr e2) -- we expect both arguments to be PExpr
+        | opname == "="  =  return (PExpr (mkEqual e1 e2)) -- assuming lat=rat
+        | otherwise      =  return (PExpr (mkBin opname p e1 e2))
       buildExprOp optyp p1 p2  = return (mklang opname p1 p2)
 
       mklang op p1 p2 = Lang op p [LPred p1, LPred p2] [SSNull,SSTok op,SSNull]
 
-      mkPsin pr (Psapp (Pvar (Std "_")) pset) = Psin pr pset
-      mkPsin pr pq = Psin pr (PSet [pq])
+      -- mkPsin pr (Psapp (PVar (Std "_")) pset) = Psin pr pset
+      -- mkPsin pr pq = Psin pr (PSet [pq])
 \end{code}
 
 \subsubsection{Converting \texttt{TEPpostifx}}
@@ -771,15 +771,15 @@ with the first being reversed (see \texttt{factor2p} for why).
 
 \begin{code}
    t2p qvs (TEPbind q dcls rtep btep)
-    | q == keyFORALL             =  bldLQ Forall Imp dcls' rtep btep
-    | q == keyEXISTS             =  bldLQ Exists and2 dcls' rtep btep
-    | q == keyEXISTS1            =  bldLQ Exists1 and2 dcls' rtep btep
+    | q == keyFORALL             =  bldLQ mkForall mkImp dcls' rtep btep
+    | q == keyEXISTS             =  bldLQ mkExists and2 dcls' rtep btep
+    | q == keyEXISTS1            =  bldLQ mkExists1 and2 dcls' rtep btep
     | q == keyTHE && just1 dcls  =  bldTHE (head dcls) rtep btep
-    | q == ksymPEABS  && nor     =  bldMQ Peabs   dcls btep
-    | q == keyPFORALL && nor     =  bldMQ Pforall dcls' btep
-    | q == keyPEXISTS && nor     =  bldMQ Pexists dcls' btep
-    | q == ksymPPABS  && nor     =  bldMQ Ppabs   dcls btep
-    | q == ksymEABS   && nor     =  bldEQ Eabs dcls btep
+    -- | q == ksymPEABS  && nor     =  bldMQ Peabs   dcls btep
+    -- | q == keyPFORALL && nor     =  bldMQ Pforall dcls' btep
+    -- | q == keyPEXISTS && nor     =  bldMQ Pexists dcls' btep
+    -- | q == ksymPPABS  && nor     =  bldMQ Ppabs   dcls btep
+    -- | q == ksymEABS   && nor     =  bldEQ Eabs dcls btep
     | otherwise                  =  Left ("t2p bind---unknown quantifier: "++q)
     where
 
@@ -788,29 +788,29 @@ with the first being reversed (see \texttt{factor2p} for why).
      just1 [_]  =  True
      just1 _    =  False
 
-     and2 r p = And [r,p]
+     and2 r p = mkAnd [r,p]
 
      bldLQ quant f dcls rtep btep
       | rtep == TEPnull = do let qvs' = dcls `qcat` qvs
                              p <- t2p qvs' btep -- predicate
-                             return (quant 0 (Q dcls) p)
+                             return (quant ( dcls) p)
       | otherwise       = do let qvs' = dcls `qcat` qvs
                              r <- t2p qvs' rtep -- range
                              p <- t2p qvs' btep -- predicate
-                             return (quant 0 (Q dcls) (f r p))
+                             return (quant ( dcls) (f r p))
 
      bldTHE v rtep btep
       | rtep == TEPnull = do p <- t2p ([v] `qcat` qvs) btep -- predicate
-                             return $ Obs $ The 0 v p
+                             return $ PExpr $ mkThe v p
       | otherwise       = do let qvs' = [v] `qcat` qvs
                              r <- t2p qvs' rtep -- range
                              p <- t2p qvs' btep -- predicate
-                             return $ Obs $ The 0 v (and2 r p)
+                             return $ PExpr $ mkThe v (and2 r p)
 
      bldMQ quant dcls btep
        = do let qvs' = dcls `qcat` qvs
             p <- t2p qvs' btep -- predicate
-            return (quant (Q dcls) p)
+            return (quant ( dcls) p)
 
      bldHQ quant dcls btep
        = do p <- t2p qvs btep
@@ -819,7 +819,7 @@ with the first being reversed (see \texttt{factor2p} for why).
      bldEQ quant dcls btep
       = do let qvs' = dcls `qcat` qvs
            e <- tep2expr theories qvs' btep
-           return (Obs (quant 0 (Q dcls) e))
+           return (PExpr (quant 0 ( dcls) e))
 \end{code}
 
 \subsubsection{Converting \texttt{TEPuniv}}
@@ -827,7 +827,7 @@ with the first being reversed (see \texttt{factor2p} for why).
 \begin{code}
    t2p qvs (TEPuniv tep)
     = do p <- t2p qvs tep
-         return (Univ 0 p)
+         return (mkUniv p)
 \end{code}
 
 \subsubsection{Converting \texttt{TEPcond}}
@@ -837,7 +837,7 @@ with the first being reversed (see \texttt{factor2p} for why).
     = do cond <- t2p qvs c
          pred1 <- t2p qvs t
          pred2 <- t2p qvs f
-         return (If cond pred1 pred2)
+         return (mkIf cond pred1 pred2)
 \end{code}
 
 \subsubsection{Converting \texttt{TEPcomp}}
@@ -864,9 +864,9 @@ with the first being reversed (see \texttt{factor2p} for why).
      t2sub sep rs repld
       | sep == ksymESUB = do let es = map p2e rs
                              let sub = Substn $ zip repld es
-                             return (Sub (Pvar $ Std "") sub)
-      | sep == ksymPSUB = do let sub = Substn $ zip (map varGenRoot repld) rs
-                             return (Psub (Pvar $ Std "") sub)
+                             return (Sub (PVar $ parseVariable "_") sub)
+      -- | sep == ksymPSUB = do let sub = Substn $ zip (map varGenRoot repld) rs
+      --                        return (Psub (PVar $ Std "") sub)
       | otherwise       = fail ("t2p:substition - unknown sep '"++sep++"'.")
 \end{code}
 
@@ -889,11 +889,13 @@ For the rest, they stay as language constructs:
 \begin{code}
    t2p qvs (TEPpset teps)
     = do prs <- mapM (t2p qvs) teps
-         return (Psapp (Pvar $ Std "_") (PSet prs))
+         --return (Psapp (PVar $ Std "_") (PSet prs))
+         fail "t2p pset - not supported"
    t2p qvs (TEPpsetc ns tep1 tep2)
     = do pr1 <- t2p qvs tep1
          pr2 <- t2p qvs tep2
-         return (Psapp (Pvar $ Std "_") (PSetC (Q $ map predVar ns) pr1 pr2))
+         -- return (Psapp (PVar $ Std "_") (PSetC ( $ map predVar ns) pr1 pr2))
+         fail "t2p setc -- not supported"
 \end{code}
 
 \subsubsection{Converting other TEPs}
@@ -903,7 +905,7 @@ then we must have some form of (atomic) expression.
 
 \begin{code}
    t2p qvs tep = do e <- tep2expr theories qvs tep
-                    p <- Right (Obs e)
+                    p <- Right (PExpr e)
                     return p
 -- end tep2pred
 \end{code}
@@ -978,7 +980,7 @@ this best being done to the reversed pre-substitution list
         let (prmid:sperp') = bindNot sperp
         (subs,qvs') <- subt2subs qvs tsub
         let prmid' = foldl mksub prmid subs
-        return $ forceExpr $ foldl1 Papp (prmid':sperp')
+        return $ forceExpr $ foldl1 mkPapp (prmid':sperp')
 
    subt2subs qvs [] = return ([],qvs)
    subt2subs qvs (subt:subts)
@@ -991,7 +993,7 @@ this best being done to the reversed pre-substitution list
        getsub x = Left ("factor2p - not a substitution : " ++ show x)
 
    -- NOT NOW?
-   --mksub (Obs e) sub  =  Obs Tarb (Esub e sub)
+   --mksub (PExpr e) sub  =  PExpr Tarb (Esub e sub)
    mksub pr        sub  =  Sub pr sub
 \end{code}
 
@@ -1040,13 +1042,13 @@ this best being done to the reversed pre-substitution list
 Negation (prefix) binds tighter than (prefix-)function application.
 \begin{code}
 bindNot [] = []
-bindNot ((Obs (Var f)):rest) | varKey f == keyLNOT
-     = bindNot' [] (Perror "dangling NOT at end") rest
+bindNot ((PExpr (Var f)):rest) | varKey f == keyLNOT
+     = bindNot' [] (perror "dangling NOT at end") rest
 bindNot (pr:rest) = bindNot' [] pr rest
 
 bindNot' pres pr [] = (pr:pres)
-bindNot' pres pr ((Obs (Var f)):rest) | varKey f == keyLNOT
-     = bindNot' pres (Not pr) rest
+bindNot' pres pr ((PExpr (Var f)):rest) | varKey f == keyLNOT
+     = bindNot' pres (mkNot pr) rest
 bindNot' pres pr (pr':rest) = bindNot' (pr:pres) pr' rest
 \end{code}
 
@@ -1062,8 +1064,8 @@ either2x _ (Right x)  =  x
 
 
 \begin{code}
-apply2p (Obs (Var f)) (Obs e2) = Obs (App (varKey f) e2)
-apply2p f a = Papp f a
+apply2p (PExpr (Var f)) (PExpr e2) = PExpr (App (varKey f) [e2])
+apply2p f a = mkPapp f a
 
 tapp (Tfun tf tr) ta
  | tf `tlequiv` ta  =  tr
@@ -1078,28 +1080,24 @@ applying some heuristics.
 We also map predicates applied to partial predicate-sets
 into proper applications.
 \begin{code}
-forceExpr (Papp f@(Obs _) a@(Obs _))
- = frcPapp2Expr f a
-forceExpr (Sub p sub)
- = frcSub2Expr (forceExpr p) sub
-forceExpr (Papp hpr (Psapp (Pvar (Std "_")) pset))
- = Psapp hpr pset
+forceExpr (PApp nm [f@(PExpr _), a@(PExpr _)])
+ | nm == n_Papp  =  frcPapp2Expr f a
+forceExpr (Sub p sub) = frcSub2Expr (forceExpr p) sub
 forceExpr pr = pr
 \end{code}
 
 If we are applying a expression variable to an expression,
 then we return an expression application:
 \begin{code}
-frcPapp2Expr f@(Obs (Var v))  (Obs a) = Obs (App (varKey v) a)
-frcPapp2Expr f@(Obs (Evar v)) (Obs a) = Obs (App (varKey v) a)
-frcPapp2Expr f a                          = Papp f a
+frcPapp2Expr f@(PExpr (Var v))  (PExpr a) = PExpr (App (varKey v) [a])
+frcPapp2Expr f a                          = mkPapp f a
 \end{code}
 
 If we are substituting into an expression,
 we make it an expression substitution
 (NOT FOR NOW !):
 \begin{code}
---frcSub2Expr (Obs e) sub = Obs Tarb (Esub e sub)
+--frcSub2Expr (PExpr e) sub = PExpr Tarb (Esub e sub)
 frcSub2Expr pr sub        = Sub pr sub
 \end{code}
 
@@ -1111,13 +1109,11 @@ as far as is possible.
 p2es es [] = reverse es
 p2es es ((Right e):ps) = p2es ((p2e e):es) ps
 
-p2e TRUE = T
-p2e FALSE = F
-p2e (Obs e) = e
-p2e (If prc prt pre) = (Cond prc (p2e prt) (p2e pre))
-p2e (Sub pr sub) = (Esub (p2e pr) sub)
-p2e (Papp (Pvar (Std n)) pr) = (App n (p2e pr))
-p2e pr = Eerror ("Pred-not-Expr:"++show pr)
+p2e (PExpr e) = e
+p2e (PApp nm [prc,prt,pre])
+ | nm == n_If  =  (mkCond prc (p2e prt) (p2e pre))
+p2e (Sub pr sub) = (ESub (p2e pr) sub)
+p2e pr = eerror ("Pred-not-Expr:"++show pr)
 \end{code}
 
 \subsection{Converting TEP to Expression}
@@ -1147,9 +1143,9 @@ This case should not arise~!
 \begin{code}
    t2e qvs (TEPnull) = Left "null TEP"
 
-   t2e qvs (TEPperr string) = Right (Eerror ("PREDERR "++string))
-   t2e qvs (TEPeerr string) = Right (Eerror string)
-   t2e qvs (TEPterr string) = Right (Eerror ("TYPERR "++string))
+   t2e qvs (TEPperr string) = Right (eerror ("PREDERR "++string))
+   t2e qvs (TEPeerr string) = Right (eerror string)
+   t2e qvs (TEPterr string) = Right (eerror ("TYPERR "++string))
 \end{code}
 
 \subsubsection{Converting \texttt{TEPnum}}
@@ -1163,10 +1159,10 @@ This case should not arise~!
    t2e qvs (TEPname s)
     = do pr <- str2predvar theories qvs thetypeof $ preVar s
          case pr of
-           TRUE     ->  return T
-           FALSE    ->  return F
-           Obs e  ->  return e
-           Pvar p   ->  return (Var $ rootVar $ Gen p) -- "demote"
+           TRUE     ->  return $ EPred TRUE
+           FALSE    ->  return $ EPred FALSE
+           PExpr e  ->  return e
+           PVar p   ->  return (Var p) -- "demote"
            pr       ->  fail ("Not Expr-Var : "++show pr)
 \end{code}
 
@@ -1175,10 +1171,10 @@ This case should not arise~!
    t2e qvs (TEPvar v)
     = do pr <- str2predvar theories qvs thetypeof v
          case pr of
-           TRUE     ->  return T
-           FALSE    ->  return F
-           Obs e  ->  return e
-           Pvar p   ->  return (Var $ rootVar $ Gen p) -- "demote"
+           TRUE     ->  return $ EPred TRUE
+           FALSE    ->  return $ EPred FALSE
+           PExpr e  ->  return e
+           PVar p   ->  return (Var p) -- "demote"
            pr       ->  fail ("Not Expr-Var : "++show pr)
 \end{code}
 
@@ -1201,8 +1197,8 @@ A valid expression factor has the form $Name^*~Expr~Subs^*$.
          return $ buildOp p p1 p2
     where
       buildOp p e1 e2
-        | opname == "="  =  Equal e1 e2
-        | otherwise      =  Bin opname p e1 e2
+        | opname == "="  =  mkEqual e1 e2
+        | otherwise      =  mkBin opname p e1 e2
 \end{code}
 
 \subsubsection{Converting \texttt{TEPprod}}
@@ -1210,7 +1206,7 @@ A valid expression factor has the form $Name^*~Expr~Subs^*$.
 \begin{code}
    t2e qvs (TEPprod tep) = do let p = map (tep2pred theories qvs) tep
                               let es = p2es [] p
-                              return (Prod es)
+                              return (mkProd es)
 \end{code}
 
 \subsubsection{Converting \texttt{TEPset}}
@@ -1218,7 +1214,7 @@ A valid expression factor has the form $Name^*~Expr~Subs^*$.
 
 \begin{code}
    t2e qvs (TEPset teps) = do es <- sequence (map (t2e qvs) teps)
-                              return (Set es)
+                              return (mkSet es)
 \end{code}
 
 \subsubsection{Converting \texttt{TEPsetc}}
@@ -1228,14 +1224,16 @@ A valid expression factor has the form $Name^*~Expr~Subs^*$.
     = do let qvs' = decls `qcat` qvs
          p <- tep2pred theories qvs' tep1 -- range
          e <- t2e qvs' tep2 -- expression
-         return (Setc 0 (Q decls) p e)
+         -- return (Setc 0 ( decls) p e)
+         fail "t2e setc -- not supported"
 \end{code}
 
 \subsubsection{Converting \texttt{TEPseq}}
 
 \begin{code}
-   t2e qvs (TEPseq teps) = do es <- sequence (map (t2e qvs) teps)
-                              return (Seq es)
+   t2e qvs (TEPseq teps)
+     = do es <- sequence (map (t2e qvs) teps)
+          return (mkSeq es)
 \end{code}
 
 \subsubsection{Converting \texttt{TEPsetq}}
@@ -1245,7 +1243,8 @@ A valid expression factor has the form $Name^*~Expr~Subs^*$.
     = do let qvs' = decls `qcat` qvs
          p <- tep2pred theories qvs' tep1 -- range
          e <- t2e qvs' tep2 -- expression
-         return (Seqc 0 (Q decls) p e)
+         -- return (Seqc 0 ( decls) p e)
+         fail "t2e seqc -- not supported"
 \end{code}
 
 \subsubsection{Converting \texttt{TEPmap}}
@@ -1254,7 +1253,8 @@ A valid expression factor has the form $Name^*~Expr~Subs^*$.
     = do let p = tup2list [] teps
          es <- sequence $ map (t2e qvs) p
          let m = t2m [] es
-         return (Map m)
+         -- return (Map m)
+         fail "t2e map -- not supported"
 \end{code}
 
 
@@ -1262,7 +1262,7 @@ A valid expression factor has the form $Name^*~Expr~Subs^*$.
 \begin{code}
    t2e qvs (TEPbind q dcls rtep btep)
     | q == keyTHE   && just1 dcls  =  bldTHE (head dcls) rtep btep
-    | q == ksymEABS && nor         =  bldEQ Eabs dcls btep
+    -- | q == ksymEABS && nor         =  bldEQ Eabs dcls btep
     | otherwise                    =  Left ("t2e bind---unknown quantifier: "++q)
     where
 
@@ -1271,20 +1271,20 @@ A valid expression factor has the form $Name^*~Expr~Subs^*$.
      just1 [_]  =  True
      just1 _    =  False
 
-     and2 r p = And [r,p]
+     and2 r p = mkAnd [r,p]
 
      bldTHE v rtep btep
       | rtep == TEPnull = do p <- tep2pred theories ([v] `qcat` qvs) btep
-                             return $ The 0 v p
+                             return $ mkThe v p
       | otherwise       = do let qvs' = [v] `qcat` qvs
                              r <- tep2pred theories qvs' rtep -- range
                              p <- tep2pred theories qvs' btep -- predicate
-                             return $ The 0 v (and2 r p)
+                             return $ mkThe v (and2 r p)
 
      bldEQ quant dcls btep
       = do let qvs' = dcls `qcat` qvs
            e <- t2e qvs' btep
-           return (quant 0 (Q dcls) e)
+           return (quant 0 ( dcls) e)
 \end{code}
 
 
@@ -1294,7 +1294,7 @@ A valid expression factor has the form $Name^*~Expr~Subs^*$.
     = do cond <- tep2pred theories qvs c
          expr1 <- t2e qvs t
          expr2 <- t2e qvs f
-         return (Cond cond expr1 expr2)
+         return (mkCond cond expr1 expr2)
 \end{code}
 
 \subsubsection{Final Catch-all}
@@ -1766,14 +1766,14 @@ mkCommaKey tok = tok
 
 qvarsTextParser :: QVarsParser
 
-qvarsTextParser file "" = Right $ Q []
+qvarsTextParser file "" = Right $  []
 qvarsTextParser file str
  = convert (runParser parser () file toks)
  where
    toks = map mkCommaKey $ scanner file str
    parser = do { tep <- parseQVars undefined; eof; return tep}
    convert (Left err)   =  Left (show err)
-   convert (Right (TEPqvars xs))  =  Right $ Q xs
+   convert (Right (TEPqvars xs))  =  Right $  xs
 \end{code}
 
 We now want one that returns a list (No \texttt{Q}):
@@ -2251,7 +2251,7 @@ t2es thrs acc [] = reverse acc
 t2es thrs acc (((TEPname name),e):es)
    = t2es thrs ((name, tp2e (tep2pred thrs [] e)):acc) es
 
-tp2e (Right (Obs e1)) = e1
+tp2e (Right (PExpr e1)) = e1
 
 t2ps thrs acc [] = getVals [] acc
 t2ps thrs acc (((TEPname name),pr):ps)
@@ -2266,7 +2266,7 @@ getLawVals acc [] = acc
 getLawVals acc ((name, ((Right pr),sc)):xs)
  = getLawVals ((name, (pr, getSCs [] sc)):acc) xs
 getLawVals acc ((name, ((Left msg),sc)):xs)
- = getLawVals ((name, (Perror msg, getSCs [] sc)):acc) xs
+ = getLawVals ((name, (perror msg, getSCs [] sc)):acc) xs
 
 getSCs scs [] = scand scs
 getSCs scs (tep:teps)
@@ -2308,7 +2308,7 @@ exprTypeCheck ths rawexprs = etc [] rawexprs
   mctxt = mkMatchContext ths
   etc chkdexprs [] = return chkdexprs
   etc chkdexprs (ne@(name,ex):rest)
-    = case typeCheckPred mctxt $ Obs ex of
+    = case typeCheckPred mctxt $ PExpr ex of
        Right (_, _) ->  etc (ne:chkdexprs) rest
        Left  msg
          ->  fail ("Expr '"++name++"' has type errors :\n"++msg)

@@ -60,12 +60,12 @@ lawsEquality
   = [ ("=-refl",  e1 `equal` e1)
     , ("=-symm",  e1 `equal` e2 === e2 `equal` e1)
     , ("=-trans", (e1 `equal` e2) /\ (e2 `equal` e3) ==> (e1 `equal` e3))
-    , ("DEF-ne",  (e1 `neq` e2) === (Not (e1 `equal` e2)))
+    , ("DEF-ne",  (e1 `neq` e2) === (mkNot (e1 `equal` e2)))
     , ("/=-symm", (e1 `neq` e2) ===(e2 `neq` e1))
     ]
 \end{code}
 
-\subsubsection{And the Result is \ldots}
+\subsubsection{mkAnd the Result is \ldots}
 
 \begin{code}
 
@@ -138,23 +138,23 @@ typesArithmetic2
    ]
 
 lawsArithmetic2
-  = [("lt-irr",Not (e1 `lthan` e1))
-    ,("lt-trans",Imp (And [e1 `lthan` e2,e2 `lthan` e3]) (e1 `lthan` e3))
-    ,("lt-disj",Not (And [e1 `lthan` e2,e2 `lthan` e1]))
+  = [("lt-irr",mkNot (e1 `lthan` e1))
+    ,("lt-trans",mkImp (mkAnd [e1 `lthan` e2,e2 `lthan` e3]) (e1 `lthan` e3))
+    ,("lt-disj",mkNot (mkAnd [e1 `lthan` e2,e2 `lthan` e1]))
     ,("le-refl",e1 `leq` e1)
-    ,("le-trans",Imp (And [e1 `leq` e2,e2 `leq` e3]) (e1 `leq` e3))
+    ,("le-trans",mkImp (mkAnd [e1 `leq` e2,e2 `leq` e3]) (e1 `leq` e3))
     ,("le-lt-trans", (e1 `leq` e2) /\ (e2 `lthan` e3) ==> e1 `leq` e3 )
     ,("lt-le-trans", (e1 `lthan` e2) /\ (e2 `leq` e3) ==> e1 `leq` e3 )
-    ,("le-anti",Imp (And [e1 `leq` e2,e2 `leq` e1]) (e1 `equalZ` e2))
+    ,("le-anti",mkImp (mkAnd [e1 `leq` e2,e2 `leq` e1]) (e1 `equalZ` e2))
 
-    ,("gt-irr",Not (e1 `gthan` e1))
-    ,("gt-trans",Imp (And [e1 `gthan` e2,e2 `gthan` e3]) (e1 `gthan` e3))
-    ,("gt-disj",Not (And [e1 `gthan` e2,e2 `gthan` e1]))
+    ,("gt-irr",mkNot (e1 `gthan` e1))
+    ,("gt-trans",mkImp (mkAnd [e1 `gthan` e2,e2 `gthan` e3]) (e1 `gthan` e3))
+    ,("gt-disj",mkNot (mkAnd [e1 `gthan` e2,e2 `gthan` e1]))
     ,("ge-refl",e1 `geq` e1)
-    ,("ge-trans",Imp (And [e1 `geq` e2,e2 `geq` e3]) (e1 `geq` e3))
+    ,("ge-trans",mkImp (mkAnd [e1 `geq` e2,e2 `geq` e3]) (e1 `geq` e3))
     ,("ge-gt-trans", (e1 `geq` e2) /\ (e2 `gthan` e3) ==> e1 `geq` e3 )
     ,("gt-ge-trans", (e1 `gthan` e2) /\ (e2 `geq` e3) ==> e1 `geq` e3 )
-    ,("ge-anti",Imp (And [e1 `geq` e2,e2 `geq` e1]) (e1 `equalZ` e2))
+    ,("ge-anti",mkImp (mkAnd [e1 `geq` e2,e2 `geq` e1]) (e1 `equalZ` e2))
 
     ,("swap-le-ge",(e1 `leq` e2) === (e2 `geq` e1))
     ,("swap-lt-gt",(e1 `lthan` e2) === (e2 `gthan` e1))
@@ -190,8 +190,8 @@ dodArithmetic2
 \begin{code}
 lawsArithmetic3
   = let
-      x = preVar "x" ; vx = Var x; qx = Q[x]
-      n = preVar "n"; vn = Var n; qn = Q[n]
+      x = preVar "x" ; vx = Var x; qx = [x]
+      n = preVar "n"; vn = Var n; qn = [n]
 
       natIndBase  = Sub pP (indSub (Num 0) x)
       natIndHyp   = Sub pP (indSub vn x)
@@ -199,12 +199,12 @@ lawsArithmetic3
 
       natIndStep  = mkAll qn (natIndHyp ==> natIndNext)
 
-      forallNat = Forall 0 qx ((zero `leq` vx) ==> pP)
+      forallNat = mkForall qx ((zero `leq` vx) ==> pP)
 
       intIndPrev  = Sub pP (indSub (vn `minus` one) x)
       intIndStep  = mkAll qn (natIndHyp ==> intIndPrev)
 
-      forallInt = Forall 0 qx pP
+      forallInt = mkForall qx pP
     in
       [ ( "induction-Nat"
         , natIndBase /\ natIndStep ==> forallNat
@@ -216,7 +216,7 @@ lawsArithmetic3
 \end{code}
 
 
-\subsubsection{And the Result is \ldots}
+\subsubsection{mkAnd the Result is \ldots}
 
 \begin{code}
 
@@ -253,14 +253,14 @@ typesSet
      ]
 
 lawsSet -- need these !
- = [ ("~-in-{}",Not (e1 `pmof` empty))
+ = [ ("~-in-{}",mkNot (e1 `pmof` empty))
    , ("in-singleton",(e1 `pmof` mkSet [e2])===(e1 `equal` e2))
    , ("in-union",(e1 `pmof` (s1 `unn` s2))===(e1 `pmof` s1) \/ (e1 `pmof` s2))
    , ("in-intersect",(e1 `pmof` (s1 `intsct` s2))===(e1 `pmof` s1) /\ (e1 `pmof` s2))
-   , ("in-setdiff",(e1 `pmof` (s1 `sdiff` s2))===(e1 `pmof` s1) /\ Not (e1 `pmof` s2))
+   , ("in-setdiff",(e1 `pmof` (s1 `sdiff` s2))===(e1 `pmof` s1) /\ mkNot (e1 `pmof` s2))
    , ("set-extensionality",((s1 `equalS` s2))===mkAll qx ((Var vx `pmof` s1)===(Var vx `pmof` s2)))
    , ("DEF-subseteq",((s1 `psubseteq` s2)===(mkAll qx ((Var vx `pmof` s1)==>(Var vx `pmof` s2)))))
-   , ("DEF-subset",((s1 `psubset` s2)===(s1 `psubseteq` s2)/\ Not (s1 `equalS` s2)))
+   , ("DEF-subset",((s1 `psubset` s2)===(s1 `psubseteq` s2)/\ mkNot (s1 `equalS` s2)))
    , ("DEF-card-empty",card empty `equalZ` zero)
    , ("DEF-card-single",card (mkSet [e1]) `equalZ` one)
    , ("DEF-card-union",( card (e1 `unn` e2) )
@@ -310,7 +310,7 @@ dodSet = [  ]
 
 \end{code}
 
-\subsubsection{And the Result is \ldots}
+\subsubsection{mkAnd the Result is \ldots}
 
 \begin{code}
 
@@ -362,13 +362,13 @@ typesList
      listIndHyp  = Sub pP (indSub exs vell)
      listIndNext = Sub pP (indSub (ex `cons` exs) vell)
 
-     listIndStep = mkAll (Q [vx,vxs]) (listIndHyp ==> listIndNext)
+     listIndStep = mkAll ( [vx,vxs]) (listIndHyp ==> listIndNext)
 
      forAllList = mkAll qell pP
 
      listIndSngl = Sub pP (indSub (sngll ex) vell)
 
-     forAllNonNil = Forall 0 qell ((TypeOf eell tSeqp) ==> pP)
+     forAllNonNil = mkForall qell ((TypeOf eell tSeqp) ==> pP)
    in
     ( ( "induction-List", listIndBase /\ listIndStep ==> forAllList )
     , ( "induction-Non-Nil", listIndSngl /\ listIndStep ==> forAllNonNil )
@@ -384,13 +384,13 @@ lawsList
     ,( "cons-is-List"
      , (TypeOf ex t) /\ (TypeOf exs tSeq)
         ==> (TypeOf (ex `cons` exs) tSeq) )
-    ,( "nil-not-cons", Not (nil `equalL` (ex `cons` exs)) )
+    ,( "nil-not-cons", mkNot (nil `equalL` (ex `cons` exs)) )
     ,( "cons-injective"
      , (ex `equal` ey) /\ (exs `equalL` eys)
         === ((ex `cons` exs) `equalL` (ey `cons` eys)) )
     ,lawListInd
 
-    ,( "DEF-non-nil", (Not (exs `equalL` nil)) === (TypeOf exs tSeqp) )
+    ,( "DEF-non-nil", (mkNot (exs `equalL` nil)) === (TypeOf exs tSeqp) )
     ,( "DEF-null", plnull exs === exs `equalL` nil )
     ,( "DEF-singleton-list", (sngll ex) `equalL` (ex `cons` nil) )
 
@@ -430,20 +430,20 @@ dodList
       vxs = Var $ preVar "xs"
       vys = Var $ preVar "ys"
     in [ domOfDefn "--"  (vxs `ssub` vys)  (vys `ppfx` vxs)
-       , domOfDefn "hd" vxs (Not (plnull vxs))
-       , domOfDefn "tl" vxs (Not (plnull vxs))
-       , domOfDefn "frnt" vxs (Not (plnull vxs))
-       , domOfDefn "lst" vxs (Not (plnull vxs))
+       , domOfDefn "hd" vxs (mkNot (plnull vxs))
+       , domOfDefn "tl" vxs (mkNot (plnull vxs))
+       , domOfDefn "frnt" vxs (mkNot (plnull vxs))
+       , domOfDefn "lst" vxs (mkNot (plnull vxs))
        ]
 
-forAllNonNil' = Forall 0 qell ((Not (vell `equalL` nil)) ==> pP)
+forAllNonNil' = mkForall qell ((mkNot (vell `equalL` nil)) ==> pP)
 
 conjsList
  = let
      (x,vx,qx,ex)         = declPreNVQE "x"
      (xs,vxs,qxs,exs)     = declPreNVQE "xs"
  in [ ( "nil-is-null", plnull nil )
-    , ( "cons-not-null", Not (plnull (ex `cons` exs)) )
+    , ( "cons-not-null", mkNot (plnull (ex `cons` exs)) )
     , ( "sngl-not-nil", sngll ex `neqL` nil )
     ,( "len-sngl", len (sngll ex) `equalZ` one )
     -- ,( "index-sngl", ix (sngll ex) one  `equal` ex )
@@ -460,8 +460,8 @@ conjsList
     ,( "len-cat-morphism",  (len (l1 `cat` l2)) `equalZ` ((len l1) `plus` (len l2)) )
     -- ,("seq-imp-pfx.1",(l1 `equalL` l2) ==> l1 `ppfx` l2)
     -- ,("seq-imp-pfx.2",(l1 `equalL` l2) ==> l2 `ppfx` l1)
-    -- ,("spfx-trans",Imp (And [l1 `pspfx` l2,l2 `pspfx` e3]) (l1 `pspfx` e3))
-    -- ,("spfx-disj",Not (And [l1 `pspfx` l2,l2 `pspfx` l1]))
+    -- ,("spfx-trans",mkImp (mkAnd [l1 `pspfx` l2,l2 `pspfx` e3]) (l1 `pspfx` e3))
+    -- ,("spfx-disj",mkNot (mkAnd [l1 `pspfx` l2,l2 `pspfx` l1]))
     -- ,("spfx-=>-pfx", (exs `pspfx` vys) ==> (exs `ppfx` vys) )
     ,("ssub-inv-cat",(l1 `cat` l2) `ssub` l1  `equalL` l2)
     --  ,("cat-inv-ssub",(l1 `ppfx` l2) ==> (l1 `cat` (l2 `ssub` l1)  `equalL` l2))
@@ -473,8 +473,8 @@ conjsList
     --,( "index-one-hd",  (exs `neqL` nil) ==> ( ix exs one `equal` hd exs ) )
 
     ,("pfx-refl",l1 `ppfx` l1)
-    -- ,("pfx-trans",Imp (And [l1 `ppfx` l2,l2 `ppfx` l3]) (l1 `ppfx` l3))
-    -- ,("pfx-anti",Imp (And [l1 `ppfx` l2,l2 `ppfx` l1]) (l1 `equalL` l2))
+    -- ,("pfx-trans",mkImp (mkAnd [l1 `ppfx` l2,l2 `ppfx` l3]) (l1 `ppfx` l3))
+    -- ,("pfx-anti",mkImp (mkAnd [l1 `ppfx` l2,l2 `ppfx` l1]) (l1 `equalL` l2))
     ,("pfx-cat",(l1 `ppfx` (l1 `cat` l2)))
 
     -- ,( "frnt-snoc",  frnt (exs `cat` (sngll ex)) `equalL` exs )
@@ -504,15 +504,15 @@ conjsAsLawsList
     ,( "cat-assoc", (l1 `cat` (l2 `cat` l3)) `equalL` ((l1 `cat` l2) `cat` l3)  )
     ,("seq-imp-pfx.1",(l1 `equalL` l2) ==> l1 `ppfx` l2)
     ,("seq-imp-pfx.2",(l1 `equalL` l2) ==> l2 `ppfx` l1)
-    ,("spfx-trans",Imp (And [l1 `pspfx` l2,l2 `pspfx` e3]) (l1 `pspfx` e3))
-    ,("spfx-disj",Not (And [l1 `pspfx` l2,l2 `pspfx` l1]))
+    ,("spfx-trans",mkImp (mkAnd [l1 `pspfx` l2,l2 `pspfx` e3]) (l1 `pspfx` e3))
+    ,("spfx-disj",mkNot (mkAnd [l1 `pspfx` l2,l2 `pspfx` l1]))
     ,("spfx-=>-pfx", (exs `pspfx` eys) ==> (exs `ppfx` eys) )
     ,("cat-inv-ssub",(l1 `ppfx` l2) ==> (l1 `cat` (l2 `ssub` l1)  `equalL` l2))
     ,( "last-snoc",  lst (exs `cat` (sngll ex)) `equal` ex )
     ,( "last-alt-def", lst exs `equal` hd (exs `ssub` frnt exs) )
     ,( "index-one-hd",  (exs `neqL` nil) ==> ( ix exs one `equal` hd exs ) )
-    ,("pfx-trans",Imp (And [l1 `ppfx` l2,l2 `ppfx` l3]) (l1 `ppfx` l3))
-    ,("pfx-anti",Imp (And [l1 `ppfx` l2,l2 `ppfx` l1]) (l1 `equalL` l2))
+    ,("pfx-trans",mkImp (mkAnd [l1 `ppfx` l2,l2 `ppfx` l3]) (l1 `ppfx` l3))
+    ,("pfx-anti",mkImp (mkAnd [l1 `ppfx` l2,l2 `ppfx` l1]) (l1 `equalL` l2))
     ,( "frnt-snoc",  frnt (exs `cat` (sngll ex)) `equalL` exs )
     ,( "frnt-len",  (exs `neq` nil)
                     ==>
@@ -533,7 +533,7 @@ slottedCircusListConj
     ,( "02-Seq:LE:prefix"
      , ( ss `ppfx` tt)
        ==>
-       (Forall 0 qx ((one `leq` ii /\ ii `leq` (len ss)) ==> (ix ss ii `equal` ix tt ii))) )
+       (mkForall qx ((one `leq` ii /\ ii `leq` (len ss)) ==> (ix ss ii `equal` ix tt ii))) )
     ,( "03a-Seq:Front:len"
      , (ss `neq` nil) ==> ((len (frnt ss)) `equalZ` ((len ss) `minus` one)) )
     ,( "03b-Seq:Front:len'"
@@ -580,7 +580,7 @@ slottedCircusListConj
 
 \end{code}
 
-\subsubsection{And the Result is \ldots}
+\subsubsection{mkAnd the Result is \ldots}
 
 \begin{code}
 
