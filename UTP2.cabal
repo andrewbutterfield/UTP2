@@ -21,7 +21,9 @@ data-files:          UTP2-alert.wav
                      UTP2-cheer.wav
                      UTP2-note.wav
                      UTP2-scream.wav
+                     index.html
                      static/css/materialize.css
+                     static/js/materialize.js
 
 Library
     hs-source-dirs:  src
@@ -74,6 +76,7 @@ Library
                    , Types
                    , UTP
                    , UTP2.GUI.Threepenny.Home
+                   , UTP2.GUI.Threepenny.Materialize
                    , UTP2.GUI.Threepenny.Types
                    , UTP2.GUI.Threepenny.Util
                    , Utilities

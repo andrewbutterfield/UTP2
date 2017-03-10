@@ -6,12 +6,15 @@
 ** IMPLEMENT Threepenny right-click menu library
 ** IMPLEMENT Full Threepenny UTP2 app
 
+* TODO FRP for display workspace
+* TODO Select directory
 * TODO Finish home screen
 * TODO Navbar
 * TODO Fix contextmenu altering source element styling
+
   Similar behaviour noticed when adding on click handler to materialise styled
   button. Possibly not a fault of contextmenu code.
-* DESIGN Package as Electron app
+* IMPLEMENT Package as Electron app
   https://github.com/HeinrichApfelmus/threepenny-gui/issues/111
 ** DONE Electron as main entry point
    CLOSED: [2017-02-28 Tue 15:31]

@@ -12,11 +12,13 @@ import           UTP2.GUI.Threepenny.Types
 -- |Runs the UTP2 Threepenny app.
 start :: Int -> IO ()
 start port = do
-    env <- initialEnv
-    static <- (</> "static") <$> getDataDir
+    env        <- initialEnv
+    htmlPath   <- (</> "index.html") <$> getDataDir
+    staticPath <- (</> "static")     <$> getDataDir
     startGUI defaultConfig {
-        jsPort   = Just port,  -- Port on which to run
-        jsStatic = Just static -- Directory path for static content
+        jsCustomHTML = Just htmlPath,  -- Custom HTML file
+        jsPort       = Just port,      -- Port on which to run
+        jsStatic     = Just staticPath -- Directory of static content
     } $ \w -> runApp (app w) env
 
 -- |The Threepenny app.
