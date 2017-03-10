@@ -717,7 +717,7 @@ paintProof pid fnt col work dc viewArea
   showSide sc     = show sc
 
   showState True = "[DONE]"
-  showState False = "[incomplete]"
+  showState False = "[incomplete... ]"
 
 -- end paintProof
 \end{code}
@@ -775,7 +775,7 @@ proofDisplay vb (Assume cnsq strategy) = proofDisplay vb strategy
 
 psDisplay vb (fpred,fovs,ttbl,args)
  = (contextDisplay (getPFContext fpred) fovs ttbl fpred++"\n\n"
-    ++ showPredicate vb fpred ++ "\n\n"
+    ++ showFocussedPredicate vb fpred ++ "\n\n"
     ++ showProofSteps vb args)
 \end{code}
 
@@ -801,6 +801,28 @@ showExprType tts fpred
     _           ->  "PREDICATE"
  where tags = thd3 $ getPFContext fpred
 \end{code}
+
+We now show a focussed predicate, according to the verbosity specification.
+This is used
+
+\textbf{THIS NEEDS A FOCUS-AWARE SHOW !!!!!!!!!!!!!!!}
+
+THIS NEEDS A FOCUS-AWARE SHOW !!!!!!!!!!!!!!!
+
+\emph{THIS NEEDS A FOCUS-AWARE SHOW !!!!!!!!!!!!!!!}
+
+\begin{code}
+showFocussedPredicate vb fpred
+ | focusOnly vb   =  showFOPredicate fpred
+ | otherwise      =  show $ getPFTop fpred
+
+showFOPredicate (fpr, _, [])  =  show fpr
+showFOPredicate (fpr, _, [_])  =  ".. "++show fpr++" .."
+showFOPredicate (fpr, _, _)  =  "... "++show fpr++" ..."
+\end{code}
+
+
+
 
 \subsubsection{Match Window Rendering}
 

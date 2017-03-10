@@ -276,7 +276,7 @@ dummyProof = Proof "-?-" "-dummy-"
                "whodunnit?"
                []
 
-nonsense = PVar $ Std "Nonsense"
+nonsense = PVar $ parseVariable "Nonsense"
 
 proofLaw proof = (pname proof, (goal proof, side proof))
 
@@ -575,16 +575,6 @@ showMLets pre (mlet:mlets)
  = pre ++ showMLet mlet ++ showMLets ", " mlets
 showMLet (str,thing) = str ++ " >-> "++thing
 \end{code}
-We now show a predicate, according to the verbosity specification.
-\begin{code}
-showPredicate vb fpred
- | focusOnly vb   =  showFOPredicate fpred
- | otherwise      =  show $ getPFTop fpred
-
-showFOPredicate (fpr, _, _, [])  =  show fpr
-showFOPredicate (fpr, _, _, [_])  =  ".. "++show fpr++" .."
-showFOPredicate (fpr, _, _)  =  "... "++show fpr++" ..."
-\end{code}
 
 
 
@@ -687,7 +677,7 @@ showArgument vb ((CaseAnalysis open pcs):rest)
    ++ showArgument vb rest
 
 showProofCases vb n [] = ""
-showProofCases vb n ((casepr,((pr,_,_,_),_,_,arg),_):rest)
+showProofCases vb n ((casepr,((pr,_,_),_,_,arg),_):rest)
   = "Case "++show n++" ("++show casepr++"):\n"
     ++showProofSteps vb arg++"\n"
     ++ show pr++"\n"
@@ -724,7 +714,7 @@ If a proof has been imported, the focus information is lost,
 so we need to restore it on an undo:
 \begin{code}
 undoProofSec ps@(_,_,_,[]) = (False,ps)
-undoProofSec ((pr,_,_,_),_,_,((jstfy,pr'):args))
+undoProofSec ((pr,_,_),_,_,((jstfy,pr'):args))
  = (True,(setPFocus pr',fvClosed,Bnil,args))
 \end{code}
 
@@ -974,7 +964,7 @@ genDummyLangLHS lname (LangSpec les ss)
    inst i (LVar _)         =  LVar  $ Std  $ "v"++show i
    inst i (LType _)        =  LType $ Tvar $ "t"++show i
    inst i (LExpr _)        =  LExpr $ mkEVar $ preVar $ "e"++show i
-   inst i (LPred _)        =  LPred $ PVar $ Std $ "P"++show i
+   inst i (LPred _)        =  LPred $ PVar $ parseVariable $ "P"++show i
    inst i (LList [])       =  LList []
    inst i (LList (le:_))   =  LList [inst i le]
    inst i (LCount [])      =  LCount []
@@ -1756,7 +1746,7 @@ is a much more intelligent fashion.
 \begin{code}
 dummyOVarDef x = (varKey x,Var x)
 dummyEVarDef e = (varKey e,mkEVar e)
-dummyPVarDef v = (varKey v,PVar $ varGenRoot v)
+dummyPVarDef v = (varKey v,PVar v)
 \end{code}
 
 We need to supply a generic dummmy-definition build function,
@@ -2008,7 +1998,7 @@ replaceQVar q ivar ilaw  -- replace q by ivar
  where
    rQ (TypeOf (Var v) t) = TypeOf (Var (rv v)) t
    rQ (PApp nm prs) = PApp nm (map rQ prs)
-   rQ (PAbs nm _ qs pr) = (PAbs nm 0 (rq qs) (rQ pr))
+   rQ (PAbs nm _ qs prs) = (PAbs nm 0 (rq qs) (map rQ prs))
    rQ (Sub pr sub) = Sub (rQ pr) (rqs sub)
    rQ pr = pr
 
@@ -2276,11 +2266,12 @@ hm_propEqPred = (
     "  e=f /\\ ... focus ...    or  e=f => .... focus ....",
     "If the focus matches e (f) precisely, it is replaced by f (e)."])
 
-propEqPred fpr@(PExpr e,_,_,ics)
+propEqPred :: FPred -> FPred
+propEqPred fpr@(PExpr e,_,wayup)
  | null replcs  =  fpr
- | otherwise =  repPFocus (PExpr e') fpr
+ | otherwise    =  repPFocus (PExpr e') fpr
  where
-   replcs = lookupEqReplacements e ics
+   replcs = lookupEqReplacements e wayup
    e' = head replcs
 
 propEqPred fpr = fpr
@@ -2294,27 +2285,26 @@ We return all such matches we find,
 so future extensions to this feature may offer them all via
 a pop-up menu.
 \begin{code}
-lookupEqReplacements e _ = [] -- disabled for now!
--- lookupEqReplacements e [] = []
--- lookupEqReplacements e ((parentpr,n,_):ancpr)
---  = ( case parentpr of
---        And prs    ->  findAndEqRepl e n prs
---        Imp ante _ ->  findAnteEqRepl e ante
---        _                    ->  []
---    ) ++ lookupEqReplacements e ancpr
+lookupEqReplacements e [] = []
+lookupEqReplacements e ((parent',_):wayup)
+  = findEqRepl e parent' ++ lookupEqReplacements e wayup
+
+findEqRepl e (PApp' nm before after)
+ | nm == n_And = findAndEqRepl e (before++after)
+ | nm == n_Imp && null after && not (null before)
+    = findAnteEqRepl e $ head before
+findEqRepl e pr' = []
 \end{code}
 
 When searching a conjunction list, remember to ignore our own location!
 \begin{code}
-findAndEqRepl _ _ [] = []
-findAndEqRepl e n (pr:prs)
- | n == 1  =  findAndEqRepl e 0 prs
- | otherwise
-    = ( case pr of
+findAndEqRepl _ [] = []
+findAndEqRepl e (pr:prs)
+  = ( case pr of
          PExpr (App nm [e1,e2]) | nm == n_Equal
            ->  equalRepl e e1 e2
          _ ->  []
-      ) ++ findAndEqRepl e (n-1) prs
+     ) ++ findAndEqRepl e prs
 \end{code}
 
 When searching an implication antecedent
@@ -2323,7 +2313,7 @@ its either an equality, or a conjunction.
 findAnteEqRepl e (PExpr (App nm [e1, e2]))
  | nm == n_Equal    =  equalRepl e e1 e2
 findAnteEqRepl e (PApp nm prs)
- | nm == n_And      =  findAndEqRepl e 0 prs
+ | nm == n_And      =  findAndEqRepl e prs
 findAnteEqRepl _ _  =  []
 \end{code}
 

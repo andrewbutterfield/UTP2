@@ -35,7 +35,11 @@ mdebug s e
 shdebug s e = debug (s++show e) e
 \end{code}
 
-
+Something to clear out GHCi to make it easier to find the top of a long list
+of errors:
+\begin{code}
+clr = putStrLn $ unlines $ replicate 40 ""
+\end{code}
 
 \newpage
 \subsection{Association Lists}
@@ -623,7 +627,7 @@ The takes a list of functions of two arguments: a boolean continue flag \texttt{
 and a current state \texttt{s}.
 It applies each function in turn until either the boolean is false,
 or a monadic fail occurs. In effect we get a monadic behaviour with
-two levels of failure, 
+two levels of failure,
 denoted by \texttt{Nothing} and \texttt{Just (False,\_)}.
 \begin{code}
 whlcont :: [Bool -> s -> Maybe (Bool,s)] -> Bool -> s -> Maybe (Bool,s)
