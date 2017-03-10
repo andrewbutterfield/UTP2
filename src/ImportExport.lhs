@@ -119,7 +119,7 @@ data IEelem = Txt String | Count Int | Flag Bool
             | SPelem PSubst
             | Eelem  Expr
             | Pelem  Pred
-            | HPelem PredSet
+            -- | HPelem PredSet
             | LEelem LElem
             | SSelem SynSpec
             | SCelem SideCond
@@ -414,10 +414,10 @@ popPred [] = popNone "popPred"
 popPred ((Pelem pr):stk) = (ImportOK,pr,stk)
 popPred stk = popFail stk "popPred" "predicate"
 
-popHP :: IEStack -> (ImportReport,PredSet,IEStack)
-popHP [] = popNone "popPredSet"
-popHP ((HPelem pr):stk) = (ImportOK,pr,stk)
-popHP stk = popFail stk "popPredSet" "predicate-set"
+-- popHP :: IEStack -> (ImportReport,PredSet,IEStack)
+-- popHP [] = popNone "popPredSet"
+-- popHP ((HPelem pr):stk) = (ImportOK,pr,stk)
+-- popHP stk = popFail stk "popPredSet" "predicate-set"
 
 popLE :: IEStack -> (ImportReport,LElem,IEStack)
 popLE [] = popNone "popLE"
@@ -1245,7 +1245,6 @@ exportType(Tarb) = buildType codeTarb
 
 \end{code}
 \begin{code}
-
 btable0'
  = lupdate btable0
      [(codeB,      build  B Telem)
@@ -1259,7 +1258,6 @@ btable0'
      ,(codeTarb,   build  Tarb Telem)
      ]
  where terr s = Terror s Tarb
-
 \end{code}
 
 
@@ -1353,22 +1351,22 @@ codeVlist   = codeQuant "P" -- vs
 buildQVar qtype = [buildCmd:qtype]
 
 exportVars vs      = wrVars vs ++ buildQVar codeVlist
-exportQVars (Q vs) = wrVars vs ++ buildQVar codeQlist
+exportQVars ( vs) = wrVars vs ++ buildQVar codeQlist
 \end{code}
 
 \begin{code}
 btable1 -- now only 1 uniform variable list.
  = lupdate btable0''''
-    [ (codeQlist , buildn  popVar  Q  Qelem)
-    , (codeVlist , buildn  popVar  Q  Qelem)
+    [ (codeQlist , buildn  popVar  id  Qelem)
+    , (codeVlist , buildn  popVar  id  Qelem)
     , (codeQvar  , build1  popVar  q1 Qelem)
     , (codeQqvar , build1  popVarL q1 Qelem)
-    , (codeQqlist, buildn  popVarL Q  Qelem)
+    , (codeQqlist, buildn  popVarL id  Qelem)
     , (codeQqpair, buildnn popVarL popVar q2 Qelem)
     ]
  where
-  q1 v = Q [v]
-  q2 rs vs = Q (rs++vs)
+  q1 v =  [v]
+  q2 rs vs =  (rs++vs)
 \end{code}
 
 
@@ -1398,13 +1396,13 @@ exportESubst (Substn sub)
  = exportList exportExpr es ++ exportQVars qv ++ buildSubstn codeESubst
  where
    es = map snd sub
-   qv = Q (map fst sub)
+   qv =  (map fst sub)
 
 exportPSubst (Substn sub)
  = exportList exportPred prs ++ exportQVars qv ++ buildSubstn codePSubst
  where
    prs = map snd sub
-   qv = Q (map (rootVar . Gen . fst) sub)
+   qv =  (map (rootVar . Gen . fst) sub)
 \end{code}
 
 \begin{code}
@@ -1413,7 +1411,7 @@ btable2
     [ (codeESubst, build1n popQVars popExpr (mksub id) SEelem)
     , (codePSubst, build1n popQVars popPred (mksub varGenRoot) SPelem)
     ]
- where mksub drop as (Q vs) = mkQsubst as $ map drop vs
+ where mksub drop as ( vs) = mkQsubst as $ map drop vs
 \end{code}
 
 \subsubsection{Expressions}
@@ -1450,12 +1448,10 @@ codeEerror  = codeExpr "!"  --  s
 \begin{code}
 bExpr etype = [buildCmd:etype]
 
-exportExpr T = bExpr codeT
-exportExpr F = bExpr codeF
 exportExpr (Num i) = wrNum i ++ bExpr codeNum
 exportExpr (Var s) = wrVar s ++ bExpr codeVar
 exportExpr (Prod es) = exportList exportExpr es ++ bExpr codeProd
-exportExpr (App s e) = wrArg s ++ exportExpr e ++ bExpr codeApp
+exportExpr (App s [e]) = wrArg s ++ exportExpr e ++ bExpr codeApp
 exportExpr (Bin s i e1 e2)
  = wrArg s ++ wrNum i ++ exportExpr e1 ++ exportExpr e2 ++ bExpr codeBin
 exportExpr (Equal e1 e2) = exportExpr e1 ++ exportExpr e2 ++ bExpr codeEqual
@@ -1580,7 +1576,7 @@ exportPred :: Pred -> [String]
 
 exportPred TRUE = bPred codeTRUE
 exportPred FALSE = bPred codeFALSE
-exportPred (Obs e) = exportExpr e ++ bPred codeObs2
+exportPred (PExpr e) = exportExpr e ++ bPred codeObs2
 exportPred (Defd e) = exportExpr e ++ bPred codeDefd
 exportPred (TypeOf e t) = exportExpr e ++ exportType t ++ bPred codeTypeOf
 exportPred (Not pr) = (exportPred pr)++bPred codeNot
@@ -1631,7 +1627,7 @@ btable4a
     [ (codeTRUE   , build TRUE Pelem  )
     , (codeFALSE  , build FALSE Pelem  )
     , (codeObs    , build11 popExpr popType mkObs  Pelem )
-    , (codeObs2   , build1  popExpr Obs Pelem )
+    , (codeObs2   , build1  popExpr PExpr Pelem )
     , (codeDefd   , build1  popExpr Defd Pelem )
     , (codeTypeOf , build11 popType popExpr TypeOf Pelem )
     , (codeNot    , build1  popPred Not   Pelem )
@@ -1670,13 +1666,13 @@ btable4a
     , (codePsin   , build11 popHP popPred Psin Pelem)
     ]
  where
-  mkObs ty e = Obs e
+  mkObs ty e = PExpr e
   rforall x r p = Forall 0 x $ Imp r p
   rexists x r p = Exists 0 x $ And [r,p]
   rexists1 x r p = Exists1 0 x $ And [r,p]
   pset prs = wrap (PSet prs)
   psetc qs prc pre = wrap (PSetC qs prc pre)
-  psetcs qvs = psetc (Q qvs)
+  psetcs qvs = psetc ( qvs)
   wrap ps = Psapp psetf ps
   psetf = Pvar $ Std "PSETF"
   peabs evs pr = Peabs (qvars evs) pr
