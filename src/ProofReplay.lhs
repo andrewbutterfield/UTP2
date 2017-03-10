@@ -220,7 +220,7 @@ replaySetStrategy oprf rprf
 We need to extract the predicate at the
 end of a proof-section
 \begin{code}
-psStartPred ((pr,_,_,_),_,_,[]) = pr
+psStartPred ((pr,_,_),_,_,[]) = pr
 psStartPred (_,_,_,psteps) = snd $ last psteps
 \end{code}
 
@@ -353,8 +353,8 @@ replayProofSection
   -> RRResult (ProofSection, TheoryStack, [MatchContext])
 
 replayProofSection what rpenv hctxt rmctxts rsc
-                   (ofpr@(opr,_,_,_),_,_,opsteps)
-                   rps@((rpr,_,_,_),_,_,_)
+                   (ofpr@(opr,_,_),_,_,opsteps)
+                   rps@((rpr,_,_),_,_,_)
  | opr' =!= rpr
    = replayProofSteps what rpenv hctxt rmctxts rsc rps 1 ops'
  | otherwise
@@ -476,7 +476,7 @@ replayInfer rpenv hctxt mctxts sc fpr binds NameReplace
  = return (repFocus rpenv fpr, rpenv, mctxts, rrOK)
 
 replayInfer rpenv hctxt mctxts sc fpr binds (NameFold qtgt)
- = return (repPFocus (Pvar $ Std qtgt) fpr, rpenv, mctxts, rrOK)
+ = return (repPFocus (PVar $ parseVariable qtgt) fpr, rpenv, mctxts, rrOK)
 
 replayInfer rpenv hctxt mctxts sc fpr binds RecExpand
  = return (expandFocus (map preds rpenv) fpr, rpenv, mctxts, rrOK)
@@ -509,7 +509,7 @@ replayInfer rpenv hctxt mctxts sc fpr binds IApply
  = return (fst $ redFocus hctxt sc (envPreds rpenv) fpr, rpenv, mctxts, rrOK)
 
 replayInfer rpenv hctxt mctxts sc fpr binds (UName newvar)
- = let fpr' = repPFocus (Pvar $ Std newvar) fpr
+ = let fpr' = repPFocus (PVar $ parseVariable newvar) fpr
        rpenv' = snd $ notePLTPred newvar (getPFocus fpr) rpenv
    in return (fpr', rpenv', mkMatchContexts rpenv', rrOK)
 
