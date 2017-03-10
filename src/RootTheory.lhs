@@ -83,14 +83,14 @@ conj_eqvRefl  =  ("==-refl",(pred_Cj_eqvRefl,SCtrue))
 \subsubsection{Axiom \AXfalseDefN}
 $$\AXfalseDef$$
 \begin{code}
-pred_Ax_falseDef  =  FALSE === Not TRUE
+pred_Ax_falseDef  =  FALSE === mkNot TRUE
 law_Ax_falseDef = freeRootLaw "Ax-FALSE-def" pred_Ax_falseDef
 \end{code}
 
 \subsubsection{Axiom \AXnotEqvDistrN}
 $$\AXnotEqvDistr$$
 \begin{code}
-pred_Ax_notEqvDistr  =  Not (pP === pQ) === (Not pP === pQ)
+pred_Ax_notEqvDistr  =  mkNot (pP === pQ) === (mkNot pP === pQ)
 law_Ax_notEqvDistr = freeRootLaw "Ax-~-==-distr" pred_Ax_notEqvDistr
 \end{code}
 Related Conjectures:
@@ -130,7 +130,7 @@ law_Ax_orEqvDistr = freeRootLaw "Ax-\\/-==-distr" pred_Ax_orEqvDistr
 \subsubsection{Axiom \AXexclMdlN}
 $$\AXexclMdl$$
 \begin{code}
-pred_Ax_exclMdl  =  pP \/ Not pP
+pred_Ax_exclMdl  =  pP \/ mkNot pP
 law_Ax_exclMdl = freeRootLaw "Ax-Excl-Mdl" pred_Ax_exclMdl
 \end{code}
 
@@ -202,7 +202,7 @@ law_Ax_AllOScope = mkRootLaw "Ax-all-x-scope" pred_Ax_AllOScope sc_Ax_AllOScope
 \subsubsection{Axiom \protect\AXAllEScopeN}
 $$\AXAllEScope$$
 \begin{code}
-pred_Ax_AllEScope = PVar (Std "ExprQuantNotSupported") ==> TRUE
+pred_Ax_AllEScope = PVar (parseVariable "ExprQuantNotSupported") ==> TRUE
 
 sc_Ax_AllEScope = SCtrue
 
@@ -212,12 +212,12 @@ law_Ax_AllEScope = mkRootLaw "Ax-all-E-scope" pred_Ax_AllEScope sc_Ax_AllEScope
 \subsubsection{Axiom \protect\AXAllPScopeN}
 $$\AXAllPScope$$
 \begin{code}
-pred_Ax_AllPScope
- =   Pforall qPsQs pP === Pforall qPs pP
-
-sc_Ax_AllPScope = vPs `notPfree` nP
-
-law_Ax_AllPScope = mkRootLaw "Ax-all-P-scope" pred_Ax_AllPScope sc_Ax_AllPScope
+-- pred_Ax_AllPScope
+--  =   Pforall qPsQs pP === Pforall qPs pP
+--
+-- sc_Ax_AllPScope = vPs `notPfree` nP
+--
+-- law_Ax_AllPScope = mkRootLaw "Ax-all-P-scope" pred_Ax_AllPScope sc_Ax_AllPScope
 \end{code}
 
 
@@ -238,7 +238,7 @@ law_Ax_orAllOScope = mkRootLaw "Ax-\\/-all-x-scope" pred_Ax_orAllOScope sc_Ax_or
 \subsubsection{Axiom \protect\AXorAllEScopeN}
 $$\AXorAllEScope$$
 \begin{code}
-pred_Ax_orAllEScope = PVar (Std "ExprQuantNotSupported") ==> TRUE
+pred_Ax_orAllEScope = PVar (parseVariable "ExprQuantNotSupported") ==> TRUE
 
 sc_Ax_orAllEScope = SCtrue
 
@@ -248,14 +248,14 @@ law_Ax_orAllEScope = mkRootLaw "Ax-\\/-all-E-scope" pred_Ax_orAllEScope sc_Ax_or
 \subsubsection{Axiom \protect\AXorAllPScopeN}
 $$\AXorAllPScope$$
 \begin{code}
-pred_Ax_orAllPScope
- = pP \/ Pforall qPsQs pQ
-   ===
-   Pforall qPs (pP \/ Pforall qPs pQ)
-
-sc_Ax_orAllPScope = vPs `notPfree` nP
-
-law_Ax_orAllPScope = mkRootLaw "Ax-\\/-all-P-scope" pred_Ax_orAllPScope sc_Ax_orAllPScope
+-- pred_Ax_orAllPScope
+--  = pP \/ Pforall qPsQs pQ
+--    ===
+--    Pforall qPs (pP \/ Pforall qPs pQ)
+--
+-- sc_Ax_orAllPScope = vPs `notPfree` nP
+--
+-- law_Ax_orAllPScope = mkRootLaw "Ax-\\/-all-P-scope" pred_Ax_orAllPScope sc_Ax_orAllPScope
 \end{code}
 
 \subsubsection{Axiom \protect\AXallODistrN}
@@ -273,7 +273,7 @@ law_Ax_allODistr = freeRootLaw "Ax-all-O-distr" pred_Ax_allODistr
 $$\AXallODistr$$
 \begin{code}
 pred_Ax_allEDistr
- = PVar (Std "ExprQuantNotSupported") ==> TRUE
+ = PVar (parseVariable "ExprQuantNotSupported") ==> TRUE
 
 law_Ax_allEDistr = freeRootLaw "Ax-all-E-distr" pred_Ax_allEDistr
 \end{code}
@@ -281,12 +281,12 @@ law_Ax_allEDistr = freeRootLaw "Ax-all-E-distr" pred_Ax_allEDistr
 \subsubsection{Axiom \protect\AXallPDistrN}
 $$\AXallPDistr$$
 \begin{code}
-pred_Ax_allPDistr
- = Pforall qPs (pP /\ pQ)
-   ===
-   (Pforall qPs pP) /\ (Pforall qPs pQ)
-
-law_Ax_allPDistr = freeRootLaw "Ax-all-P-distr" pred_Ax_allPDistr
+-- pred_Ax_allPDistr
+--  = Pforall qPs (pP /\ pQ)
+--    ===
+--    (Pforall qPs pP) /\ (Pforall qPs pQ)
+--
+-- law_Ax_allPDistr = freeRootLaw "Ax-all-P-distr" pred_Ax_allPDistr
 \end{code}
 
 
@@ -295,9 +295,9 @@ law_Ax_allPDistr = freeRootLaw "Ax-all-P-distr" pred_Ax_allPDistr
 $$\AXallOInst$$
 \begin{code}
 pred_Ax_allOInst
- = Forall 0 qxxs pP
+ = mkForall qxxs pP
    ==>
-   Forall 0 qxs (Sub pP $ Substn [(vx,e)])
+   mkForall qxs (Sub pP $ Substn [(vx,e)])
 
 law_Ax_allOInst = freeRootLaw "Ax-all-x-inst" pred_Ax_allOInst
 \end{code}
@@ -305,19 +305,19 @@ law_Ax_allOInst = freeRootLaw "Ax-all-x-inst" pred_Ax_allOInst
 \subsubsection{Axiom \protect\AXallEInstN}
 $$\AXallEInst$$
 \begin{code}
-pred_Ax_allEInst = PVar (Std "ExprQuantNotSupported") ==> TRUE
+pred_Ax_allEInst = PVar (parseVariable "ExprQuantNotSupported") ==> TRUE
 law_Ax_allEInst = freeRootLaw "Ax-all-E-inst" pred_Ax_allEInst
 \end{code}
 
 \subsubsection{Axiom \protect\AXallPInstN}
 $$\AXallPInst$$
 \begin{code}
-pred_Ax_allPInst
- = Pforall qPPs pQ
-   ==>
-   Pforall qPs (Psub pQ $ Substn [(Std nP,pR)])
-
-law_Ax_allPInst = freeRootLaw "Ax-all-P-inst" pred_Ax_allPInst
+-- pred_Ax_allPInst
+--  = Pforall qPPs pQ
+--    ==>
+--    Pforall qPs (Psub pQ $ Substn [(parseVariable nP,pR)])
+--
+-- law_Ax_allPInst = freeRootLaw "Ax-all-P-inst" pred_Ax_allPInst
 \end{code}
 
 \newpage
@@ -331,9 +331,9 @@ and parser.
 $$\AXanyODef$$
 \begin{code}
 pred_Ax_anyODef
- = Exists 0 qxs pP
+ = mkExists qxs pP
    ===
-   (Not $ Forall 0 qxs $ Not pP)
+   (mkNot $ mkForall qxs $ mkNot pP)
 
 law_Ax_anyODef = freeRootLaw "Ax-any-x-def" pred_Ax_anyODef
 \end{code}
@@ -341,7 +341,7 @@ law_Ax_anyODef = freeRootLaw "Ax-any-x-def" pred_Ax_anyODef
 \subsubsection{Axiom \protect\AXanyEDefN}
 $$\AXanyEDef$$
 \begin{code}
-pred_Ax_anyEDef = PVar (Std "ExprQuantNotSupported") ==> TRUE
+pred_Ax_anyEDef = PVar (parseVariable "ExprQuantNotSupported") ==> TRUE
 law_Ax_anyEDef = freeRootLaw "Ax-any-E-def" pred_Ax_anyEDef
 \end{code}
 
@@ -349,20 +349,20 @@ law_Ax_anyEDef = freeRootLaw "Ax-any-E-def" pred_Ax_anyEDef
 \subsubsection{Axiom \protect\AXanyPDefN}
 $$\AXanyPDef$$
 \begin{code}
-pred_Ax_anyPDef
- = Pexists qPs pP
-   ===
-   (Not $ Pforall qPs $ Not pP)
-
-law_Ax_anyPDef = freeRootLaw "Ax-any-P-def" pred_Ax_anyPDef
+-- pred_Ax_anyPDef
+--  = Pexists qPs pP
+--    ===
+--    (Not $ Pforall qPs $ Not pP)
+--
+-- law_Ax_anyPDef = freeRootLaw "Ax-any-P-def" pred_Ax_anyPDef
 \end{code}
 
 \subsubsection{Axiom \protect\AXunivClosureN}
 $$\AXunivClosure$$
 \begin{code}
 pred_Ax_univClosure
- = Univ 0 pP
-   === Forall 0 qxs pP
+ = mkUniv pP
+   === mkForall qxs pP
 
 sc_Ax_univClosure = [vxs] `coverFreeOfP` nP
 
@@ -399,11 +399,11 @@ law_Ax_eqRefl = freeRootLaw "Ax-=-refl" pred_Ax_eqRefl
 $$\AXtheDef$$
 \begin{code}
 pred_Ax_theDef
- = e `equal` (The 0 vx pP)
+ = e `equal` (mkThe vx pP)
    ===
    Sub pP sube
    /\
-   (Forall 0 qy (Sub pP suby ==> (eqy `equal` e)))
+   (mkForall qy (Sub pP suby ==> (eqy `equal` e)))
  where
    sube = Substn [(vx, e)]
    suby = Substn [(vx,evy)]
@@ -486,14 +486,14 @@ pred_Ax_TRUE_OSubst
  = (Sub TRUE $ Substn [(vxs,Var $ lstVar "e")]) === TRUE
 law_Ax_TRUE_OSubst = freeRootLaw "Ax-TRUE-xSubst" pred_Ax_TRUE_OSubst
 
-pred_Ax_TRUE_ESubst = PVar (Std "TRUEESubstNotSupported") ==> TRUE
+pred_Ax_TRUE_ESubst = PVar (parseVariable "TRUEESubstNotSupported") ==> TRUE
 law_Ax_TRUE_ESubst = freeRootLaw "Ax-TRUE-ESubst" pred_Ax_TRUE_ESubst
 
 pred_Ax_FALSE_OSubst
  = (Sub FALSE $ Substn [(vxs,Var $ lstVar "e")]) === FALSE
 law_Ax_FALSE_OSubst = freeRootLaw "Ax-FALSE-xSubst" pred_Ax_FALSE_OSubst
 
-pred_Ax_FALSE_ESubst = PVar (Std "FALSEESubstNotSupported") ==> FALSE
+pred_Ax_FALSE_ESubst = PVar (parseVariable "FALSEESubstNotSupported") ==> FALSE
 law_Ax_FALSE_ESubst = freeRootLaw "Ax-FALSE-ESubst" pred_Ax_FALSE_ESubst
 \end{code}
 
@@ -504,27 +504,27 @@ law_Ax_FALSE_ESubst = freeRootLaw "Ax-FALSE-ESubst" pred_Ax_FALSE_ESubst
 rootNonPropAxioms
  = law_Ax_AllOScope
    -- ++ law_Ax_AllEScope -- not supported
-   ++ law_Ax_AllPScope
+   -- ++ law_Ax_AllPScope
    ++ law_Ax_orAllOScope
    -- ++ law_Ax_orAllEScope -- not supported
-   ++ law_Ax_orAllPScope
+   -- ++ law_Ax_orAllPScope
    ++ law_Ax_allODistr
    -- ++ law_Ax_allEDistr -- not supported
-   ++ law_Ax_allPDistr
+   -- ++ law_Ax_allPDistr
    ++ law_Ax_allOInst
    -- ++ law_Ax_allEInst -- not supported
-   ++ law_Ax_allPInst
+   -- ++ law_Ax_allPInst
    ++ law_Ax_anyODef
    -- ++ law_Ax_anyEDef -- not supported
-   ++ law_Ax_anyPDef
+   -- ++ law_Ax_anyPDef -- not supported
    ++ law_Ax_univClosure
    ++ law_Ax_eqRefl
    ++ law_Ax_theDef
    ++ law_Ax_Leibniz
    ++ law_Ax_TRUE_OSubst
-   ++ law_Ax_TRUE_PSubst
+   -- ++ law_Ax_TRUE_PSubst -- not supported
    ++ law_Ax_FALSE_OSubst
-   ++ law_Ax_FALSE_PSubst
+   -- ++ law_Ax_FALSE_PSubst -- not supported
 \end{code}
 
 \subsection{The ``root'' theory}
