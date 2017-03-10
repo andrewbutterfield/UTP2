@@ -30,12 +30,12 @@ import DocTextParser
 
 import DSL
 import Logic
-import GSLogic
-import GS3001
-import UTP
-import R
-import RAlg
-import LaTeXTest
+-- import GSLogic
+-- import GS3001
+-- import UTP
+-- import R
+-- import RAlg
+-- import LaTeXTest
 
 import System.IO
 import Graphics.UI.WX

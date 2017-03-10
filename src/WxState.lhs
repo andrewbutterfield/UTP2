@@ -15,10 +15,10 @@ import Theories
 import Files
 import LaTeXSetup
 import RootTheory
-import Logic -- to be dumped
-import UTP -- to be dumped
-import R -- to be dumped
-import RAlg -- to be dumped
+-- import Logic -- to be dumped
+-- import UTP -- to be dumped
+-- import R -- to be dumped
+-- import RAlg -- to be dumped
 import WxTypes
 
 import Graphics.UI.WX

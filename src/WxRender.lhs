@@ -19,10 +19,10 @@ import Files
 import ImportExport
 import Archive
 import DocTextParser
-import Logic
-import UTP
-import R
-import RAlg
+-- import Logic
+-- import UTP
+-- import R
+-- import RAlg
 
 import System.IO
 import Graphics.UI.WX

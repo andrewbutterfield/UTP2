@@ -49,28 +49,28 @@ lOrIdem   =  pA \/ pA === pA  -- (1)
 lAndComm  =  pA /\ pB === pB /\ pA  -- (2)
 lOrComm   =  pA \/ pB === pB \/ pA  -- (3)
 
-lAndAssoc = Eqv (And [pA,And[pB,pC]]) (And [And [pA,pB],pC])  -- (4)
-lOrAssoc = Eqv (Or [pA,Or[pB,pC]]) (Or [Or [pA,pB],pC])  -- (5)
+lAndAssoc = mkEqv (mkAnd [pA,mkAnd[pB,pC]]) (mkAnd [mkAnd [pA,pB],pC])  -- (4)
+lOrAssoc = mkEqv (mkOr [pA,mkOr[pB,pC]]) (mkOr [mkOr [pA,pB],pC])  -- (5)
 
-lAndOrAbsR1 = Eqv (And [pA,Or [pA,pB]]) pA  -- (6)
-lAndOrAbsR2 = Eqv (And [pA,Or [pB,pA]]) pA  -- (6)
-lAndOrAbsR3 = Eqv (And [Or [pA,pB],pA]) pA  -- (6)
-lAndOrAbsR4 = Eqv (And [Or [pB,pA],pA]) pA  -- (6)
+lAndOrAbsR1 = mkEqv (mkAnd [pA,mkOr [pA,pB]]) pA  -- (6)
+lAndOrAbsR2 = mkEqv (mkAnd [pA,mkOr [pB,pA]]) pA  -- (6)
+lAndOrAbsR3 = mkEqv (mkAnd [mkOr [pA,pB],pA]) pA  -- (6)
+lAndOrAbsR4 = mkEqv (mkAnd [mkOr [pB,pA],pA]) pA  -- (6)
 
-lOrAndAbsR1 = Eqv (Or [pA,And [pA,pB]]) pA -- (6)
-lOrAndAbsR2 = Eqv (Or [pA,And [pB,pA]]) pA -- (6)
-lOrAndAbsR3 = Eqv (Or [And [pA,pB],pA]) pA -- (6)
-lOrAndAbsR4 = Eqv (Or [And [pB,pA],pA]) pA -- (6)
+lOrAndAbsR1 = mkEqv (mkOr [pA,mkAnd [pA,pB]]) pA -- (6)
+lOrAndAbsR2 = mkEqv (mkOr [pA,mkAnd [pB,pA]]) pA -- (6)
+lOrAndAbsR3 = mkEqv (mkOr [mkAnd [pA,pB],pA]) pA -- (6)
+lOrAndAbsR4 = mkEqv (mkOr [mkAnd [pB,pA],pA]) pA -- (6)
 
-lAndOrDistr1 = Eqv (And [pA,Or [pB,pC]]) --(7)
-                   (Or [And [pA,pB],And [pA,pC]])
-lAndOrDistr2 = Eqv (And [Or [pB,pC],pA]) --(7)
-                   (Or [And [pB,pA],And [pC,pA]])
+lAndOrDistr1 = mkEqv (mkAnd [pA,mkOr [pB,pC]]) --(7)
+                   (mkOr [mkAnd [pA,pB],mkAnd [pA,pC]])
+lAndOrDistr2 = mkEqv (mkAnd [mkOr [pB,pC],pA]) --(7)
+                   (mkOr [mkAnd [pB,pA],mkAnd [pC,pA]])
 
-lOrAndDistr1 = Eqv (Or [pA,And [pB,pC]])  -- (8)
-                   (And [Or [pA,pB],Or [pA,pC]])
-lOrAndDistr2 = Eqv (Or [And [pB,pC],pA])  -- (8)
-                   (And [Or [pB,pA],Or [pC,pA]])
+lOrAndDistr1 = mkEqv (mkOr [pA,mkAnd [pB,pC]])  -- (8)
+                   (mkAnd [mkOr [pA,pB],mkOr [pA,pC]])
+lOrAndDistr2 = mkEqv (mkOr [mkAnd [pB,pC],pA])  -- (8)
+                   (mkAnd [mkOr [pB,pA],mkOr [pC,pA]])
 
 
 laws_2_1
@@ -106,7 +106,7 @@ conj_2_1
    : freeConj "\\/-/\\-distr" lOrAndDistr1
    : []
 
-test_2_1 = [ ( "[/\\-idem]", (Univ 0 lAndIdem,SCtrue))
+test_2_1 = [ ( "[/\\-idem]", (mkUniv lAndIdem,SCtrue))
            , ( "alphaTest1", (alphaTest1,SCtrue))
            , ( "alphaTest2", (alphaTest2,SCtrue))
            , ( "typeTest1",  (typeTest1,SCtrue))
@@ -116,28 +116,28 @@ test_2_1 = [ ( "[/\\-idem]", (Univ 0 lAndIdem,SCtrue))
 \subsubsection{A Boolean algebra (2.2)}
 
 \begin{code}
-lAndUnit1 = Eqv (And [pA,TRUE]) pA  -- (9)
-lAndUnit2 = Eqv (And [TRUE,pA]) pA  -- (9)
-lOrZero1  = Eqv (Or [pA,TRUE]) TRUE  -- (10)
-lOrZero2  = Eqv (Or [TRUE,pA]) TRUE  -- (10)
-lAndZero1 = Eqv (And [pA,FALSE]) FALSE  -- (11)
-lAndZero2 = Eqv (And [FALSE,pA]) FALSE  -- (11)
-lOrUnit1  = Eqv (Or [pA,FALSE]) pA  -- (12)
-lOrUnit2  = Eqv (Or [FALSE,pA]) pA  -- (12)
+lAndUnit1 = mkEqv (mkAnd [pA,TRUE]) pA  -- (9)
+lAndUnit2 = mkEqv (mkAnd [TRUE,pA]) pA  -- (9)
+lOrZero1  = mkEqv (mkOr [pA,TRUE]) TRUE  -- (10)
+lOrZero2  = mkEqv (mkOr [TRUE,pA]) TRUE  -- (10)
+lAndZero1 = mkEqv (mkAnd [pA,FALSE]) FALSE  -- (11)
+lAndZero2 = mkEqv (mkAnd [FALSE,pA]) FALSE  -- (11)
+lOrUnit1  = mkEqv (mkOr [pA,FALSE]) pA  -- (12)
+lOrUnit2  = mkEqv (mkOr [FALSE,pA]) pA  -- (12)
 
-lContradiction1 = Eqv (And [pA,Not pA]) FALSE  -- (13)
-lContradiction2 = Eqv (And [Not pA,pA]) FALSE  -- (13)
-lNoMiddle1      = Eqv (Or [pA,Not pA]) TRUE  -- (14)
-lNoMiddle2      = Eqv (Or [Not pA,pA]) TRUE  -- (14)
+lContradiction1 = mkEqv (mkAnd [pA,mkNot pA]) FALSE  -- (13)
+lContradiction2 = mkEqv (mkAnd [mkNot pA,pA]) FALSE  -- (13)
+lNoMiddle1      = mkEqv (mkOr [pA,mkNot pA]) TRUE  -- (14)
+lNoMiddle2      = mkEqv (mkOr [mkNot pA,pA]) TRUE  -- (14)
 
-lNotNot  = Eqv (Not (Not pA)) pA  -- (15)
-lAndDeMorgan = Eqv (And [Not pA,Not pB]) (Not (Or [pA,pB]))  -- (16)
-lOrDeMorgan = Eqv (Or [Not pA,Not pB]) (Not (And [pA,pB]))  -- (17)
+lNotNot  = mkEqv (mkNot (mkNot pA)) pA  -- (15)
+lAndDeMorgan = mkEqv (mkAnd [mkNot pA,mkNot pB]) (mkNot (mkOr [pA,pB]))  -- (16)
+lOrDeMorgan = mkEqv (mkOr [mkNot pA,mkNot pB]) (mkNot (mkAnd [pA,pB]))  -- (17)
 
-lOrAndNotAbs1 = Eqv (Or [pA,And [Not pA,pB]]) (Or [pA,pB])  -- (18)
-lOrAndNotAbs2 = Eqv (Or [And [Not pA,pB],pA]) (Or [pA,pB])  -- (18)
-lAndOrNotAbs1 = Eqv (And [pA,Or [Not pA,pB]]) (And [pA,pB])  -- (19)
-lAndOrNotAbs2 = Eqv (And [Or [Not pA,pB],pA]) (And [pA,pB])  -- (19)
+lOrAndNotAbs1 = mkEqv (mkOr [pA,mkAnd [mkNot pA,pB]]) (mkOr [pA,pB])  -- (18)
+lOrAndNotAbs2 = mkEqv (mkOr [mkAnd [mkNot pA,pB],pA]) (mkOr [pA,pB])  -- (18)
+lAndOrNotAbs1 = mkEqv (mkAnd [pA,mkOr [mkNot pA,pB]]) (mkAnd [pA,pB])  -- (19)
+lAndOrNotAbs2 = mkEqv (mkAnd [mkOr [mkNot pA,pB],pA]) (mkAnd [pA,pB])  -- (19)
 
 laws_2_2
    =   freeLogicLaw "/\\-unit.1" lAndUnit1
@@ -159,8 +159,8 @@ laws_2_2
    ~:~ freeLogicLaw "\\/-/\\-~-absorb.2" lOrAndNotAbs2
    ~:~ freeLogicLaw "/\\-\\/-~-absorb.3" lAndOrNotAbs1
    ~:~ freeLogicLaw "/\\-\\/-~-absorb.4" lAndOrNotAbs2
-   ~:~ freeLogicLaw "false" (FALSE === Not TRUE)
-   ~:~ freeLogicLaw "true" (TRUE === Not FALSE)
+   ~:~ freeLogicLaw "false" (FALSE === mkNot TRUE)
+   ~:~ freeLogicLaw "true" (TRUE === mkNot FALSE)
 
 conj_2_2
    = freeConj "/\\-unit" lAndUnit1
@@ -173,78 +173,78 @@ conj_2_2
    : freeConj "/\\-deMorgan" lAndDeMorgan
    : freeConj "\\/-deMorgan" lOrDeMorgan
    : freeConj "\\/-/\\-~-absorb" lOrAndNotAbs1
-   : freeConj "false" (FALSE === Not TRUE)
-   : freeConj "true" (TRUE === Not FALSE)
+   : freeConj "false" (FALSE === mkNot TRUE)
+   : freeConj "true" (TRUE === mkNot FALSE)
    : []
 \end{code}
 
 \subsubsection{Implication (2.3)}
 
 \begin{code}
-lImpDef1 = Eqv (Imp pA pB) (Or [Not pA,pB])  -- (20)
-lImpDef2 = Eqv (Imp pA pB) (Or [pB,Not pA])  -- (20)
-lImpSelf = Eqv (Imp pA pA) TRUE  -- (21)
-lImpAlt11 = Eqv (Imp pA pB) (Not (And [pA,Not pB]))  -- (22)
-lImpAlt12 = Eqv (Imp pA pB) (Not (And [Not pB,pA]))  -- (22)
-lNotImp1 = Eqv (Not (Imp pA pB)) (And [pA,Not pB])  -- (23)
-lNotImp2 = Eqv (Not (Imp pA pB)) (And [Not pB,pA])  -- (23)
-lContrapos = Eqv (Imp pA pB) (Imp (Not pB) (Not pA))  -- (24)
+lImpDef1 = mkEqv (mkImp pA pB) (mkOr [mkNot pA,pB])  -- (20)
+lImpDef2 = mkEqv (mkImp pA pB) (mkOr [pB,mkNot pA])  -- (20)
+lImpSelf = mkEqv (mkImp pA pA) TRUE  -- (21)
+lImpAlt11 = mkEqv (mkImp pA pB) (mkNot (mkAnd [pA,mkNot pB]))  -- (22)
+lImpAlt12 = mkEqv (mkImp pA pB) (mkNot (mkAnd [mkNot pB,pA]))  -- (22)
+lNotImp1 = mkEqv (mkNot (mkImp pA pB)) (mkAnd [pA,mkNot pB])  -- (23)
+lNotImp2 = mkEqv (mkNot (mkImp pA pB)) (mkAnd [mkNot pB,pA])  -- (23)
+lContrapos = mkEqv (mkImp pA pB) (mkImp (mkNot pB) (mkNot pA))  -- (24)
 
-lImpTrue = Eqv (Imp pA TRUE) TRUE  -- (25)
-lTrueImp = Eqv (Imp TRUE pA) pA  -- (26)
-lImpFalse = Eqv (Imp pA FALSE) (Not pA)  -- (27)
-lFalseImp = Eqv (Imp FALSE pA) TRUE  -- (28)
-lImpNeg = Eqv (Imp pA (Not pA)) (Not pA)  -- (29)
-lNegImp = Eqv (Imp (Not pA) pA) pA  -- (30)
+lImpTrue = mkEqv (mkImp pA TRUE) TRUE  -- (25)
+lTrueImp = mkEqv (mkImp TRUE pA) pA  -- (26)
+lImpFalse = mkEqv (mkImp pA FALSE) (mkNot pA)  -- (27)
+lFalseImp = mkEqv (mkImp FALSE pA) TRUE  -- (28)
+lImpNeg = mkEqv (mkImp pA (mkNot pA)) (mkNot pA)  -- (29)
+lNegImp = mkEqv (mkImp (mkNot pA) pA) pA  -- (30)
 
-lImpAndDistr = Eqv (Imp pC (And [pA,pB])) (And [Imp pC pA,Imp pC pB])  -- (31)
-lOrImpDistr = Eqv (Imp (Or [pA,pB]) pC) (And [Imp pA pC,Imp pB pC])  -- (32)
+lImpAndDistr = mkEqv (mkImp pC (mkAnd [pA,pB])) (mkAnd [mkImp pC pA,mkImp pC pB])  -- (31)
+lOrImpDistr = mkEqv (mkImp (mkOr [pA,pB]) pC) (mkAnd [mkImp pA pC,mkImp pB pC])  -- (32)
 
-lBoolMeet1 = Eqv (Or [Not pA,pB])  -- (33)
-                 (Eqv (And [pA,pB]) pA)
-lBoolMeet2 = Eqv (Or [pB,Not pA])  -- (33)
-                 (Eqv (And [pA,pB]) pA)
-lBoolMeet3 = Eqv (Or [Not pA,pB])  -- (33)
-                 (Eqv (And [pB,pA]) pA)
-lBoolMeet4 = Eqv (Or [pB,Not pA])  -- (33)
-                 (Eqv (And [pB,pA]) pA)
-lBoolMeet5 = Eqv (Or [Not pA,pB])  -- (33)
-                 (Eqv pA (And [pA,pB]))
-lBoolMeet6 = Eqv (Or [pB,Not pA])  -- (33)
-                 (Eqv pA (And [pA,pB]))
-lBoolMeet7 = Eqv (Or [Not pA,pB])  -- (33)
-                 (Eqv pA (And [pB,pA]))
-lBoolMeet8 = Eqv (Or [pB,Not pA])  -- (33)
-                 (Eqv pA (And [pB,pA]))
+lBoolMeet1 = mkEqv (mkOr [mkNot pA,pB])  -- (33)
+                 (mkEqv (mkAnd [pA,pB]) pA)
+lBoolMeet2 = mkEqv (mkOr [pB,mkNot pA])  -- (33)
+                 (mkEqv (mkAnd [pA,pB]) pA)
+lBoolMeet3 = mkEqv (mkOr [mkNot pA,pB])  -- (33)
+                 (mkEqv (mkAnd [pB,pA]) pA)
+lBoolMeet4 = mkEqv (mkOr [pB,mkNot pA])  -- (33)
+                 (mkEqv (mkAnd [pB,pA]) pA)
+lBoolMeet5 = mkEqv (mkOr [mkNot pA,pB])  -- (33)
+                 (mkEqv pA (mkAnd [pA,pB]))
+lBoolMeet6 = mkEqv (mkOr [pB,mkNot pA])  -- (33)
+                 (mkEqv pA (mkAnd [pA,pB]))
+lBoolMeet7 = mkEqv (mkOr [mkNot pA,pB])  -- (33)
+                 (mkEqv pA (mkAnd [pB,pA]))
+lBoolMeet8 = mkEqv (mkOr [pB,mkNot pA])  -- (33)
+                 (mkEqv pA (mkAnd [pB,pA]))
 
-lBoolJoin1 = Eqv (Or [Not pA,pB])  -- (33)
-                 (Eqv (Or [pA,pB]) pB)
-lBoolJoin2 = Eqv (Or [pB,Not pA])  -- (33)
-                 (Eqv (Or [pA,pB]) pB)
-lBoolJoin3 = Eqv (Or [Not pA,pB])  -- (33)
-                 (Eqv (Or [pB,pA]) pB)
-lBoolJoin4 = Eqv (Or [pB,Not pA])  -- (33)
-                 (Eqv (Or [pB,pA]) pB)
-lBoolJoin5 = Eqv (Or [Not pA,pB])  -- (33)
-                 (Eqv pB (Or [pA,pB]))
-lBoolJoin6 = Eqv (Or [pB,Not pA])  -- (33)
-                 (Eqv pB (Or [pA,pB]))
-lBoolJoin7 = Eqv (Or [Not pA,pB])  -- (33)
-                 (Eqv pB (Or [pB,pA]))
-lBoolJoin8 = Eqv (Or [pB,Not pA])  -- (33)
-                 (Eqv pB (Or [pB,pA]))
+lBoolJoin1 = mkEqv (mkOr [mkNot pA,pB])  -- (33)
+                 (mkEqv (mkOr [pA,pB]) pB)
+lBoolJoin2 = mkEqv (mkOr [pB,mkNot pA])  -- (33)
+                 (mkEqv (mkOr [pA,pB]) pB)
+lBoolJoin3 = mkEqv (mkOr [mkNot pA,pB])  -- (33)
+                 (mkEqv (mkOr [pB,pA]) pB)
+lBoolJoin4 = mkEqv (mkOr [pB,mkNot pA])  -- (33)
+                 (mkEqv (mkOr [pB,pA]) pB)
+lBoolJoin5 = mkEqv (mkOr [mkNot pA,pB])  -- (33)
+                 (mkEqv pB (mkOr [pA,pB]))
+lBoolJoin6 = mkEqv (mkOr [pB,mkNot pA])  -- (33)
+                 (mkEqv pB (mkOr [pA,pB]))
+lBoolJoin7 = mkEqv (mkOr [mkNot pA,pB])  -- (33)
+                 (mkEqv pB (mkOr [pB,pA]))
+lBoolJoin8 = mkEqv (mkOr [pB,mkNot pA])  -- (33)
+                 (mkEqv pB (mkOr [pB,pA]))
 
-lImpMrg1 = Eqv (Imp pA (Imp pB pC)) (Imp (And [pA,pB]) pC)  -- (34)
-lImpMrg2 = Eqv (Imp pA (Imp pB pC)) (Imp pB (Imp pA pC))  -- (35)
+lImpMrg1 = mkEqv (mkImp pA (mkImp pB pC)) (mkImp (mkAnd [pA,pB]) pC)  -- (34)
+lImpMrg2 = mkEqv (mkImp pA (mkImp pB pC)) (mkImp pB (mkImp pA pC))  -- (35)
 
-lImpCases1 = Eqv (And [Imp pA pB,Imp (Not pA) pC])  -- (36)
-                 (Or [And [pA,pB],And[Not pA,pC]])
-lImpCases2 = Eqv (And [Imp (Not pA) pC,Imp pA pB])  -- (36)
-                 (Or [And [pA,pB],And[Not pA,pC]])
-lImpCases3 = Eqv (And [Imp pA pB,Imp (Not pA) pC])  -- (36)
-                 (Or [And[Not pA,pC],And [pA,pB]])
-lImpCases4 = Eqv (And [Imp (Not pA) pC,Imp pA pB])  -- (36)
-                 (Or [And[Not pA,pC],And [pA,pB]])
+lImpCases1 = mkEqv (mkAnd [mkImp pA pB,mkImp (mkNot pA) pC])  -- (36)
+                 (mkOr [mkAnd [pA,pB],mkAnd[mkNot pA,pC]])
+lImpCases2 = mkEqv (mkAnd [mkImp (mkNot pA) pC,mkImp pA pB])  -- (36)
+                 (mkOr [mkAnd [pA,pB],mkAnd[mkNot pA,pC]])
+lImpCases3 = mkEqv (mkAnd [mkImp pA pB,mkImp (mkNot pA) pC])  -- (36)
+                 (mkOr [mkAnd[mkNot pA,pC],mkAnd [pA,pB]])
+lImpCases4 = mkEqv (mkAnd [mkImp (mkNot pA) pC,mkImp pA pB])  -- (36)
+                 (mkOr [mkAnd[mkNot pA,pC],mkAnd [pA,pB]])
 
 laws_2_3
    =   freeLogicLaw "DEF-=>.1" lImpDef1
@@ -310,93 +310,93 @@ conj_2_3
 \subsubsection{Other connectives (2.4)}
 
 \begin{code}
-lEqvDef  =  Eqv (Eqv pA pB) (And [Imp pA pB, Imp pB pA])  -- (37)
-lEqvAlt11 =  Eqv (Eqv pA pB) (Or [And [pA,pB], Not (Or [pA,pB])])  -- (38)
-lEqvAlt12 =  Eqv (Eqv pA pB) (Or [And [pB,pA], Not (Or [pA,pB])])  -- (38)
-lEqvAlt2 =  Eqv (Eqv pA pB) (Eqv (Not pA) (Not pB))  -- (39)
+lEqvDef  =  mkEqv (mkEqv pA pB) (mkAnd [mkImp pA pB, mkImp pB pA])  -- (37)
+lEqvAlt11 =  mkEqv (mkEqv pA pB) (mkOr [mkAnd [pA,pB], mkNot (mkOr [pA,pB])])  -- (38)
+lEqvAlt12 =  mkEqv (mkEqv pA pB) (mkOr [mkAnd [pB,pA], mkNot (mkOr [pA,pB])])  -- (38)
+lEqvAlt2 =  mkEqv (mkEqv pA pB) (mkEqv (mkNot pA) (mkNot pB))  -- (39)
 
-lEqvSame   =  Eqv (Eqv pA pA) TRUE  -- (40)
-lEqvDiff1   =  Eqv (Eqv pA (Not pA)) FALSE  -- (41)
-lEqvDiff2   =  Eqv (Eqv (Not pA) pA) FALSE  -- (41)
-lEqvTrue   =  Eqv (Eqv pA TRUE) pA  -- (42)
-lEqvFalse  =  Eqv (Eqv pA FALSE) (Not pA)  -- (43)
-lImpAlt21   =  Eqv (Imp pA pB) (Eqv pA (And [pA,pB]))  -- (44)
-lImpAlt22   =  Eqv (Imp pA pB) (Eqv pA (And [pB,pA]))  -- (44)
-lImpAlt23   =  Eqv (Imp pA pB) (Eqv (And [pA,pB]) pA)  -- (44)
-lImpAlt24   =  Eqv (Imp pA pB) (Eqv (And [pB,pA]) pA)  -- (44)
-lImpAlt31   =  Eqv (Imp pB pA) (Eqv pA (Or [pA,pB]))  -- (45)
-lImpAlt32   =  Eqv (Imp pB pA) (Eqv pA (Or [pB,pA]))  -- (45)
-lImpAlt33   =  Eqv (Imp pB pA) (Eqv (Or [pA,pB]) pA)  -- (45)
-lImpAlt34   =  Eqv (Imp pB pA) (Eqv (Or [pB,pA]) pA)  -- (45)
-lOrEqvDistr1  =  Eqv (Or [pA,Eqv pB pC])  -- (46)
-                     (Eqv (Or [pA,pB]) (Or [pA,pC]))
-lOrEqvDistr2  =  Eqv (Or [Eqv pB pC,pA])  -- (46)
-                     (Eqv (Or [pA,pB]) (Or [pA,pC]))
-lOrEqvDistr3  =  Eqv (Or [pA,Eqv pB pC])  -- (46)
-                     (Eqv (Or [pB,pA]) (Or [pC,pA]))
-lOrEqvDistr4  =  Eqv (Or [Eqv pB pC,pA])  -- (46)
-                     (Eqv (Or [pB,pA]) (Or [pC,pA]))
+lEqvSame   =  mkEqv (mkEqv pA pA) TRUE  -- (40)
+lEqvDiff1   =  mkEqv (mkEqv pA (mkNot pA)) FALSE  -- (41)
+lEqvDiff2   =  mkEqv (mkEqv (mkNot pA) pA) FALSE  -- (41)
+lEqvTrue   =  mkEqv (mkEqv pA TRUE) pA  -- (42)
+lEqvFalse  =  mkEqv (mkEqv pA FALSE) (mkNot pA)  -- (43)
+lImpAlt21   =  mkEqv (mkImp pA pB) (mkEqv pA (mkAnd [pA,pB]))  -- (44)
+lImpAlt22   =  mkEqv (mkImp pA pB) (mkEqv pA (mkAnd [pB,pA]))  -- (44)
+lImpAlt23   =  mkEqv (mkImp pA pB) (mkEqv (mkAnd [pA,pB]) pA)  -- (44)
+lImpAlt24   =  mkEqv (mkImp pA pB) (mkEqv (mkAnd [pB,pA]) pA)  -- (44)
+lImpAlt31   =  mkEqv (mkImp pB pA) (mkEqv pA (mkOr [pA,pB]))  -- (45)
+lImpAlt32   =  mkEqv (mkImp pB pA) (mkEqv pA (mkOr [pB,pA]))  -- (45)
+lImpAlt33   =  mkEqv (mkImp pB pA) (mkEqv (mkOr [pA,pB]) pA)  -- (45)
+lImpAlt34   =  mkEqv (mkImp pB pA) (mkEqv (mkOr [pB,pA]) pA)  -- (45)
+lOrEqvDistr1  =  mkEqv (mkOr [pA,mkEqv pB pC])  -- (46)
+                     (mkEqv (mkOr [pA,pB]) (mkOr [pA,pC]))
+lOrEqvDistr2  =  mkEqv (mkOr [mkEqv pB pC,pA])  -- (46)
+                     (mkEqv (mkOr [pA,pB]) (mkOr [pA,pC]))
+lOrEqvDistr3  =  mkEqv (mkOr [pA,mkEqv pB pC])  -- (46)
+                     (mkEqv (mkOr [pB,pA]) (mkOr [pC,pA]))
+lOrEqvDistr4  =  mkEqv (mkOr [mkEqv pB pC,pA])  -- (46)
+                     (mkEqv (mkOr [pB,pA]) (mkOr [pC,pA]))
 
-lEqvComm  = Eqv (Eqv pA pB) (Eqv pB pA)  -- (47)
-lEqvAssoc = Eqv (Eqv pA (Eqv pB pC)) (Eqv (Eqv pA pB) pC)  -- (48)
+lEqvComm  = mkEqv (mkEqv pA pB) (mkEqv pB pA)  -- (47)
+lEqvAssoc = mkEqv (mkEqv pA (mkEqv pB pC)) (mkEqv (mkEqv pA pB) pC)  -- (48)
 
 -- The "Golden Rule"
 
-goldenRule1 = Eqv (Eqv pA pB)  -- (49)
-                  (Eqv (And [pA,pB]) (Or [pA,pB]))
-goldenRule2 = Eqv (Eqv pA pB)  -- (49)
-                  (Eqv (And [pB,pA]) (Or [pA,pB]))
-goldenRule3 = Eqv (Eqv pA pB)  -- (49)
-                  (Eqv (Or [pA,pB]) (And [pA,pB]))
-goldenRule4 = Eqv (Eqv pA pB)  -- (49)
-                  (Eqv (Or [pA,pB]) (And [pB,pA]))
-goldenRule5 = Eqv (Eqv pB pA)  -- (49)
-                  (Eqv (And [pA,pB]) (Or [pA,pB]))
-goldenRule6 = Eqv (Eqv pB pA)  -- (49)
-                  (Eqv (And [pB,pA]) (Or [pA,pB]))
-goldenRule7 = Eqv (Eqv pB pA)  -- (49)
-                  (Eqv (Or [pA,pB]) (And [pA,pB]))
-goldenRule8 = Eqv (Eqv pB pA)  -- (49)
-                  (Eqv (Or [pA,pB]) (And [pB,pA]))
+goldenRule1 = mkEqv (mkEqv pA pB)  -- (49)
+                  (mkEqv (mkAnd [pA,pB]) (mkOr [pA,pB]))
+goldenRule2 = mkEqv (mkEqv pA pB)  -- (49)
+                  (mkEqv (mkAnd [pB,pA]) (mkOr [pA,pB]))
+goldenRule3 = mkEqv (mkEqv pA pB)  -- (49)
+                  (mkEqv (mkOr [pA,pB]) (mkAnd [pA,pB]))
+goldenRule4 = mkEqv (mkEqv pA pB)  -- (49)
+                  (mkEqv (mkOr [pA,pB]) (mkAnd [pB,pA]))
+goldenRule5 = mkEqv (mkEqv pB pA)  -- (49)
+                  (mkEqv (mkAnd [pA,pB]) (mkOr [pA,pB]))
+goldenRule6 = mkEqv (mkEqv pB pA)  -- (49)
+                  (mkEqv (mkAnd [pB,pA]) (mkOr [pA,pB]))
+goldenRule7 = mkEqv (mkEqv pB pA)  -- (49)
+                  (mkEqv (mkOr [pA,pB]) (mkAnd [pA,pB]))
+goldenRule8 = mkEqv (mkEqv pB pA)  -- (49)
+                  (mkEqv (mkOr [pA,pB]) (mkAnd [pB,pA]))
 
--- laws 50 through 59 regarding Exclusive-Or are not given here.
+-- laws 50 through 59 regarding Exclusive-mkOr are not given here.
 
-lCondDef1  =  Eqv (If pC pA pB) (Or [And [pC,pA], And [Not pC,pB]])
-lCondDef2 =  Eqv (If pC pA pB) (Or [And [pA,pC], And [Not pC,pB]])
-lCondDef3  =  Eqv (If pC pA pB) (Or [And [pC,pA], And [pB,Not pC]])
-lCondDef4  =  Eqv (If pC pA pB) (Or [And [pA,pC], And [pB,Not pC]])
-lCondDef5  =  Eqv (If pC pA pB) (Or [And [Not pC,pB], And [pC,pA]])
-lCondDef6  =  Eqv (If pC pA pB) (Or [And [Not pC,pB], And [pA,pC]])
-lCondDef7  =  Eqv (If pC pA pB) (Or [And [pB,Not pC], And [pC,pA]])
-lCondDef8  =  Eqv (If pC pA pB) (Or [And [pB,Not pC], And [pA,pC]])
+lCondDef1  =  mkEqv (mkIf pC pA pB) (mkOr [mkAnd [pC,pA], mkAnd [mkNot pC,pB]])
+lCondDef2 =  mkEqv (mkIf pC pA pB) (mkOr [mkAnd [pA,pC], mkAnd [mkNot pC,pB]])
+lCondDef3  =  mkEqv (mkIf pC pA pB) (mkOr [mkAnd [pC,pA], mkAnd [pB,mkNot pC]])
+lCondDef4  =  mkEqv (mkIf pC pA pB) (mkOr [mkAnd [pA,pC], mkAnd [pB,mkNot pC]])
+lCondDef5  =  mkEqv (mkIf pC pA pB) (mkOr [mkAnd [mkNot pC,pB], mkAnd [pC,pA]])
+lCondDef6  =  mkEqv (mkIf pC pA pB) (mkOr [mkAnd [mkNot pC,pB], mkAnd [pA,pC]])
+lCondDef7  =  mkEqv (mkIf pC pA pB) (mkOr [mkAnd [pB,mkNot pC], mkAnd [pC,pA]])
+lCondDef8  =  mkEqv (mkIf pC pA pB) (mkOr [mkAnd [pB,mkNot pC], mkAnd [pA,pC]])
 
-lCondAlt1  =  Eqv (If pC pA pB) (And [Imp pC pA, Imp (Not pC) pB])  -- (60)
-lCondAlt2  =  Eqv (If pC pA pB) (And [Imp (Not pC) pB, Imp pC pA])  -- (60)
+lCondAlt1  =  mkEqv (mkIf pC pA pB) (mkAnd [mkImp pC pA, mkImp (mkNot pC) pB])  -- (60)
+lCondAlt2  =  mkEqv (mkIf pC pA pB) (mkAnd [mkImp (mkNot pC) pB, mkImp pC pA])  -- (60)
 
-lCondIdem  =  Eqv  (If pP pA pA) pA  -- (61)
-lCondLeftAbs =    Eqv (If pP pA (If pP pB pC)) (If pP pA pC)  -- (62)
-lCondRighttAbs =  Eqv (If pP (If pP pA pB) pC) (If pP pA pC)  -- (63)
+lCondIdem  =  mkEqv  (mkIf pP pA pA) pA  -- (61)
+lCondLeftAbs =    mkEqv (mkIf pP pA (mkIf pP pB pC)) (mkIf pP pA pC)  -- (62)
+lCondRighttAbs =  mkEqv (mkIf pP (mkIf pP pA pB) pC) (mkIf pP pA pC)  -- (63)
 lCondRightDistr  -- (64)
-  = Eqv (If pP pA (If pQ pB pC))
-        (If pQ (If pP pA pB) (If pP pA pC))
+  = mkEqv (mkIf pP pA (mkIf pQ pB pC))
+        (mkIf pQ (mkIf pP pA pB) (mkIf pP pA pC))
 lCondLeftDistr  -- (65)
-  = Eqv (If pQ (If pP pA pB) pC)
-        (If pP (If pQ pA pC) (If pQ pB pC))
+  = mkEqv (mkIf pQ (mkIf pP pA pB) pC)
+        (mkIf pP (mkIf pQ pA pC) (mkIf pQ pB pC))
 
-lCondTrue = Eqv  (If TRUE pA pB) pA  -- (66)
-lCondFalse = Eqv (If FALSE pA pB) pB  -- (67)
+lCondTrue = mkEqv  (mkIf TRUE pA pB) pA  -- (66)
+lCondFalse = mkEqv (mkIf FALSE pA pB) pB  -- (67)
 
-lAndAsCond1 = Eqv (And [pA,pB]) (If pB pA pB)  -- (68)
-lAndAsCond2 = Eqv (And [pB,pA]) (If pB pA pB)  -- (68)
+lAndAsCond1 = mkEqv (mkAnd [pA,pB]) (mkIf pB pA pB)  -- (68)
+lAndAsCond2 = mkEqv (mkAnd [pB,pA]) (mkIf pB pA pB)  -- (68)
 
-lOrAsCond1 = Eqv (Or [pA,pB]) (If pA pA pB)  -- (69)
-lOrAsCond2 = Eqv (Or [pB,pA]) (If pA pA pB)  -- (69)
+lOrAsCond1 = mkEqv (mkOr [pA,pB]) (mkIf pA pA pB)  -- (69)
+lOrAsCond2 = mkEqv (mkOr [pB,pA]) (mkIf pA pA pB)  -- (69)
 
-lNotAsCond = Eqv (Not pA) (If pA FALSE TRUE)  -- (70)
-lPredAsCond = Eqv (If pA TRUE FALSE) pA  -- (71)
+lNotAsCond = mkEqv (mkNot pA) (mkIf pA FALSE TRUE)  -- (70)
+lPredAsCond = mkEqv (mkIf pA TRUE FALSE) pA  -- (71)
 lCondNest  -- (72)
-  = Eqv (If (If pP pB pC) pA pD)
-        (If pP (If pB pA pD) (If pC pA pD))
+  = mkEqv (mkIf (mkIf pP pB pC) pA pD)
+        (mkIf pP (mkIf pB pA pD) (mkIf pC pA pD))
 
 laws_2_4
    =   freeLogicLaw "DEF-==" lEqvDef
@@ -480,10 +480,10 @@ conj_2_4
 
 The following isn't worth a sub-section:
 \begin{code}
-lJoin1 = Imp pA (Or [pA,pB])  -- (73)
-lJoin2 = Imp pB (Or [pA,pB])  -- (73)
-lMeet1 = Imp (And [pA,pB]) pA  -- (74)
-lMeet2 = Imp (And [pA,pB]) pB  -- (74)
+lJoin1 = mkImp pA (mkOr [pA,pB])  -- (73)
+lJoin2 = mkImp pB (mkOr [pA,pB])  -- (73)
+lMeet1 = mkImp (mkAnd [pA,pB]) pA  -- (74)
+lMeet2 = mkImp (mkAnd [pA,pB]) pB  -- (74)
 
 laws_3
    =   freeLogicLaw "=>-\\/-join" lJoin1
@@ -519,22 +519,22 @@ term with which it is asserted to be equal.
 
 \begin{code}
 lForall1Pt1  -- (77)
-  = Eqv (mkAll qxxs (Imp (Obs (eqx `Equal` e)) pA))
+  = mkEqv (mkAll qxxs (mkImp (PExpr (eqx `mkEqual` e)) pA))
         (mkAll qxs (Sub pA (Substn [(vx,e)])))
 lForall1Pt2  -- (77)
-  = Eqv (mkAll qxxs (Imp (Obs (e `Equal` eqx)) pA))
+  = mkEqv (mkAll qxxs (mkImp (PExpr (e `mkEqual` eqx)) pA))
         (mkAll qxs (Sub pA (Substn [(vx,e)])))
 lEx1Pt1  -- (77)
-  = Eqv (mkAny qxxs (And [(Obs (eqx `Equal` e)),pA]))
+  = mkEqv (mkAny qxxs (mkAnd [(PExpr (eqx `mkEqual` e)),pA]))
         (mkAny qxs (Sub pA (Substn [(vx,e)])))
 lEx1Pt2  -- (77)
-  = Eqv (mkAny qxxs (And [(Obs (e `Equal` eqx)),pA]))
+  = mkEqv (mkAny qxxs (mkAnd [(PExpr (e `mkEqual` eqx)),pA]))
         (mkAny qxs (Sub pA (Substn [(vx,e)])))
 lEx1Pt3  -- (77)
-  = Eqv (mkAny qxxs (And [pA,(Obs (eqx `Equal` e))]))
+  = mkEqv (mkAny qxxs (mkAnd [pA,(PExpr (eqx `mkEqual` e))]))
         (mkAny qxs (Sub pA (Substn [(vx,e)])))
 lEx1Pt4  -- (77)
-  = Eqv (mkAny qxxs (And [pA,(Obs (e `Equal` eqx))]))
+  = mkEqv (mkAny qxxs (mkAnd [pA,(PExpr (e `mkEqual` eqx))]))
         (mkAny qxs (Sub pA (Substn [(vx,e)])))
 
 -- we ignore (78) and (79) at this point.
@@ -556,11 +556,11 @@ conj_4_3
 \subsubsection{Quantifiers alone (4.4)}
 
 \begin{code}
-lForallIdem = Eqv (mkAll qxs (mkAll qxs pA)) (mkAll qxs pA)  -- (80)
-lExIdem = Eqv (mkAny qxs (mkAny qxs pA)) (mkAny qxs pA)  -- (81)
+lForallIdem = mkEqv (mkAll qxs (mkAll qxs pA)) (mkAll qxs pA)  -- (80)
+lExIdem = mkEqv (mkAny qxs (mkAny qxs pA)) (mkAny qxs pA)  -- (81)
 
-lForallDeMorgan = Eqv (Not (mkAll qxs pA)) (mkAny qxs (Not pA))  -- (82)
-lExDeMorgan   = Eqv (Not (mkAny qxs pA)) (mkAll qxs (Not pA))  -- (83)
+lForallDeMorgan = mkEqv (mkNot (mkAll qxs pA)) (mkAny qxs (mkNot pA))  -- (82)
+lExDeMorgan   = mkEqv (mkNot (mkAny qxs pA)) (mkAll qxs (mkNot pA))  -- (83)
 
 laws_4_4
    =   freeLogicLaw "forall-idem" lForallIdem
@@ -580,9 +580,9 @@ conj_4_4
 \subsubsection{Extending the commutative laws (4.5)}
 
 \begin{code}
-lForallComm = Eqv (mkAll qxs (mkAll qys pA))  -- (84)
+lForallComm = mkEqv (mkAll qxs (mkAll qys pA))  -- (84)
                 (mkAll qys (mkAll qxs pA))
-lExComm = Eqv (mkAny qxs (mkAny qys pA))  -- (85)
+lExComm = mkEqv (mkAny qxs (mkAny qys pA))  -- (85)
               (mkAny qys (mkAny qxs pA))
 
 laws_4_5
@@ -598,37 +598,37 @@ conj_4_5
 \subsubsection{Quantifiers accompanied (4.6)}
 
 \begin{code}
-lAndForallDistr1 = Eqv (mkAll qxs (And [pA,pB]))  -- (86)
-                       (And [mkAll qxs pA,mkAll qxs pB])
-lAndForallDistr2 = Eqv (mkAll qxs (And [pB,pA]))  -- (86)
-                       (And [mkAll qxs pA,mkAll qxs pB])
+lAndForallDistr1 = mkEqv (mkAll qxs (mkAnd [pA,pB]))  -- (86)
+                       (mkAnd [mkAll qxs pA,mkAll qxs pB])
+lAndForallDistr2 = mkEqv (mkAll qxs (mkAnd [pB,pA]))  -- (86)
+                       (mkAnd [mkAll qxs pA,mkAll qxs pB])
 
-lOrExDistr1 = Eqv (mkAny qxs (Or [pA,pB]))  -- (87)
-                  (Or [mkAny qxs pA,mkAny qxs pB])
-lOrExDistr2 = Eqv (mkAny qxs (Or [pB,pA]))  -- (87)
-                  (Or [mkAny qxs pA,mkAny qxs pB])
+lOrExDistr1 = mkEqv (mkAny qxs (mkOr [pA,pB]))  -- (87)
+                  (mkOr [mkAny qxs pA,mkAny qxs pB])
+lOrExDistr2 = mkEqv (mkAny qxs (mkOr [pB,pA]))  -- (87)
+                  (mkOr [mkAny qxs pA,mkAny qxs pB])
 
-lImpExDistr = Eqv (mkAny qxs (Imp pA pB))  -- (88)
-                  (Imp (mkAll qxs pA) (mkAny qxs pB))
+lImpExDistr = mkEqv (mkAny qxs (mkImp pA pB))  -- (88)
+                  (mkImp (mkAll qxs pA) (mkAny qxs pB))
 
-lForallImpEx = Imp (mkAll qxs pA) (mkAny qxs pA)  -- (89)
+lForallImpEx = mkImp (mkAll qxs pA) (mkAny qxs pA)  -- (89)
 
-lOrForallIDistr1 = Imp (Or [mkAll qxs pA,mkAll qxs pB])  -- (90)
-                       (mkAll qxs (Or [pA,pB]))
-lOrForallIDistr2 = Imp (Or [mkAll qxs pA,mkAll qxs pB])  -- (90)
-                       (mkAll qxs (Or [pB,pA]))
+lOrForallIDistr1 = mkImp (mkOr [mkAll qxs pA,mkAll qxs pB])  -- (90)
+                       (mkAll qxs (mkOr [pA,pB]))
+lOrForallIDistr2 = mkImp (mkOr [mkAll qxs pA,mkAll qxs pB])  -- (90)
+                       (mkAll qxs (mkOr [pB,pA]))
 
-lForallImpImp = Imp (mkAll qxs (Imp pA pB))  -- (91)
-                    (Imp (mkAll qxs pA) (mkAll qxs pB))
+lForallImpImp = mkImp (mkAll qxs (mkImp pA pB))  -- (91)
+                    (mkImp (mkAll qxs pA) (mkAll qxs pB))
 
-lAndExIDistr1 = Imp (mkAny qxs (And [pA,pB]))  -- (92)
-                    (And [mkAny qxs pA,mkAny qxs pB])
-lAndExIDistr2 = Imp (mkAny qxs (And [pB,pA]))  -- (92)
-                    (And [mkAny qxs pA,mkAny qxs pB])
+lAndExIDistr1 = mkImp (mkAny qxs (mkAnd [pA,pB]))  -- (92)
+                    (mkAnd [mkAny qxs pA,mkAny qxs pB])
+lAndExIDistr2 = mkImp (mkAny qxs (mkAnd [pB,pA]))  -- (92)
+                    (mkAnd [mkAny qxs pA,mkAny qxs pB])
 
-lExImpImp = Imp (Imp (mkAny qxs pA) (mkAny qxs pB))  -- (93)
-                (mkAny qxs (Imp pA pB))
-lExForallSwap = Imp (mkAny qys (mkAll qxs pA))  -- (94)
+lExImpImp = mkImp (mkImp (mkAny qxs pA) (mkAny qxs pB))  -- (93)
+                (mkAny qxs (mkImp pA pB))
+lExForallSwap = mkImp (mkAny qys (mkAll qxs pA))  -- (94)
                     (mkAll qxs (mkAny qys pA))
 
 laws_4_6
@@ -663,56 +663,56 @@ conj_4_6
 
 We now have lots of side-conditions regarding free-variables.
 \begin{code}
-lForallVac = Eqv (mkAll qx pA) pA  -- (95)
-lExVac = Eqv (mkAny qx pA) pA  -- (96)
-lForallVac' = Eqv (mkAll qxxs pA) (mkAll qxs pA)
-lExVac' = Eqv (mkAny qxxs pA) (mkAny qxs pA)
+lForallVac = mkEqv (mkAll qx pA) pA  -- (95)
+lExVac = mkEqv (mkAny qx pA) pA  -- (96)
+lForallVac' = mkEqv (mkAll qxxs pA) (mkAll qxs pA)
+lExVac' = mkEqv (mkAny qxxs pA) (mkAny qxs pA)
 
-lFreeAndForallDistr1 = Eqv (mkAll qxs (And[pN,pB]))  -- (97)
-                           (And [pN,mkAll qxs pB])
-lFreeAndForallDistr2 = Eqv (mkAll qxs (And[pB,pN]))  -- (97)
-                           (And [pN,mkAll qxs pB])
+lFreeAndForallDistr1 = mkEqv (mkAll qxs (mkAnd[pN,pB]))  -- (97)
+                           (mkAnd [pN,mkAll qxs pB])
+lFreeAndForallDistr2 = mkEqv (mkAll qxs (mkAnd[pB,pN]))  -- (97)
+                           (mkAnd [pN,mkAll qxs pB])
 
-lFreeOrForallDistr1 = Eqv (mkAll qxs (Or[pN,pB]))  -- (98)
-                          (Or [pN,mkAll qxs pB])
-lFreeOrForallDistr2 = Eqv (mkAll qxs (Or[pB,pN]))  -- (98)
-                          (Or [pN,mkAll qxs pB])
+lFreeOrForallDistr1 = mkEqv (mkAll qxs (mkOr[pN,pB]))  -- (98)
+                          (mkOr [pN,mkAll qxs pB])
+lFreeOrForallDistr2 = mkEqv (mkAll qxs (mkOr[pB,pN]))  -- (98)
+                          (mkOr [pN,mkAll qxs pB])
 
-lFreeAnteForallDistr = Eqv (mkAll qxs (Imp pN pB))  -- (99)
-                         (Imp pN (mkAll qxs pB))
-lFreeCnsqForallDistr = Eqv (mkAll qxs (Imp pA pN))  -- (100)
-                         (Imp (mkAny qxs pA) pN)
-lFreeCondForallDistr = Eqv (mkAll qxs (If pN pA pB))  -- (101)
-                         (If pN (mkAll qxs pA) (mkAll qxs pB))
+lFreeAnteForallDistr = mkEqv (mkAll qxs (mkImp pN pB))  -- (99)
+                         (mkImp pN (mkAll qxs pB))
+lFreeCnsqForallDistr = mkEqv (mkAll qxs (mkImp pA pN))  -- (100)
+                         (mkImp (mkAny qxs pA) pN)
+lFreeCondForallDistr = mkEqv (mkAll qxs (mkIf pN pA pB))  -- (101)
+                         (mkIf pN (mkAll qxs pA) (mkAll qxs pB))
 
-lFreeAndExDistr1 = Eqv (mkAny qxs (And[pN,pB]))  -- (102)
-                       (And [pN,mkAny qxs pB])
-lFreeAndExDistr2 = Eqv (mkAny qxs (And[pB,pN]))  -- (102)
-                       (And [pN,mkAny qxs pB])
+lFreeAndExDistr1 = mkEqv (mkAny qxs (mkAnd[pN,pB]))  -- (102)
+                       (mkAnd [pN,mkAny qxs pB])
+lFreeAndExDistr2 = mkEqv (mkAny qxs (mkAnd[pB,pN]))  -- (102)
+                       (mkAnd [pN,mkAny qxs pB])
 
-lFreeOrExDistr1 = Eqv (mkAny qxs (Or[pN,pB]))  -- (103)
-                      (Or [pN,mkAny qxs pB])
-lFreeOrExDistr2 = Eqv (mkAny qxs (Or[pB,pN]))  -- (103)
-                      (Or [pN,mkAny qxs pB])
+lFreeOrExDistr1 = mkEqv (mkAny qxs (mkOr[pN,pB]))  -- (103)
+                      (mkOr [pN,mkAny qxs pB])
+lFreeOrExDistr2 = mkEqv (mkAny qxs (mkOr[pB,pN]))  -- (103)
+                      (mkOr [pN,mkAny qxs pB])
 
-lFreeAnteExDistr = Eqv (mkAny qxs (Imp pN pB))  -- (104)
-                       (Imp pN (mkAny qxs pB))
-lFreeCnsqExDistr = Eqv (mkAny qxs (Imp pA pN))  -- (105)
-                       (Imp (mkAll qxs pA) pN)
-lFreeCondExDistr = Eqv (mkAny qxs (If pN pA pB))  -- (106)
-                       (If pN (mkAny qxs pA) (mkAny qxs pB))
+lFreeAnteExDistr = mkEqv (mkAny qxs (mkImp pN pB))  -- (104)
+                       (mkImp pN (mkAny qxs pB))
+lFreeCnsqExDistr = mkEqv (mkAny qxs (mkImp pA pN))  -- (105)
+                       (mkImp (mkAll qxs pA) pN)
+lFreeCondExDistr = mkEqv (mkAny qxs (mkIf pN pA pB))  -- (106)
+                       (mkIf pN (mkAny qxs pA) (mkAny qxs pB))
 
-lForallAlpha = Eqv (mkAll qxxs pA)  -- (107)
+lForallAlpha = mkEqv (mkAll qxxs pA)  -- (107)
                  (mkAll qyxs (Sub pA (Substn [(vx,eqy)])))
-lExAlpha = Eqv (mkAny qxxs pA)  -- (108)
+lExAlpha = mkEqv (mkAny qxxs pA)  -- (108)
                (mkAny qyxs (Sub pA (Substn [(vx,eqy)])))
-lForallAlpha' = Eqv (mkAll qxxs (Sub pA (Substn [(vz,eqx)])))  -- (109)
+lForallAlpha' = mkEqv (mkAll qxxs (Sub pA (Substn [(vz,eqx)])))  -- (109)
                   (mkAll qyxs (Sub pA (Substn [(vz,eqy)])))
-lExAlpha' = Eqv (mkAny qxxs (Sub pA (Substn [(vz,eqx)])))  -- (110)
+lExAlpha' = mkEqv (mkAny qxxs (Sub pA (Substn [(vz,eqx)])))  -- (110)
                 (mkAny qyxs (Sub pA (Substn [(vz,eqy)])))
 
-lForallSpec = Imp (mkAll qx pA) (Sub pA (Substn [(vx,e)]))  -- (111)
-lExGen    = Imp (Sub pA (Substn [(vx,e)])) (mkAny qx pA)  -- (112)
+lForallSpec = mkImp (mkAll qx pA) (Sub pA (Substn [(vx,e)]))  -- (111)
+lExGen    = mkImp (Sub pA (Substn [(vx,e)])) (mkAny qx pA)  -- (112)
 
 laws_4_7
    = mkLogicLaw "forall-vac" lForallVac xNFinA
@@ -785,8 +785,8 @@ of booleans, leading to the following laws:
 \\ (\forall b @ b \equiv A) &\equiv& A[True/b] \land \lnot A[False/b]
 \end{eqnarray*}
 \begin{code}
-lExBoolAnd1  = (mkAny bvxs (bp /\ pA))  === (mkAny qxs (subb pA T))
-lExBoolAnd2  = (mkAny bvxs (pA /\ bp))  === (mkAny qxs (subb pA T))
+lExBoolAnd1  = (mkAny bvxs (bp /\ pA))  === (mkAny qxs (subb pA (EPred TRUE)))
+lExBoolAnd2  = (mkAny bvxs (pA /\ bp))  === (mkAny qxs (subb pA (EPred TRUE)))
 
 lAllBoolAnd1 = (mkAll bvxs (bp /\ pA))  === FALSE
 lAllBoolAnd2 = (mkAll bvxs (pA /\ bp))  === FALSE
@@ -794,19 +794,19 @@ lAllBoolAnd2 = (mkAll bvxs (pA /\ bp))  === FALSE
 lExBoolOr1   = (mkAny bvxs (bp \/ pA))  === TRUE
 lExBoolOr2   = (mkAny bvxs (pA \/ bp))  === TRUE
 
-lAllBoolOr1  = (mkAll bvxs (bp \/ pA))  === (subb pA F)
-lAllBoolOr2  = (mkAll bvxs (pA \/ bp))  === (subb pA F)
+lAllBoolOr1  = (mkAll bvxs (bp \/ pA))  === (subb pA (EPred FALSE))
+lAllBoolOr2  = (mkAll bvxs (pA \/ bp))  === (subb pA (EPred FALSE))
 
 lExBoolPmi   = (mkAny bvxs (pA ==> bp)) === TRUE
-lAllBoolPmi  = (mkAll bvxs (pA ==> bp)) === Not (subb pA F)
+lAllBoolPmi  = (mkAll bvxs (pA ==> bp)) === mkNot (subb pA (EPred FALSE))
 lExBoolImp   = (mkAny bvxs (bp ==> pA)) === TRUE
-lAllBoolImp  = (mkAll bvxs (bp ==> pA)) === (subb pA T)
+lAllBoolImp  = (mkAll bvxs (bp ==> pA)) === (subb pA (EPred TRUE))
 
-lExBoolEqv1  = (mkAny bvxs (bp === pA)) === (subb pA T) \/ (Not (subb pA F))
-lExBoolEqv2  = (mkAny bvxs (bp === pA)) === (Not (subb pA F)) \/ (subb pA T)
+lExBoolEqv1  = (mkAny bvxs (bp === pA)) === (subb pA (EPred TRUE)) \/ (mkNot (subb pA (EPred FALSE)))
+lExBoolEqv2  = (mkAny bvxs (bp === pA)) === (mkNot (subb pA (EPred FALSE))) \/ (subb pA (EPred TRUE))
 
-lAllBoolEqv1 = (mkAll bvxs (bp === pA)) === (subb pA T) /\ (Not (subb pA F))
-lAllBoolEqv2 = (mkAll bvxs (bp === pA)) === (Not (subb pA F)) /\ (subb pA T)
+lAllBoolEqv1 = (mkAll bvxs (bp === pA)) === (subb pA (EPred TRUE)) /\ (mkNot (subb pA (EPred FALSE)))
+lAllBoolEqv2 = (mkAll bvxs (bp === pA)) === (mkNot (subb pA (EPred FALSE))) /\ (subb pA (EPred TRUE))
 \end{code}
 We also want to handle the cases where the boolean is all that exists:
 \begin{eqnarray*}
@@ -832,8 +832,8 @@ We can also handle cases where the boolean is negated:
 \\ (\forall b @ \lnot b \equiv A) &\equiv& A[False/b] \land \lnot A[True/b]
 \end{eqnarray*}
 \begin{code}
-lExNBoolAnd1  = (mkAny bvxs (nbp /\ pA))  === (mkAny qxs (subb pA F))
-lExNBoolAnd2  = (mkAny bvxs (pA /\ nbp))  === (mkAny qxs (subb pA F))
+lExNBoolAnd1  = (mkAny bvxs (nbp /\ pA))  === (mkAny qxs (subb pA (EPred FALSE)))
+lExNBoolAnd2  = (mkAny bvxs (pA /\ nbp))  === (mkAny qxs (subb pA (EPred FALSE)))
 
 lAllNBoolAnd1 = (mkAll bvxs (nbp /\ pA))  === FALSE
 lAllNBoolAnd2 = (mkAll bvxs (pA /\ nbp))  === FALSE
@@ -841,19 +841,19 @@ lAllNBoolAnd2 = (mkAll bvxs (pA /\ nbp))  === FALSE
 lExNBoolOr1   = (mkAny bvxs (nbp \/ pA))  === TRUE
 lExNBoolOr2   = (mkAny bvxs (pA \/ nbp))  === TRUE
 
-lAllNBoolOr1  = (mkAll bvxs (nbp \/ pA))  === (subb pA T)
-lAllNBoolOr2  = (mkAll bvxs (pA \/ nbp))  === (subb pA T)
+lAllNBoolOr1  = (mkAll bvxs (nbp \/ pA))  === (subb pA (EPred TRUE))
+lAllNBoolOr2  = (mkAll bvxs (pA \/ nbp))  === (subb pA (EPred TRUE))
 
 lExNBoolPmi   = (mkAny bvxs (pA ==> nbp)) === TRUE
-lAllNBoolPmi  = (mkAll bvxs (pA ==> nbp)) === Not (subb pA T)
+lAllNBoolPmi  = (mkAll bvxs (pA ==> nbp)) === mkNot (subb pA (EPred TRUE))
 lExNBoolImp   = (mkAny bvxs (nbp ==> pA)) === TRUE
-lAllNBoolImp  = (mkAll bvxs (nbp ==> pA)) === (subb pA F)
+lAllNBoolImp  = (mkAll bvxs (nbp ==> pA)) === (subb pA (EPred FALSE))
 
-lExNBoolEqv1  = (mkAny bvxs (nbp === pA)) === (subb pA F) \/ (Not (subb pA T))
-lExNBoolEqv2  = (mkAny bvxs (nbp === pA)) === (Not (subb pA T)) \/ (subb pA F)
+lExNBoolEqv1  = (mkAny bvxs (nbp === pA)) === (subb pA (EPred FALSE)) \/ (mkNot (subb pA (EPred TRUE)))
+lExNBoolEqv2  = (mkAny bvxs (nbp === pA)) === (mkNot (subb pA (EPred TRUE))) \/ (subb pA (EPred FALSE))
 
-lAllNBoolEqv1 = (mkAll bvxs (nbp === pA)) === (subb pA F) /\ (Not (subb pA T))
-lAllNBoolEqv2 = (mkAll bvxs (nbp === pA)) === (Not (subb pA T)) /\ (subb pA F)
+lAllNBoolEqv1 = (mkAll bvxs (nbp === pA)) === (subb pA (EPred FALSE)) /\ (mkNot (subb pA (EPred TRUE)))
+lAllNBoolEqv2 = (mkAll bvxs (nbp === pA)) === (mkNot (subb pA (EPred TRUE))) /\ (subb pA (EPred FALSE))
 \end{code}
 and when the boolean is all we have got:
 \begin{eqnarray*}
@@ -943,7 +943,7 @@ conj_boolvar
  : []
 \end{code}
 
-\subsection{And the Law is \ldots}
+\subsection{mkAnd the Law is \ldots}
 
 \begin{code}
 
@@ -983,7 +983,7 @@ logicLawsTheory
  = markTheoryDeps ((nmdNullPrfCtxt "LogicLaws")
                      { syntaxDeps = [ rootName ]
                      , types = boolOpTypes
-                     , laws = freeLogicLaw "DEF-<||>.1" lCondDef1 
+                     , laws = freeLogicLaw "DEF-<||>.1" lCondDef1
                      , conjectures = lbuild logicConjectures
                      })
 \end{code}
@@ -991,22 +991,22 @@ Now some testers:
 \begin{code}
 
 alphaTest1 -- forall x @ x = 3 /\ exists x @ x /\ TRUE
- = Forall 0 qx
-    (And [ Obs (Equal ex (Num 3))
-         , Exists 0 qx (And [ Obs ex
+ = mkForall qx
+    (mkAnd [ PExpr (mkEqual ex (Num 3))
+         , mkExists qx (mkAnd [ PExpr ex
                                   , TRUE
                                   ])
          ])
  where ex = Var vx
 
 alphaTest2 -- x /\ forall x @ x = 3 /\ exists x @ x
- = And [ Obs ex
-       , Forall 0 qx
-                (And [ Obs (Equal ex (Num 3))
-                     , Exists 0 qx (Obs ex)
+ = mkAnd [ PExpr ex
+       , mkForall qx
+                (mkAnd [ PExpr (mkEqual ex (Num 3))
+                     , mkExists qx (PExpr ex)
                      ])
        ]
  where ex = Var vx
 
-typeTest1 = Obs (Equal (Var vx) (Var vy))
+typeTest1 = PExpr (mkEqual (Var vx) (Var vy))
 \end{code}

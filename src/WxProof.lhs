@@ -26,9 +26,9 @@ import Archive
 import DocTextParser
 import LaTeXPretty
 import DSL
-import UTP
-import R
-import RAlg
+-- import UTP
+-- import R
+-- import RAlg
 
 import System.IO
 import Graphics.UI.WX

@@ -34,11 +34,11 @@ import DocTextParser
 
 import DSL
 import Logic
-import GSLogic
-import GS3001
-import UTP
-import R
-import RAlg
+--import GSLogic
+--import GS3001
+--import UTP
+--import R
+--import RAlg
 
 import About
 
