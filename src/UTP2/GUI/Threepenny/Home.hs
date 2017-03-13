@@ -13,18 +13,29 @@ import           UTP2.GUI.Threepenny.Util
 -- |Home window.
 mkHome :: UTP2 Element
 mkHome = do
+  liftIO $ putStrLn "Workspace not yet selected"
   top       <- lift $ UI.div
-  text      <- textB "Workspace"
+  workspace <- currentWorkspace'
+  text      <- workspaceText
   theories  <- mkTheories
   proofs    <- mkProofs
-  workspace <- currentWorkspace
   selector  <- fileSelector "Selector" []
   lift $ element top #+ map element [text, theories, proofs, selector]
 
+workspaceText :: UTP2 Element
+workspaceText = do
+  textEl     <- textB "No workspace selected"
+  workspaceB <- eWorkspaceB <$> ask
+  let textB =
+        fmap (maybe ("no workspace") (\w -> "Workspace: " ++ show w)) workspaceB
+  lift $ element textEl # sink UI.text textB
+  return textEl
+
 -- |Description of current workspace, if selected.
-currentWorkspace :: UTP2 (Maybe String)
-currentWorkspace = do
-  mayWorkspace <- readWorkspace
+currentWorkspace' :: UTP2 (Maybe String)
+currentWorkspace' = do
+  mayWorkspace <- currentWorkspace
+  liftIO $ putStrLn $ "Current workspace: " ++ show mayWorkspace
   case mayWorkspace of
     Just workspace -> return mayWorkspace
     Nothing        -> do
@@ -40,8 +51,9 @@ openWorkspaceSelector = do
     Just modalId -> lift $ Mat.openModal modalId
     Nothing      -> do
       h4       <- lift $ UI.h4 # set UI.text "Select a workspace"
-      selector <- fileSelector "select" []
-      modalId  <- Mat.modal [element h4]
+      selector <- fileSelector "select" [
+        ]
+      modalId  <- Mat.modal $ map element [h4, selector]
       setWorkspaceModalId modalId
       openWorkspaceSelector
 
@@ -65,3 +77,4 @@ mkProofs = do
     ] text
   button <- Mat.button "."
   lift $ element top #+ map element [text, button]
+
