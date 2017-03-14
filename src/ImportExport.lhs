@@ -119,7 +119,6 @@ data IEelem = Txt String | Count Int | Flag Bool
             | SPelem PSubst
             | Eelem  Expr
             | Pelem  Pred
-            -- | HPelem PredSet
             | LEelem LElem
             | SSelem SynSpec
             | SCelem SideCond
@@ -175,7 +174,6 @@ styp (SEelem _) = "ESubst"
 styp (SPelem _) = "PSubst"
 styp (Eelem  _) = "Expr"
 styp (Pelem  _) = "Pred"
-styp (HPelem _) = "PredSet"
 styp (LEelem _) = "LElem"
 styp (SSelem _) = "SynSpec"
 styp (SCelem _) = "SideCond"
@@ -777,16 +775,14 @@ and then pop stuff off the stack, build a type
 and push the result back on, and then continue
 processing using \texttt{importScan}.
 \begin{code}
+type Pop t = IEStack -> (ImportReport,t,IEStack)
 type Builder = IEStack -> [IECAPair] -> (ImportReport,IEStack,[IECAPair])
 
 build :: t -> (t -> IEelem) -> Builder
 build item elem stk cmds = importScan (((elem item):stk),cmds)
 
-build1
-  :: (IEStack -> (ImportReport,t,IEStack))
-     -> (t -> s)
-     -> (s -> IEelem)
-     -> Builder
+build1 :: Pop t -> (t -> s)
+       -> (s -> IEelem) -> Builder
 build1 pop cons elem stk cmds
   | repok  =  importScan (((elem (cons x)):stk'),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -794,13 +790,8 @@ build1 pop cons elem stk cmds
         failure = [rep1]
         (repok,f) = checkreports 0 failure
 
-build2
-  :: (IEStack -> (ImportReport,t,IEStack))
-     -> (t -> t -> s)
-     -> (s -> IEelem)
-     -> IEStack
-     -> [IECAPair]
-     -> (ImportReport,IEStack,[IECAPair])
+build2 :: Pop t -> (t -> t -> s)
+       -> (s -> IEelem) -> Builder
 build2 pop cons elem stk cmds
   | repok  =  importScan (((elem (cons x1 x2)):stk''),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -810,14 +801,8 @@ build2 pop cons elem stk cmds
     failure = [rep2,rep1]
     (repok,f) = checkreports 0 failure
 
-build11
-  :: (IEStack -> (ImportReport,t,IEStack))
-     -> (IEStack -> (ImportReport,u,IEStack))
-     -> (u -> t -> s)
-     -> (s -> IEelem)
-     -> IEStack
-     -> [IECAPair]
-     -> (ImportReport,IEStack,[IECAPair])
+build11 :: Pop t -> Pop u -> (u -> t -> s)
+        -> (s -> IEelem) -> Builder
 build11 pop2 pop1 cons elem stk cmds
   | repok  =  importScan (((elem (cons x1 x2)):stk''),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -828,13 +813,8 @@ build11 pop2 pop1 cons elem stk cmds
     (repok,f) = checkreports 0 failure
 
 
-build3
-  :: (IEStack -> (ImportReport,t,IEStack))
-     -> (t -> t -> t -> s)
-     -> (s -> IEelem)
-     -> IEStack
-     -> [IECAPair]
-     -> (ImportReport,IEStack,[IECAPair])
+build3 :: Pop t -> (t -> t -> t -> s)
+       -> (s -> IEelem) -> Builder
 build3 pop cons elem stk cmds
   | repok  =  importScan (((elem (cons x1 x2 x3)):stk'''),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -845,15 +825,8 @@ build3 pop cons elem stk cmds
     failure = [rep3,rep2,rep1]
     (repok,f) = checkreports 0 failure
 
-build111
-  :: (IEStack -> (ImportReport,s,IEStack))
-     -> (IEStack -> (ImportReport,t,IEStack))
-     -> (IEStack -> (ImportReport,u,IEStack))
-     -> (u -> t -> s -> v)
-     -> (v -> IEelem)
-     -> IEStack
-     -> [IECAPair]
-     -> (ImportReport,IEStack,[IECAPair])
+build111 :: Pop s -> Pop t -> Pop u -> (u -> t -> s -> v)
+         -> (v -> IEelem) -> Builder
 build111 pop3 pop2 pop1 cons elem stk cmds
   | repok  =  importScan (((elem (cons x1 x2 x3)):stk3),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -864,14 +837,8 @@ build111 pop3 pop2 pop1 cons elem stk cmds
     failure = [rep3,rep2,rep1]
     (repok,f) = checkreports 0 failure
 
-build21
-  :: (IEStack -> (ImportReport,s,IEStack))
-     -> (IEStack -> (ImportReport,u,IEStack))
-     -> (u -> s -> s -> v)
-     -> (v -> IEelem)
-     -> IEStack
-     -> [IECAPair]
-     -> (ImportReport,IEStack,[IECAPair])
+build21 :: Pop s -> Pop u -> (u -> s -> s -> v)
+        -> (v -> IEelem) -> Builder
 build21 pop32 pop1 cons elem stk cmds
   | repok  =  importScan (((elem (cons y x1 x2)):stk3),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -882,16 +849,8 @@ build21 pop32 pop1 cons elem stk cmds
     failure = [rep3,rep2,rep1]
     (repok,f) = checkreports 0 failure
 
-build1111
-  :: (IEStack -> (ImportReport,t,IEStack))
-     -> (IEStack -> (ImportReport,u,IEStack))
-     -> (IEStack -> (ImportReport,v,IEStack))
-     -> (IEStack -> (ImportReport,w,IEStack))
-     -> (w -> v -> u -> t -> s)
-     -> (s -> IEelem)
-     -> IEStack
-     -> [IECAPair]
-     -> (ImportReport,IEStack,[IECAPair])
+build1111 :: Pop t -> Pop u -> Pop v -> Pop w -> (w -> v -> u -> t -> s)
+          -> (s -> IEelem) -> Builder
 build1111 pop4 pop3 pop2 pop1 cons elem stk cmds
   | repok  =  importScan (((elem (cons x1 x2 x3 x4)):stk4),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -903,15 +862,8 @@ build1111 pop4 pop3 pop2 pop1 cons elem stk cmds
     failure = [rep4,rep3,rep2,rep1]
     (repok,f) = checkreports 0 failure
 
-build211
-  :: (IEStack -> (ImportReport,s,IEStack))
-     -> (IEStack -> (ImportReport,t,IEStack))
-     -> (IEStack -> (ImportReport,u,IEStack))
-     -> (u -> t -> s -> s -> v)
-     -> (v -> IEelem)
-     -> IEStack
-     -> [IECAPair]
-     -> (ImportReport,IEStack,[IECAPair])
+build211 :: Pop s -> Pop t -> Pop u -> (u -> t -> s -> s -> v)
+         -> (v -> IEelem) -> Builder
 build211 pop43 pop2 pop1 cons elem stk cmds
   | repok  =  importScan (((elem (cons z y x1 x2)):stk4),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -936,13 +888,8 @@ build11111 pop5 pop4 pop3 pop2 pop1 cons elem stk cmds
     (repok,f) = checkreports 0 failure
 
 
-buildn
-  :: (IEStack -> (ImportReport,t,IEStack))
-     -> ([t] -> s)
-     -> (s -> IEelem)
-     -> IEStack
-     -> [IECAPair]
-     -> (ImportReport,IEStack,[IECAPair])
+buildn :: Pop t -> ([t] -> s)
+       -> (s -> IEelem) -> Builder
 buildn pop cons elem stk cmds
   | repok  =  importScan (((elem (cons xs)):stk''),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -952,14 +899,8 @@ buildn pop cons elem stk cmds
    failure = [rep2,rep1]
    (repok,f) = checkreports 0 failure
 
-build1n
-  :: (IEStack -> (ImportReport,t,IEStack))
-     -> (IEStack -> (ImportReport,u,IEStack))
-     -> ([u] -> t -> s)
-     -> (s -> IEelem)
-     -> IEStack
-     -> [IECAPair]
-     -> (ImportReport,IEStack,[IECAPair])
+build1n :: Pop t -> Pop u -> ([u] -> t -> s)
+        -> (s -> IEelem) -> Builder
 build1n pop1 popn cons elem stk cmds
   | repok  =  importScan (((elem (cons xs y)):stk3),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -970,14 +911,8 @@ build1n pop1 popn cons elem stk cmds
    failure = [rep3,rep2,rep1]
    (repok,f) = checkreports 0 failure
 
-buildn1
-  :: (IEStack -> (ImportReport,t,IEStack))
-     -> (IEStack -> (ImportReport,u,IEStack))
-     -> (u -> [t] -> s)
-     -> (s -> IEelem)
-     -> IEStack
-     -> [IECAPair]
-     -> (ImportReport,IEStack,[IECAPair])
+buildn1 :: Pop t -> Pop u -> (u -> [t] -> s)
+        -> (s -> IEelem) -> Builder
 buildn1 popn pop1 cons elem stk cmds
   | repok  =  importScan (((elem (cons y xs)):stk3),cmds)
   | otherwise = (failure!!f,stk,cmds)
@@ -1421,92 +1356,56 @@ codeExpr etype = charExpr:etype
 
 --constructor   build-arg         stack arguments, top first
 
-codeT       = codeExpr "T"  --
-codeF       = codeExpr "F"  --
-codeNum     = codeExpr "N"  --  i
-codeVar     = codeExpr "V"  --  s
-codeProd    = codeExpr "P"  --  n es.n .. es.1
-codeApp     = codeExpr "A"  --  e s
-codeBin     = codeExpr "B"  --  e2 e1 i s
-codeEqual   = codeExpr "="  --  e2 e1
-codeSet     = codeExpr "S"  --  n es.n ... es.1
-codeSetc    = codeExpr "SC"  --  e pr qs
-codeSeq     = codeExpr "L"  --  n es.n ... es.1
-codeSeqc    = codeExpr "LC"  --  e pr qs
-codeMap     = codeExpr "M"  --  n r.n .. r.1 n d.n .. d.1
-codeCond    = codeExpr "C"  --  ee et ec
-codeBuild   = codeExpr "T"  --  n es.n ... es.1 s
-codeThe     = codeExpr "TH"  -- pr rg x  (old style, no longer supported)
-codeThe2    = codeExpr "Th"  -- pr x  (new, simpler style)
-codeEvar    = codeExpr "EV"  --  s
-codeEqvar   = codeExpr "QV"  --  s
-codeEabs    = codeExpr "AB"  --  e qs
-codeEsub    = codeExpr "SB"  --  sub e
-codeEerror  = codeExpr "!"  --  s
+codeNum    =  codeExpr "N"   --  i
+codeVar    =  codeExpr "V"   --  s
+codeApp    =  codeExpr "AP"  --  es s
+codeAbs    =  codeExpr "AB"  --  es qs s
+codeESub   =  codeExpr "S"   --  sub e
+codeEPred  =  codeExpr "P"   --  p
 \end{code}
 
 \begin{code}
 bExpr etype = [buildCmd:etype]
 
-exportExpr (Num i) = wrNum i ++ bExpr codeNum
-exportExpr (Var s) = wrVar s ++ bExpr codeVar
-exportExpr (Prod es) = exportList exportExpr es ++ bExpr codeProd
-exportExpr (App s [e]) = wrArg s ++ exportExpr e ++ bExpr codeApp
-exportExpr (Bin s i e1 e2)
- = wrArg s ++ wrNum i ++ exportExpr e1 ++ exportExpr e2 ++ bExpr codeBin
-exportExpr (Equal e1 e2) = exportExpr e1 ++ exportExpr e2 ++ bExpr codeEqual
-exportExpr (Set es) = exportList exportExpr es ++ bExpr codeSet
-exportExpr (Setc _ qs pr e)
- = exportQVars qs ++ exportPred pr ++ exportExpr e ++ bExpr codeSetc
-exportExpr (Seq es) = exportList exportExpr es ++ bExpr codeSeq
-exportExpr (Seqc _ qs pr e)
- = exportQVars qs ++ exportPred pr ++ exportExpr e ++ bExpr codeSeqc
-exportExpr (Cond pc et ee)
-  = exportPred pc ++ exportExpr et ++ exportExpr ee ++ bExpr codeCond
-exportExpr (Build s es) = wrArg s ++ exportList exportExpr es ++ bExpr codeBuild
-exportExpr (The _ x pr) = wrVar x ++ exportPred pr ++ bExpr codeThe2
-exportExpr (Evar s) = wrVar s ++ bExpr codeEvar
-exportExpr (Eabs _ qs e) = exportQVars qs ++ exportExpr e ++ bExpr codeEabs
-exportExpr (Esub e sub) = exportExpr e ++ exportESubst sub ++ bExpr codeEsub
-exportExpr (Eerror s) = wrArg s ++ bExpr codeEerror
-exportExpr (Map drs)
- = exportList exportExpr ds ++ exportList exportExpr rs ++ bExpr codeMap
- where (ds,rs) = unzip drs
-exportExpr (Efocus ef) = exportExpr ef -- ignore focus
+exportExpr :: Expr -> [String]
+exportExpr (Num i)
+ = wrNum i
+   ++ bExpr codeNum
+exportExpr (Var s)
+ = wrVar s
+   ++ bExpr codeVar
+exportExpr (App nm es)
+ = wrArg nm
+   ++ exportList exportExpr es
+   ++ bExpr codeApp
+exportExpr (Abs nm _ qs es)
+ = wrArg nm
+   ++ exportQVars qs
+   ++ exportExpr e
+   ++ bExpr codeAbs
+exportExpr (ESub e sub)
+ = exportExpr e
+   ++ exportESubst sub
+   ++ bExpr codeESub
+exportExpr (EPred pr)
+ = exportPred pr
+   ++ bExpr codeEPred
 \end{code}
 
 \begin{code}
 btable3
  = lupdate btable2
-    [ (codeT     , build T Eelem  )
-    , (codeF     , build F Eelem  )
-    , (codeNum   , build1 popNum Num Eelem )
+    [ (codeNum   , build1 popNum Num Eelem )
     , (codeVar   , buildalt [ popAlt popVar id
                             , popAlt popNum (parseVariable . show)
                             ]
                             Var Eelem )
-    , (codeProd  , buildn popExpr Prod Eelem )
-    , (codeApp   , build11 popExpr popStr App Eelem )
-    , (codeBin   , build211 popExpr popNum popStr Bin Eelem )
-    , (codeEqual , build2 popExpr Equal Eelem )
-    , (codeSet   , buildn popExpr Set Eelem )
-    , (codeSetc  , build111 popExpr popPred popQVars (Setc 0) Eelem )
-    , (codeSeq   , buildn popExpr Seq Eelem )
-    , (codeSeqc  , build111 popExpr popPred popQVars (Seqc 0) Eelem )
-    , (codeMap   , buildnn popExpr popExpr mkMap Eelem )
-    , (codeCond  , build21 popExpr popPred Cond Eelem )
-    , (codeBuild , buildn1 popExpr popStr Build Eelem )
-    , (codeThe   , build111 popPred popPred popVar oldthe Eelem )
-    , (codeThe2  , build11 popPred popVar (The 0) Eelem )
-    , (codeEvar  , build1 popVar Evar Eelem )
-    , (codeEabs  , build11 popExpr popQVars (Eabs 0) Eelem )
-    , (codeEsub  , build11 popESubst popExpr Esub Eelem )
-    , (codeEerror, build1 popStr Eerror Eelem )
+    , (codeApp   , buildn1 popExpr popStr App Eelem )
+    , (codeAbs  , buildn1 popExpr popQVars abs Eelem )
+    , (codeESub  , build11 popESubst popExpr ESub Eelem )
+    , (codeEPred  , build1 popPred EPred Eelem )
     ]
- where
-   mkMap ds rs = Map (zip ds rs)
-   oldthe v r p = The 0 v (And [r,p])
-
+ where abs nm qs es = Abs nm 0 qs es
 \end{code}
 
 \subsubsection{Polarity}
@@ -1525,48 +1424,15 @@ codePred ptype = charPred:ptype
 
 --constructor   build-arg           stack arguments, top first
 
-codeTRUE     =   codePred "T"     --
-codeFALSE    =   codePred "F"     --
-codeObs      =   codePred "E"     -- e ut
-codeDefd     =   codePred "?"     -- e
-codeTypeOf   =   codePred ":"     -- t e
-codeObs2     =   codePred "E2"     -- e
-codeNot      =   codePred "N"     -- pr
-codeAnd      =   codePred "A"     -- n prs.n ... prs.1
-codeOr       =   codePred "O"     -- n prs.n ... prs.1
-codeNDC      =   codePred "ND"    -- pr2 pr1
-codeImp      =   codePred "I"     -- pr2 pr1
-codeRfdBy    =   codePred "RB"    -- pr2 pr1
-codeEqv      =   codePred "Q"     -- pr2 pr1
-codeLang     =   codePred "L"     -- n ss.n m les.m s
-codeIf       =   codePred "C"     -- pr3 pr2 pr1
-codeComp     =   codePred ";"     -- pr2 pr1
-codeForall   =   codePred "AL"    -- pr rg qs (old style, no longer supported)
-codeExists   =   codePred "EX"    -- pr rg qs (old style, no longer supported)
-codeExists1  =   codePred "E1"    -- pr rg qs (old style, no longer supported)
-codeForallN  =   codePred "Al"    -- pr qs (new style, simpler)
-codeExistsN  =   codePred "Ex"    -- pr qs (new style, simpler)
-codeExists1N =   codePred "e1"    -- pr qs (new style, simpler)
-codeUniv     =   codePred "U"     -- pr
-codeSub      =   codePred "S"     -- sub pr
-codePvar     =   codePred "V"     --
-codePpabs2   =   codePred "PA2"   -- pr qs
-codePapp     =   codePred "AP"    -- pr2 pr1
-codePforall2 =   codePred "PF2"   -- pr qs
-codePexists2 =   codePred "PE2"   -- pr qs
-codePsub     =   codePred "PS2"   -- sub pr
-codePeabs2   =   codePred "EB"    -- pr qs
-codePsapp    =   codePred "SA"    -- spr pr
-codePsin     =   codePred "SI"    -- spr pr
-codePsetc2   =   codePred "PC2"   -- pre prc qs
-
--- retained for backwards compatibility
-codePforall  =   codePred "PF"    -- pr n pvs.n ... pvs.1
-codePexists  =   codePred "PE"    -- pr n pvs.n ... pvs.1
-codePeabs    =   codePred "EA"    -- pr s
-codePset     =   codePred "PS"    -- n prs.n ... prs.1
-codePsetc    =   codePred "PC"    -- pre prc n pvs.n ... pvs.1
-codePpabs    =   codePred "PA"    -- pr s
+codeTRUE    =  codePred "T"   --
+codeFALSE   =  codePred "F"   --
+codePVar    =  codePred "V"   -- s
+codePApp    =  codePred "AP"  -- n prs.n ... prs.1 s
+codePAbs    =  codePred "AB"  -- n prs.n .. prs.1 qs s
+codeSub     =  codePred "S"   -- sub pr
+codePExpr   =  codePred "E"   -- e
+codeLang    =  codePred "L"   -- n ss.n m les.m s
+codeTypeOf  =  codePred ":"   -- t e
 \end{code}
 
 \begin{code}
@@ -1576,49 +1442,29 @@ exportPred :: Pred -> [String]
 
 exportPred TRUE = bPred codeTRUE
 exportPred FALSE = bPred codeFALSE
-exportPred (PExpr e) = exportExpr e ++ bPred codeObs2
-exportPred (Defd e) = exportExpr e ++ bPred codeDefd
-exportPred (TypeOf e t) = exportExpr e ++ exportType t ++ bPred codeTypeOf
-exportPred (Not pr) = (exportPred pr)++bPred codeNot
-exportPred (And prs) = (exportList exportPred prs) ++ bPred codeAnd
-exportPred (Or prs) = (exportList exportPred prs) ++ bPred codeOr
-exportPred (NDC pr1 pr2) = exportPred pr1 ++ exportPred pr2 ++ bPred codeNDC
-exportPred (Imp pr1 pr2) = exportPred pr1 ++ exportPred pr2 ++ bPred codeImp
-exportPred (RfdBy pr1 pr2) = exportPred pr1 ++ exportPred pr2 ++ bPred codeRfdBy
-exportPred (Eqv pr1 pr2) = exportPred pr1 ++ exportPred pr2 ++ bPred codeEqv
-
+exportPred (PVar v)
+ = wrArg (show v)
+   ++ bPred codePVar
+exportPred (PApp nm prs)
+ = wrArg nm ++ (exportList exportPred prs)
+   ++ bPred codePApp
+exportPred (PAbs nm  _ qs pr)
+ = wrArg nm ++ exportQVars qs ++ exportPred pr
+   ++ bPred codePAbs
+exportPred (Sub pr sub)
+ = exportPred pr ++ exportESubst sub
+   ++  bPred codeSub
+exportPred (PExpr e)
+ = exportExpr e
+   ++ bPred codePExpr
 exportPred (Lang s p les ss)
   = wrArg s ++ wrNum p
             ++ exportList exportLE les
             ++ exportList exportSS ss
             ++ bPred codeLang
-
-exportPred (If prc prt pre) = exportPred prc ++ exportPred prt ++ exportPred pre ++ bPred codeIf
-exportPred (Forall _ qs pr) = exportQVars qs ++ exportPred pr ++ bPred codeForallN
-exportPred (Exists _ qs pr) = exportQVars qs ++ exportPred pr ++ bPred codeExistsN
-exportPred (Exists1 _ qs pr) = exportQVars qs ++ exportPred pr ++ bPred codeExists1N
-exportPred (Peabs qs pr) = exportQVars qs ++ exportPred pr ++ bPred codePeabs2
-
-exportPred (Univ _ pr) = (exportPred pr)++bPred codeUniv
-exportPred (Sub pr sub) = exportPred pr ++ exportESubst sub ++  bPred codeSub
-exportPred (Pvar r) = wrArg (show r) ++ bPred codePvar
-exportPred (Papp prf pra) = exportPred prf ++ exportPred pra ++ bPred codePapp
-
-exportPred (Psapp pr spr)
- = (exportPred pr) ++ exportHP spr ++ bPred codePsapp
-exportPred (Psin pr spr)
- = (exportPred pr) ++ exportHP spr ++ bPred codePsin
-
-exportPred (Pforall qs pr)
- = exportQVars qs ++ exportPred pr ++ bPred codePforall2
-exportPred (Pexists qs pr)
- = exportQVars qs ++ exportPred pr ++ bPred codePexists2
-exportPred (Psub pr sub)
- = exportPred pr ++ exportPSubst sub ++  bPred codePsub
-exportPred (Ppabs qs pr)
- = exportQVars qs ++ exportPred pr ++ bPred codePpabs2
-
-exportPred (Pfocus pr) = exportPred pr -- we ignore Pfocus
+exportPred (TypeOf e t)
+ = exportExpr e ++ exportType t
+   ++ bPred codeTypeOf
 \end{code}
 
 \begin{code}
@@ -1626,93 +1472,15 @@ btable4a
  = lupdate btable3
     [ (codeTRUE   , build TRUE Pelem  )
     , (codeFALSE  , build FALSE Pelem  )
-    , (codeObs    , build11 popExpr popType mkObs  Pelem )
-    , (codeObs2   , build1  popExpr PExpr Pelem )
-    , (codeDefd   , build1  popExpr Defd Pelem )
+    , (codePExpr  , build1  popExpr PExpr Pelem )
     , (codeTypeOf , build11 popType popExpr TypeOf Pelem )
-    , (codeNot    , build1  popPred Not   Pelem )
-    , (codeAnd    , buildn  popPred mkAnd Pelem )
-    , (codeOr     , buildn  popPred mkOr  Pelem )
-    , (codeNDC    , build2  popPred NDC   Pelem )
-    , (codeImp    , build2  popPred Imp   Pelem )
-    , (codeRfdBy  , build2  popPred RfdBy Pelem )
-    , (codeEqv    , build2  popPred Eqv   Pelem )
+    , (codePApp   , buildn1  popPred popStr PApp Pelem )
     , (codeLang   , buildnn11 popSS popLE popNum popStr Lang Pelem )
-    , (codeIf     , build3  popPred If   Pelem )
-    , (codeComp   , build2  popPred (>>>) Pelem )
-    , (codeForall  , build21 popPred popQVars rforall Pelem )
-    , (codeExists  , build21 popPred popQVars rexists Pelem )
-    , (codeExists1 , build21 popPred popQVars rexists1 Pelem )
-    , (codeForallN , build11 popPred popQVars (Forall 0) Pelem )
-    , (codeExistsN , build11 popPred popQVars (Exists 0) Pelem )
-    , (codeExists1N, build11 popPred popQVars (Exists1 0) Pelem )
-    , (codeUniv   , build1 popPred (Univ 0) Pelem )
+    , (codePAbs   , buildn11 popPred popQVars popStr pabs Pelem )
     , (codeSub    , build11 popESubst popPred Sub Pelem )
-    , (codePvar   , build1 popStr  (Pvar . parseGenRoot) Pelem )
-    , (codePeabs2 , build11 popPred popQVars Peabs Pelem )
-    , (codePeabs  , build1n popPred popStr peabs Pelem )
-    , (codePpabs  , build1n popPred popStr ppabs Pelem )
-    , (codePpabs2 , build11 popPred popQVars Ppabs Pelem )
-    , (codePforall, build1n popPred popStr pall Pelem )
-    , (codePforall2, build11 popPred popQVars Pforall Pelem )
-    , (codePexists, build1n popPred popStr pany Pelem )
-    , (codePexists2, build11 popPred popQVars Pexists Pelem )
-    , (codePsub   , build11 popPSubst popPred Psub Pelem )
-    , (codePapp   , build2 popPred Papp Pelem )
-    , (codePset   , buildn popPred pset Pelem )
-    , (codePsetc  , build11n popPred popPred popVar psetcs Pelem )
-    , (codePsetc2 , build21 popPred popQVars psetc Pelem )
-    , (codePsapp  , build11 popHP popPred Psapp Pelem)
-    , (codePsin   , build11 popHP popPred Psin Pelem)
+    , (codePVar   , build1 popStr  (PVar . parseVariable) Pelem )
     ]
- where
-  mkObs ty e = PExpr e
-  rforall x r p = Forall 0 x $ Imp r p
-  rexists x r p = Exists 0 x $ And [r,p]
-  rexists1 x r p = Exists1 0 x $ And [r,p]
-  pset prs = wrap (PSet prs)
-  psetc qs prc pre = wrap (PSetC qs prc pre)
-  psetcs qvs = psetc ( qvs)
-  wrap ps = Psapp psetf ps
-  psetf = Pvar $ Std "PSETF"
-  peabs evs pr = Peabs (qvars evs) pr
-  ppabs s pr = Ppabs (qvars s) pr
-  pall vs pr = Pforall (qvars vs) pr
-  pany vs pr = Pexists (qvars vs) pr
-
-\end{code}
-
-\subsubsection{Predicate-Sets}
-
-\begin{code}
-codeHP hptype = charHP:hptype
-
-codePSName = codeHP "N" -- v
-codePSet   = codeHP "S" -- n pr.n .. pr.1
-codePSetC  = codeHP "C" -- pre prc n nm.n .. nm.1
-codePSetC2 = codeHP "D" -- pre prc qs
-codePSetU  = codeHP "U" -- s2 s1
-
-bHP hptype = [buildCmd:hptype]
-
-exportHP (PSName n) = wrArg n ++ bHP codePSName
-exportHP (PSet prs) = exportList exportPred prs ++ bHP codePSet
-exportHP (PSetC qs prc pre)
- = exportQVars qs
-   ++ exportPred prc ++ exportPred pre ++ bHP codePSetC2
-exportHP (PSetU s1 s2) = exportHP s1 ++ exportHP s2 ++ bHP codePSetU
-
-btable4
- = lupdate btable4a
-    [ (codePSName , build1 popStr PSName HPelem )
-    , (codePSet , buildn popPred PSet HPelem )
-    , (codePSetC , build11n popPred popPred popStr psetc HPelem )
-    , (codePSetC2, build21 popPred popQVars PSetC HPelem )
-    , (codePSetU , build11 popHP popHP PSetU HPelem )
-    ]
- where
-   psetc qs pr1 pr2 = PSetC (qvars qs) pr1 pr2
-
+ where pabs nm qs prs = PAbs nm 0 qs prs
 \end{code}
 
 \subsubsection{Language Elements}
@@ -1739,7 +1507,7 @@ exportLE (LList les)  = exportList exportLE les ++ bLE codeLList
 exportLE (LCount les) = exportList exportLE les ++ bLE codeLCount
 
 btable4'
- = lupdate btable4
+ = lupdate btable4a
     [ (codeLVar  , build1 popVar lvar LEelem )
     , (codeLType , build1 popType LType LEelem )
     , (codeLExpr , build1 popExpr LExpr LEelem )
@@ -2224,22 +1992,21 @@ And now, the legacy splitting:
     = (sngl,mapsnd getList list)
     where (sngl,list) = partition (isStd . fst) $ flattenTrie trie
 
-   getGenRootList (And prs) = getGenRoot' prs
-   getGenRootList (Or prs) = getGenRoot' prs
+   getGenRootList (PApp nm prs)
+    | nm == n_And  =   getGenRoot' prs
+    | nm == n_Or   =  getGenRoot' prs
    getGenRootList _ = []
    getGenRoot' [] = []
-   getGenRoot' ((Pvar gr):prs) = gr:getGenRoot' prs
+   getGenRoot' ((PVar gr):prs) = gr:getGenRoot' prs
    getGenRoot' (_:prs) = getGenRoot' prs
 
-   getExprList (Prod es) = es
-   getExprList (Set es) = es
-   getExprList (Seq es) = es
-   getExprList (Build _  es) = es
+   getExprList (App nm es)
+    | nm `elem` [n_tuple,n_set,n_seq]  = es
    getExprList _ = []
 
    qsplit :: Trie QVars -> ([(String,Variable)],[(String,[Variable])])
    qsplit qtrie
-    = (mapsnd (thead verr . outQ) sngl,mapsnd outQ list)
+    = (mapsnd (thead verr) sngl,list)
     where
       (sngl,list) = partition (isStdV . parseVariable . fst) $ flattenTrie qtrie
       verr = preVar "singleBoundToNothing"
