@@ -32,12 +32,11 @@ fileSelector text actions = do
   selector <- lift $ UI.input # set UI.type_ "file"
                               # set UI.text  text
                               # set UI.id_   id_
-  emitter  <- emitWorkspace
+  emit <- emitWorkspace
   path <- lift $ on UI.valueChange selector $ const $ do
     filepath <- selectorPath id_
-    liftIO $ putStrLn $ "Selected: " ++ filepath
     mapM ($ filepath) actions
-    liftIO $ emitter $ Just filepath
+    liftIO $ emit $ Just filepath
     liftIO $ putStrLn $ "Emitted workspace: " ++ show (Just filepath)
   return selector
 
@@ -54,11 +53,13 @@ selectorPath id = callFunction $
 --           , "return result"
 --           ]
 
+webkitdirectory = UI.emptyAttr "webkitdirectory"
+
 dirSelector :: String -> [String -> UI a] -> UTP2 Element
 dirSelector text actions = do
   selector <- fileSelector text actions
-  -- lift $ element selector # set UI.
-  return selector
+  lift $ element selector # set webkitdirectory True
+  element selector
 
 -- DOM -------------------------------------------------------------------------
 

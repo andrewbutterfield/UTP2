@@ -24,11 +24,12 @@ mkHome = do
 
 workspaceText :: UTP2 Element
 workspaceText = do
-  textEl     <- textB "No workspace selected"
-  workspaceB <- eWorkspaceB <$> ask
-  let textB =
-        fmap (maybe ("no workspace") (\w -> "Workspace: " ++ show w)) workspaceB
-  lift $ element textEl # sink UI.text textB
+  let noneText = "No workspace selected"
+  textEl            <- textB noneText
+  workspaceBehavior <- eWorkspaceB <$> ask
+  let textBehavior =
+        maybe noneText (\w -> "Workspace: " ++ show w) <$> workspaceBehavior
+  lift $ element textEl # sink UI.text textBehavior
   return textEl
 
 -- |Description of current workspace, if selected.
