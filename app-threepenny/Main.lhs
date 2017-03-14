@@ -7,7 +7,7 @@ import UTP2.GUI.Threepenny (start)
 
 main :: IO ()
 main = do
-  hSetBuffering stdout NoBuffering
+  hSetBuffering stdout LineBuffering
   [port] <- getArgs
   start (read port)
 \end{code}

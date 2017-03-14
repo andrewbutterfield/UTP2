@@ -1,20 +1,15 @@
-* Vision
-** DESIGN Threepenny app packaged as a distributable
-** IMPLEMENT Expose Threepenny event data
-** DONE Threepenny flexbox library
-   CLOSED: [2017-03-02 Thu 13:24]
-** IMPLEMENT Threepenny right-click menu library
-** IMPLEMENT Full Threepenny UTP2 app
-
-* TODO FRP for display workspace
+* DESIGN Safe JS execution
+  This means returning a ~Maybe~ from an ~ffi~ call incase execution failed,
+  where failure is either a ~null~ or ~undefined~.
+* IMPLEMENT FRP for display workspace
 * TODO Select directory
 * TODO Finish home screen
-* TODO Navbar
+* DESIGN Navbar
 * TODO Fix contextmenu altering source element styling
 
   Similar behaviour noticed when adding on click handler to materialise styled
   button. Possibly not a fault of contextmenu code.
-* IMPLEMENT Package as Electron app
+* VERIFY Package as Electron app
   https://github.com/HeinrichApfelmus/threepenny-gui/issues/111
 ** DONE Electron as main entry point
    CLOSED: [2017-02-28 Tue 15:31]

@@ -42,7 +42,10 @@ uniqueId = do
 
 currentWorkspace :: UTP2 (Maybe String)
 currentWorkspace = eWorkspaceB <$> ask >>= currentValue
-  
+
+emitWorkspace :: UTP2 (Handler (Maybe String))
+emitWorkspace = eWorkspaceH <$> ask
+
 -- |Read current workspace.
 readWorkspace :: UTP2 (Maybe String)
 readWorkspace = do

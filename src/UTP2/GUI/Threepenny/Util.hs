@@ -32,10 +32,13 @@ fileSelector text actions = do
   selector <- lift $ UI.input # set UI.type_ "file"
                               # set UI.text  text
                               # set UI.id_   id_
-  lift $ on UI.valueChange selector $ const $ void $ do
+  emitter  <- emitWorkspace
+  path <- lift $ on UI.valueChange selector $ const $ do
     filepath <- selectorPath id_
     liftIO $ putStrLn $ "Selected: " ++ filepath
     mapM ($ filepath) actions
+    liftIO $ emitter $ Just filepath
+    liftIO $ putStrLn $ "Emitted workspace: " ++ show (Just filepath)
   return selector
 
 selectorPath :: String -> UI String
@@ -78,7 +81,7 @@ tabs els = do
   tabEls     <- lift $ mapM tab     els'
   tabsEl     <- lift $ UI.div # set UI.class_ "row" #+ [
       UI.div # set UI.class_ "col s12" #+ [
-        UI.ul # set UI.class_ "tabs" #+ map element tabEls    
+        UI.ul # set UI.class_ "tabs" #+ map element tabEls
       ]
     ]
   contentEls <- lift $ mapM content els'
@@ -94,5 +97,5 @@ tabs els = do
                      # set UI.text  title
           UI.li # set UI.class_ "tab" #+ [element a]
   -- Create each content page.
-        content (title, el, id') = UI.div # set UI.id_ id' #+ [el] 
-  
+        content (title, el, id') = UI.div # set UI.id_ id' #+ [el]
+

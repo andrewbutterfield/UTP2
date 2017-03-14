@@ -1,0 +1,7 @@
+* Vision
+** VERIFY Threepenny app packaged as a distributable
+** IMPLEMENT Expose Threepenny event data
+** DONE Threepenny flexbox library
+   CLOSED: [2017-03-02 Thu 13:24]
+** VERIFY Threepenny right-click menu library
+** IMPLEMENT Full Threepenny UTP2 app
