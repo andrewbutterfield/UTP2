@@ -28,20 +28,28 @@ textB = styledText [("font-style", "bold")]
 -- change of the file selector.
 fileSelector :: String -> [String -> UI a] -> UTP2 Element
 fileSelector text actions = do
-  let id = "fileSelectorId"
+  id_      <- uniqueId
   selector <- lift $ UI.input # set UI.type_ "file"
                               # set UI.text  text
-                              # set UI.id_   id
+                              # set UI.id_   id_
   lift $ on UI.valueChange selector $ const $ void $ do
-    filepath <- selectorPath id
-    liftIO $ putStrLn "File selected"
-    liftIO $ putStrLn filepath
+    filepath <- selectorPath id_
+    liftIO $ putStrLn $ "Selected: " ++ filepath
     mapM ($ filepath) actions
   return selector
 
 selectorPath :: String -> UI String
 selectorPath id = callFunction $
-    ffi "$(%1).files[0].path" $ "#" ++ id
+  ffi "$(%1)[0].files[0].path" $ "#" ++ id
+
+-- sffi :: (Show a, FFI b) => a -> String -> b
+-- sffi other = ffi . safe
+--   where safe s = concat [
+--             "var result = " ++ show s
+--           , "if (result === null || result == undefined)"
+--           ,   "return " ++ show other
+--           , "return result"
+--           ]
 
 dirSelector :: String -> [String -> UI a] -> UTP2 Element
 dirSelector text actions = do
