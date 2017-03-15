@@ -1,4 +1,4 @@
-module UTP2.GUI where
+module UTP2.GUI.Abstract where
 
 import           Control.Monad.Reader
 import           Graphics.UI.Abstract

@@ -1,7 +1,7 @@
 \begin{code}
 module Main where
 
-import UTP2.GUI
+import UTP2.GUI.Abstract
 import System.Environment (getArgs)
 
 main :: IO ()
