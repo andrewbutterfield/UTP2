@@ -1401,9 +1401,9 @@ btable3
                             ]
                             Var Eelem )
     , (codeApp   , buildn1 popExpr popStr App Eelem )
-    , (codeAbs  , buildn1 popExpr popQVars abs Eelem )
+    , (codeAbs   , buildn11 popExpr popQVars popStr abs Eelem )
     , (codeESub  , build11 popESubst popExpr ESub Eelem )
-    , (codeEPred  , build1 popPred EPred Eelem )
+    , (codeEPred , build1 popPred EPred Eelem )
     ]
  where abs nm qs es = Abs nm 0 qs es
 \end{code}
@@ -1446,13 +1446,17 @@ exportPred (PVar v)
  = wrArg (show v)
    ++ bPred codePVar
 exportPred (PApp nm prs)
- = wrArg nm ++ (exportList exportPred prs)
+ = wrArg nm
+   ++ exportList exportPred prs
    ++ bPred codePApp
 exportPred (PAbs nm  _ qs pr)
- = wrArg nm ++ exportQVars qs ++ exportPred pr
+ = wrArg nm
+   ++ exportQVars qs
+   ++ exportList exportPred pr
    ++ bPred codePAbs
 exportPred (Sub pr sub)
- = exportPred pr ++ exportESubst sub
+ = exportPred pr
+   ++ exportESubst sub
    ++  bPred codeSub
 exportPred (PExpr e)
  = exportExpr e
@@ -1997,7 +2001,7 @@ And now, the legacy splitting:
     | nm == n_Or   =  getGenRoot' prs
    getGenRootList _ = []
    getGenRoot' [] = []
-   getGenRoot' ((PVar gr):prs) = gr:getGenRoot' prs
+   getGenRoot' ((PVar v):prs) = (varGenRoot v):getGenRoot' prs
    getGenRoot' (_:prs) = getGenRoot' prs
 
    getExprList (App nm es)
