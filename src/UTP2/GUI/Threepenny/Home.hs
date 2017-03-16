@@ -24,11 +24,11 @@ mkHome = do
 
 workspaceText :: UTP2 Element
 workspaceText = do
-  let noneText = "No workspace selected"
-  textEl            <- textB noneText
+  textEl            <- textB ""
   workspaceBehavior <- eWorkspaceB <$> ask
   let textBehavior =
-        maybe noneText (\w -> "Workspace: " ++ show w) <$> workspaceBehavior
+        maybe "No workspace selected" (\w -> "Workspace: " ++ show w)
+        <$> workspaceBehavior
   lift $ element textEl # sink UI.text textBehavior
   return textEl
 
@@ -52,8 +52,7 @@ openWorkspaceSelector = do
     Just modalId -> lift $ Mat.openModal modalId
     Nothing      -> do
       h4       <- lift $ UI.h4 # set UI.text "Select a workspace"
-      selector <- fileSelector "select" [
-        ]
+      selector <- dirSelector "select" []
       modalId  <- Mat.modal $ map element [h4, selector]
       setWorkspaceModalId modalId
       openWorkspaceSelector

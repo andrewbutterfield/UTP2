@@ -24,8 +24,7 @@ textB = styledText [("font-style", "bold")]
 
 -- File Selection --------------------------------------------------------------
 
--- |Returns a file selector element that executes the given action on value
--- change of the file selector.
+-- |Returns a file selector element that emits the updated value on change.
 fileSelector :: String -> [String -> UI a] -> UTP2 Element
 fileSelector text actions = do
   id_      <- uniqueId
@@ -35,7 +34,7 @@ fileSelector text actions = do
   emit <- emitWorkspace
   path <- lift $ on UI.valueChange selector $ const $ do
     filepath <- selectorPath id_
-    mapM ($ filepath) actions
+    liftIO $ putStrLn $ "filepath: " ++ show filepath
     liftIO $ emit $ Just filepath
     liftIO $ putStrLn $ "Emitted workspace: " ++ show (Just filepath)
   return selector

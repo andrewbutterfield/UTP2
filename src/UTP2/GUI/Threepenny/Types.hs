@@ -10,27 +10,24 @@ import           System.FilePath
 
 -- |Enironment/config the app requires.
 data Env = Env {
-    eId               :: MVar Int
-  , eWorkspace        :: MVar (Maybe String)
-  , eWorkspaceB       :: Behavior (Maybe String)
-  , eWorkspaceH       :: Handler  (Maybe String) 
-  , eWorkspaceModalId :: MVar (Maybe String)
+    eId                :: MVar Int
+  , eWorkspaceBehavior :: Behavior (Maybe String)
+  , eWorkspaceEmit     :: Handler  (Maybe String)
+  , eWorkspaceModalId  :: MVar (Maybe String)
   }
 
 -- |The initial environement.
 initialEnv :: IO Env
 initialEnv = do
   mId                               <- MV.newMVar 0
-  mWorkspace                        <- MV.newMVar Nothing
   (eWorkspaceEvent, eWorkspaceEmit) <- newEvent
   eWorkspaceBehavior                <- stepper Nothing eWorkspaceEvent
   mWorkspaceModalId                 <- MV.newMVar Nothing
   return Env {
-      eId               = mId
-    , eWorkspace        = mWorkspace
-    , eWorkspaceB       = eWorkspaceBehavior
-    , eWorkspaceH       = eWorkspaceEmit
-    , eWorkspaceModalId = mWorkspaceModalId
+      eId                = mId
+    , eWorkspaceBehavior = eWorkspaceBehavior
+    , eWorkspaceEmit     = eWorkspaceEmit
+    , eWorkspaceModalId  = mWorkspaceModalId
     }
 
 -- |Return a unique ID.
@@ -40,23 +37,13 @@ uniqueId = do
   id_ <- liftIO $ MV.modifyMVar mId (\i -> return (i + 1, i))
   return $ "UTP2-id-" ++ show id_
 
+-- |The current workspace.
 currentWorkspace :: UTP2 (Maybe String)
-currentWorkspace = eWorkspaceB <$> ask >>= currentValue
+currentWorkspace = eWorkspaceBehavior <$> ask >>= currentValue
 
+-- |Emit a new value for the current workspace.
 emitWorkspace :: UTP2 (Handler (Maybe String))
-emitWorkspace = eWorkspaceH <$> ask
-
--- |Read current workspace.
-readWorkspace :: UTP2 (Maybe String)
-readWorkspace = do
-  mvar <- eWorkspace <$> ask
-  liftIO $ MV.readMVar mvar
-
--- |Set current workspace.
-setWorkspace :: String -> UTP2 ()
-setWorkspace workspace = do
-  mvar <- eWorkspace <$> ask
-  liftIO $ MV.modifyMVar_ mvar $ const $ return $ Just workspace
+emitWorkspace = eWorkspaceEmit <$> ask
 
 -- |Read workspace modal ID.
 readWorkspaceModalId :: UTP2 (Maybe String)
