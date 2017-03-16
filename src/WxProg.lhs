@@ -269,16 +269,17 @@ progMatching lawPrefix pid work tstack pred sc window
        let matchCtxt = mkMatchContext newStack
        zip (sepAtAnd (applyAllMatches ([1..]) pid work sc matchCtxt lawsAndRHS pred)) (repeat sc)
     where
-      lawAsLHS (name,(((Eqv lhs _),sc),prov,tts)) = ((lhs,sc),tts)
-      getRHS (_,(((Eqv _ rhs),_),_,_)) = rhs
+      lawAsLHS (name,(((PApp nm [lhs, _]),sc),prov,tts))
+       | nm==n_Eqv  = ((lhs,sc),tts)
+      getRHS (_,(((PApp nm [_, rhs]),_),_,_)) | nm==n_Eqv  =  rhs
       allLaws (x:xs) = concatMap laws xs
       replaceLaws (newThry:x:xs) wpLaws = x{laws = wpLaws} : xs
 
 sepAtAnd (pr@(Lang s p les ss),_)
   | lesPreds les /= [] = sepAtAnd (head.lesPreds $ les, False)
   | otherwise = [pr]
-sepAtAnd ((And prs),_) = prs
-sepAtAnd (pr,_) = [pr]
+sepAtAnd ((PApp nm prs),_) | nm==n_And  =  prs
+sepAtAnd (pr,_)                         =  [pr]
 
 lawCmp [] _ = []
 lawCmp _ [] = []
@@ -314,40 +315,20 @@ instantiatepred inum mctxt bnds@(gpbnds,vebnds,ttbnds) pat
  = bP pat
  where
 
-   bP (Pvar r)
+   bP (PVar r)
      = case gplookupTO r gpbnds of
-         Nothing     ->  Pvar $ gmap (++inum) r
+         Nothing     ->  PVar $ gmap (++inum) r
          (Just pr)  ->  pr
 
-   bP (Obs (Equal (Var v1) (Var v2))) = bE2P Equal v1 v2
-   bP (Obs (Bin op p (Var v1) (Var v2))) = bE2P (Bin op p) v1 v2
-   bP (Obs e) = Obs (instantiateExpr mctxt bnds e)
+   bP (PExpr (App nm [Var v1, Var v2]))
+    | nm == n_Equal = bE2P mkEqual v1 v2
+   bP (PExpr e) = PExpr (instantiateExpr mctxt bnds e)
 
-   bP (Defd e) = Defd (instantiateExpr mctxt bnds e)
    bP (TypeOf e t) = TypeOf (instantiateExpr mctxt bnds e) (instantiateType mctxt bnds t)
-   bP (Not pr) = Not (bP pr)
-   bP (And prs) = mkAnd (map bP prs)
-   bP (Or prs) = mkOr (map bP prs)
-   bP (NDC pr1 pr2) = NDC (bP pr1) (bP pr2)
-   bP (Imp pr1 pr2) = Imp (bP pr1) (bP pr2)
-   bP (RfdBy pr1 pr2) = RfdBy (bP pr1) (bP pr2)
-   bP (Eqv pr1 pr2) = Eqv (bP pr1) (bP pr2)
-
-   bP (If prc prt pre) = If (bP prc) (bP prt) (bP pre)
-   bP (Forall _ qs pr) = mkForall (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Exists _ qs pr) = mkExists (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Exists1 _ qs pr) = mkExists1 (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Univ _ pr) = Univ 0 (bP pr)
+   bP (PApp nm prs) = PApp nm (map bP prs)
+   bP (PAbs nm _ qs prs)
+     = PAbs nm 0 (instantiateQ mctxt bnds qs) (map bP prs)
    bP (Sub pr sub) = mkSub (bP pr) (instantiateESub mctxt bnds sub)
-   bP (Ppabs qs pr) = mkPpabs (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Papp prf pra) = Papp (bP prf) (bP pra)
-   bP (Psapp pr spr) = Psapp (bP pr) (bPS spr)
-   bP (Psin pr spr) = Psin (bP pr) (bPS spr)
-   bP (Pforall qs pr) = mkPforall (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Pexists qs pr) = mkPexists (instantiateQ mctxt bnds qs) (bP pr)
-   bP (Psub pr sub) = mkPsub (bP pr) (instantiatePSub mctxt bnds sub)
-   bP (Peabs qs pr) = mkPeabs (instantiateQ mctxt bnds qs) (bP pr)
-
    bP (Lang nm p [le1,le2] ss) = bL2P nm p ss le1 le2
    bP (Lang nm p les ss) = Lang nm p (bLES les) ss
 
@@ -371,7 +352,7 @@ and we should bind these first.
      -- std -------------------------------------------
      e1 = instantiateExpr mctxt bnds (Var v1)
      e2 = instantiateExpr mctxt bnds (Var v2)
-     std = Obs (apred e1 e2)
+     std = PExpr (apred e1 e2)
 
      -- r1, r2  ---------------------------------------
      v1' = instantiatemv v1
@@ -392,28 +373,28 @@ and we should bind these first.
      expand mv
       | nonRsvList mv   =  velookupTO mv vebnds
       | null ovars      =  Nothing
-      | null leftover   =  Just $ Seq $ map Var ovars
+      | null leftover   =  Just $ mkSeq $ map Var ovars
       | otherwise       =  Nothing -- ISSUE: should we handle leftovers?
       where
         (ovars,leftover) = lVarDenote mctxt mv
 
      -- notSeq ----------------------------------------
-     notSeq (Just (Seq _))  =  False
-     notSeq _               =  True
+     notSeq (Just (App nm _)) | nm==n_seq  =  False
+     notSeq _                              =  True
 
      -- std' ------------------------------------------
      e1' = instantiateExpr mctxt bnds (Var v1')
      e2' = instantiateExpr mctxt bnds (Var v2')
-     std' = Obs (apred e1' e2')
+     std' = PExpr (apred e1' e2')
 
 
      -- es1, es2 --------------------------------------
-     (Just (Seq es1)) = r1
-     (Just (Seq es2)) = r2
+     (Just (App _ es1)) = r1
+     (Just (App _ es2)) = r2
 
    -- end bE2P
 
-   b2E apred (e1,e2) = Obs (apred e1 e2)
+   b2E apred (e1,e2) = PExpr (apred e1 e2)
 \end{code}
 
 Doing it all for languages:
@@ -436,10 +417,10 @@ Doing it all for languages:
 
      r1 = velookupTO v1 vebnds
      r2 = velookupTO v2 vebnds
-     notSeq (Just (Seq _))  =  False
-     notSeq _               =  True
-     (Just (Seq es1)) = r1
-     (Just (Seq es2)) = r2
+     notSeq (Just (App nm _)) | nm==n_seq  =  False
+     notSeq _                              =  True
+     (Just (App _ es1)) = r1  -- should be a n_seq
+     (Just (App _ es2)) = r2  -- should be a n_seq
 
    -- end bL2P
 
@@ -448,14 +429,6 @@ Doing it all for languages:
 
 Other \texttt{instantiatePred mctxt} auxilliaries:
 \begin{code}
-   bPS (PSName n)
-    = case gplookupTO (Std $ psName n) gpbnds of
-        Just (Pvar p)  ->  PSName $ show p
-        _              ->  PSName n
-   bPS (PSet prs) = PSet (map bP prs)
-   bPS (PSetC qs pr1 pr2) = PSetC (instantiateQ mctxt bnds qs) (bP pr1) (bP pr2)
-   bPS (PSetU s1 s2) = PSetU (bPS s1) (bPS s2)
-
    bLES [] = []
    bLES (le:les) = bLE le : bLES les
 
@@ -470,9 +443,9 @@ Other \texttt{instantiatePred mctxt} auxilliaries:
    bLE (LList les)  = LList (map bLE les)
    bLE (LCount les) = LCount (map bLE les)
 
-   bPV pvs = map (stripPvar . bP . Pvar . Std . psName) pvs
+   bPV pvs = map (stripPvar . bP . PVar . Std . psName) pvs
 
-   stripPvar (Pvar r) = show r
+   stripPvar (PVar r) = show r
    stripPvar pr       = "?PredSet-Name-expected?"
 
 findLawMatch fv mctxt ptts sc [] pred = Nothing
@@ -481,7 +454,8 @@ findLawMatch fv mctxt ptts sc (((lhs,ltts),rhs):xs) pred
   | otherwise = Just (fromJust match, rhs)
   where match = lawMatch [] fv ltts mctxt sc pred lhs ptts
 
-checkSides law@(_,(((Eqv _ _),_),_,_)) = Just law
+checkSides law@(_,(((PApp nm [_, _]),_),_,_))
+ | nm == n_Eqv = Just law
 checkSides _ = Nothing
 
 pcondPopup progpid pwin wk

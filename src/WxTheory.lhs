@@ -1352,7 +1352,7 @@ mkConjEntryMenu  menu thname tw work (Just (cjname,(pred,sc)))
       set refCjItm [on command := startProof thname nmnot npred sc work]
  where
    nmnot = cjname++"-NOT!"
-   npred = Not pred
+   npred = mkNot pred
 \end{code}
 
 \paragraph{Specific Checking}

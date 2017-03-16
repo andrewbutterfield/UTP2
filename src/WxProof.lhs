@@ -524,16 +524,7 @@ handleKeys pid work k
       KeyLeft       -> focusLeft pid work
       KeyRight      -> focusRight pid work
       KeyUp         -> focusUp pid work
-      KeyDown       -> focusDown 1 pid work
-      (KeyChar '1') -> focusDown 1 pid work
-      (KeyChar '2') -> focusDown 2 pid work
-      (KeyChar '3') -> focusDown 3 pid work
-      (KeyChar '4') -> focusDown 4 pid work
-      (KeyChar '5') -> focusDown 5 pid work
-      (KeyChar '6') -> focusDown 6 pid work
-      (KeyChar '7') -> focusDown 7 pid work
-      (KeyChar '8') -> focusDown 8 pid work
-      (KeyChar '9') -> focusDown 9 pid work
+      KeyDown       -> focusDown pid work
       KeyEscape     -> focusReset pid work
       _             -> func pid work
   where
@@ -795,8 +786,7 @@ showBinders bs = concat $ intersperse "," $ map varKey bs
 
 showExprType tts fpred
  = case getPFocus fpred of
-    Obs e       ->  "EXPR : " ++ show (evalExprType tts tags e)
-    Defd e      ->  "EXPR : " ++ show (evalExprType tts tags e)
+    PExpr e     ->  "EXPR : " ++ show (evalExprType tts tags e)
     TypeOf e _  ->  "EXPR : " ++ show (evalExprType tts tags e)
     _           ->  "PREDICATE"
  where tags = thd3 $ getPFContext fpred
@@ -1196,13 +1186,15 @@ setAndCheckProofStrategy pspace pid stspec prf sts mf work
 
 Building helper conjectures is easy:
 \begin{code}
-helperConj pnm sc (Imp (And gs) g)
+helperConj pnm sc (PApp nm1 [PApp nm2 gs, g])
+ | nm1==n_Imp && nm2==n_And
  = mkHelpers 1 gs
  where
    mkHelpers _      [] = []
    mkHelpers i (gi:gs) = (pnm++"."++show i,(gi,sc)) : mkHelpers (i+1) gs
 
-helperConj pnm sc (Imp q g) = [(pnm++".0",(g,sc))]
+helperConj pnm sc (PApp nm [q, g])
+ | nm == n_Imp = [(pnm++".0",(g,sc))]
 
 helperConj pnm sc ilaw = []
 \end{code}
@@ -1308,8 +1300,8 @@ setUpStrategy sts prf tts mf penv mctxts SSInd
 We are only interested in laws of the form: $Q \implies \forall x @ P$
 \begin{code}
    setUpInduction theories mctxt thname thno lname lprov lsc
-                  ilawpr@(Imp _ (Forall _ (Q [q]) (Pvar (Std r))))
-    | isStdV q
+                  ilawpr@(PApp nm1 [_, PAbs nm2 _ [q] [PVar v]])
+    | nm1 == n_Imp && nm2==n_Forall && isStdV q
      = do (novar,ivar,ilawpr') <- setInductionVar ilawpr q
           if novar
            then do alert sts "no ivar given"
@@ -1317,7 +1309,7 @@ We are only interested in laws of the form: $Q \implies \forall x @ P$
            else
            do let goal' = forcePredInductionVar ivar goalpr
               (ok,fmatch)
-                 <- instantiateInduction theories mctxt r goal' SCtrue ilawpr' lprov lname
+                 <- instantiateInduction theories mctxt (show v) goal' SCtrue ilawpr' lprov lname
               if ok
                then
                 do let ilawpr'' = matchReplace nullMatchContext fmatch
@@ -1552,8 +1544,8 @@ hm_arrowPress = (
     "      The leftmost sub-expression comes into focus here.\n",
     "LEFT/RIGHT- navigate between sibling expressions on the same level."])
 
-focusDown n pid work
-  = chgCurrFPred pid work $ downPFocus n
+focusDown pid work
+  = chgCurrFPred pid work downPFocus
 
 focusUp pid work
   = chgCurrFPred pid work upPFocus
@@ -1591,7 +1583,7 @@ synchProof pid work
 \end{code}
 
 
-\subsubsection{Replace \texttt{Pvar}}
+\subsubsection{Replace \texttt{PVar}}
 \begin{code}
 hm_replPvar = (
     unlines $ [" : Replace PVar by definition\n",
@@ -1613,7 +1605,7 @@ replPvar pid work
         repaintProofGUI pspace
 \end{code}
 
-\subsubsection{Recursively expand \texttt{Pvar}s}
+\subsubsection{Recursively expand \texttt{PVar}s}
 \begin{code}
 hm_expandPvars = (
     unlines $ [" : Replace PVars by definition, recursively\n",
@@ -1665,7 +1657,7 @@ expandPvars pid work
 
 \subsubsection{Assert Definedness}
 
-Converts an \texttt{Obs e} to  the conjunction of it and \texttt{Defd e}.
+Converts an \texttt{PExpr e} to  the conjunction of it and \texttt{Defd e}.
 \begin{code}
 hm_assertDefinedness = (
     unlines $ [" : Assert Definedness\n",
@@ -1686,9 +1678,9 @@ assertDefinedness pid work
 
 
 
-\subsubsection{Define \texttt{Pvar}}
+\subsubsection{Define \texttt{PVar}}
 
-Here we define a Pvar as a shorthand for the current focus,
+Here we define a PVar as a shorthand for the current focus,
 and replace it, allowing a complex sub-expression to be
 folded away, for later expansion, should it be necessary.
 The variable introduced must not be one already in use.
@@ -1743,7 +1735,7 @@ defnPvar pid work
            Just _  ->  alert sts ("PVar '"++newvar++"' already in use")
            Nothing
             -> do let pr = getPFocus cfpred
-                  let npred = repPFocus (Pvar $ Std newvar) cfpred
+                  let npred = repPFocus (PVar $ parseVariable newvar) cfpred
                   let jstfy =(EQV,getPFocusPath cfpred,UName newvar,nullBinds)
                   let prf' = addProofStep npred jstfy prf
                   let (thn',penv') = notePLTPred newvar pr penv
@@ -1753,15 +1745,15 @@ defnPvar pid work
                   repaintNamedTheory thn' work
                   note sts ("User-defined predicate name '"++newvar++"' added")
 
---obtainDefnName pmsg mf (Pfocus _ (Obs _ (Efocus _ _)) _) = return ""
+--obtainDefnName pmsg mf (Pfocus _ (PExpr _ (Efocus _ _)) _) = return ""
 --obtainDefnName pmsg mf (Pfocus _ pr _)
 obtainDefnName pmsg mf _
- = fmap trim $ textDialog mf "Pvar Name" pmsg ""      -- $
+ = fmap trim $ textDialog mf "PVar Name" pmsg ""      -- $
 --obtainDefnName pmsg mf _ = return ""
 \end{code}
 
 
-\subsubsection{Fold \texttt{Pvar}}
+\subsubsection{Fold \texttt{PVar}}
 \begin{code}
 hm_foldPvar = (
     unlines $ [" : Replace focus by defining PVar\n",
@@ -1796,7 +1788,7 @@ foldPredicateVar pspace prf penv cpred newvar prdef qtgt sts pid work
       let prdx = expandPred (predTidy True) ptables prdef
       if prx == prdx
        then
-         do let npred = repPFocus (Pvar $ Std qtgt) cpred
+         do let npred = repPFocus (PVar $ parseVariable qtgt) cpred
             let jstfy =(EQV,getPFocusPath cpred,NameFold qtgt,nullBinds)
             let prf' = addProofStep npred jstfy prf
             setAndCheckProofState notMatch pid pspace work (prf',noMatches)
@@ -2581,7 +2573,7 @@ getExprSubst penv mf caption
 
 mkESubs penv wspec
  = case result of
-    Right (Esub _ sub) ->  sub
+    Right (ESub _ sub) ->  sub
     _                  ->  Substn []
  where
    result = exprTextParser penv "<user>" ("0[ "++wspec++ " ]")
