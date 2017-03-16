@@ -1332,11 +1332,8 @@ toISeq_expr :: ([Trie (Int,b)],String -> Maybe String) -> Int -> Expr -> ISeq
 \\ \ppr v &=& \annote{Var} @ v
 \end{eqnarray*}
 \begin{code}
-toISeq_expr (prec,l2a) curprec (T) = iConcat [ITok P_TRUE]
-toISeq_expr (prec,l2a) curprec (F) = iConcat [ITok P_FALSE]
 toISeq_expr (prec,l2a) curprec (Num a) = iConcat [IString (show a)]
 toISeq_expr (prec,l2a) curprec (Var a) = IAnnote [AVar] ( iConcat [IString $ varKey a] )
-toISeq_expr (prec,l2a) curprec (Evar a) = IAnnote [AVar] (iConcat ([IString $ varKey a]))
 \end{code}
 
 \subsubsection{Pretty-printing delimited expressions}
@@ -1345,55 +1342,22 @@ toISeq_expr (prec,l2a) curprec (Evar a) = IAnnote [AVar] (iConcat ([IString $ va
      =  (~\ppr{x_1}~,~\ldots~,~\ppr{x_n}~)
 \end{eqnarray*}
 \begin{code}
-toISeq_expr (prec,l2a) curprec (Prod a)
+toISeq_expr (prec,l2a) curprec (App nm a)
+ | nm == n_tuple
  = iConcat ([ITok P_PAREN_START]++t++[ITok P_PAREN_END])
  where t = intersperse (ITok P_COMMA) (map (toISeq_expr (prec,l2a) curprec) a)
 
-toISeq_expr (prec,l2a) curprec (Set list)
+toISeq_expr (prec,l2a) curprec (App nm list)
+ | nm == n_set
  = iConcat ([(ITok P_SET_START)]
             ++ (intersperse (ITok P_COMMA) (map (toISeq_expr (prec,l2a) curprec) list))
             ++[(ITok P_SET_END)])
 
-toISeq_expr (prec,l2a) curprec (Seq list)
+toISeq_expr (prec,l2a) curprec (App nm list)
+ | nm == n_seq
  = iConcat ([(ITok P_SEQ_START)]
             ++(intersperse (ITok P_COMMA) (map (toISeq_expr (prec,l2a) curprec) list))
             ++[(ITok P_SEQ_END)])
-
-toISeq_expr (prec,l2a) curprec (Map list)
- = iConcat ([(ITok P_MAPSTO_START)]++rd'++[(ITok P_MAPSTO_END)])
- where
-  rd  = (map ppmaplet list)
-  rd' = concat (intersperse [ITok P_COMMA] rd)
-  ppmaplet (x,y) = [ (toISeq_expr (prec,l2a) curprec x)
-                   , (ITok P_MAPSTO)
-                   , (toISeq_expr (prec,l2a) curprec y)]
-\end{code}
-
-\begin{eqnarray*}
-  && \ppr{\setof{ v | P @ E }}
-     =  \setof{~\ppr v ~|~ \ppr P ~@~ \ppr E ~}
-\end{eqnarray*}
-\begin{code}
-toISeq_expr (prec,l2a) curprec (Setc _ qvars pred expr)
- = iConcat [ lstart
-           , toISeq_Qvar qvars, lpipe
-           , toISeq_pred (prec,l2a) curprec pred, ldot
-           , toISeq_expr (prec,l2a) curprec expr, lend]
- where lstart = ITok P_SET_START
-       lend   = ITok P_SET_END
-       ldot   = ITok P_AT
-       lpipe  = ITok P_SEP_PIPE
-
-toISeq_expr (prec,l2a) curprec (Seqc _ qvars pred expr)
- = iConcat [ lstart
-           , toISeq_Qvar qvars, lpipe
-           , toISeq_pred (prec,l2a) curprec pred, ldot
-           , toISeq_expr (prec,l2a) curprec expr, lend]
- where lstart = ITok P_SEQ_START
-       lend   = ITok P_SEQ_END
-       ldot   = ITok P_AT
-       lpipe  = ITok P_SEP_PIPE
-
 \end{code}
 
 \subsubsection{Pretty-printing function applications}
@@ -1409,12 +1373,13 @@ otherwise we output it in the form $f (a_1,\ldots,a_n)$.
      &=& (\annote{App} @ \rndr f)~(~\ppr{e_1}~,~\ldots~,~\ppr{e_n}~)
 \end{eqnarray*}
 \begin{code}
-toISeq_expr (prec,l2a) curprec (App fname (Prod aexprs))
- | length aexprs == 2 && isJust possPrec
-     = iConcat ([br_s] ++ infixop ++ [br_e])
- | otherwise = iConcat ( [ IAnnote [AApp] (IString fname)
-                         , ITok P_PAREN_START]
-                         ++ prefixop ++ [ITok P_PAREN_END] )
+toISeq_expr (prec,l2a) curprec (App fname [App nm aexprs])
+ | nm == n_tuple
+ = if length aexprs == 2 && isJust possPrec
+    then iConcat ([br_s] ++ infixop ++ [br_e])
+    else iConcat ( [ IAnnote [AApp] (IString fname)
+                   , ITok P_PAREN_START]
+                   ++ prefixop ++ [ITok P_PAREN_END] )
  where
   possPrec = tslookup prec fname
   infixop = intersperse fname' (map (toISeq_expr (prec,l2a) curprec) aexprs)
@@ -1430,7 +1395,7 @@ toISeq_expr (prec,l2a) curprec (App fname (Prod aexprs))
      = (\annote{App} @ \rndr f)~(\ppr{e})
 \end{eqnarray*}
 \begin{code}
-toISeq_expr (prec,l2a) curprec (App fname expr)
+toISeq_expr (prec,l2a) curprec (App fname [expr])
  = IConcat [ IAnnote [AApp] (IString fname)
            , ITok P_PAREN_START
            , (toISeq_expr (prec,l2a) 1000 expr)
@@ -1440,29 +1405,20 @@ toISeq_expr (prec,l2a) curprec (App fname expr)
 \end{code}
 
 \begin{eqnarray*}
-  \ppr{e_1 \oplus e_2}
-     &=& \ppr{e_1}~(\annote{Bin} @ \rndr\oplus)~\ppr{e_2}
-\end{eqnarray*}
-\begin{code}
-toISeq_expr (prec,l2a) curprec (Bin opname thisprec expr1 expr2)
- = iConcat [ br_s, (toISeq_expr (prec,l2a) thisprec expr1)
-           , opname'
-           , toISeq_expr (prec,l2a) thisprec expr2, br_e]
- where
- (br_s, br_e) = brackets curprec thisprec
- opname'      = case (l2a opname) of
-                 Nothing -> IAnnote [ABin] (IString opname)
-                 (Just ldesc) -> IAnnote [ABin] ( IString ('\\':ldesc) )
-\end{code}
-
-\begin{eqnarray*}
   \ppr{e_1 = e_2}
      &=& \ppr{e_1}~=~\ppr{e_2}
 \end{eqnarray*}
 \begin{code}
-toISeq_expr (prec,l2a) curprec (Equal expra exprb)
+toISeq_expr (prec,l2a) curprec (App nm [expra, exprb])
+ | nm == n_Equal
  = iConcat [ (toISeq_expr (prec,l2a) curprec expra)
            , (ITok P_EQUALS), (toISeq_expr (prec,l2a) curprec exprb) ]
+
+
+toISeq_expr (prec,l2a) curprec (App nm list)
+ = iConcat ([IAnnote [AApp] (IString nm),(ITok P_PAREN_START)]
+            ++ (intersperse (ITok P_COMMA) (map (toISeq_expr (prec,l2a) curprec) list))
+            ++[(ITok P_PAREN_END)])
 \end{code}
 
 \begin{eqnarray*}
@@ -1470,7 +1426,7 @@ toISeq_expr (prec,l2a) curprec (Equal expra exprb)
      &=& (~\ppr{e}~)~\ppr{~[sub]~}
 \end{eqnarray*}
 \begin{code}
-toISeq_expr (prec,l2a) curprec (Esub expr sub)
+toISeq_expr (prec,l2a) curprec (ESub expr sub)
  = iConcat ([ ITok P_PAREN_START, toISeq_expr (prec,l2a) curprec expr
             , ITok P_PAREN_END, toISeq_esubs (prec,l2a) curprec sub])
 \end{code}
@@ -1486,7 +1442,8 @@ toISeq_expr (prec,l2a) curprec (Esub expr sub)
    &=& \lambda~\ppr{v}~ @ ~\ppr{e}
 \end{eqnarray*}
 \begin{code}
-toISeq_expr (prec,l2a) curprec (Cond p1 e1 e2)
+toISeq_expr (prec,l2a) curprec (App nm [EPred p1, e1, e2])
+ | nm == n_Cond
  = IAnnote [ACond]
       (iConcat [ br_s, (toISeq_expr (prec,l2a) thisprec e1)
                , ITok P_LHD, (toISeq_pred (prec,l2a) thisprec p1)
@@ -1494,18 +1451,11 @@ toISeq_expr (prec,l2a) curprec (Cond p1 e1 e2)
  where thisprec     = 8
        (br_s, br_e) = brackets curprec thisprec
 
-toISeq_expr (prec,l2a) curprec (Build string elist)
- = iConcat ([IString string] ++ (map (toISeq_expr (prec,l2a) curprec) elist))
-
-toISeq_expr (prec,l2a) curprec (Eabs _ q e)
- = iConcat [ (ITok P_LAMBDA), toISeq_Qvar q
+toISeq_expr (prec,l2a) curprec (Abs nm _ q [e])
+ = iConcat [ (IString nm), toISeq_Qvar q
            , ITok P_AT, (toISeq_expr (prec,l2a) curprec e)]
 
-toISeq_expr (prec,l2a) curprec (Eerror a) = iConcat [(IString ("Error: " ++ show a))]
-toISeq_expr (prec,l2a) curprec (Efocus expr)
- = toISeq_expr (prec,l2a) curprec expr
-
--- toISeq_expr _ _ a = IString ("couldn't handle expr:" ++ show a)
+toISeq_expr _ _ a = IString ("couldn't handle expr:" ++ show a)
 \end{code}
 
 \subsection{Expression-Substitution Pretty-Printing}
@@ -1545,29 +1495,24 @@ toISeq_pred :: ([Trie (Int,b)],String -> Maybe String) -> Int -> Pred -> ISeq
 \begin{eqnarray*}
    \ppr c &=& \rndr c
 \\ \ppr P &=& \annote{PVar} @ P
-\\ \ppr{\texttt{Obs}~e} &=& \ppr e
+\\ \ppr{\texttt{PExpr}~e} &=& \ppr e
 \\ \ppr{e : T} &=& \ppr e ~:~ \ppr T
-\\ \ppr{\Defd~e} &=& \Defd~(~\ppr e~)
 \end{eqnarray*}
 \begin{code}
 toISeq_pred (prec,l2a) curprec (TRUE) = iConcat [ITok P_TRUE]
 
 toISeq_pred (prec,l2a) curprec (FALSE) = iConcat [ITok P_FALSE]
 
-toISeq_pred (prec,l2a) curprec (Pvar root)
+toISeq_pred (prec,l2a) curprec (PVar root)
  = iConcat [IAnnote [APVar] (IString $ show root)]
 
-toISeq_pred (prec,l2a) curprec (Obs e)
+toISeq_pred (prec,l2a) curprec (PExpr e)
   = iConcat [toISeq_expr (prec,l2a) curprec e]
 
 toISeq_pred (prec,l2a) curprec (TypeOf e t)
  = iConcat [ toISeq_expr (prec,l2a) curprec e
            , ITok P_HASTYPE, toISeq_type (prec,l2a) curprec t ]
            -- * ^ THIS MAY NEED TO BE FIXED *
-
-toISeq_pred (prec,l2a) curprec (Defd expr)
-  = iConcat [ ITok P_DEFD, ITok P_PAREN_START
-            , toISeq_expr (prec,l2a) curprec expr, ITok P_PAREN_END ]
 \end{code}
 
 \subsubsection{Pretty-printing Composite Predicates}
@@ -1578,45 +1523,52 @@ toISeq_pred (prec,l2a) curprec (Defd expr)
    &=& \ppr{P_1}~\rndr\oplus~\cdots~\rndr\oplus~\ppr{P_n}
 \end{eqnarray*}
 \begin{code}
-toISeq_pred (prec,l2a) curprec (Not p)
+toISeq_pred (prec,l2a) curprec (PApp nm [p])
+ | nm == n_Not
  = iConcat [(ITok P_NOT),(toISeq_pred (prec,l2a) 0 p)] -- force bracketing
 
-toISeq_pred (prec,l2a) curprec (And plist)
+toISeq_pred (prec,l2a) curprec (PApp nm plist)
+  | nm == n_And
   = iConcat ([br_s] ++ (intersperse (ITok P_AND)
                                     (map (toISeq_pred (prec,l2a) thisprec) plist))
                     ++ [br_e] )
   where (br_s, br_e) = brackets curprec thisprec
         thisprec     = 10
 
-toISeq_pred (prec,l2a) curprec (Or plist)
+toISeq_pred (prec,l2a) curprec (PApp nm plist)
+ | nm == n_Or
  = iConcat ([br_s] ++ (intersperse (ITok P_OR)
                       (map (toISeq_pred (prec,l2a) thisprec) plist))
                    ++ [br_e] )
  where (br_s, br_e) = brackets curprec thisprec
        thisprec     = 11
 
-toISeq_pred (prec,l2a) curprec (NDC pred1 pred2)
+toISeq_pred (prec,l2a) curprec (PApp nm [pred1, pred2])
+ | nm == n_NDC
  = iConcat [ br_s, p_toISeq_pred pred1
            , ITok P_NDC, p_toISeq_pred pred2, br_e ]
  where (br_s, br_e)  = brackets curprec thisprec
        p_toISeq_pred = toISeq_pred (prec,l2a) thisprec
        thisprec      = 11 -- * THIS NEEDS TO BE FIXED *
 
-toISeq_pred (prec,l2a) curprec (Imp pred1 pred2)
+toISeq_pred (prec,l2a) curprec (PApp nm [pred1, pred2])
+ | nm == n_Imp
  = iConcat [ br_s, p_toISeq_pred pred1
            , ITok P_IMPLIES, p_toISeq_pred pred2, br_e ]
  where (br_s, br_e)  = brackets curprec thisprec
        p_toISeq_pred = toISeq_pred (prec,l2a) thisprec
        thisprec      = 12 -- * THIS NEEDS TO BE FIXED *
 
-toISeq_pred (prec,l2a) curprec (RfdBy pred1 pred2)
+toISeq_pred (prec,l2a) curprec (PApp nm [pred1, pred2])
+ | nm == n_RfdBy
  = iConcat [ br_s, p_toISeq_pred pred1
            , ITok P_RFDBY, p_toISeq_pred pred2, br_e ]
  where (br_s, br_e)  = brackets curprec thisprec
        p_toISeq_pred = toISeq_pred (prec,l2a) thisprec
        thisprec      = 12 -- * THIS NEEDS TO BE FIXED *
 
-toISeq_pred (prec,l2a) curprec (Eqv pred1 pred2)
+toISeq_pred (prec,l2a) curprec (PApp nm [pred1, pred2])
+ | nm == n_Eqv
  = iConcat [ br_s, ptoISeq_expr pred1
            , ITok P_EQUIV, ptoISeq_expr pred2, br_e ]
  where (br_s, br_e) = brackets curprec thisprec
@@ -1629,7 +1581,8 @@ toISeq_pred (prec,l2a) curprec (Eqv pred1 pred2)
    &=& \annote{Cond} @ \ppr{P_1}~\cond{\ppr C}~\ppr{P_2}
 \end{eqnarray*}
 \begin{code}
-toISeq_pred (prec,l2a) curprec (If pred1 pred2 pred3)
+toISeq_pred (prec,l2a) curprec (PApp nm [pred1, pred2, pred3])
+ | nm == n_If
  = IAnnote [ACond]
              (iConcat [ br_s, ptoISeq_expr pred2
                       , ITok P_LHD, ptoISeq_expr pred1, ITok P_RHD
@@ -1680,76 +1633,35 @@ toISeq_pred (prec,l2a) curprec (Lang opname p les ss)
    \quant~\ppr v~@~\ppr P
 \end{eqnarray*}
 \begin{code}
-toISeq_pred (prec,l2a) curprec (Forall _ qvars pr)
+toISeq_pred (prec,l2a) curprec (PAbs nm _ qvars [pr])
+ | nm == n_Forall
  = iConcat [ br_s, ITok P_FORALL, toISeq_Qvar qvars
            , ITok P_AT, toISeq_pred (prec,l2a) thisprec pr
            , br_e ]
  where (br_s, br_e) = brackets curprec thisprec
        thisprec = 17 -- * THIS MAY NEED TO BE FIXED *
 
-toISeq_pred (prec,l2a) curprec (Exists _ qvars pr)
+toISeq_pred (prec,l2a) curprec (PAbs nm _ qvars [pr])
+ | nm == n_Exists
  = iConcat [ br_s, ITok P_EXISTS, toISeq_Qvar qvars
            , ITok P_AT, toISeq_pred (prec,l2a) thisprec pr
            , br_e ]
  where (br_s, br_e) = brackets curprec thisprec
        thisprec = 16 -- * THIS MAY NEED TO BE FIXED *
 
-toISeq_pred (prec,l2a) curprec (Exists1 _ qvars pr)
+toISeq_pred (prec,l2a) curprec (PAbs nm _ qvars [pr])
+ | nm == n_Exists1
  = iConcat [ br_s, ITok P_EXISTS1, toISeq_Qvar qvars
            , ITok P_AT, toISeq_pred (prec,l2a) thisprec pr
            , br_e ]
  where (br_s, br_e) = brackets curprec thisprec
        thisprec = 15 -- * THIS MAY NEED TO BE FIXED *
 
-toISeq_pred (prec,l2a) curprec (Peabs qvs pred)
- = iConcat [ br_s, ITok P_ELAMBDA, toISeq_Qvar qvs
-           , ITok P_AT, toISeq_pred (prec,l2a) thisprec pred
-           , br_e ]
- where (br_s, br_e) = brackets curprec thisprec
-       thisprec = 16 -- * THIS MAY NEED TO BE FIXED *
-
-toISeq_pred (prec,l2a) curprec (Univ _ pred)
+toISeq_pred (prec,l2a) curprec (PAbs nm  _ [] [pred])
+ | nm == n_Univ
  = iConcat [ ITok P_UNIV_START
            , toISeq_pred (prec,l2a) curprec pred
            , ITok P_UNIV_END ]
-\end{code}
-
-\subsubsection{Pretty-printing Higher-Order Predicates}
-
-\begin{eqnarray*}
-   \ppr{\Lambda p @ P} &=& \Lambda~(\annote{PVar} @ p)~@~\ppr P
-\\ \ppr{\mathbf{F}~Q} &=& (\annote{PApp} @\ppr F)~\ppr Q
-\end{eqnarray*}
-\begin{code}
-toISeq_pred (prec,l2a) curprec (Ppabs qvs pred)
- = iConcat [ ITok P_PLAMBDA
-           , toISeq_Qvar qvs
-           , ITok P_AT, toISeq_pred (prec,l2a) curprec pred ]
-
-toISeq_pred (prec,l2a) curprec (Papp pred1 pred2)
- = iConcat [ IAnnote [APApp] (toISeq_pred (prec,l2a) curprec pred1)
-           , ITok P_PAREN_START, toISeq_pred (prec,l2a) curprec pred2
-           , ITok P_PAREN_END ]
-
-toISeq_pred (prec,l2a) curprec (Psapp pr spr)
- = IString "Psapp LaTeX NYI"
-
-toISeq_pred (prec,l2a) curprec (Psin pr spr)
- = IString "Psin LaTeX NYI"
-
-toISeq_pred (prec,l2a) curprec (Pforall pvs pred)
- = IString "Pforall LaTeX NYI"
-
-toISeq_pred (prec,l2a) curprec (Pexists pvs pred)
- = IString "Pexists LaTeX NYI"
-\end{code}
-
-\subsubsection{Pretty-printing other Predicates}
-
-\begin{code}
-toISeq_pred (prec,l2a) curprec (Pfocus pred)
- = toISeq_pred (prec,l2a) curprec pred
--- toISeq_pred (prec,l2a) curprec a = IString ("toIseq unknown pred:" ++ show a)
 \end{code}
 
 
@@ -1842,7 +1754,7 @@ toISeq_vars :: [Variable] -> ISeq
 toISeq_vars xs = toISeq_varlist AVar xs
 
 toISeq_Qvar :: QVars -> ISeq
-toISeq_Qvar (Q xs) = toISeq_varlist AVar xs
+toISeq_Qvar ( xs) = toISeq_varlist AVar xs
 
 toISeq_varlist anote xs
  = iConcat (intersperse (ITok P_COMMA)
