@@ -13,35 +13,33 @@ import           UTP2.GUI.Threepenny.Util
 -- |Home window.
 mkHome :: UTP2 Element
 mkHome = do
-  liftIO $ putStrLn "Workspace not yet selected"
+  currentWorkspace'
   top       <- lift $ UI.div
-  workspace <- currentWorkspace'
   text      <- workspaceText
   theories  <- mkTheories
   proofs    <- mkProofs
-  selector  <- fileSelector "Selector" []
-  lift $ element top #+ map element [text, theories, proofs, selector]
+  lift $ element top #+ map element [text, theories, proofs]
 
+-- |Element that displays the current workspace.
 workspaceText :: UTP2 Element
 workspaceText = do
   textEl            <- textB ""
-  workspaceBehavior <- eWorkspaceB <$> ask
+  workspaceBehavior <- eWorkspaceBehavior <$> ask
   let textBehavior =
         maybe "No workspace selected" (\w -> "Workspace: " ++ show w)
         <$> workspaceBehavior
   lift $ element textEl # sink UI.text textBehavior
   return textEl
 
--- |Description of current workspace, if selected.
+-- |Wrapper around `currentWorkspace` which open the workspace selector if no
+-- workspace is selected.
 currentWorkspace' :: UTP2 (Maybe String)
 currentWorkspace' = do
   mayWorkspace <- currentWorkspace
   liftIO $ putStrLn $ "Current workspace: " ++ show mayWorkspace
   case mayWorkspace of
     Just workspace -> return mayWorkspace
-    Nothing        -> do
-      openWorkspaceSelector
-      return Nothing
+    Nothing        -> openWorkspaceSelector >> return Nothing
 
 -- |Opens the modal for selecting a workspace.
 openWorkspaceSelector :: UTP2 ()
@@ -52,7 +50,7 @@ openWorkspaceSelector = do
     Just modalId -> lift $ Mat.openModal modalId
     Nothing      -> do
       h4       <- lift $ UI.h4 # set UI.text "Select a workspace"
-      selector <- dirSelector "select" []
+      selector <- dirSelector "select" $ eWorkspaceEmit <$> ask
       modalId  <- Mat.modal $ map element [h4, selector]
       setWorkspaceModalId modalId
       openWorkspaceSelector

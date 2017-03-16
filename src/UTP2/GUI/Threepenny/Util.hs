@@ -25,18 +25,17 @@ textB = styledText [("font-style", "bold")]
 -- File Selection --------------------------------------------------------------
 
 -- |Returns a file selector element that emits the updated value on change.
-fileSelector :: String -> [String -> UI a] -> UTP2 Element
-fileSelector text actions = do
+fileSelector :: String -> UTP2 (Handler (Maybe String)) -> UTP2 Element
+fileSelector text emitter = do
   id_      <- uniqueId
   selector <- lift $ UI.input # set UI.type_ "file"
                               # set UI.text  text
                               # set UI.id_   id_
-  emit <- emitWorkspace
+  emit <- emitter
   path <- lift $ on UI.valueChange selector $ const $ do
     filepath <- selectorPath id_
-    liftIO $ putStrLn $ "filepath: " ++ show filepath
     liftIO $ emit $ Just filepath
-    liftIO $ putStrLn $ "Emitted workspace: " ++ show (Just filepath)
+    liftIO $ putStrLn $ "Emitted path: " ++ show (Just filepath)
   return selector
 
 selectorPath :: String -> UI String
@@ -54,11 +53,11 @@ selectorPath id = callFunction $
 
 webkitdirectory = UI.emptyAttr "webkitdirectory"
 
-dirSelector :: String -> [String -> UI a] -> UTP2 Element
-dirSelector text actions = do
-  selector <- fileSelector text actions
+dirSelector :: String -> UTP2 (Handler (Maybe String)) -> UTP2 Element
+dirSelector text emitter = do
+  selector <- fileSelector text emitter
   lift $ element selector # set webkitdirectory True
-  element selector
+  return selector
 
 -- DOM -------------------------------------------------------------------------
 
@@ -71,31 +70,4 @@ appendToBody :: [UI Element] -> UI ()
 appendToBody els = void $ do
   body <- getBody_
   element body #+ els
-
--- Tabs ------------------------------------------------------------------------
-
--- |Attach tabs to the body. An "id" will be set on each of the given elements.
-tabs :: [(String, UI Element)] -> UTP2 ()
-tabs els = do
-  els'       <- mapM addId els
-  tabEls     <- lift $ mapM tab     els'
-  tabsEl     <- lift $ UI.div # set UI.class_ "row" #+ [
-      UI.div # set UI.class_ "col s12" #+ [
-        UI.ul # set UI.class_ "tabs" #+ map element tabEls
-      ]
-    ]
-  contentEls <- lift $ mapM content els'
-  lift $ appendToBody $ map element $ [tabsEl] ++ contentEls
-  return ()
-  -- Create unique "id" for each tab content.
-  where addId (title, el) = do
-          id' <- uniqueId
-          return (title, el, id')
-  -- Create each tab.
-        tab (title, el, id') = do
-          a <- UI.a  # set UI.href  ("#" ++ id')
-                     # set UI.text  title
-          UI.li # set UI.class_ "tab" #+ [element a]
-  -- Create each content page.
-        content (title, el, id') = UI.div # set UI.id_ id' #+ [el]
 

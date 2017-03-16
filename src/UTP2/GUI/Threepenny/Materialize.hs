@@ -37,3 +37,29 @@ initModal modalId = runFunction $
 openModal :: ModalId -> UI ()
 openModal modalId = runFunction $
     ffi "$(%1).modal(%2)" ("#" ++ modalId) "open"
+
+-- |Materialize-styled tabs with given titles and content.
+tabs :: [(String, UI Element)] -> UTP2 Element
+tabs els = do
+  els'       <- mapM addId els
+  tabEls     <- lift $ mapM tab els'
+  tabsEl     <- lift $ UI.div # set UI.class_ "row" #+ [
+      UI.div # set UI.class_ "col s12" #+ [
+        UI.ul # set UI.class_ "tabs" #+ map element tabEls
+      ]
+    ]
+  contentEls <- lift $ mapM content els'
+  lift $ UI.div #+ (map element $ [tabsEl] ++ contentEls)
+  -- Create unique "id" for each tab content.
+  where addId (title, el) = uniqueId >>= \id' -> return (title, el, id')
+  -- Create each tab.
+        tab (title, el, id') = do
+          a <- UI.a  # set UI.href  ("#" ++ id')
+                     # set UI.text  title
+          UI.li # set UI.class_ "tab" #+ [element a]
+  -- Create each content page.
+        content (_, el, id') = UI.div # set UI.id_ id' #+ [el]
+
+-- |Initialize tabs. Must be attached to the body.
+initTabs :: UI ()
+initTabs = runFunction $ ffi "$(%1).tabs()" "ul.tabs"

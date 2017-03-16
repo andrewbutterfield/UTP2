@@ -41,10 +41,6 @@ uniqueId = do
 currentWorkspace :: UTP2 (Maybe String)
 currentWorkspace = eWorkspaceBehavior <$> ask >>= currentValue
 
--- |Emit a new value for the current workspace.
-emitWorkspace :: UTP2 (Handler (Maybe String))
-emitWorkspace = eWorkspaceEmit <$> ask
-
 -- |Read workspace modal ID.
 readWorkspaceModalId :: UTP2 (Maybe String)
 readWorkspaceModalId = do
