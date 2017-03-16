@@ -190,3 +190,7 @@ node_modules/
 
 # macOS
 .DS_Store
+
+# FYP docs
+doc/threepenny/*.pdf
+doc/threepenny/*.tex
