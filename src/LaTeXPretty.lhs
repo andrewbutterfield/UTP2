@@ -1336,6 +1336,35 @@ toISeq_expr (prec,l2a) curprec (Num a) = iConcat [IString (show a)]
 toISeq_expr (prec,l2a) curprec (Var a) = IAnnote [AVar] ( iConcat [IString $ varKey a] )
 \end{code}
 
+\subsubsection{Pretty-printing other expressions}
+
+\begin{eqnarray*}
+  \ppr{e_1 \cond C e_2}
+     &=& \ppr{e_1}~\cond{\ppr C}~\ppr{e_2}
+\\ \ppr{C~e_1~\cdots~e_n}
+   &=& \rndr{C}~\ppr{e_1}~\cdots~\ppr{e_n}
+\\ \ppr{\lambda v @ e}
+   &=& \lambda~\ppr{v}~ @ ~\ppr{e}
+\end{eqnarray*}
+\begin{code}
+toISeq_expr (prec,l2a) curprec (App nm [EPred p1, e1, e2])
+ | nm == n_Cond
+ = IAnnote [ACond]
+      (iConcat [ br_s, (toISeq_expr (prec,l2a) thisprec e1)
+               , ITok P_LHD, (toISeq_pred (prec,l2a) thisprec p1)
+               , ITok P_RHD, (toISeq_expr (prec,l2a) thisprec e2), br_e ])
+ where thisprec     = 8
+       (br_s, br_e) = brackets curprec thisprec
+
+toISeq_expr (prec,l2a) curprec (Abs nm _ q [e])
+ = iConcat [ (IString nm), toISeq_Qvar q
+           , ITok P_AT, (toISeq_expr (prec,l2a) curprec e)]
+
+toISeq_expr _ _ a = IString ("couldn't handle expr:" ++ show a)
+\end{code}
+
+
+
 \subsubsection{Pretty-printing delimited expressions}
 \begin{eqnarray*}
   && \ppr{(x_1,\ldots,x_n)}
@@ -1429,33 +1458,6 @@ toISeq_expr (prec,l2a) curprec (App nm list)
 toISeq_expr (prec,l2a) curprec (ESub expr sub)
  = iConcat ([ ITok P_PAREN_START, toISeq_expr (prec,l2a) curprec expr
             , ITok P_PAREN_END, toISeq_esubs (prec,l2a) curprec sub])
-\end{code}
-
-\subsubsection{Pretty-printing other expressions}
-
-\begin{eqnarray*}
-  \ppr{e_1 \cond C e_2}
-     &=& \ppr{e_1}~\cond{\ppr C}~\ppr{e_2}
-\\ \ppr{C~e_1~\cdots~e_n}
-   &=& \rndr{C}~\ppr{e_1}~\cdots~\ppr{e_n}
-\\ \ppr{\lambda v @ e}
-   &=& \lambda~\ppr{v}~ @ ~\ppr{e}
-\end{eqnarray*}
-\begin{code}
-toISeq_expr (prec,l2a) curprec (App nm [EPred p1, e1, e2])
- | nm == n_Cond
- = IAnnote [ACond]
-      (iConcat [ br_s, (toISeq_expr (prec,l2a) thisprec e1)
-               , ITok P_LHD, (toISeq_pred (prec,l2a) thisprec p1)
-               , ITok P_RHD, (toISeq_expr (prec,l2a) thisprec e2), br_e ])
- where thisprec     = 8
-       (br_s, br_e) = brackets curprec thisprec
-
-toISeq_expr (prec,l2a) curprec (Abs nm _ q [e])
- = iConcat [ (IString nm), toISeq_Qvar q
-           , ITok P_AT, (toISeq_expr (prec,l2a) curprec e)]
-
-toISeq_expr _ _ a = IString ("couldn't handle expr:" ++ show a)
 \end{code}
 
 \subsection{Expression-Substitution Pretty-Printing}

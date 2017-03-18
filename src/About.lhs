@@ -12,9 +12,9 @@ import Data.Version
 
 \subsection{Program Name \& Version}
 
-\textbf{v0.99$\alpha$2, from 9th Feb 2017}
+\textbf{v0.99$\alpha$3, from 18th Mar 2017}
 \begin{code}
-version = "0.99a2(2017-02-09+)"
+version = "0.99a3(2017-03-18+)"
 \end{code}
 
 \begin{code}
