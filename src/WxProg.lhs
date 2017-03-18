@@ -315,9 +315,9 @@ instantiatepred inum mctxt bnds@(gpbnds,vebnds,ttbnds) pat
  = bP pat
  where
 
-   bP (PVar r)
-     = case gplookupTO r gpbnds of
-         Nothing     ->  PVar $ gmap (++inum) r
+   bP (PVar v)
+     = case gplookupTO (varGenRoot v) gpbnds of
+         Nothing     ->  PVar $ varmap (++inum) v
          (Just pr)  ->  pr
 
    bP (PExpr (App nm [Var v1, Var v2]))
@@ -443,7 +443,7 @@ Other \texttt{instantiatePred mctxt} auxilliaries:
    bLE (LList les)  = LList (map bLE les)
    bLE (LCount les) = LCount (map bLE les)
 
-   bPV pvs = map (stripPvar . bP . PVar . Std . psName) pvs
+   bPV pvs = map (stripPvar . bP . PVar . parseVariable . psName) pvs
 
    stripPvar (PVar r) = show r
    stripPvar pr       = "?PredSet-Name-expected?"
