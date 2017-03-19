@@ -75,6 +75,9 @@ Library
                    , Theories
                    , Types
                    , UTP
+                   , UTP2.GUI.Threepenny.Attributes
+                   , UTP2.GUI.Threepenny.Dom
+                   , UTP2.GUI.Threepenny.Events
                    , UTP2.GUI.Threepenny.Home
                    , UTP2.GUI.Threepenny.Materialize
                    , UTP2.GUI.Threepenny.Types

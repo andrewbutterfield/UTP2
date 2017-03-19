@@ -1,5 +1,7 @@
 module UTP2.GUI.Threepenny.Types where
 
+-- |Types and functions relating to the UTP2 monad.
+
 import           Control.Concurrent.MVar (MVar)
 import qualified Control.Concurrent.MVar as MV
 import           Control.Monad           (void)

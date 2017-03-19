@@ -1,9 +1,13 @@
 module UTP2.GUI.Threepenny.Util where
 
+-- |Generic elements or functions that don't really fit anywhere else.
+
 import           Control.Monad               (void)
 import           Control.Monad.Trans.Class   (lift)
 import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Core
+import           UTP2.GUI.Threepenny.Attributes
+import           UTP2.GUI.Threepenny.Events
 import           UTP2.GUI.Threepenny.Types
 
 -- Text ------------------------------------------------------------------------
@@ -21,7 +25,6 @@ textI = styledText [("font-style", "italic")]
 textB :: String -> UTP2 Element
 textB = styledText [("font-style", "bold")]
 
-
 -- File Selection --------------------------------------------------------------
 
 -- |Returns a file selector element that emits the updated value on change.
@@ -32,7 +35,7 @@ fileSelector text emitter = do
                               # set UI.text  text
                               # set UI.id_   id_
   emit <- emitter
-  path <- lift $ on UI.valueChange selector $ const $ do
+  path <- lift $ on change selector $ const $ do
     filepath <- selectorPath id_
     liftIO $ emit $ Just filepath
     liftIO $ putStrLn $ "Emitted path: " ++ show (Just filepath)
@@ -51,23 +54,8 @@ selectorPath id = callFunction $
 --           , "return result"
 --           ]
 
-webkitdirectory = UI.emptyAttr "webkitdirectory"
-
 dirSelector :: String -> UTP2 (Handler (Maybe String)) -> UTP2 Element
 dirSelector text emitter = do
   selector <- fileSelector text emitter
   lift $ element selector # set webkitdirectory True
   return selector
-
--- DOM -------------------------------------------------------------------------
-
--- |Return the body of the current window.
-getBody_ :: UI Element
-getBody_ = askWindow >>= getBody
-
--- |Append the given elements to the body.
-appendToBody :: [UI Element] -> UI ()
-appendToBody els = void $ do
-  body <- getBody_
-  element body #+ els
-

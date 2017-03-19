@@ -1,16 +1,23 @@
 module UTP2.GUI.Threepenny.Materialize where
 
+-- |Elements provided by the Materialize CSS library.
+
 import           Control.Monad               (void)
 import           Control.Monad.Trans.Class   (lift)
 import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Core
+import           UTP2.GUI.Threepenny.Dom
 import           UTP2.GUI.Threepenny.Types
 import           UTP2.GUI.Threepenny.Util
+
+-- Button ----------------------------------------------------------------------
 
 -- |Materialize-styled button with given text.
 button :: String -> UTP2 Element
 button text = lift $ UI.button # set UI.class_ "waves-effect waves-light btn"
                                # set UI.text text
+
+-- Modal -----------------------------------------------------------------------
 
 type ModalId = String
 
@@ -37,6 +44,8 @@ initModal modalId = runFunction $
 openModal :: ModalId -> UI ()
 openModal modalId = runFunction $
     ffi "$(%1).modal(%2)" ("#" ++ modalId) "open"
+
+-- Tabs ------------------------------------------------------------------------
 
 -- |Materialize-styled tabs with given titles and content.
 tabs :: [(String, UI Element)] -> UTP2 Element
