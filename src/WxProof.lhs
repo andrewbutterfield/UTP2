@@ -525,6 +525,12 @@ handleKeys pid work k
       KeyRight      -> focusRight pid work
       KeyUp         -> focusUp pid work
       KeyDown       -> focusDown pid work
+      -- use numeric keypad keylayout here for now
+      KeyChar '2'   -> focusDown  pid work
+      KeyChar '5'   -> focusDown  pid work
+      KeyChar '8'   -> focusUp    pid work
+      KeyChar '4'   -> focusLeft  pid work
+      KeyChar '6'   -> focusRight pid work
       KeyEscape     -> focusReset pid work
       _             -> func pid work
   where
@@ -662,6 +668,7 @@ hm_focusToggle = (
 
 \end{code}
 
+\newpage
 \subsection{Rendering Proofs}
 
 
@@ -793,18 +800,11 @@ showExprType tts fpred
 \end{code}
 
 We now show a focussed predicate, according to the verbosity specification.
-This is used
-
-\textbf{THIS NEEDS A FOCUS-AWARE SHOW !!!!!!!!!!!!!!!}
-
-THIS NEEDS A FOCUS-AWARE SHOW !!!!!!!!!!!!!!!
-
-\emph{THIS NEEDS A FOCUS-AWARE SHOW !!!!!!!!!!!!!!!}
-
 \begin{code}
+showFocussedPredicate :: Verbosity -> FPred -> String
 showFocussedPredicate vb fpred
  | focusOnly vb   =  showFOPredicate fpred
- | otherwise      =  show $ getPFTop fpred
+ | otherwise      =  displayFPred fpred
 
 showFOPredicate (fpr, _, [])  =  show fpr
 showFOPredicate (fpr, _, [_])  =  ".. "++show fpr++" .."
@@ -1506,6 +1506,7 @@ repaintNamedTheory thn work
         Nothing    ->  return ()
 \end{code}
 
+\newpage
 \subsection{Proof Steps --- Builtin}
 
 \subsubsection{Changing the current predicate}
@@ -1533,9 +1534,9 @@ chgCurrPred pid work f
 \subsubsection{Focussing up/down/left/right}
 \begin{code}
 hm_numberKeys = (
-    unlines $ [" : Number Keys : Focus down to nth child\n",
-    "Pressing the number n is equivalent to",
-    "pressing DOWN key once, then RIGHT n-1 times."])
+    unlines $ [" : Number Keys : Focus move\n",
+    "Numbers 8,2,5,4, and 6 correspond to",
+    "Up, Down, Down, Left and Right, respectively."])
 
 hm_arrowPress = (
     unlines $ ["Arrow Keys : Move Focus\n",

@@ -108,7 +108,6 @@ drawTextLines dc bs v h (ln:lns)
   = do drawText dc ln (pt h v) []
        drawTextLines dc bs (v+bs) h lns
 
-
 paintText fnt ptext dc viewArea
  = do set dc[font :=fnt]
       -- set dc[fontSize := ifl2009Size]  -- IFL2009
@@ -116,14 +115,13 @@ paintText fnt ptext dc viewArea
       let (emH,emW) = (sizeH fSize,sizeW fSize)
       let baselineskip = emH + fDesc + fLead
       drawHiLiteLines dc baselineskip baselineskip emW (lines ptext)
-
 \end{code}
+
 We support highlighting as marked by special characters
 (\texttt{eFocusStart},\texttt{eFocusEnd},\texttt{pFocusStart}
  and \texttt{pFocusEnd}).
  The code assumes a sensible use of the above:
 \begin{code}
-
 type HiSpec = [Prop (DC ())]
 eHilite, pHilite, noHilite :: HiSpec
 eHilite  = [fontUnderline := True,  fontWeight := WeightBold  ]

@@ -8,6 +8,7 @@ import DataText
 import Data.List
 import System.Info
 import Data.Version
+import NiceSymbols
 \end{code}
 
 \subsection{Program Name \& Version}
@@ -48,6 +49,13 @@ aboutText
             ,"built ("++build++") using:"
             ,"  wxHaskell"
             ,"  Parsec"
+            ,""
+            ,"Effects Tests"
+            ,"x "++_in++" S "++_implies++" "++_lnot++"( y "++_in++" T)"
+            , mathBold "mathBold"
+            , mathSansBold "mathSansBold"
+            , _mathcal "MATHCAL"
+            , _mathbb "MATHBB"
             ]
  where
    build = arch +-+ os +-+ compilerName +-+ cv

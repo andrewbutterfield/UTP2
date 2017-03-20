@@ -7,6 +7,7 @@ import Datatypes
 import Utilities
 import MatchTypes
 import FreeBound
+import DataText
 \end{code}
 
 ``Focus'' is the mechanism for restricting attention
@@ -515,4 +516,34 @@ Dropping is also useful:
 \begin{code}
 fDrop :: (FPred -> FPred) -> Pred -> Pred
 fDrop ff = clearPFocus . ff . setPFocus
+\end{code}
+
+
+\newpage
+\subsection{Showing \texttt{FPred}}
+
+\begin{code}
+displayFPred :: FPred -> String
+displayFPred (fpr, _, wayup) = dispPred' fpr $ reverse $ map fst wayup
+
+dispPred' pr [] = pFocusStart : predShow pr ++ [pFocusEnd]
+dispPred' pr (top:waydown) = dispPred'' (dispPred' pr waydown) top
+
+dispPred'' pchild (PApp' nm before after)
+ = let
+     pbefore = map predShow before
+     pafter  = map predShow after
+     pprs = reverse pbefore ++ pchild:pafter
+   in nm ++ "(" ++ concat (intersperse "," pprs) ++ ")"
+\end{code}
+
+Special characters, used here and elsewhere:
+\begin{code}
+pFocusStart = '\171'
+pFocusEnd   = '\187'
+beginPFocus = '!'
+beginEFocus = '!'
+endEFocus   = '!'
+endPFocus   = '!'
+deepFocus   = '_'
 \end{code}

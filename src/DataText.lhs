@@ -1571,6 +1571,7 @@ This is also  used by the Predicate pretty-printer
 below to avoid excessive brackets around observation
 variables expressions.
 
+\newpage
 \subsection{Showing \texttt{Pred}}
 
 Displaying predicates, designed to be compatible with the text
@@ -1632,16 +1633,6 @@ showPred p pr@(Lang s q les ss)
 -- showPred p pr = "XXXXXX(showPred of unexpected variant)XXXXXX"
 \end{code}
 
-Special characters, used here and elsewhere:
-\begin{code}
-pFocusStart = chr 171
-pFocusEnd   = chr 187
-beginPFocus = '!'
-beginEFocus = '!'
-endEFocus   = '!'
-endPFocus   = '!'
-deepFocus   = '_'
-\end{code}
 
 
 
