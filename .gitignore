@@ -194,3 +194,4 @@ node_modules/
 # FYP docs
 doc/threepenny/*.pdf
 doc/threepenny/*.tex
+doc/threepenny/*.org.swp
