@@ -6,6 +6,7 @@ import qualified Graphics.UI.Threepenny          as UI
 import           Graphics.UI.Threepenny.Core
 import           Paths_UTP2                      (getDataDir)
 import           System.FilePath                 ((</>))
+import           UTP2.GUI.Threepenny.Dom
 import           UTP2.GUI.Threepenny.Home
 import qualified UTP2.GUI.Threepenny.Materialize as Mat
 import           UTP2.GUI.Threepenny.Types
@@ -34,5 +35,5 @@ app window = do
       , ("OBS.",     UI.div # set UI.text "todo")
       , ("Language", UI.div # set UI.text "todo")
       ]
-    lift $ getBody window #+ [element tabs]
+    lift $ appendToBody [element tabs]
     lift $ Mat.initTabs
