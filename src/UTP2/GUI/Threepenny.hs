@@ -9,6 +9,7 @@ import           System.FilePath                 ((</>))
 import           UTP2.GUI.Threepenny.Dom
 import           UTP2.GUI.Threepenny.Home
 import qualified UTP2.GUI.Threepenny.Materialize as Mat
+import           UTP2.GUI.Threepenny.Style
 import           UTP2.GUI.Threepenny.Types
 
 -- |Runs the UTP2 Threepenny app.
@@ -30,10 +31,10 @@ app window = do
     lift $ UI.addStyleSheet window "materialize.css"
     home <- mkHome
     tabs <- Mat.tabs [
-        ("Home",     element home)
-      , ("Laws",     UI.div # set UI.text "todo")
-      , ("OBS.",     UI.div # set UI.text "todo")
-      , ("Language", UI.div # set UI.text "todo")
+        ("Home",     element home # smlPadding)
+      , ("Laws",     UI.div       # smlPadding # set UI.text "todo")
+      , ("OBS.",     UI.div       # smlPadding # set UI.text "todo")
+      , ("Language", UI.div       # smlPadding # set UI.text "todo")
       ]
     lift $ appendToBody [element tabs]
     lift $ Mat.initTabs

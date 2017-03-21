@@ -81,6 +81,7 @@ Library
                    , UTP2.GUI.Threepenny.FileSystem
                    , UTP2.GUI.Threepenny.Home
                    , UTP2.GUI.Threepenny.Materialize
+                   , UTP2.GUI.Threepenny.Style
                    , UTP2.GUI.Threepenny.Text
                    , UTP2.GUI.Threepenny.Types
                    , UTP2.GUI.Threepenny.Workspace

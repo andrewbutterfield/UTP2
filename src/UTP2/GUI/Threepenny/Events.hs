@@ -12,7 +12,7 @@ import           UTP2.GUI.Threepenny.Types
 change :: Element -> Event ()
 change = void . domEvent "change"
 
--- |Wrapper around Threepenny's `on` that runs in the UTP2 monad.
+-- |Wrapper around Threepenny's 'on' that runs in the UTP2 monad.
 on_ :: (element -> Event a) -> element -> (a -> UTP2 ()) -> UTP2 ()
 on_ event el run = do
   env <- ask

@@ -16,8 +16,7 @@ mkHome = do
   workspace <- W.workspace
   theories  <- mkTheories
   proofs    <- mkProofs
-  lift $ UI.div # set UI.style [("padding", "8px")]
-                #+ map element [workspace, theories, proofs]
+  lift $ UI.div #+ map element [workspace, theories, proofs]
 
 -- |Theories in the home window.
 mkTheories :: UTP2 Element
@@ -25,17 +24,15 @@ mkTheories = do
   top  <- lift $ UI.div
   text <- lift $ textI "Theories"
   box  <- lift $ UI.div # set UI.style [("border", "1px solid black")]
-                        # set UI.style [("width", "100vw"), ("min-height", "100px")]
+                        # set UI.style [("width", "80vw"), ("min-height", "100px")]
   lift $ element top #+ map element [top, text, box]
 
 -- |Proofs in the home window.
 mkProofs :: UTP2 Element
 mkProofs = do
-  top    <- lift $ UI.div
-  text   <- lift $ textI "Proofs"
+  button <- Mat.button "."
   lift $ CM.contextMenu [
       CM.actionMenuItem "Create new theory"          []
     , CM.actionMenuItem "Save all modified theories" []
-    ] text
-  button <- Mat.button "."
-  lift $ element top #+ map element [text, button]
+    ] button
+  lift $ UI.div #+ [element button]
