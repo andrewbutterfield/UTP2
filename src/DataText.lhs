@@ -681,19 +681,7 @@ mkRVar r subs d = (r', d, renderVar r' d) where r' = Rsv r subs
 showVar :: Variable -> String
 showVar (_, _, s) = s
 \end{code}
-Some language facilities:
-\begin{code}
-theLEVar :: LElem -> Variable
-theLEVar (LVar g)          =  mkGVar Scrpt g
-theLEVar (LExpr (Var v))   =  v
-theLEVar _                 =  error "theLEVar: not Variable"
 
-theLEExpr :: LElem -> Expr
-theLEExpr (LVar g)         =  Var $ mkGVar Scrpt g
-theLEExpr (LExpr e)        =  e
-theLEExpr (LPred (PExpr e))  =  e
-theLEExpr _                =  error "theLEExpr: not Expr"
-\end{code}
 We also need to parse strings into roots
     \begin{eqnarray*}
        \LXName
@@ -1496,9 +1484,6 @@ ePrec _              =  1
 predPrecClass TRUE                   = SPClosed
 predPrecClass FALSE                  = SPClosed
 predPrecClass (PExpr e)              = exprPrecClass e
-predPrecClass (Lang s p les ss)
- | isBinSpec (LangSpec les ss)       = SPDependent
- | otherwise                         = SPClosed
 predPrecClass (PVar s)               = SPClosed
 predPrecClass (PApp n s)             = SPDependent
 predPrecClass _                      = SPOpen
@@ -1512,7 +1497,6 @@ pPrec (PApp nm [pr])
 pPrec (PApp nm prs)
  | nm == n_And                  =  opPrec 1 andName
  | nm == n_Or                   =  opPrec 1 orName
-pPrec (Lang s p les ss)         =  p
 pPrec _                         =  1
 \end{code}
 
@@ -1617,18 +1601,6 @@ showPred p (Sub pr s)
   | otherwise     =  "("++showPred 0 pr ++ ")" ++ show s
 
 showPred p pr@(PExpr e)  =  exprShow p e
-
-
-
-showPred p pr@(Lang s q les ss)
-  | isBinSpec (LangSpec les ss) = showLang q les ss
-  --  = if q <= p
-  --     then "("++showLang 0 les ss++")"
-  --     else showLang q les ss
-  | otherwise = keyLQUOTE++showLang 0 les ss++keyLQUOTE
-
-
-
 
 -- showPred p pr = "XXXXXX(showPred of unexpected variant)XXXXXX"
 \end{code}
@@ -2138,96 +2110,6 @@ showSideCond (SCAnd scs)
   = concat $ intersperse (pad scKeyAnd) $ (map showSideCond scs)
 \end{code}
 
-\newpage
-\section{Text Handling for \texttt{Lang}}
-
-A language specification is an interleaving
-of explicit tokens with symbols denoting various language elements.
-The basic language elements are variable (\texttt{V}), type (\texttt{T}),
- expression (\texttt{E}) and
-predicate (\texttt{P}).
-Composite language elements are lists,
-built from basic elements,
-followed immediately by
-a multiplicity specifier: free (\texttt{*}) or linked (\texttt{\#}),
-and then a separator token.
-Free lists can be of any length,
-whereas all linked lists must have the same length
-in any instance of the language construct.
-The above language elements are then interleaved
-with tokens (anything else), which can be null.
-
-A properly formed language specifier is two lists,
-one of language elements (\texttt{LElem}),
-the other of syntax specifiers (\texttt{SynSpec}),
-which must satisfy a particular relationship.
-A starting token must be supplied (which may be null --- \texttt{SSNull}),
-and then for each language element in order,
-the syntax-specifier list must contain either one or two
-tokens:
-a basic language element is followed by a single token (\texttt{SSTok});
-a list element is followed by two tokens---the first denotes the list
-separator (\texttt{SSSep}), the second is a following token,
-as for the basic case.
-
-\subsection{Showing a \texttt{Lang}}
-
-We expect the two lists to be arranged as described above,
-and an error message occurs if that relationship does not hold.
-\begin{code}
-showLang p [] [SSNull] = ""
-showLang p [] [SSTok s] = s
-
-showLang p (LList les':les) (SSNull:SSSep s':srest)
- = " " ++ showLSep p s' les' ++ " " ++ showLang p les srest
-showLang p (LList les':les) (SSTok s:SSSep s':srest)
- = s ++ " " ++ showLSep p s' les' ++ " " ++ showLang p les srest
-
-showLang p (LCount les':les) (SSNull:SSSep s':srest)
- = " " ++ showLSep p s' les' ++ " " ++ showLang p les srest
-showLang p (LCount les':les) (SSTok s:SSSep s':srest)
- = s ++ " " ++ showLSep p s' les' ++ " " ++ showLang p les srest
-
-showLang p (le:les) (SSTok s:srest)
- = s ++ " " ++ showLE p le ++ " " ++ showLang p les srest
-
-showLang p (le:les) (SSNull:srest)
- = " " ++ showLE p le ++ " " ++ showLang p les srest
-
-showLang p [] [] = "ILLFORMED - missing last specifier"
-showLang p [] srest
- = "ILLFORMED - missing elements between"++ldisp dispSS srest
-showLang p les []
- = "ILLFORMED - missing specifiers around"++ldisp dispLE les
-
-showLang p les ss = "SHOWLANG?? "++show les++" "++show ss
-\end{code}
-
-Showing Language Elements:
-\begin{code}
-showLE p (LVar g) = show g
-showLE p (LType t) = show t
-showLE p (LExpr e) = eShow p e
-showLE p (LPred pr) = pShow p pr
-showLE p (LList _) = "!! Nested LList in DataText.showLE !!"
-showLE p (LCount _) = "!! Nested LCount in DataText.showLE !!"
-
-showLSep p sep [] = ""
-showLSep p sep [le] = showLE p le
-showLSep p sep (le:les) = showLE p le ++ sep ++ showLSep p sep les
-
-showLELem (LVar g) = show g
-showLELem (LType t) = showType t
-showLELem (LExpr e) = exprShow 0 e
-showLELem (LPred pr) = showPred 0 pr
-showLELem (LList les)
-  = ("["++(concat $ intersperse ","  $ map (showLE 0) les)++"]")
-showLELem (LCount les)
-  = ("["++(concat $ intersperse ","  $ map (showLE 0) les)++"]")
-
-mkshows s sc = s ++ sc
-\end{code}
-
 Showing Syntax Specifications
 \begin{code}
 showSynSpec SSNull     = ""
@@ -2247,71 +2129,18 @@ dispLE le = ' ':(show le)
 We want to output a \texttt{LElem}-list  and corresponding
 \texttt{SynSpec}-list as a textual syntax specification:
 \begin{code}
-showLSpec [] [SSNull] = ""
-showLSpec [] [SSTok s] = s
-
-showLSpec (LList (le:_):les) (s:SSSep sep:srest)
- = showSS s ++ " " ++showLS le ++ '*':sep ++ " " ++ showLSpec les srest
-
-showLSpec (LCount (le:_):les) (s:SSSep sep:srest)
- = showSS s ++ " " ++showLS le ++ '#':sep ++ " " ++ showLSpec les srest
-
-showLSpec (le:les) (s:srest)
- = showSS s ++ " " ++ showLS le ++ " " ++ showLSpec les srest
-
-showLSpec les srest = "ILLFORMED-LANG("++show les++" "++show srest++")"
+showLSpec = concat . intersperse " " . map showSS
 
 showSS SSNull = ""
 showSS (SSTok tok) = tok
+showSS (SSObj obj) = '\171':obj++"\187"
 showSS (SSSep sep) = sep
-
-lcVar   = 'V'
-lcType  = 'T'
-lcExpr  = 'E'
-lcPred  = 'P'
-lcLList = 'L'
-lcCount = 'N'
-
-lsVar   = [lcVar]
-lsType  = [lcType]
-lsExpr  = [lcExpr]
-lsPred  = [lcPred]
-
-lsEvar = (Gen $ Std lsExpr, NoDecor, lsExpr)
-
-lslVar  = [lcVar, '*']
-lslType = [lcType,'*']
-lslExpr = [lcExpr,'*']
-lslPred = [lcPred,'*']
-
-lscVar  = [lcVar, '#']
-lscType = [lcType,'#']
-lscExpr = [lcExpr,'#']
-lscPred = [lcPred,'#']
-
-showLS (LVar  _ ) = lsVar
-showLS (LType _ ) = lsType
-showLS (LExpr _ ) = lsExpr
-showLS (LPred _ ) = lsPred
-showLS (LList []) = [lcType,'?']
-showLS (LList (le:_)) = lcLList:showLS le
-showLS (LCount []) = [lcCount,'?']
-showLS (LCount (le:_)) = lcCount:showLS le
 \end{code}
 
-We need canonical forms of \texttt{LElem}s:
-\begin{code}
-lVarSpec  = LVar $ Std lsVar
-lTypeSpec = LType (Tvar lsType)
-lExprSpec = LExpr (Var lsEvar)
-lPredSpec = LPred (PVar $ noDecorVariable lsPred)
-llist le = LList [le]
-lcount le = LCount [le]
-\end{code}
 
 We can now given a Show instance for LangSpec:
 \begin{code}
-showLangSpec (LangSpec les ss) = showLSpec les ss
+showLangSpec (LangSpec ss) = showLSpec ss
 \end{code}
 
 \subsection{Parsing Language Specifications}
@@ -2357,74 +2186,76 @@ and $tok$ denotes the rest or all of a token.
    -- not seen any tokens yet
    pSS [] = Left "parseSynSpec: empty spec"
 
-   pSS ((c:'*':sep):toks)
-    | c == lcVar   =  pSS' [llist lVarSpec]  [SSSep sep,SSNull] toks
-    | c == lcType  =  pSS' [llist lTypeSpec] [SSSep sep,SSNull] toks
-    | c == lcExpr  =  pSS' [llist lExprSpec] [SSSep sep,SSNull] toks
-    | c == lcPred  =  pSS' [llist lPredSpec] [SSSep sep,SSNull] toks
+   pSS toks = Left "parseSynSpec: not working now"
 
-   pSS ((c:'#':sep):toks)
-    | c == lcVar   =  pSS' [lcount lVarSpec]  [SSSep sep,SSNull] toks
-    | c == lcType  =  pSS' [lcount lTypeSpec] [SSSep sep,SSNull] toks
-    | c == lcExpr  =  pSS' [lcount lExprSpec] [SSSep sep,SSNull] toks
-    | c == lcPred  =  pSS' [lcount lPredSpec] [SSSep sep,SSNull] toks
-
-   pSS ([c]:toks)
-    | c == lcVar   =  pSS' [lVarSpec]  [SSNull] toks
-    | c == lcType  =  pSS' [lTypeSpec] [SSNull] toks
-    | c == lcExpr  =  pSS' [lExprSpec] [SSNull] toks
-    | c == lcPred  =  pSS' [lPredSpec] [SSNull] toks
-
-   pSS (tok:toks)  = pSS'' [] [SSTok tok] toks
-
-   -- seen VTEP token
-   pSS' sel revss [] = Right (reverse sel,reverse (SSNull:revss))
-
-   pSS' sel revss ((c:'*':sep):toks)
-    | c == lcVar   =  pSS' (llist lVarSpec:sel)  (SSSep sep:revss) toks
-    | c == lcType  =  pSS' (llist lTypeSpec:sel) (SSSep sep:revss) toks
-    | c == lcExpr  =  pSS' (llist lExprSpec:sel) (SSSep sep:revss) toks
-    | c == lcPred  =  pSS' (llist lPredSpec:sel) (SSSep sep:revss) toks
-
-   pSS' sel revss ((c:'#':sep):toks)
-    | c == lcVar   =  pSS' (lcount lVarSpec:sel)  (SSSep sep:revss) toks
-    | c == lcType  =  pSS' (lcount lTypeSpec:sel) (SSSep sep:revss) toks
-    | c == lcExpr  =  pSS' (lcount lExprSpec:sel) (SSSep sep:revss) toks
-    | c == lcPred  =  pSS' (lcount lPredSpec:sel) (SSSep sep:revss) toks
-
-   pSS' sel revss ([c]:toks)
-    | c == lcVar   =  pSS' (lVarSpec:sel)  (SSNull:revss) toks
-    | c == lcType  =  pSS' (lTypeSpec:sel) (SSNull:revss) toks
-    | c == lcExpr  =  pSS' (lExprSpec:sel) (SSNull:revss) toks
-    | c == lcPred  =  pSS' (lPredSpec:sel) (SSNull:revss) toks
-
-   pSS' sel revss (tok:toks)           = pSS'' sel (SSTok tok:revss) toks
+--    pSS ((c:'*':sep):toks)
+--     | c == lcVar   =  pSS' [llist lVarSpec]  [SSSep sep,SSNull] toks
+--     | c == lcType  =  pSS' [llist lTypeSpec] [SSSep sep,SSNull] toks
+--     | c == lcExpr  =  pSS' [llist lExprSpec] [SSSep sep,SSNull] toks
+--     | c == lcPred  =  pSS' [llist lPredSpec] [SSSep sep,SSNull] toks
+--
+--    pSS ((c:'#':sep):toks)
+--     | c == lcVar   =  pSS' [lcount lVarSpec]  [SSSep sep,SSNull] toks
+--     | c == lcType  =  pSS' [lcount lTypeSpec] [SSSep sep,SSNull] toks
+--     | c == lcExpr  =  pSS' [lcount lExprSpec] [SSSep sep,SSNull] toks
+--     | c == lcPred  =  pSS' [lcount lPredSpec] [SSSep sep,SSNull] toks
+--
+--    pSS ([c]:toks)
+--     | c == lcVar   =  pSS' [lVarSpec]  [SSNull] toks
+--     | c == lcType  =  pSS' [lTypeSpec] [SSNull] toks
+--     | c == lcExpr  =  pSS' [lExprSpec] [SSNull] toks
+--     | c == lcPred  =  pSS' [lPredSpec] [SSNull] toks
+--
+--    pSS (tok:toks)  = pSS'' [] [SSTok tok] toks
+--
+--    -- seen VTEP token
+--    pSS' sel revss [] = Right (reverse sel,reverse (SSNull:revss))
+--
+--    pSS' sel revss ((c:'*':sep):toks)
+--     | c == lcVar   =  pSS' (llist lVarSpec:sel)  (SSSep sep:revss) toks
+--     | c == lcType  =  pSS' (llist lTypeSpec:sel) (SSSep sep:revss) toks
+--     | c == lcExpr  =  pSS' (llist lExprSpec:sel) (SSSep sep:revss) toks
+--     | c == lcPred  =  pSS' (llist lPredSpec:sel) (SSSep sep:revss) toks
+--
+--    pSS' sel revss ((c:'#':sep):toks)
+--     | c == lcVar   =  pSS' (lcount lVarSpec:sel)  (SSSep sep:revss) toks
+--     | c == lcType  =  pSS' (lcount lTypeSpec:sel) (SSSep sep:revss) toks
+--     | c == lcExpr  =  pSS' (lcount lExprSpec:sel) (SSSep sep:revss) toks
+--     | c == lcPred  =  pSS' (lcount lPredSpec:sel) (SSSep sep:revss) toks
+--
+--    pSS' sel revss ([c]:toks)
+--     | c == lcVar   =  pSS' (lVarSpec:sel)  (SSNull:revss) toks
+--     | c == lcType  =  pSS' (lTypeSpec:sel) (SSNull:revss) toks
+--     | c == lcExpr  =  pSS' (lExprSpec:sel) (SSNull:revss) toks
+--     | c == lcPred  =  pSS' (lPredSpec:sel) (SSNull:revss) toks
+--
+--    pSS' sel revss (tok:toks)           = pSS'' sel (SSTok tok:revss) toks
 
    -- seen visible token
-   pSS'' sel revss []                   = Right (reverse sel,reverse revss)
-
-   pSS'' sel revss ((c:'*':sep):toks)
-    | c == lcVar   =  pSS' (llist lVarSpec:sel)  (SSSep sep:revss) toks
-    | c == lcType  =  pSS' (llist lTypeSpec:sel) (SSSep sep:revss) toks
-    | c == lcExpr  =  pSS' (llist lExprSpec:sel) (SSSep sep:revss) toks
-    | c == lcPred  =  pSS' (llist lPredSpec:sel) (SSSep sep:revss) toks
-
-   pSS'' sel revss ((c:'#':sep):toks)
-    | c == lcVar   =  pSS' (lcount lVarSpec:sel)  (SSSep sep:revss) toks
-    | c == lcType  =  pSS' (lcount lTypeSpec:sel) (SSSep sep:revss) toks
-    | c == lcExpr  =  pSS' (lcount lExprSpec:sel) (SSSep sep:revss) toks
-    | c == lcPred  =  pSS' (lcount lPredSpec:sel) (SSSep sep:revss) toks
-
-   pSS'' sel revss ([c]:toks)
-    | c == lcVar   =  pSS' (lVarSpec:sel)  revss toks
-    | c == lcType  =  pSS' (lTypeSpec:sel) revss toks
-    | c == lcExpr  =  pSS' (lExprSpec:sel) revss toks
-    | c == lcPred  =  pSS' (lPredSpec:sel) revss toks
-
-   pSS'' sel revss (tok:toks)  =  Left ( "parseSynSpec: double tokens: '"
-                                         ++show (head revss)
-                                         ++"' '"++tok++strPOST
-                                       )
+--    pSS'' sel revss []                   = Right (reverse sel,reverse revss)
+--
+--    pSS'' sel revss ((c:'*':sep):toks)
+--     | c == lcVar   =  pSS' (llist lVarSpec:sel)  (SSSep sep:revss) toks
+--     | c == lcType  =  pSS' (llist lTypeSpec:sel) (SSSep sep:revss) toks
+--     | c == lcExpr  =  pSS' (llist lExprSpec:sel) (SSSep sep:revss) toks
+--     | c == lcPred  =  pSS' (llist lPredSpec:sel) (SSSep sep:revss) toks
+--
+--    pSS'' sel revss ((c:'#':sep):toks)
+--     | c == lcVar   =  pSS' (lcount lVarSpec:sel)  (SSSep sep:revss) toks
+--     | c == lcType  =  pSS' (lcount lTypeSpec:sel) (SSSep sep:revss) toks
+--     | c == lcExpr  =  pSS' (lcount lExprSpec:sel) (SSSep sep:revss) toks
+--     | c == lcPred  =  pSS' (lcount lPredSpec:sel) (SSSep sep:revss) toks
+--
+--    pSS'' sel revss ([c]:toks)
+--     | c == lcVar   =  pSS' (lVarSpec:sel)  revss toks
+--     | c == lcType  =  pSS' (lTypeSpec:sel) revss toks
+--     | c == lcExpr  =  pSS' (lExprSpec:sel) revss toks
+--     | c == lcPred  =  pSS' (lPredSpec:sel) revss toks
+--
+--    pSS'' sel revss (tok:toks)  =  Left ( "parseSynSpec: double tokens: '"
+--                                          ++show (head revss)
+--                                          ++"' '"++tok++strPOST
+--                                        )
 -- end parseSynSpec
 \end{code}
 
@@ -2433,7 +2264,7 @@ A Parser returning a language specification:
 parseLangSpec spec
  = case parseSynSpec spec of
      (Left msg)        ->  Left msg
-     (Right (les,ss))  ->  Right (LangSpec les ss)
+     (Right (les,ss))  ->  Left "parseLangSpec now broken"
 \end{code}
 
 Often we want to know if a language specification introduces
@@ -2441,28 +2272,11 @@ a binary operator.
 A syntax specification of the form null, token, null
 is binary.
 \begin{code}
-isBinSpec (LangSpec [_,_] [SSNull,SSTok _,SSNull])  =  True
-isBinSpec ls                                        =  False
+isBinSpec (LangSpec [SSNull,SSTok _,SSNull])  =  True
+isBinSpec ls                                  =  False
 
-theBinOpName (LangSpec [_,_] [SSNull,SSTok oname,SSNull])  =  oname
+theBinOpName (LangSpec [SSNull,SSTok oname,SSNull])  =  oname
 theBinOpName _  =  "??"
-\end{code}
-
-In particular the two language elements need to be simple
-(non-list).
-We also expect that binary language constructs use \texttt{theBinOpName}
-for the construct name as well:
-\begin{code}
-mkBinLang (LangSpec [_,_] ss@[SSNull,SSTok oname,SSNull]) prec left right
- = Lang oname prec [left,right] ss
-mkBinLang lspec prec left right
- = perror ("mkBinLang: lspec not binary - "++show lspec)
-\end{code}
-
-Checking a Lang construct for infixity is also useful:
-\begin{code}
-isInfixLang (Lang _ _ [_,_] [SSNull,SSTok _, SSNull]) = True
-isInfixLang _ = False
 \end{code}
 
 
@@ -2514,7 +2328,6 @@ showLPL n (spec,lpt)
 
 The parser code is straightforward:
 \begin{code}
-
 langParse ptlt lptree
  = do lquote
       tep <- tparse [] lptree
@@ -2527,48 +2340,15 @@ langParse ptlt lptree
   tparse sel LPNil
    = fail "No User-Specified Language Constructs"
 
-  tparse sel (LPLeaf name ss)
-   = return $ TEPlang name (reverse sel) ss
-
-  tparse sel (LPList lplist) = tlparse sel lplist
-
-  -- parse w.r.t to a list of nodes
-  tlparse sel [] = fail ("langParse fails after "++show (reverse sel))
-  tlparse sel ((lpspec,lptnxt):lps)
-   = (try $ lparse lptnxt sel lpspec)
-     <|>
-     (try $ tlparse sel lps)
-
-  -- parse w.r.t a parser/continuation node
-  lparse n s (LPSTok str)            =  lparse' n s (thenamesym' str)
-  lparse n s LPSVar                  =  lparse' n s (mklp lsVar name)
-  lparse n s LPSType                 =  lparse' n s (mklp lsType tepType)
-  lparse n s LPSExpr                 =  lparse' n s (mklp lsExpr (parseTEP ptlt))
-  lparse n s LPSPred                 =  lparse' n s (mklp lsPred (parseTEP ptlt))
-  lparse n s (LPSList LPSVar sep)    =  lparse' n s (mklps lslVar name sep)
-  lparse n s (LPSList LPSType sep)   =  lparse' n s (mklps lslType tepType sep)
-  lparse n s (LPSList LPSExpr sep)   =  lparse' n s (mklps lslExpr (parseTEP ptlt) sep)
-  lparse n s (LPSList LPSPred sep)   =  lparse' n s (mklps lslPred (parseTEP ptlt) sep)
-  lparse n s (LPSCount LPSVar sep)   =  lparse' n s (mklps lscVar name sep)
-  lparse n s (LPSCount LPSType sep)  =  lparse' n s (mklps lscType tepType sep)
-  lparse n s (LPSCount LPSExpr sep)  =  lparse' n s (mklps lscExpr (parseTEP ptlt) sep)
-  lparse n s (LPSCount LPSPred sep)  =  lparse' n s (mklps lscPred (parseTEP ptlt) sep)
-  lparse lptnxt sel LPSNull          =  tparse sel lptnxt
-  lparse _ _ lps = fail ("invalid LParseSpec:"++show lps)
-
-  lparse' lptnxt sel lp
-    = do lpres <- try lp
-         case lpres of
-           Nothing       ->  tparse sel lptnxt
-           Just le       ->  tparse (le:sel) lptnxt
-
+  tparse sel p
+   = fail ("langParse: cannot handle "++show p)
 \end{code}
+
 First we need parsers that look for the various types
 of language elements (token,type,expression or predicate),
 returning nothing for tokens, and a (string,TEP)-pair
 identifying anything else parsed.
 \begin{code}
-
   thenamesym' str
    = do thenamesym str
         return Nothing
@@ -2580,7 +2360,6 @@ identifying anything else parsed.
   mklps str p sep
    = do teps <- sepBy1 p (thenamesym sep)
         return $ Just $ (str++sep,TEPllist teps)
-
 \end{code}
 
 \subsection{Building A Language Parser Tree}
@@ -2590,53 +2369,6 @@ we need to build the corresponding \texttt{LParseTree}.
 We do this by converting each specification into a (linear) tree,
 and then merging them.
 
-\subsubsection{Single Lang.-Spec. to (Linear) Tree}
-
-Constructing a tree requires a well-formed \texttt{Lang}:
-\begin{code}
-
-lang2tree (name,LangSpec les ss) = l2t (name,ss) les ss
- where
-
-   l2t (nm,ss) [] [SSNull] = LPLeaf nm ss
-   l2t (nm,ss) [] [SSTok s] = LPList [(LPSTok s,LPLeaf nm ss)]
-
-   l2t (nm,ss) (LList (le:_):les) (s:SSSep sep:srest)
-    | s == SSNull  =  lplist
-    | otherwise    =  LPList [(ss2lps s,lplist)]
-    where
-      subtree = l2t (nm,ss) les srest
-      lplist = LPList [(LPSList (lelem2lps le) sep,subtree)]
-
-   l2t (nm,ss) (LCount (le:_):les) (s:SSSep sep:srest)
-    | s == SSNull  =  lplist
-    | otherwise    =  LPList [(ss2lps s,lplist)]
-    where
-      subtree = l2t (nm,ss) les srest
-      lplist = LPList [(LPSCount (lelem2lps le) sep,subtree)]
-
-
-   l2t (nm,ss) (le:les) (s:srest)
-    | s == SSNull  =  lplist
-    | otherwise    =  LPList [(ss2lps s,lplist)]
-    where
-      subtree = l2t (nm,ss) les srest
-      lplist = LPList [(lelem2lps le,subtree)]
-
-   l2t (nm,ss) _ _ = LPList [(LPSTok ("ILLFORMED"),LPLeaf ("ILLFORMED-"++nm) ss)]
-
-   ss2lps SSNull       =  LPSNull
-   ss2lps (SSTok s)    =  LPSTok s
-   ss2lps (SSSep sep)  =  LPSTok ("BADSEP-"++sep)
-
-   lelem2lps (LVar _)   =  LPSVar
-   lelem2lps (LType _)  =  LPSType
-   lelem2lps (LExpr _)  =  LPSExpr
-   lelem2lps (LPred _)  =  LPSPred
-   lelem2lps _          =  LPSNull
-
-
-\end{code}
 
 \subsubsection{Merging Parse Trees}
 
@@ -2646,7 +2378,6 @@ A valid tree is not a isolated \texttt{LPLeaf}, so merging two is an error
 (usually only caused if two different language constructs have identical
 specifications).
 \begin{code}
-
 lptmerge LPNil lpl  =  lpl
 lptmerge lpl LPNil  =  lpl
 
@@ -2667,15 +2398,13 @@ lptmerge (LPList lpl1) (LPList lpl2)
 \subsection{Lang.-Table to Tree}
 Finally, code that takes a language table and produces a parse-tree:
 \begin{code}
-
 langTable2LPTree  = langList2LPTree . trieFlatten ""
 
 langList2LPTree langl
  = foldr lptmerge LPNil ltrees
  where
-   ltrees = map lang2tree nonbins
+   ltrees = [] --map lang2tree nonbins
    nonbins = filter (not . isBinSpec . snd) langl
-
 \end{code}
 
 \subsubsection{Extracting Key-Symbols}

@@ -642,6 +642,7 @@ We need to surround language elements by a syntax specification:
 data SynSpec
  = SSNull
  | SSTok String
+ | SSObj String  -- Type, Expr, Pred, List, Tuple....
  | SSSep String
  deriving (Eq,Ord,Show)
 \end{code}
