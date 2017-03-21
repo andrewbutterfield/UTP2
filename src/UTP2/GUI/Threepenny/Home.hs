@@ -13,17 +13,17 @@ import qualified UTP2.GUI.Threepenny.Workspace   as W
 mkHome :: UTP2 Element
 mkHome = do
   W.currentWorkspace'
-  topEl       <- lift $ UI.div
-  workspaceEl <- W.workspace
-  theoriesEl  <- mkTheories
-  proofsEl    <- mkProofs
-  lift $ element topEl #+ map element [workspaceEl, theoriesEl, proofsEl]
+  workspace <- W.workspace
+  theories  <- mkTheories
+  proofs    <- mkProofs
+  lift $ UI.div # set UI.style [("padding", "8px")]
+                #+ map element [workspace, theories, proofs]
 
 -- |Theories in the home window.
 mkTheories :: UTP2 Element
 mkTheories = do
   top  <- lift $ UI.div
-  text <- textI "Theories"
+  text <- lift $ textI "Theories"
   box  <- lift $ UI.div # set UI.style [("border", "1px solid black")]
                         # set UI.style [("width", "100vw"), ("min-height", "100px")]
   lift $ element top #+ map element [top, text, box]
@@ -32,7 +32,7 @@ mkTheories = do
 mkProofs :: UTP2 Element
 mkProofs = do
   top    <- lift $ UI.div
-  text   <- textI "Proofs"
+  text   <- lift $ textI "Proofs"
   lift $ CM.contextMenu [
       CM.actionMenuItem "Create new theory"          []
     , CM.actionMenuItem "Save all modified theories" []

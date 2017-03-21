@@ -1,20 +1,24 @@
 module UTP2.GUI.Threepenny.Workspace where
 
-import           Control.Monad                   (void)
-import           Control.Monad.Reader            (ask)
-import           Control.Monad.Trans.Class       (lift)
-import qualified Graphics.UI.Threepenny          as UI
+import           Clay                               (center, inlineFlex)
+import           Control.Monad                      (void)
+import           Control.Monad.Reader               (ask)
+import           Control.Monad.Trans.Class          (lift)
+import qualified Graphics.UI.Threepenny             as UI
 import           Graphics.UI.Threepenny.Core
+import           Graphics.UI.Threepenny.Ext.Flexbox as Flex
 import           UTP2.GUI.Threepenny.Events
 import           UTP2.GUI.Threepenny.FileSystem
-import qualified UTP2.GUI.Threepenny.Materialize as Mat
+import qualified UTP2.GUI.Threepenny.Materialize    as Mat
 import           UTP2.GUI.Threepenny.Text
 import           UTP2.GUI.Threepenny.Types
 
 -- |Element that displays the current workspace.
 workspace :: UTP2 Element
 workspace = do
-  textEl            <- textB "" -- Text from behavior.
+  -- Text for the text element is taken from the workspace behavior.
+  textEl            <- lift $ textB "" #
+    set UI.style [("padding-right", "16px")]
   workspaceBehavior <- eWorkspaceBehavior <$> ask
   -- Text based on current value of workspace.
   let textBehavior =
@@ -24,7 +28,8 @@ workspace = do
   buttonEl <- Mat.button "Select workspace"
   on_ UI.click buttonEl $ const openWorkspaceSelector
   lift $ element textEl # sink UI.text textBehavior
-  lift $ UI.div #+ map element [textEl, buttonEl]
+  lift $ Flex.flex_c UI.div ((display inlineFlex) { pAlignItems = center }) $
+    map element [textEl, buttonEl]
 
 -- |Returns the current workspace, opening the workspace selector if no
 -- workspace is selected.

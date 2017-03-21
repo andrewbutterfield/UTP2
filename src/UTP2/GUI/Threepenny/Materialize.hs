@@ -26,11 +26,15 @@ type ModalId = String
 modal :: [UI Element] -> UTP2 ModalId
 modal els = do
     modalId <- uniqueId
-    modal   <- lift $ UI.div # set UI.class_ "modal"
-                             # set UI.id_    modalId
+    modal   <- lift $ UI.div # set UI.id_    modalId
+                             # set UI.class_ "modal"
     content <- lift $ UI.div # set UI.class_ "modal-content"
+    footer  <- lift $ UI.div # set UI.class_ "modal-footer" #+ [
+      UI.a # set UI.href   "#!"
+           # set UI.text   "close"
+           # set UI.class_ "modal-action modal-close waves-effect waves-green btn-flat"]
     lift $ element content #+ els
-    lift $ element modal   #+ [element content]
+    lift $ element modal   #+ map element [content, footer]
     lift $ appendToBody [element modal]
     lift $ initModal modalId
     return modalId
