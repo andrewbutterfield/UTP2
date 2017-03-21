@@ -9,7 +9,7 @@ import           Graphics.UI.Threepenny.Core
 getBody_ :: UI Element
 getBody_ = askWindow >>= getBody
 
--- |Append the given elements to the body.
+-- |Append the given elements to the body of the current window.
 appendToBody :: [UI Element] -> UI ()
 appendToBody els = void $ do
   body <- getBody_

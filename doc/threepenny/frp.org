@@ -30,8 +30,8 @@ that depends on changing data we also write code to update that element whenever
 the data changes. The code to display the element and the code which deals with
 the change in the data may be in separate modules, or at least separate to some
 degree. The fact that the code which deals with the change in the data has to
-update any element which are dependant the data, is a violation of the Law of
-Demeter which says we should minimize coupling betwen modules. Furtheremore, the
+update any elements which are dependant the data, is a violation of the Law of
+Demeter which says we should minimize coupling betwen modules. Furthermore, the
 code which deals with the change in the data will need to have references to the
 elements it's expected to update, these would need to be passed either as
 parameters or monadically, which is unecessary overhead.

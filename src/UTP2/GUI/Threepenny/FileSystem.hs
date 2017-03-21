@@ -1,31 +1,13 @@
-module UTP2.GUI.Threepenny.Util where
+module UTP2.GUI.Threepenny.FileSystem where
 
--- |Generic elements or functions that don't really fit anywhere else.
+-- |Elements and functions for interacting with the file system.
 
-import           Control.Monad               (void)
 import           Control.Monad.Trans.Class   (lift)
 import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Core
 import           UTP2.GUI.Threepenny.Attributes
 import           UTP2.GUI.Threepenny.Events
 import           UTP2.GUI.Threepenny.Types
-
--- Text ------------------------------------------------------------------------
-
--- |Element with given text and style.
-styledText :: [(String, String)] -> String -> UTP2 Element
-styledText style text = lift $ UI.div # set UI.text  text
-                                      # set UI.style style
-
--- |Italics text.
-textI :: String -> UTP2 Element
-textI = styledText [("font-style", "italic")]
-
--- |Bold text.
-textB :: String -> UTP2 Element
-textB = styledText [("font-style", "bold")]
-
--- File Selection --------------------------------------------------------------
 
 -- |Returns a file selector element that emits the updated value on change.
 fileSelector :: String -> UTP2 (Handler (Maybe String)) -> UTP2 Element
@@ -38,7 +20,6 @@ fileSelector text emitter = do
   path <- lift $ on change selector $ const $ do
     filepath <- selectorPath id_
     liftIO $ emit $ Just filepath
-    liftIO $ putStrLn $ "Emitted path: " ++ show (Just filepath)
   return selector
 
 selectorPath :: String -> UI String

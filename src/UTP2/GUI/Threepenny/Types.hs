@@ -59,6 +59,6 @@ setWorkspaceModalId modalId = do
 type UTP2 a = ReaderT Env UI a
 
 -- |Run the UTP2 monad.
-runApp :: UTP2 a -> Env -> UI a
-runApp = runReaderT
+runUTP2 :: UTP2 a -> Env -> UI a
+runUTP2 = runReaderT
 

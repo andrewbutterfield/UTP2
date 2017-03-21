@@ -21,7 +21,7 @@ start port = do
         jsCustomHTML = Just htmlPath,  -- Custom HTML file
         jsPort       = Just port,      -- Port on which to run
         jsStatic     = Just staticPath -- Directory of static content
-    } $ \w -> runApp (app w) env
+    } $ \w -> runUTP2 (app w) env
 
 -- |The Threepenny app.
 app :: Window -> UTP2 ()
