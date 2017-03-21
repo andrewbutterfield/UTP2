@@ -2,13 +2,13 @@ module UTP2.GUI.Threepenny.Materialize where
 
 -- |Elements provided by the Materialize CSS library.
 
-import           Control.Monad               (void)
-import           Control.Monad.Trans.Class   (lift)
-import qualified Graphics.UI.Threepenny      as UI
+import           Control.Monad                      (void)
+import           Control.Monad.Trans.Class          (lift)
+import qualified Graphics.UI.Threepenny             as UI
 import           Graphics.UI.Threepenny.Core
+import           Graphics.UI.Threepenny.Ext.Flexbox as Flex
 import           UTP2.GUI.Threepenny.Dom
 import           UTP2.GUI.Threepenny.Types
-import           UTP2.GUI.Threepenny.Util
 
 -- Button ----------------------------------------------------------------------
 
@@ -52,7 +52,9 @@ tabs :: [(String, UI Element)] -> UTP2 Element
 tabs els = do
   els'       <- mapM addId els
   tabEls     <- lift $ mapM tab els'
-  tabsEl     <- lift $ UI.ul # set UI.class_ "tabs" #+ map element tabEls
+  tabsEl     <- lift $ UI.ul # set UI.class_ "tabs"
+  tabsEl'    <- lift $ Flex.flex_p (element tabsEl) $
+    map (\el -> (element el, Flex.flexGrow 1)) tabEls
   contentEls <- lift $ mapM content els'
   lift $ UI.div #+ (map element $ [tabsEl] ++ contentEls)
   where

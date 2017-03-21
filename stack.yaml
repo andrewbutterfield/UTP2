@@ -10,6 +10,10 @@ packages:
     git: https://github.com/barischj/threepenny-gui-contextmenu
     commit: 03cde41159663fde5c8b11c22e96c4f7dadf30f7
   extra-dep: true
+- location:
+    git: https://github.com/barischj/threepenny-gui-flexbox
+    commit: 5426fdfcc3d82e9a57209adea41fab1c0bbbcbf7
+  extra-dep: true
 
 extra-deps:
 - aeson-0.11.3.0
@@ -17,6 +21,7 @@ extra-deps:
 - Cabal-1.22.5.0
 # - cabal-install-1.24
 - cabal-macosx-0.2.3.4
+- clay-0.12.1
 - clock-0.7.2
 - fail-4.9.0.0
 - io-streams-haproxy-1.0.0.1
