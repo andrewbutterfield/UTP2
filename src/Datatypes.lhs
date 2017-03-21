@@ -501,11 +501,6 @@ data Pred
  | PAbs String TTTag [Variable] [Pred]
  | Sub Pred ESubst
  | PExpr Expr
- -- Language extensions (Lexts)
- | Lang String    -- construct name
-        Int       -- precedence, if binary
-        [LElem]   -- Language elements
-        [SynSpec] -- Interleaving Tokens
  | TypeOf Expr Type
  deriving (Eq, Ord, Show)
 
@@ -642,39 +637,6 @@ lqnorm =  lnorm
 
 \subsection{Language Constructs}
 
-We provide general support in predicates for language
-constructs, which are built from variables, types, expressions
-and predicates (which may include further sub-constructs).
-
-A Language element identifies a language component
-\begin{code}
-data LElem
- = LVar GenRoot -- we don't need decorations for script variables!
- | LType Type
- | LExpr Expr
- | LPred Pred
- | LList [LElem] -- all of same type
- | LCount [LElem] -- same type, also same length
- deriving (Eq,Ord,Show)
-
-isLELstV :: LElem -> Bool
-isLELstV (LVar g)          =  isLstG g
-isLELstV (LExpr (Var v))   =  isLstV v
-isLELstV _                 =  False
-
-isLEVar :: LElem -> Bool
-isLEVar (LVar _)               =  True
-isLEVar (LExpr (Var _))        =  True
-isLEVar (LPred (PExpr (Var _)))  =  True
-isLEVar _                      =  False
-
-isLEExpr :: LElem -> Bool
-isLEExpr (LVar _)         =  True
-isLEExpr (LExpr _)        =  True
-isLEExpr (LPred (PExpr _))  =  True
-isLEExpr _                =  False
-\end{code}
-
 We need to surround language elements by a syntax specification:
 \begin{code}
 data SynSpec
@@ -684,10 +646,9 @@ data SynSpec
  deriving (Eq,Ord,Show)
 \end{code}
 
-A Language Specification is a pairing of two lists,
-one of \texttt{LElem}, the other of \texttt{SynSpec}:
+A Language Specification is list of \texttt{SynSpec}:
 \begin{code}
-data LangSpec = LangSpec [LElem] [SynSpec] deriving (Eq,Ord,Show)
+data LangSpec = LangSpec [SynSpec] deriving (Eq,Ord,Show)
 \end{code}
 
 
@@ -708,10 +669,6 @@ pequiv FALSE FALSE = True
 pequiv (PExpr e1) (PExpr e2) = e1 `eequiv` e2
 
 pequiv (Sub pr1 sub1) (Sub pr2 sub2) = pr1 `pequiv` pr2 && sub1 `estlequiv` sub2
-
-pequiv (Lang n1 p1 lelems1 syn1) (Lang n2 p2 lelems2 syn2)
-   = n1 == n2 && p1 == p2 && syn1 == syn2
-     && samelist ltlequiv lelems1 lelems2
 
 pequiv (PVar s1) (PVar s2) = s1==s2
 pequiv (PAbs s1 _ qs1 prs1) (PAbs s2 _ qs2 prs2)
@@ -749,20 +706,9 @@ estlequiv (Substn ssub1)  (Substn ssub2) = samealist eequiv ssub1 ssub2
 pstlequiv (Substn ssub1)  (Substn ssub2) = samealist pequiv ssub1 ssub2
 \end{code}
 
-And for language constructs:
-\begin{code}
-ltlequiv :: LElem -> LElem -> Bool
-
-ltlequiv (LVar s1)   (LVar s2)    =  s1 == s2
-ltlequiv (LType t1)  (LType t2)   =  t1 `tequiv` t2
-ltlequiv (LExpr e1)  (LExpr e2)   =  e1 `eequiv` e2
-ltlequiv (LPred pr1) (LPred pr2)  =  pr1 `pequiv` pr2
-ltlequiv (LList l1)  (LList l2)   =  samelist ltlequiv l1 l2
-ltlequiv (LCount l1) (LCount l2)  =  samelist ltlequiv l1 l2
-\end{code}
-
 For now:
 \begin{code}
+tequiv :: Type -> Type -> Bool
 tequiv = (==)
 \end{code}
 
@@ -937,8 +883,6 @@ run f e = f e
 
 mapPf (fp,fe) (PExpr e) = (PExpr e', dif)
   where (e', dif) = fe e
-mapPf (fp,fe) (Lang s p les ss) = (Lang s p les' ss, or dif)
-  where (les', dif) = unzip (map (mapLf (fp,fe)) les)
 mapPf (fp,fe) (Sub pr sub) = (Sub pr' sub', dif1 || dif2)
   where
     (pr', dif1) = fp pr
@@ -973,7 +917,6 @@ myPredMap pr = mapP (myPredMap,myExprMap) pr
 Now the \texttt{mapP}/\texttt{E} boilerplate:
 \begin{code}
 mapP (fp,fe) (PExpr e) = PExpr (fe e)
-mapP (fp,fe) (Lang s p les ss) = Lang s p (map (mapL (fp,fe)) les) ss
 mapP (fp,fe) (Sub pr sub) = Sub (fp pr) (mapS fe sub)
 
 mapP (fp,fe) pr = pr
@@ -989,35 +932,6 @@ mapS f (Substn ssub) = Substn (maparng f ssub)
 mapSf f (Substn ssub) = (Substn ssub', or dif)
  where
     (ssub', dif) = unzip (maparngf f ssub)
-
-mapDR fe [] = []
-mapDR fe ((de,re):ms) = (fe de,fe re):(mapDR fe ms)
-
-mapDRf fe [] = []
-mapDRf fe ((de,re):[]) = [((de', re'), dif1 || dif2)]
-  where
-    (de', dif1) = fe de
-    (re', dif2) = fe re
-mapDRf fe ((de,re):ms) = ((de', re'), dif1 || dif2):(mapDRf fe ms)
-  where
-    (de', dif1) = fe de
-    (re', dif2) = fe re
-
-mapL (fp,fe) (LExpr e)    =  LExpr (fe e)
-mapL (fp,fe) (LPred pr)   =  LPred (fp pr)
-mapL (fp,fe) (LList les)  =  LList (map (mapL (fp,fe)) les)
-mapL (fp,fe) (LCount les) =  LCount (map (mapL (fp,fe)) les)
-mapL (fp,fe) lelem        =  lelem
-
-mapLf (fp,fe) (LExpr e)    =  (LExpr e', dif)
-  where (e', dif) = fe e
-mapLf (fp,fe) (LPred pr)   =  (LPred pr', dif)
-  where (pr', dif) = fp pr
-mapLf (fp,fe) (LList les)  =  (LList les', or dif)
-  where (les', dif) = unzip (map (mapLf (fp,fe)) les)
-mapLf (fp,fe) (LCount les) =  (LCount les', or dif)
-  where (les', dif) = unzip (map (mapLf (fp,fe)) les)
-mapLf (fp,fe) lelem        =  (lelem, False)
 \end{code}
 
 \newpage
@@ -1061,8 +975,6 @@ foldP pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) pr
   f (PExpr e) = f1 $ g0 e
   f (Sub p sub) = f2 (f p : foldES g0 sub)
 
-  f (Lang s i les ss) = foldL pef les
-
   f pr = pa -- recursion must stop here !
 
 -- end foldP
@@ -1088,22 +1000,6 @@ foldPS f0 (Substn ssub) = map (f0 . snd) ssub
 
 foldES :: (Expr -> a) -> ESubst -> [a]
 foldES g0 (Substn ssub) = map (g0 . snd) ssub
-\end{code}
-
-Folding over Language constructs:
-\begin{code}
-foldL pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) les
- = f2 $ concat $ foldL' les
- where
-
-   foldL' [] = []
-   foldL' (le:les) = foldE le : foldL' les
-
-   foldE (LExpr e)     =  [g0 e]
-   foldE (LPred pr)    =  [f0 pr]
-   foldE (LList les)   =  concat $ foldL' les
-   foldE (LCount les)  =  concat $ foldL' les
-   foldE _             =  []
 \end{code}
 
 
@@ -1147,8 +1043,6 @@ accPseq :: (a -> Pred -> (Pred,a),a -> Expr -> (Expr,a))
             -> a -> Pred -> (Pred,a)
 
 accPseq (pf,ef) a (PExpr e) = (PExpr e',a') where (e',a') = ef a e
-
-accPseq (pf,ef) a (Lang n p les ss) = error "accPseq Lang NYI"
 
 accPseq (pf,ef) a (Sub pr sub) = (Sub pr' sub',a'')
  where (pr',a') = pf a pr
@@ -1221,9 +1115,8 @@ debugEshow  =  dbgEshow 0
 
 debugTshow  =  dbgTshow 0
 
-debugLshow (LangSpec les ss)
+debugLshow (LangSpec ss)
  =  "LANGSPEC"
-    ++ concat (map (dbgLshow 3) les)
     ++ concat (map (dbgSSshow 1) ss)
 
 debugAshow (pr,sc)
@@ -1236,18 +1129,8 @@ hdr i  = '\n':(replicate i ' ')
 dbgPshow i  TRUE     = hdr i ++ "TRUE"
 dbgPshow i  FALSE    = hdr i ++ "FALSE"
 dbgPshow i  (PExpr e)  = hdr i ++ "OBS " ++ dbgEshow (i+1) e
-dbgPshow i  (Lang s p les ss)
-  = hdr i ++ "LANG " ++ s ++ " "++show p
-             ++ concat (map (dbgLshow (i+1)) les)
-             ++ concat (map (dbgSSshow (i+1)) ss)
 dbgPshow i  (Sub pr sub) = hdr i ++ "SUB" ++ dbgESshow (i+1) sub++dbgPshow (i+1) pr
 dbgPshow i  (PVar pv) = hdr i ++ "PVAR "++dbgVshow pv
-
-dbgLshow i (LVar g)    = hdr i ++ "LVAR " ++ dbgGshow g
-dbgLshow i (LType t)   = hdr i ++ "LTYPE" ++ dbgTshow (i+1) t
-dbgLshow i (LExpr e)   = hdr i ++ "LEXPR" ++ dbgEshow (i+1) e
-dbgLshow i (LPred pr)  = hdr i ++ "LPRED" ++ dbgPshow (i+1) pr
-dbgLshow i (LList les) = hdr i ++ "LLIST" ++ concat (map (dbgLshow (i+1)) les)
 
 dbgGshow (Std s) = "STD: " ++ s
 dbgGshow (Lst s) = "LST: " ++ s
@@ -1490,7 +1373,6 @@ predParts TRUE = ("TRUE",[],[],[],[])
 predParts FALSE = ("FALSE",[],[],[],[])
 predParts (PVar pv) = ("PVar-"++varKey pv,[],[],[],[])
 predParts (PExpr e) = ("PExpr",[],[e],[],[])
-predParts (Lang s p les ss) = langParts s les
 
 predParts (Sub (PExpr e) sub@(Substn ssub))
    = ( "(e)Sub"
@@ -1509,16 +1391,6 @@ predParts (Sub pr (Substn ssub))
 
 predParts _ = ("pred",[],[],[],[])
 
-langParts s les = ("Lang-"++s,prs,es,[],ts)
- where
-  (prs,es,ts) = langp [] [] [] les
-  langp srp se st [] = (reverse srp,reverse se,reverse st)
-  langp srp se st ((LVar g):les) = langp srp (Var (Gen g,Scrpt,"\""):se) st les
-  langp srp se st ((LType t):les)      = langp srp se     (t:st) les
-  langp srp se st ((LExpr e):les)      = langp srp (e:se)     st les
-  langp srp se st ((LPred pr):les)     = langp (pr:srp) se    st les
-  langp srp se st ((LList les'):les)   = langp srp    se      st (les'++les)
-
 predNPart  = fst5 . predParts
 predPParts = snd5 . predParts
 predEParts = thd5 . predParts
@@ -1529,25 +1401,6 @@ predTParts = fth5 . predParts
 Generally we pull out expressions using \texttt{predParts},
 and collecting top-level expressions before those
 in sub-predicates.
-The exception is the \texttt{Lang} construct were we take expressions
-in a linear pass through the language elements
-\begin{code}
-exprsOf (Lang _ _ les _)
- = lesExprs [] les
- where
-   lesExprs srpxe []             =  reverse srpxe
-   lesExprs srpxe (le:les)       =  lesExprs (leExprs srpxe le) les
-   leExprs srpxe (LVar g)        =  (Var (Gen g,Scrpt,"\""):srpxe)
-   leExprs srpxe (LType _)       =  srpxe
-   leExprs srpxe (LExpr e)       =  (e:srpxe)
-   leExprs srpxe (LPred pr)      =  reverse (exprsOf pr) ++ srpxe
-   leExprs srpxe (LList les')    =  reverse (lesExprs [] les') ++ srpxe
-   leExprs srpxe (LCount les')   =  reverse (lesExprs [] les') ++ srpxe
-exprsOf pr
- = let (_,prs,es,_,_) = predParts pr
-   in es ++ (concat $ map exprsOf prs)
-\end{code}
-
 \begin{code}
 exprParts :: Expr -> (String,[Pred],[Expr],[QVars])
 exprParts (Num _)            = ("Num",[],[],[])
@@ -1574,47 +1427,10 @@ in sub-expressions.
 The exception is the \texttt{Lang} construct were we take expressions
 in a linear pass through the language elements
 \begin{code}
-
 predsOf e
  = let (_,prs,es,_) = exprParts e
    in prs ++ (concat $ map predsOf es)
-
 \end{code}
-
-Extracting the language components is useful
-\begin{code}
-exprLang :: Expr -> [String]
-exprLang (App s es)       = exprsLang es
-exprLang (Abs s _ qs es)     = exprsLang es
-exprLang (ESub e sub)    = exprLang e `mrgnorm` subLang exprsLang sub
-exprLang e               = []
-
-exprsLang [] = []
-exprsLang (e:es) = exprLang e `mrgnorm` exprsLang es
-
-subLang slang (Substn ssub) = slang (map snd ssub)
-
-predLang :: Pred -> [String]
-predLang (PExpr e)            = exprLang e
-predLang (Sub pr sub)          = predLang pr `mrgnorm` subLang exprsLang sub
-predLang (Lang s p les ss)     = insnorm s (langsLang les)
-predLang pr                    = []
-
-predsLang [] = []
-predsLang (pr:prs) = predLang pr `mrgnorm` predsLang prs
-
-langLang :: LElem -> [String]
-langLang (LExpr e)    = exprLang e
-langLang (LPred pr)   = predLang pr
-langLang (LList les)  = langsLang les
-langLang (LCount les) = langsLang les
-langLang le           = []
-
-langsLang [] = []
-langsLang (le:les) = langLang le `mrgnorm` langsLang les
-\end{code}
-
-
 
 \subsubsection{PVar table building}
 
