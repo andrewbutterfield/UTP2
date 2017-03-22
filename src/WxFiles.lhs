@@ -2,6 +2,8 @@
 
 \begin{code}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DoAndIfThenElse #-}
+
 module WxFiles where
 import Utilities
 import Tables
@@ -135,27 +137,52 @@ determineAppData w fstate
       fstate'' <- determineFSPs w fstate'
       return fstate''
 
-establishAppUserDir w fstate
- = do let dirpath = appUserDir fstate
-      present <- doesDirectoryExist dirpath
-      if present
-       then return fstate
-       else do res <- utp2try (createDirectory dirpath)
-               case res of
-                 Right _  ->  return fstate
-                 Left ioerror
-                  -> do errorDialog w "Cannot create dir" (msg ioerror dirpath)
-                        return fstate{appUserDir = ""}
- where
-   msg err path
-    = unlines [ "Cannot create application user data directory"
-              , " "++path
-              , " "++show err
-              , "- consult a os-wizard for assistance."
-              , ""
-              , "For now, you will be prompted for your working filespace"
-              , "every time this application is launched"
-              ]
+-- |GUI independent version of 'establishAppUserDir'.
+establishAppUserDir' ::
+     String            -- ^ The application user's directory.
+  -> (String -> IO ()) -- ^ Display an error with given string.
+  -> (a -> IO a)       -- ^ What to return on error.
+  -> a                 -- ^ Input value, on success this is returned.
+  -> IO a              -- ^ Return the last argument.
+establishAppUserDir' dirpath displayError onError val = do
+  present <- doesDirectoryExist dirpath
+  if   present
+  then return val
+  else do
+    res <- utp2try $ createDirectory dirpath
+    case res of
+      Right _       -> return val
+      Left  ioError -> do
+        displayError $ msg ioError dirpath
+        onError val
+  where
+    msg err path = unlines [
+        "Cannot create application user data directory"
+      , " "++path
+      , " "++show err
+      , "- consult a os-wizard for assistance."
+      , ""
+      , "For now, you will be prompted for your working filespace"
+      , "every time this application is launched"
+      ]
+
+-- |Wx specific.
+establishAppUserDir w fstate = establishAppUserDir'
+  (appUserDir fstate)
+  (errorDialog w "Cannot create directory")
+  (\fstate' -> return fstate' { appUserDir = "" })
+  fstate
+  
+  -- do let dirpath = appUserDir fstate
+  --     present <- doesDirectoryExist dirpath
+  --     if present
+  --      then return fstate
+  --      else do res <- utp2try (createDirectory dirpath)
+  --              case res of
+  --                Right _  ->  return fstate
+  --                Left ioerror
+  --                 -> do errorDialog w "Cannot create dir" (msg ioerror dirpath)
+  --                       return fstate{appUserDir = ""}
 
 determineFSPs w fstate
  = do let audPath = appUserDir fstate
