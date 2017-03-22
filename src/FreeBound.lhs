@@ -40,40 +40,6 @@ list will be handy:
 bs +|+ qs = bs ++ getqovars qs
 \end{code}
 
-Stripping predicates, expressions and types from a language
-construct
-\begin{code}
-lesTypes :: [LElem] -> [Type]
-lesTypes = concat . map leTypes
-
-leTypes :: LElem -> [Type]
-leTypes (LType pr) = [pr]
-leTypes (LList les) = lesTypes les
-leTypes (LCount les) = lesTypes les
-leTypes _ = []
-
-
-lesExprs :: [LElem] -> [Expr]
-lesExprs = concat . map leExprs
-
-leExprs :: LElem -> [Expr]
-leExprs (LExpr pr) = [pr]
-leExprs (LList les) = lesExprs les
-leExprs (LCount les) = lesExprs les
-leExprs _ = []
-
-lesPreds :: [LElem] -> [Pred]
-lesPreds = concat . map lePreds
-
-lePreds :: LElem -> [Pred]
-lePreds (LPred pr) = [pr]
-lePreds (LList les) = lesPreds les
-lePreds (LCount les) = lesPreds les
-lePreds _ = []
-\end{code}
-
-
-
 \newpage
 \subsection{Free Observation Variables (Theory)}
 
@@ -592,32 +558,13 @@ predFVSet mctxt (PApp nm prs) -- NEED TO MAKE THIS nm DEPENDENT?
 predFVSet mctxt (PAbs nm _ qs prs)
  = predsFVSet mctxt prs `fvsDiff` getqvars qs
 
-predFVSet mctxt (Sub pr sub)          = esubFVSet mctxt
-                                              (predFVSet mctxt pr) sub
-predFVSet mctxt lang@(Lang _ _ _ _)  = langFVSet mctxt lang
+predFVSet mctxt (Sub pr sub)
+ = esubFVSet mctxt (predFVSet mctxt pr) sub
 
-predFVSet mctxt _                     = fvsNull
+predFVSet mctxt _  = fvsNull
 
 predsFVSet :: MatchContext -> [Pred] -> FVSetExpr
 predsFVSet mctxt prs = fvsUnion $ map (predFVSet mctxt) prs
-\end{code}
-
-Language constructs:
-\begin{code}
-langFVerr nm msg = ("User construct `"++nm++"` "++msg)
-
-langFVSet :: MatchContext -> Pred -> FVSetExpr
-langFVSet mctxt lang@(Lang nm _ _ _)
- = case tslookup (langDefns mctxt) nm of
-     Nothing  ->  BadFVSet (langFVerr nm "not defined")
-     Just ldefs
-      ->  case ldefsMatch mctxt lang ldefs of
-        Just expandedPr  ->  predFVSet mctxt expandedPr
-        Nothing  ->  BadFVSet
-                      $ langFVerr nm
-                         ("defn. matching ("++show lang++") not found")
-
-langFVSet _ pr = BadFVSet ("??? Bad Call -- langFVSet _ _"++show pr)
 \end{code}
 
 Given a list of language definitions (lhs/rhs pairs)
@@ -724,8 +671,6 @@ pfreeovars mctxt bs fs (PExpr e) = efreeovars mctxt bs fs e
 
 pfreeovars mctxt bs fs (TypeOf e t) = efreeovars mctxt bs fs e
 
-pfreeovars mctxt bs fs (Lang _ _ _ _) = []  -- n.s., fv not defined !
-
 pfreeovars mctxt bs fs _ = fs
 \end{code}
 
@@ -804,7 +749,6 @@ pfreeevars mctxt bs fs (Sub pr sub)
 pfreeevars mctxt bs fs (PExpr e) = efreeevars mctxt bs fs e
 pfreeevars mctxt bs fs (TypeOf e t) = efreeevars mctxt bs fs e
 pfreeevars mctxt bs fs (PApp nm prs) = seq2s (pfreeevars mctxt) bs fs prs
-pfreeevars mctxt bs fs (Lang _ _ les _) = seq2s (pfreeevars mctxt) bs fs (lesPreds les)
 pfreeevars mctxt bs fs (PAbs _ _ qs prs) = seq2s (pfreeevars mctxt) bs fs prs
 
 pfreeevars mctxt  _ fs _ = fs

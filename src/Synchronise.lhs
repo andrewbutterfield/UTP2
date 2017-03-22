@@ -161,17 +161,7 @@ syncExpr theory precs
 
 \begin{code}
 syncLang ::  Theory -> [Trie Precedences.Precs] -> Trie LangSpec
-syncLang theory precs
-    = tmap changeLangSpec langspec
-    where
-        changeLangSpec (LangSpec lelem synspec) = LangSpec (map lelemChange lelem) synspec
-        langspec = lang theory
-        lelemChange (LVar string)  = LVar   string
-        lelemChange (LType type')  = LType  type'
-        lelemChange (LExpr expr)   = LExpr  (changePrecedenceE precs expr)
-        lelemChange (LPred pred)   = LPred  (changePrecedenceP precs pred)
-        lelemChange (LList list)   = LList  (map lelemChange list)
-        lelemChange (LCount list)  = LCount (map lelemChange list)
+syncLang theory precs = tnil -- for now
 \end{code}
 
 
@@ -222,15 +212,6 @@ changePrecedenceP :: [Trie Precedences.Precs] -> Pred -> Pred
 changePrecedenceP precs predicate
  = mapP ((changePrecedenceP precs), (changePrecedenceE precs))
         (changePrecP precs predicate)
-
-changePrecP precs pred@(Lang s i lelems synspec)
- | isInfixLang pred == True = (Lang s i' lelems synspec)
- | otherwise = pred
- where
-  i' = case mres of
-         Nothing -> i
-         Just (r,_)  -> r
-  mres = tslookup precs s
 
 changePrecP _ p = p
 

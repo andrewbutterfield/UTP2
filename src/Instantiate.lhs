@@ -49,9 +49,6 @@ instantiatePred mctxt bnds@(gpbnds,vebnds,ttbnds) pat
       = PAbs nm 0  (instantiateQ mctxt bnds qs) (map bP prs)
    bP (Sub pr sub) = mkSub (bP pr) (instantiateESub mctxt bnds sub)
 
-   bP (Lang nm p [le1,le2] ss) = bL2P nm p ss le1 le2
-   bP (Lang nm p les ss) = Lang nm p (bLES les) ss
-
    bP (TypeOf e t) = TypeOf (instantiateExpr mctxt bnds e) (instantiateType mctxt bnds t)
 
    bP (PExpr (App nm [Var v1, Var v2]))
@@ -85,46 +82,8 @@ Handling for 2-place atomic predicates (\texttt{binop}) with list-variables.
    b2E binop (e1,e2) = PExpr (binop e1 e2)
 \end{code}
 
-Doing it all for languages:
-\begin{code}
-   bL2P nm p ss le1 le2
-    | not $ isLELstV le1     =  std
-    | not $ isLELstV le2     =  std
-    | length es1 /= length es2  =  std
-    | otherwise = mkAnd (map (b2L nm p ss) (zip es1 es2))
-    where
-
-     std = Lang nm p (bLES [le1,le2]) ss
-
-     es1 = bevalES mctxt bnds $ theLEVar le1
-     es2 = bevalES mctxt bnds $ theLEVar le2
-
-     vof (LVar g) = mkGVar Scrpt g
-     vof (LExpr (Var v)) = v
-     v1 = vof le1
-     v2 = vof le2
-
-   -- end bL2P
-
-   b2L nm p ss (e1,e2) = Lang nm p [LExpr e1,LExpr e2] ss
-\end{code}
-
 Other \texttt{instantiatePred mctxt} auxilliaries:
 \begin{code}
-   bLES = map bLE
-
-   bLE (LVar g)
-     = case bevalV mctxt bnds $ mkGVar Scrpt g of
-        Left (Gen f,_,_)    ->  LVar f
-        Left u    ->  LVar $ Std ('?':show u)
-        Right vs  ->  LVar $ Lst ('?':show vs)
-
-   bLE (LType t)    = LType  $ instantiateType mctxt bnds t
-   bLE (LExpr e)    = LExpr  $ instantiateExpr mctxt bnds e
-   bLE (LPred pr)   = LPred  $ bP pr
-   bLE (LList les)  = LList  $ map bLE les
-   bLE (LCount les) = LCount $ map bLE les
-
    bPV pvs = map (stripPvar . bP . PVar . genRootAsVar . Std . psName) pvs
 
    stripPvar (PVar r) = show r

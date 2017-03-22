@@ -113,17 +113,8 @@ setTypeTags pr
 
    pset (PApp nm prs)  =  fmap (PApp nm) $ mapM pset prs
    pset (PAbs nm tt qs prs)  =  fmap (PAbs nm tt qs) $ mapM pset prs
-   pset (Lang str i les sss)
-    =  do les' <- mapM lset les
-          return $ Lang str i les' sss
    pset (Sub pr sub)  =  liftM2 Sub (pset pr) (sset eset sub)
    pset pr  =  return pr
-
-   lset (LExpr e)  =  fmap LExpr $ eset e
-   lset (LPred pr)  =  fmap LPred $ pset pr
-   lset (LList les)  =  fmap LList $ mapM lset les
-   lset (LCount les)  =  fmap LCount $ mapM lset les
-   lset le  =  return le
 
    eset (App str es)  =  fmap (App str) $ mapM eset es
    eset (Abs nm tt qvs es)  =  fmap (Abs nm tt qvs) $ mapM eset es
@@ -165,16 +156,7 @@ recBoundTVars mctxt pr
    prec tts (PApp nm prs)  =  app12 (PApp nm) $ mapM12 prec tts prs
    prec tts (PAbs nm tt qs prs)  =  app12 (PAbs nm tt qs) $ mapM12 prec tts prs
    prec tts (Sub pr esub)  =  liftM12 Sub tts prec pr (srec erec) esub
-   prec tts (Lang str i les sss)
-    =  do (les',tts') <- mapM12 lrec tts les
-          return (Lang str i les' sss, tts')
    prec tts pr  =  return (pr, tts)
-
-   lrec tts (LExpr e)  =  app12 LExpr $ erec tts e
-   lrec tts (LPred pr)  =  app12 LPred $ prec tts pr
-   lrec tts (LList les)  =  app12 LList $ mapM12 lrec tts les
-   lrec tts (LCount les)  =  app12 LCount $ mapM12 lrec tts les
-   lrec tts le  =  return (le, tts)
 
    erec tts (App nm es)  =  app12 (App nm) $ mapM12 erec tts es
    erec tts (Abs nm tt qs es)  =  app12 (Abs nm tt qs) $ mapM12 erec tts es
@@ -306,25 +288,12 @@ harvestTypeEqns mctxt tts pr
          (vt0'',tts'',teqs'') <- fmap snd $ eshvst vt0' tts' tags
                                           $ map snd ssub
          return (vt0'', tts'', teqs'++teqs'')
-   phvst vt0 tts tags (Lang str i les sss)  =  lshvst vt0 tts tags les
    phvst vt0 tts tags _  =  return (vt0, tts, [])
 
    pshvst vt0 tts tags [] = return (vt0, tts, [])
    pshvst vt0 tts tags (pr:prs)
     = do (vt0', tts', teqs') <- phvst vt0 tts tags pr
          (vt0'', tts'', teqs'') <-  pshvst vt0' tts' tags prs
-         return (vt0'', tts'',  teqs'++teqs'')
-
-   lhvst vt0 tts tags (LExpr e)  =  fmap snd $ ehvst vt0 tts tags e
-   lhvst vt0 tts tags (LPred pr)  =   phvst vt0 tts tags pr
-   lhvst vt0 tts tags (LList les)  =  lshvst vt0 tts tags les
-   lhvst vt0 tts tags (LCount les)  =  lshvst vt0 tts tags les
-   lhvst vt0 tts tags _  =  return (vt0, tts, [])
-
-   lshvst vt0 tts tags [] = return (vt0, tts, [])
-   lshvst vt0 tts tags (le:les)
-    = do (vt0', tts', teqs') <- lhvst vt0 tts tags le
-         (vt0'', tts'', teqs'') <-  lshvst vt0 tts tags les
          return (vt0'', tts'',  teqs'++teqs'')
 
    psethvst vt0 tts tags pr prset
@@ -752,21 +721,12 @@ topLvlExprs mctxt pr
    predExprs bnds (PAbs nm tt qvs prs)  =  predsExprs (addB qvs bnds) prs
    predExprs bnds (Sub pr esub)  =  predExprs bnds pr ++ esubExprs bnds esub
    predExprs bnds (PVar str)  =  []
-   predExprs bnds (Lang str i les sss)  =  lelemsExprs bnds les
 
    predsExprs bnds prs = concat $ map (predExprs bnds) prs
 
    esubExprs bnds (Substn ssub) = map (withB bnds . snd) ssub
 
    psubExprs bnds (Substn ssub) = concat $ map (predExprs bnds . snd) ssub
-
-   lelemExprs bnds (LExpr e)  =  [(bnds,e)]
-   lelemExprs bnds (LPred pr)  =  predExprs bnds pr
-   lelemExprs bnds (LList les)  =  lelemsExprs bnds les
-   lelemExprs bnds (LCount les)  =  lelemsExprs bnds les
-   lelemExprs _ _  =  []
-
-   lelemsExprs bnds les = concat $ map (lelemExprs bnds) les
 \end{code}
 
 
@@ -1798,9 +1758,6 @@ obsTypeReplace newts (Sub pr sub@(Substn ssub))
    newts' = drop (length ssub) newts
    (pr',newts'') = obsTypeReplace newts' pr
 
-obsTypeReplace newts (Lang s p les ss) = (Lang s p les' ss,newts')
- where (les',newts') = obsLListReplace newts les
-
 obsTypeReplace newts pr
  = error $ unlines $ [ "obsTypeReplace NYFI"
                      , "\t pr is "++show pr
@@ -1813,36 +1770,6 @@ obsReplaces newts [] = ([],newts)
 obsReplaces newts (pr:prs) = (pr':prs',newts'')
  where (pr',newts') = obsTypeReplace newts pr
        (prs',newts'') = obsReplaces newts' prs
-
--- replacing newts in language lists
--- now a simple linear pass..
-
-obsLListReplace newts les
- = obsLLR [] newts les
- where
-
-   obsLLR sel newts [] = (reverse sel,newts)
-
-   obsLLR sel [] les = (reverse sel++les,[])
-   obsLLR sel (newt:newts) (le@(LVar _):les)  = obsLLR (le:sel) newts les
-   obsLLR sel newts        (le@(LType _):les) = obsLLR (le:sel) newts les
-   obsLLR sel (newt:newts) (le@(LExpr _):les) = obsLLR (le:sel) newts les
-
-   obsLLR sel newts      (LPred pr:les)
-    = obsLLR (LPred pr':sel) newts' les
-    where
-       (pr',newts') = obsTypeReplace newts pr
-
-   obsLLR sel newts (LList les':les)
-    = obsLLR (LList les'':sel) newts' les
-    where
-       (les'',newts') = obsLLR [] newts les'
-
-   obsLLR sel newts (LCount les':les)
-    = obsLLR (LCount les'':sel) newts' les
-    where
-       (les'',newts') = obsLLR [] newts les'
-
 
 -- test for correctness, with etypes set to "arbitrary".
 

@@ -712,12 +712,6 @@ with the first being reversed (see \texttt{factor2p} for why).
    t2p qvs (TEPinfix p opname tep1 tep2)
     = case getlang opname of
 
-        Just ls@(LangSpec [ltep1,ltep2] ss)
-         -> do le1 <- letep2le qvs ltep1 tep1
-               le2 <- letep2le qvs ltep2 tep2
-               -- return $ Lang opname p [le1,le2] ss
-               return $ mkBinLang ls p le1 le2
-
         _ -> do p1 <- t2p qvs tep1
                 p2 <- t2p qvs tep2
                 case typof opname of
@@ -744,18 +738,12 @@ with the first being reversed (see \texttt{factor2p} for why).
         | opname == rbyName    =  return (mkRfdBy p1 p2)
         | opname == compName   =  return (p1 >>> p2)
         | opname == equivName  =  return (p1 === p2)
-        -- | opname == psinName   =  return (mkPsin p1 p2)
-        | otherwise            =  return (mklang opname p1 p2)
+        | otherwise            =  return (PApp opname [p1, p2])
 
       buildExprOp ((lat,rat),rst) (PExpr e1) (PExpr e2) -- we expect both arguments to be PExpr
         | opname == "="  =  return (PExpr (mkEqual e1 e2)) -- assuming lat=rat
         | otherwise      =  return (PExpr (mkBin opname p e1 e2))
-      buildExprOp optyp p1 p2  = return (mklang opname p1 p2)
-
-      mklang op p1 p2 = Lang op p [LPred p1, LPred p2] [SSNull,SSTok op,SSNull]
-
-      -- mkPsin pr (Psapp (PVar (Std "_")) pset) = Psin pr pset
-      -- mkPsin pr pq = Psin pr (PSet [pq])
+      buildExprOp optyp p1 p2  = return (PApp opname [p1, p2])
 \end{code}
 
 \subsubsection{Converting \texttt{TEPpostifx}}
@@ -870,14 +858,6 @@ with the first being reversed (see \texttt{factor2p} for why).
       | otherwise       = fail ("t2p:substition - unknown sep '"++sep++"'.")
 \end{code}
 
-\subsubsection{Converting \texttt{TEPlang}}
-
-For the rest, they stay as language constructs:
-\begin{code}
-   t2p qvs (TEPlang nm teples ss)
-    = do les <- t2les qvs teples
-         return (Lang nm precMidLang les ss)
-\end{code}
 
 \subsubsection{Converting \texttt{TEPtype}}
 \begin{code}
@@ -996,44 +976,6 @@ this best being done to the reversed pre-substitution list
    --mksub (PExpr e) sub  =  PExpr Tarb (Esub e sub)
    mksub pr        sub  =  Sub pr sub
 \end{code}
-
-
-\newpage
-\subsubsection{Converting Language Elements}
-
-\begin{code}
-   t2les qvs les = mapM (t2le qvs) les
-
-   t2le qvs (what,TEPllist teps)
-    | what' == lslVar   =  wrap LList LVar tep2groot teps
-    | what' == lslType  =  wrap LList LType (tep2type theories) teps
-    | what' == lslExpr  =  wrap LList LExpr (tep2expr theories qvs) teps
-    | what' == lslPred  =  wrap LList LPred (t2p qvs) teps
-    | what' == lscVar   =  wrap LCount LVar tep2groot teps
-    | what' == lscType  =  wrap LCount LType (tep2type theories) teps
-    | what' == lscExpr  =  wrap LCount LExpr (tep2expr theories qvs) teps
-    | what' == lscPred  =  wrap LCount LPred (t2p qvs) teps
-    where
-      what' = take 2 what
-      wrap lst elm p teps = fmap lst (sequence (map (fmap elm . p) teps))
-   t2le qvs (what,tep)
-    | what == lsVar   =  fmap LVar (tep2groot tep)
-    | what == lsType  =  fmap LType (tep2type theories tep)
-    | what == lsExpr  =  fmap LExpr (tep2expr theories qvs tep)
-    | what == lsPred  =  fmap LPred (t2p qvs tep)
-    | otherwise = return $ LVar $ Std ("t2le "++what++" MISMATCH")
-
-   letep2le qvs (LVar _) (TEPname nm) = return $ LVar $ Std nm
-   letep2le qvs (LVar _) (TEPvar (Gen g,_,_)) = return $ LVar g
-   letep2le qvs (LVar _) tep = fail (show tep ++ " not a groot")
-   letep2le qvs (LType _) tep = fmap LType $ tep2type theories tep
-   letep2le qvs (LExpr _) tep = fmap LExpr $ tep2expr theories qvs tep
-   letep2le qvs (LPred _) tep = fmap LPred $ tep2pred theories qvs tep
-   letep2le qvs _ tep = return $ LVar $ Std (show (dbg xxx tep))
-
-   xxx   = "letep2le_other"
-\end{code}
-
 
 
 
@@ -1950,7 +1892,7 @@ theoryTextParser theories fname text
  | k /= keySYNTAXFROM  =  Left ("First section must be "++ keySYNTAXFROM)
  | cantParse  =  Left ("Can't parse: "++ because)
  | isLeft synres  = synres
- | otherwise  =  errConvert buildLangDefinitions bodyparse
+ | otherwise  =  errConvert id bodyparse
  where
 
      -- scan text into raw tokens, strip header and split remaining sections

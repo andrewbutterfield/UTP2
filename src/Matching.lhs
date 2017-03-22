@@ -400,32 +400,6 @@ pMatch here mres
     =  pM1Place here mres te1 te2 pv1 pv2
 \end{code}
 
-\subsubsection{Matching \texttt{XXX}}
-
-
-User Language constructs.
-First, we look for 2-place predicates
-\begin{code}
-pMatch here mres
-       (Lang tn _ [tle1,tle2] [SSNull,SSTok op1, SSNull])
-       (Lang pn _ [ple1,ple2] [SSNull,SSTok op2, SSNull])
-  | tn==pn && op1 == op2  -- ignore precedence for now
-     && isGL ple1 && isGL ple2
-     && isLEExpr tle1 && isLEExpr tle2
-        = pM1Place here mres te1 te2 pv1 pv2
-  where
-    isGL le = isLEVar le && (isLstV $ theLEVar le)
-    te1 = theLEExpr tle1
-    te2 = theLEExpr tle2
-    pv1 = theLEVar ple1
-    pv2 = theLEVar ple2
-
-
-pMatch here mres (Lang tn tp tles tss) (Lang pn pp ples pss)
-  | tn==pn && tss==pss -- ignore precedence for now
-     = lesMatch here mres tles ples
-  | otherwise  =  (fail "Nothing")
-\end{code}
 
 \subsubsection{Matching \texttt{XXX}}
 
@@ -441,7 +415,7 @@ pMatch here mres (PExpr te) (PExpr pe)
    ptype = evalExprType (ptts here) (ptags here) pe
 \end{code}
 
-\subsubsection{Matching \texttt{XXX}}
+\subsubsection{Matching \texttt{TypeOf}}
 
 \begin{code}
 pMatch here mres (TypeOf te tt) (TypeOf pe pt)
@@ -455,7 +429,7 @@ pMatch here mres (TypeOf te tt) (TypeOf pe pt)
    ptype = evalExprType (ptts here) (ptags here) pe
 \end{code}
 
-\subsubsection{Matching \texttt{XXX}}
+\subsubsection{Matching \texttt{PApp}}
 
 
 The next collection of patterns involve simple recursion
@@ -470,7 +444,7 @@ pMatch here mres (PApp tnm tprs) (PApp pnm pprs)
 
 \newpage
 
-\subsubsection{Matching \texttt{XXX}}
+\subsubsection{Matching \texttt{PAbs}}
 
 
 We permit meta-matching in quantifier variable lists,
@@ -490,7 +464,7 @@ pMatch here mres (PAbs tnm ttag tqv tprs) (PAbs pnm ptag pqv pprs)
  | tnm==pnm  =  pQMatch here mres ttag tqv tprs ptag pqv pprs
 \end{code}
 
-\subsubsection{Matching \texttt{XXX}}
+\subsubsection{Matching \texttt{Univ}}
 
 
 With universal closure, all pattern variables are bound,
@@ -819,13 +793,6 @@ pM2Place here mres tprs ppr
     | nm==n_Equal && isLstV pv1 && isLstV pv2
        =  pm2place' pm2equal tprs pv1 pv2
 
-   pm2place (Lang pnm _ [ple1,ple2] _)
-    | isLELstV ple1 && isLELstV ple2
-      =  pm2place' (pm2lang pnm) tprs pv1 pv2
-    where
-      pv1 = theLEVar ple1
-      pv2 = theLEVar ple2
-
    pm2place _ = fail "Nothing"
 \end{code}
 
@@ -845,15 +812,6 @@ of the appropriate type.
    pm2equal pv1 pv2 (PExpr (App nm [te1,te2]))
     | nm==n_Equal = pm2place'' te1 te2 pv1 pv2
    pm2equal _ _ _ = fail "Nothing"
-
-   pm2lang pnm pv1 pv2 (Lang tnm _ [tle1,tle2] _)
-    | pnm == tnm && gotE1 && gotE2  =  pm2place'' te1 te2 pv1 pv2
-    where
-      gotE1 = isLEExpr tle1
-      gotE2 = isLEExpr tle2
-      te1 = theLEExpr tle1
-      te2 = theLEExpr tle2
-   pm2lang _ _ _ _ = (fail "Nothing")
 \end{code}
 
 Here we now need to match pattern variables against
@@ -994,52 +952,6 @@ psMatch here mres (Substn tssub) (Substn pssub)
    us' = map (PVar . genRootAsVar) us
    vs' = map (PVar . genRootAsVar) vs
 \end{code}
-
-
-\newpage
-\subsubsection{User-Defined Language Matching}
-
-Here we are simply matching correponding language-element (\texttt{LElem})
-entries.
-\begin{code}
-lesMatch :: (Functor m, Monad m)
-         => LocalContext
-         -> MatchResult
-         -> [LElem] -> [LElem]
-         -> m MatchResult
-
-lesMatch here mres [] [] = return mres
-lesMatch here mres (tle:tles) (ple:ples)
- = do mres1 <- leMatch here mres tle ple
-      lesMatch here mres1 tles ples
-
-lesMatch here mres _ _ = fail "Nothing"
-\end{code}
-
-\begin{code}
-leMatch :: (Functor m, Monad m)
-        => LocalContext
-        -> MatchResult
-        -> LElem -> LElem
-        -> m MatchResult
-
-leMatch here mres (LVar tg) (LVar pg)
-  = eMatch here mres
-          (Var $ mkGVar Scrpt tg) (Var $ mkGVar Scrpt pg)
-leMatch here mres (LType tt) (LType pt)
- = do tbnd <- tMatch tt pt
-      mres `mrgMR` injTbind tbnd
-leMatch here mres (LExpr te) (LExpr pe)
- = eMatch here mres te pe
-leMatch here mres (LPred tpr) (LPred ppr)
- = pMatch here mres tpr ppr
-leMatch here mres (LList tles) (LList ples)
- = lesMatch here mres tles ples
-leMatch here mres (LCount tles) (LCount ples)
- = lesMatch here mres tles ples
-leMatch here mres _ _ = fail "Nothing"
-\end{code}
-
 
 
 \newpage

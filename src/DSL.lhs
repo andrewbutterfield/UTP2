@@ -189,7 +189,7 @@ infixl 8 |>
 (p,c) |> q = mkIf c p q
 
 infixl 9 >>>
-p >>> q = Lang compName 50 [LPred p,LPred q] [SSNull,SSTok compName,SSNull]
+p >>> q = PApp compName [p, q]
 
 n_RfdBy = "RfdBy"
 mkRfdBy c s = PApp n_RfdBy [c,s]
@@ -197,7 +197,7 @@ infixl 4 |=
 s |= c = mkRfdBy c s
 
 infixl 4 =|
-c =| s  =  Lang "=|" 40 [LPred c,LPred s] [SSNull,SSTok "=|",SSNull]
+c =| s  =  PApp "=|" [c, s] 
 
 
 precsLogic
@@ -632,5 +632,3 @@ n_NDC = "NDC"
 mkNDC p1 p2 = PApp n_NDC [p1,p2]
 
 \end{code}
-
-

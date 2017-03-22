@@ -1422,15 +1422,22 @@ exprEParts = thd4 . exprParts
 exprQParts = frt4 . exprParts
 \end{code}
 
-Generally we pull out predicates using \texttt{exprParts},
+Generally we pull out predicates from expressions using \texttt{exprParts},
 and collecting top-level predicates before those
 in sub-expressions.
-The exception is the \texttt{Lang} construct were we take expressions
-in a linear pass through the language elements
 \begin{code}
 predsOf e
  = let (_,prs,es,_) = exprParts e
    in prs ++ (concat $ map predsOf es)
+\end{code}
+
+Similarly we pull out expressions from predicates using \texttt{predParts},
+and collecting top-level predicates before those
+in sub-expressions.
+\begin{code}
+exprsOf pr
+ = let (_,prs,es,_,_) = predParts pr
+   in es ++ (concat $ map exprsOf prs)
 \end{code}
 
 \subsubsection{PVar table building}

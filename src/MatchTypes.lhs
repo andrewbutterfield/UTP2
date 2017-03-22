@@ -1889,9 +1889,6 @@ palfequiv bvs FALSE FALSE = aok
 palfequiv bvs (PExpr e1) (PExpr e2)   =  ealfequiv bvs e1 e2
 palfequiv bvs (PApp s1 prs1) (PApp s2 prs2)
   | s1==s2  =  alflist palfequiv bvs prs1 prs2
-palfequiv bvs (Lang n1 _ lelems1 syn1) (Lang n2 _ lelems2 syn2)
- | n1 == n2 && syn1 == syn2
-   =  alflist lalfequiv bvs lelems1 lelems2
 \end{code}
 \newpage
 \begin{eqnarray*}
@@ -2014,19 +2011,4 @@ ealfequiv bvs (ESub e1 (Substn sub1))
                   = salfequiv bvs ealfequiv id ealfequiv (e1, sub1) (e2, sub2)
 
 ealfequiv bvs _ _ = Nothing
-\end{code}
-
-And for language constructs,
-we ignore the bound variables,
-as all variables in here are script variables
-\begin{code}
-lalfequiv :: ([Variable],[Variable]) -> LElem -> LElem -> Maybe BIJ
-
-lalfequiv bvs (LVar s1)   (LVar s2)  | s1 == s2         =  aok
-lalfequiv bvs (LType t1)  (LType t2) | t1 `tlequiv` t2  =  aok
-lalfequiv bvs (LExpr e1)  (LExpr e2)   =  ealfequiv ([],[]) e1 e2
-lalfequiv bvs (LPred pr1) (LPred pr2)  =  palfequiv ([],[]) pr1 pr2
-lalfequiv bvs (LList l1)  (LList l2)   =  alflist lalfequiv ([],[]) l1 l2
-lalfequiv bvs (LCount l1) (LCount l2)  =  alflist lalfequiv ([],[]) l1 l2
-lalfequiv _   _           _            =  Nothing
 \end{code}

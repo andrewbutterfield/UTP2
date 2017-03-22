@@ -1487,46 +1487,9 @@ btable4a
  where pabs nm qs prs = PAbs nm 0 qs prs
 \end{code}
 
-\subsubsection{Language Elements}
-\begin{code}
-codeLE letype = charLE:letype
-
-codeLVar   = codeLE "V" -- v
-codeLType  = codeLE "T" -- t
-codeLExpr  = codeLE "E" -- e
-codeLPred  = codeLE "P" -- pr
-codeLList  = codeLE "L" -- n le.n ... le.1
-codeLCount = codeLE "N" -- n le.n ... le.1
-
-bLE letype = [buildCmd:letype]
-
--- the use of exportExpr and exportPred here is crucial as
--- this is never a top-level export, so focii must be ignored.
-
-exportLE (LVar g)     = wrVar (mkGVar Scrpt g) ++ bLE codeLVar
-exportLE (LType t)    = exportType t  ++ bLE codeLType
-exportLE (LExpr e)    = exportExpr e  ++ bLE codeLExpr
-exportLE (LPred pr)   = exportPred pr ++ bLE codeLPred
-exportLE (LList les)  = exportList exportLE les ++ bLE codeLList
-exportLE (LCount les) = exportList exportLE les ++ bLE codeLCount
-
-btable4'
- = lupdate btable4a
-    [ (codeLVar  , build1 popVar lvar LEelem )
-    , (codeLType , build1 popType LType LEelem )
-    , (codeLExpr , build1 popExpr LExpr LEelem )
-    , (codeLPred , build1 popPred LPred LEelem )
-    , (codeLList , buildn popLE LList LEelem )
-    , (codeLCount, buildn popLE LCount LEelem )
-    ]
- where
-   lvar (Gen g,_,_) = LVar g
-   lvar v = LVar $ Std ("Bad-Lvar:"++varKey v)
-\end{code}
-
 \subsubsection{Syntax Specifications}
-\begin{code}
 
+\begin{code}
 codeSS sstype = charSS:sstype
 
 codeSSNull  =  codeSS "0"   --
@@ -1540,19 +1503,17 @@ exportSS (SSTok s)   = wrArg s ++ bSS codeSSTok
 exportSS (SSSep s)   = wrArg s ++ bSS codeSSSep
 
 btable4''
- = lupdate btable4'
+ = lupdate btable4a
     [ (codeSSNull , build SSNull SSelem )
     , (codeSSTok  , build1 popStr SSTok SSelem )
     , (codeSSSep  , build1 popStr SSSep SSelem )
     ]
-
 \end{code}
+
 We export language specifications by converting them
 to string and pushing those:
 \begin{code}
-
 exportLS lspec = wrArg (show lspec)
-
 \end{code}
 
 
@@ -2267,7 +2228,7 @@ btable19a
                  (popNList popStr) popNum popStr mkPC THelem)
     ]
  where mkPC a b c d e f g h i j k l m n
-        = (buildLangDefinitions . markTheoryDeps)
+        = markTheoryDeps
             (Theory a b c
                     d e f g
                     h i j

@@ -187,7 +187,6 @@ predSize (PVar s)            = 2
 predSize (PApp _ prs )       = 6 + psSize prs
 predSize (PAbs _  _ qs prs)  = 10 + qSize qs + psSize prs
 predSize (Sub pr sub)        = 4 + predSize pr + sSize sub
-predSize (Lang s p les ss)   = 1 -- want to encourage language matches
 predSize (TypeOf e t)        = 4 + exprSize e
 predSize (PExpr e)           = exprSize e
 \end{code}

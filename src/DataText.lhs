@@ -896,7 +896,7 @@ data TEP
  | TEPpset [TEP]
  | TEPpsetc [String] TEP TEP
 -- * language TEPs
- | TEPlang String [(String,TEP)] [SynSpec]
+ | TEPlang String [SynSpec]
  | TEPllist [TEP] -- should only occur inside TEPlang
 -- *expression* TEPs
  | TEPeerr String

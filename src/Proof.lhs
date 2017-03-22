@@ -900,7 +900,7 @@ precDownDate precs lspecs
      (map mkprec . filter (isBinSpec . snd) $ lspecs)   -- $
  where
   p = precTightLang
-  mkprec (n,(LangSpec _ ss)) = (fsttok ss,(p,AssocNone))
+  mkprec (n,(LangSpec ss)) = (fsttok ss,(p,AssocNone))
   fsttok [] = "?????"
   fsttok (SSTok op:_) = op
   fsttok (s:ss) = fsttok ss
@@ -911,9 +911,13 @@ precDownDate precs lspecs
 
 A definition law is a law of the form $lhs \equiv rhs$,
 with a lawname prefixed with "DEF ".
+
 The $lhs$ component will be an instance of the construct/concept/function
 under definition, whilst the $rhs$ will typically be its expansion
 as some predicate.
+
+\emph{\textbf{To be revisited \dots}}
+
 \begin{code}
 defnNamePrefix = "DEF "
 isDefnName lawname = defnNamePrefix `isPrefixOf` lawname
@@ -941,118 +945,11 @@ findDefns lawtable = fd [] lawtable
   fd defns (_:rest) = fd defns rest
 \end{code}
 
-First,
-given a complete language construct (name and syntax-spec.)
-we generate a conservative definition entry,
-as well as a precedence entry.
-\begin{code}
-genDummyLangDefn user lname lspec
- = (dname,llaw)
- where
-   dname = defnNamePrefix++lname
-   llaw = ((lass,SCtrue),UserDEFN user,Bnil)
-   lass = genDummyLangLHS lname lspec === predUNINT
-
-genDummyLangLHS lname (LangSpec les ss)
- = Lang lname 0 les' ss
- where
-   les' = instantiate 0 les
-
-   instantiate _ [] =[]
-   instantiate i (le:les) = inst i le : instantiate (i+1) les
-
-   inst i (LVar _)         =  LVar  $ Std  $ "v"++show i
-   inst i (LType _)        =  LType $ Tvar $ "t"++show i
-   inst i (LExpr _)        =  LExpr $ mkEVar $ preVar $ "e"++show i
-   inst i (LPred _)        =  LPred $ PVar $ parseVariable $ "P"++show i
-   inst i (LList [])       =  LList []
-   inst i (LList (le:_))   =  LList [inst i le]
-   inst i (LCount [])      =  LCount []
-   inst i (LCount (le:_))  =  LCount [inst i le]
-\end{code}
-
-
-\subsubsection{Language/DEF-laws consistency}
-Given a list of language specifications, we will want to ensure
-at least one relevant definition is present.
-\begin{code}
-coverLangDEFs thry = thry
--- DEPRECATED UNTIL LAW EDITS POSSIBLE (at least)
---  = thry{laws = laws thry `defLawCover` flattenTrie (lang thry)}
-
-defLawCover :: LawTable -> [(String,LangSpec)] -> LawTable
-defLawCover laws lspecs = genDefLaws laws undefdLang
- where
-  nspecs = lnorm lspecs
-  lnames = map fst nspecs
-  deflaws = lnorm $ catMaybes $ map (defLawLangName . fst)  laws
-  undefdLang = deflaws `alrem` nspecs
-
-genDefLaws laws [] = laws
-genDefLaws laws ((lname,lspec):lspecs)
- = genDefLaws (genDummyLangDefn "Proof.genDefLaws" lname lspec:laws) lspecs
-
---genDefLaw (lname,lspec) = ("DEF "++lname,((TRUE,SCtrue),FromSOURCE "Proof.genDefLaw"))
-\end{code}
-
-
-
 \subsubsection{Language Definitions in Theories}
 
-For every language construct mentioned in the \texttt{lang} component
-of a \texttt{Theory},
-we expect there to be at least one definition law given in
-the \texttt{laws} component.
-Given \texttt{(Lang nm \ldots)}
-we expect one law named \verb*"DEF nm"
-or multiple laws whose names are prefixed by
-\verb*"DEF nm ".
-\begin{code}
-defLawLangName lawname
- = case words lawname of
-    ("DEF":langname:_)  ->  Just langname
-    _                   ->  Nothing
-\end{code}
-We want to take these laws and then use them to build the
-\texttt{langDefs} component, for use in free/bound variable determination.
-We satisfy an invariant that requires any definition list
-in the result trie to be non-empty.
-A much more important invariant is that these definitions
-should not be recursive, as then the free-variable checking will
-turn into a potentially non-terminating procedure.
-There is nothing preventing other laws giving recursive expansions,
-but they cannot be used here.
 
-TODO: RETHINK THIS GIVEN THAT NOT ALL \texttt{Lang} NEED a DEF-law.
-\begin{code}
-buildLangDefinitions :: Theory -> Theory
-buildLangDefinitions thry = thry{ langDefs = lbuild validdefs }
- where
-  defns = findDefns (laws thry)
-  ldefs = assembleLDefs (lang thry) defns
-  validdefs = stripLDefRec ldefs
+To be reconsidered \dots
 
-assembleLDefs langs defns = assLDef [] defns
- where
-
-   assLDef ldefs [] = ldefs
-   assLDef ldefs ((nm,lhs,rhs,_):rest)
-    | isLang    =  assLDef (alinsnorm (flip(++)) lname [(lhs,rhs)] ldefs) rest
-    | otherwise  =  assLDef ldefs rest
-    where
-     lname = takeWhile (/=' ') nm
-     isLang = isJust (tlookup langs lname)
-
-stripLDefRec :: [(String,[LangDefn])] -> [(String,[LangDefn])]
-stripLDefRec ldefs
- = filter good ldefs
- where
-   defdep (nm,defs) = (nm,lnorm (concat (map (predLang . snd) defs)))
-   defdeps = map defdep ldefs
-   depclosed = ereltclose defdeps
-   baddeps = erelrkernel depclosed
-   good (a,_) = not(a `elem` (cdbg (not . null) "Recursive Lang : " baddeps))
-\end{code}
 
 \subsection{Theory Stacks}
 
