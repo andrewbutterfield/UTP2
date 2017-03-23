@@ -2301,6 +2301,48 @@ applyWitness mctxt sc wsubs fpr
   = repPFf (existentialWitness mctxt sc wsubs) fpr
 \end{code}
 
+\subsubsection {Building Helper Conjectures}
+
+\begin{code}
+helperConj :: String -> SideCond -> Pred -> [(String,Assertion)]
+helperConj pnm sc (PApp nm1 [PApp nm2 gs, g])
+ | nm1==n_Imp && nm2==n_And
+ = mkHelpers 1 gs
+ where
+   mkHelpers _      [] = []
+   mkHelpers i (gi:gs) = (pnm++"."++show i,(gi,sc)) : mkHelpers (i+1) gs
+
+helperConj pnm sc (PApp nm [q, g])
+ | nm == n_Imp = [(pnm++".0",(g,sc))]
+
+helperConj pnm sc ilaw = []
+\end{code}
+
+\subsubsection{Identifying an Induction Law}
+
+\begin{code}
+haveInductionLaw (PApp nm1 [_, PAbs nm2 _ [q] [PVar v]])
+ | nm1 == n_Imp && nm2==n_Forall && isStdV q  = Just (q,v)
+haveInductionLaw _ = Nothing
+\end{code}
+
+\subsubsection{Program Matching Support}
+
+This is very partial and ad-hoc --- used by \texttt{WxProg}
+
+\begin{code}
+lawAsLHS (name,(((PApp nm [lhs, _]),sc),prov,tts))
+ | nm==n_Eqv  = ((lhs,sc),tts)
+getRHS (_,(((PApp nm [_, rhs]),_),_,_)) | nm==n_Eqv  =  rhs
+
+sepAtAnd ((PApp nm prs),_) | nm==n_And  =  prs
+sepAtAnd (pr,_)                         =  [pr]
+
+checkSides law@(_,(((PApp nm [_, _]),_),_,_))
+ | nm == n_Eqv = Just law
+checkSides _ = Nothing
+\end{code}
+
 
 \subsection{Proof Summary}
 

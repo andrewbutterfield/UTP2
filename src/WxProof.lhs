@@ -1184,20 +1184,6 @@ setAndCheckProofStrategy pspace pid stspec prf sts mf work
          alert sts ("Cannot use "++show stspec++" with "++show gpred)
 \end{code}
 
-Building helper conjectures is easy:
-\begin{code}
-helperConj pnm sc (PApp nm1 [PApp nm2 gs, g])
- | nm1==n_Imp && nm2==n_And
- = mkHelpers 1 gs
- where
-   mkHelpers _      [] = []
-   mkHelpers i (gi:gs) = (pnm++"."++show i,(gi,sc)) : mkHelpers (i+1) gs
-
-helperConj pnm sc (PApp nm [q, g])
- | nm == n_Imp = [(pnm++".0",(g,sc))]
-
-helperConj pnm sc ilaw = []
-\end{code}
 
 Starting them involves establishing conjectures:
 \begin{code}
@@ -1299,34 +1285,35 @@ setUpStrategy sts prf tts mf penv mctxts SSInd
 
 We are only interested in laws of the form: $Q \implies \forall x @ P$
 \begin{code}
-   setUpInduction theories mctxt thname thno lname lprov lsc
-                  ilawpr@(PApp nm1 [_, PAbs nm2 _ [q] [PVar v]])
-    | nm1 == n_Imp && nm2==n_Forall && isStdV q
-     = do (novar,ivar,ilawpr') <- setInductionVar ilawpr q
-          if novar
-           then do alert sts "no ivar given"
-                   return (False,(prf,[]),[])
-           else
-           do let goal' = forcePredInductionVar ivar goalpr
-              (ok,fmatch)
-                 <- instantiateInduction theories mctxt (show v) goal' SCtrue ilawpr' lprov lname
-              if ok
-               then
-                do let ilawpr'' = matchReplace nullMatchContext fmatch
-
-                   let (ilawpr''',tts') = fixType penv ilawpr''
-                   let fullname = qlawprint3 (thname,thno,lname)
-                   let pnm = pname prf
-                   return ( True
-                          ,(setLawReduce (fullname,(ilawpr''',lsc)) tts' prf, [])
-                          , helperConj pnm lsc ilawpr''' )
+   setUpInduction theories mctxt thname thno lname lprov lsc ilawpr
+    = case haveInductionLaw ilawpr of
+       Just (q,v)
+        -> do (novar,ivar,ilawpr') <- setInductionVar ilawpr q
+              if novar
+               then do alert sts "no ivar given"
+                       return (False,(prf,[]),[])
                else
-               do alert sts "aborted by user"
-                  return (False,(prf,[]),[])
+               do let goal' = forcePredInductionVar ivar goalpr
+                  (ok,fmatch)
+                     <- instantiateInduction theories mctxt
+                          (show v) goal' SCtrue ilawpr' lprov lname
+                  if ok
+                   then
+                    do let ilawpr'' = matchReplace nullMatchContext fmatch
 
-   setUpInduction _ mctxt thname thno lname _ _ _
-     = do alert sts ("Law '"++lname++"' not of induction 'shape'")
-          return (False,(prf,[]),[])
+                       let (ilawpr''',tts') = fixType penv ilawpr''
+                       let fullname = qlawprint3 (thname,thno,lname)
+                       let pnm = pname prf
+                       return ( True
+                              ,(setLawReduce (fullname,(ilawpr''',lsc)) tts' prf, [])
+                              , helperConj pnm lsc ilawpr''' )
+                   else
+                   do alert sts "aborted by user"
+                      return (False,(prf,[]),[])
+
+       Nothing
+        -> do alert sts ("Law '"++lname++"' not of induction 'shape'")
+              return (False,(prf,[]),[])
 \end{code}
 
 We need to instantiate the induction axiom with

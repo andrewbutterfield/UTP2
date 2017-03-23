@@ -269,14 +269,8 @@ progMatching lawPrefix pid work tstack pred sc window
        let matchCtxt = mkMatchContext newStack
        zip (sepAtAnd (applyAllMatches ([1..]) pid work sc matchCtxt lawsAndRHS pred)) (repeat sc)
     where
-      lawAsLHS (name,(((PApp nm [lhs, _]),sc),prov,tts))
-       | nm==n_Eqv  = ((lhs,sc),tts)
-      getRHS (_,(((PApp nm [_, rhs]),_),_,_)) | nm==n_Eqv  =  rhs
       allLaws (x:xs) = concatMap laws xs
       replaceLaws (newThry:x:xs) wpLaws = x{laws = wpLaws} : xs
-
-sepAtAnd ((PApp nm prs),_) | nm==n_And  =  prs
-sepAtAnd (pr,_)                         =  [pr]
 
 lawCmp [] _ = []
 lawCmp _ [] = []
@@ -404,10 +398,6 @@ findLawMatch fv mctxt ptts sc (((lhs,ltts),rhs):xs) pred
   | match == Nothing = findLawMatch fv mctxt ptts sc xs pred
   | otherwise = Just (fromJust match, rhs)
   where match = lawMatch [] fv ltts mctxt sc pred lhs ptts
-
-checkSides law@(_,(((PApp nm [_, _]),_),_,_))
- | nm == n_Eqv = Just law
-checkSides _ = Nothing
 
 pcondPopup progpid pwin wk
  = do pspaces <- fmap (currProgs . workspace) (varGet wk)
