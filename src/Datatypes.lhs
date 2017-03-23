@@ -1129,9 +1129,18 @@ hdr i  = '\n':(replicate i ' ')
 
 dbgPshow i  TRUE     = hdr i ++ "TRUE"
 dbgPshow i  FALSE    = hdr i ++ "FALSE"
-dbgPshow i  (PExpr e)  = hdr i ++ "OBS " ++ dbgEshow (i+1) e
-dbgPshow i  (Sub pr sub) = hdr i ++ "SUB" ++ dbgESshow (i+1) sub++dbgPshow (i+1) pr
 dbgPshow i  (PVar pv) = hdr i ++ "PVAR "++dbgVshow pv
+dbgPshow i  (PExpr e)  = hdr i ++ "PEXPR " ++ dbgEshow (i+1) e
+dbgPshow i  (TypeOf e t)
+ = hdr i ++ "TYPEOF " ++ dbgEshow (i+1) e ++ dbgTshow (i+1) t
+dbgPshow i  (PApp nm prs)
+ = hdr i ++ "PAPP " ++ nm ++ concat (map (dbgPshow (i+1)) prs)
+dbgPshow i  (PAbs nm tts qs prs)
+ = hdr i ++ "PABS " ++ nm ++ show tts
+   ++ dbgQSshow (i+1) qs
+   ++ concat (map (dbgPshow (i+1)) prs)
+dbgPshow i  (Sub pr sub)
+ = hdr i ++ "SUB" ++ dbgESshow (i+1) sub++dbgPshow (i+1) pr
 
 dbgGshow (Std s) = "STD: " ++ s
 dbgGshow (Lst s) = "LST: " ++ s

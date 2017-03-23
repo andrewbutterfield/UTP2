@@ -13,9 +13,9 @@ import NiceSymbols
 
 \subsection{Program Name \& Version}
 
-\textbf{v0.99$\alpha$3, from 18th Mar 2017}
+\textbf{v0.99$\alpha$4, from 23rd Mar 2017}
 \begin{code}
-version = "0.99a3(2017-03-18+)"
+version = "0.99a4(2017-03-23+)"
 \end{code}
 
 \begin{code}
