@@ -681,17 +681,8 @@ defaultLD = LexicalData $
 \end{code}
 
 
-\subsubsection{\Saoithin\ Filestate}
-
-We now track various file/directory related information.
-A directory containing all the files relevant to a given use
-of \Saoithin\ is called a ``filespace'',
-which has a user-supplied name, and records the path to that directory.
 
 \begin{code}
-type FileSpace = ( String      -- filespace name
-                 , FilePath )  -- path to filespace
-
 showFS (nm,path) = nm ++ " -- " ++ path
 
 data FileState

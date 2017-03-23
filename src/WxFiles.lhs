@@ -108,71 +108,40 @@ The state of affairs, in particular any failures,
 are communicated to the user, along with any
 related initialisation actions.
 \begin{code}
-startupFileHandling w fstate = do
-  let args = Args {
-      aW                 = w
-    , aState             = fstate
-    , aAppUserDir        = appUserDir 
-    , aCurrentFileSpace  = snd . currentFileSpace
-    , aDisplayError      = errorDialog w "Cannot create directory"
-    , aOnAppUserDirError = \state -> return state { appUserDir = "" }
-    }
-  aState <$> GI.startupFileHandlingGI args
+
+-- |This argument allows Wx to use the GIFiles code.
+args w fstate = Args {
+    aW                   = w
+  , aState               = fstate
+  , aAppUserDir          = appUserDir
+  , aCurrentFileSpace    = snd . currentFileSpace
+  , aDisplayError        = errorDialog w
+  , aOnAppUserDirError   = \state -> return state { appUserDir = "" }
+  , aFSDirOpenDialog     = dirOpenDialog w True "Select Working FileSpace" ""
+  , aFSNameDialog        = fsNameDialog
+  , aNewFS               = newFS
+  , aReadFSPFileNewState = readFSPFileNewState
+  , aWriteFSPFileFSPs    = \state -> (currentFileSpace state):(previousFileSpaces state)
+  }
+  where readFSPFileNewState state fsps = state {
+            currentFileSpace   = head fsps
+          , previousFileSpaces = tail fsps
+          }
+
+
+startupFileHandling w fstate =
+  aState <$> GI.startupFileHandlingGI (args w fstate)
+userCreateFS w fstate =
+  aState <$> GI.userCreateFS_GI (args w fstate)
+writeFSPFile path w fstate =
+  GI.writeFSPFile_GI path (args w fstate)
 \end{code}
 
 \begin{code}
--- |Wx implementation of GUI-independant 'establishAppUserDir'.
--- establishAppUserDir w fstate = GI.establishAppUserDirGI
---   (appUserDir fstate)
---   fstate
-
-namePathSep = ';'
-
-userCreateFS w fstate
- = do mcwd <- dirOpenDialog w True "Select Working FileSpace" ""
-      case mcwd of
-        Nothing   ->  do errorDialog w "FATAL ERROR" "Can't run without knowing the current filespace"
-                         error "No FileSpace defined --- can't go on"
-        Just cwd
-         ->  do name <- fsNameDialog w
-                return (newFS fstate (name,cwd))
 
 fsNameDialog w
  = do rawname <- textDialog w "FileSpace Name" "Name (no semicolons)" ""
-      return (filter (/= namePathSep) rawname)
-
-fileLookupFSPs w fstate
- = do let cfgpath = appUserDir fstate
-                       ++ [pathSeparator]
-                       ++ acalai ++ cumraiocht
-      present <- doesFileExist cfgpath
-      if present
-       then readFSPFile w fstate cfgpath
-       else do fstate' <- userCreateFS w fstate
-               writeFSPFile cfgpath fstate'
-               return fstate'
-
-readFSPFile w fstate path
- = do txt <- readFile path
-      let fsps = filter validFS $ map fsParse $ lines txt
-      if null fsps
-       then userCreateFS w fstate
-       else return fstate{ currentFileSpace = head fsps
-                         , previousFileSpaces = tail fsps }
-
-fsParse txt
- = (name,path)
- where
-  (name,rest) = break (==namePathSep) txt
-  path = if null rest then "" else tail rest
-
-validFS (name,path) = not $ null $ trim $ path
-
-writeFSPFile path fstate
- = do let fsps = (currentFileSpace fstate):(previousFileSpaces fstate)
-      writeFile path (unlines (map showFSP fsps))
- where
-   showFSP (name,path) = name ++ namePathSep:path
+      return (filter (/= GI.namePathSep) rawname)
 \end{code}
 
 \end{enumerate}
@@ -517,7 +486,7 @@ setWorking w name cwd work
       let cfgpath = appUserDir fstate
                              ++ [pathSeparator]
                              ++ acalai ++ cumraiocht
-      writeFSPFile cfgpath fstate'
+      writeFSPFile cfgpath w fstate'
       setFileState work fstate'
 
       uname <- getUser work
