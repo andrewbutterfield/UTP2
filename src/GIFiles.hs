@@ -112,7 +112,7 @@ fileLookupFSPs_GI args = do
   then readFSPFile_GI args cfgpath
   else do
     args' <- userCreateFS_GI args
-    -- writeFSPFile args' cfgpath
+    writeFSPFile_GI cfgpath args'
     return args'
 
 readFSPFile_GI :: Args w state -> FilePath -> IO (Args w state)
