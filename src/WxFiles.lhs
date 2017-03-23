@@ -109,7 +109,8 @@ are communicated to the user, along with any
 related initialisation actions.
 \begin{code}
 
--- |This argument allows Wx to use the GIFiles code.
+-- |This datatype contains all of the necessary Wx specific functions which the
+-- GUI-independent code, in GIFiles.hs requires.
 args w fstate = Args {
     aW                   = w
   , aState               = fstate
@@ -129,8 +130,9 @@ args w fstate = Args {
           }
 
 
+-- |Wx specific implementations of GUI independent counterparts.
 startupFileHandling w fstate =
-  aState <$> GI.startupFileHandlingGI (args w fstate)
+  aState <$> GI.startupFileHandling_GI (args w fstate)
 userCreateFS w fstate =
   aState <$> GI.userCreateFS_GI (args w fstate)
 writeFSPFile path w fstate =

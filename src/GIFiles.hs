@@ -24,27 +24,27 @@ data Args w state = Args {
   , aWriteFSPFileFSPs    :: state -> [FileSpace]
   }
 
-startupFileHandlingGI :: Args w state -> IO (Args w state)
-startupFileHandlingGI args = do
-  args'  <- determineAppDataGI    args
-  args'' <- accessFrameworkDataGI args'
+startupFileHandling_GI :: Args w state -> IO (Args w state)
+startupFileHandling_GI args = do
+  args'  <- determineAppData_GI args
+  args'' <- accessFrameworkData_GI args'
   return args''
 
 -- |Does the directory exist ? If not, initialise it. Does the set-up file exist
 -- ? If not, initialise it. Read the set-up file to get the current and previous
 -- filesspaces, initialising the current, if corrupted.
-determineAppDataGI :: Args w state -> IO (Args w state)
-determineAppDataGI args = do
-  args'  <- establishAppUserDirGI args
-  args'' <- determineFSPsGI       args'
+determineAppData_GI :: Args w state -> IO (Args w state)
+determineAppData_GI args = do
+  args'  <- establishAppUserDir_GI args
+  args'' <- determineFSPs_GI       args'
   return args''
 
 -- |Does it exist ? if not, initialise it. Does the framework file exist ? If
 -- not, initialise it. Read the framework file, initialising if corrupt. Does
 -- the current proof file exist ? If not, initialise it. Read the current proof
 -- file, initialising if corrupted.
-accessFrameworkDataGI :: Args w state -> IO (Args w state)
-accessFrameworkDataGI args = do
+accessFrameworkData_GI :: Args w state -> IO (Args w state)
+accessFrameworkData_GI args = do
   let cwdpath = aCurrentFileSpace args $ aState args
   mres1 <- utp2try $ SD.createDirectoryIfMissing True cwdpath
   -- explainError mres1
@@ -54,8 +54,8 @@ accessFrameworkDataGI args = do
   --toConsole $ "\n\n***CURR DIR NOW = "++xxx
   return args
 
-establishAppUserDirGI :: Args w state -> IO (Args w state)
-establishAppUserDirGI args = do
+establishAppUserDir_GI :: Args w state -> IO (Args w state)
+establishAppUserDir_GI args = do
   let dirpath = aAppUserDir args $ aState args
   present <- SD.doesDirectoryExist dirpath
   if   present
@@ -79,8 +79,8 @@ establishAppUserDirGI args = do
       , "every time this application is launched"
       ]
 
-determineFSPsGI :: Args w state -> IO (Args w state)
-determineFSPsGI args = do
+determineFSPs_GI :: Args w state -> IO (Args w state)
+determineFSPs_GI args = do
   let  audPath = aAppUserDir args $ aState args
   if   null audPath
   then userCreateFS_GI   args
