@@ -77,7 +77,7 @@ prTidy (cTdy,dTdy) (PApp nm prs)
  where prs' = map (prTidy (cTdy,dTdy)) prs
 
 prTidy (cTdy,dTdy) (PAbs nm _ qvs prs)
-  | hasUnorderedQVars nm = PAbs nm 0 (lqnorm qvs) prs'
+  | hasUnorderedQVars nm = PAbs nm 0 (lnorm qvs) prs'
   | otherwise            = PAbs nm 0 qvs prs'
   where prs' = map (prTidy (cTdy,dTdy)) prs
 

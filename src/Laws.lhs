@@ -1033,7 +1033,7 @@ addNullSubtsnMatches :: VEBind
 addNullSubtsnMatches vebind []  = vebind
 addNullSubtsnMatches vebind (((v,e),_):mtab)
  = let qlist' = tsingle (varKey v) [] `tmerge` qlist
-       estrie' = tenter (++) (varKey $ eDrop e) [] estrie
+       estrie' = tenter (++) (varKey $ getVar e) [] estrie
    in  addNullSubtsnMatches ( tmap TSO estrie'
                               `tmerge`
                               tmap VO qsngl
@@ -1128,7 +1128,7 @@ forceMatch mctxt edivvy qdivvy bind@(gpbind,vebind,ttbind) sitab mitab msubtab
    sadd :: Trie [Expr] -> ((Variable,Expr),[(Variable,Expr)]) -> Trie [Expr]
    sadd trie ((sv,se),sreps)
      = tenter (++)
-              (varKey sv++ '_':varKey (eDrop se))             -- v$_e$
+              (varKey sv++ '_':varKey (getVar se))             -- v$_e$
               (map mkEq sreps) trie                           -- [..,u=f,..]
      where
        mkEq (u,f) = mkEqual (Var u) f

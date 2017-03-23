@@ -96,7 +96,7 @@ We now define a default printer and parser.
 \begin{code}
 showVarDef :: Variable -> String
 showVarDef (nm, kind, role)
- = showKind kind ++ nm ++ showRole
+ = showKind kind ++ nm ++ showRole role
 
 showKind Obs = ""
 showKind Exp = "_"
@@ -114,153 +114,50 @@ The parser is total --- ill-formed strings become
 some static script variable.
 \begin{code}
 parseVarDef :: String -> Variable
-parseVarDef str = (showVarDef( trim str, Scrpt, Static),Scrpt,Static)
--- parseVarDef str = lookForKind $ trim str
---
--- lookForKind "" = (showVarDef( "", Scrpt, Static),Scrpt,Static)
--- lookForKind (c:cs)
---  | c == '_'
+parseVarDef str = lookForKind $ trim str
+
+lookForKind "" = (showVarDef( "", Scrpt, Static),Scrpt,Static)
+lookForKind str@(c:cs)
+  | c == '_' = lookForName Exp "" cs
+  | c == '$' = lookForName Prd "" cs
+  | c == '\'' = lookForName Scrpt "" cs
+  | c == '*' = lookForLKind  cs
+  | otherwise = lookForName Obs [c] cs
+
+lookForLKind "" = errorVar "*"
+lookForLKind str@(c:cs)
+  | c == '_' = lookForName (LstV Exp) "" cs
+  | c == '$' = lookForName (LstV Prd) "" cs
+  | c == '\'' = lookForName (LstV Scrpt) "" cs
+  | c == '*'  = errorVar ('*':str)
+  | otherwise = lookForName (LstV Obs) "" cs
+
+lookForName kind eman "" = (reverse eman, kind, Pre)
+lookForName kind eman (c:cs)
+  | c == '.' && null cs  =  (reverse eman, kind, Static)
+  | c == '\'' && null cs  =  (reverse eman, kind, Post)
+  | c == '_' = lookForInter kind (reverse eman) 0 cs
+  | otherwise = lookForName kind (c:eman) cs
+
+lookForInter kind name i "" = (name, kind, Inter i)
+lookForInter kind name i (c:cs)
+ | isDigit c  = lookForInter kind name (10*i+digitToInt c) cs
+ | otherwise = (name, kind, Inter i)
+
+
+errorVar str = ('!':str,Scrpt,Static)
 \end{code}
 
 Variable utility code.
 First three are used to create non-parseable error variables"
 \begin{code}
-gmap :: (String -> String) -> GenRoot -> GenRoot
-gmap f (Std s) = Std $ f s
-gmap f (Lst s) = Lst $ f s
-
-rmap :: (String -> String) -> Root -> Root
-rmap f (Gen g) = Gen $ gmap f g
-rmap _ r@(Rsv _ _) = r
-
 varmap :: (String -> String) -> Variable -> Variable
-varmap f (r,d,k) = (rmap f r,d,f k)
-
-isStdG,isLstG :: GenRoot -> Bool
-isStdG (Std _)  =  True
-isStdG _        =  False
-isLstG (Std _)  =  False
-isLstG _        =  True
-
-isStdR,isLstR :: Root -> Bool
-isStdR (Gen (Std _))  =  True
-isStdR _              =  False
-isLstR (Gen (Std _))  =  False
-isLstR _              =  True
+varmap f (n,k,r) = (f n, k, r)
 \end{code}
 
-We adopt the following ASCII representations of these variables:
-
-\begin{tabular}{|c|c||c|c|}
-  \hline
-  % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
-  $PExpr$ & \verb"O" & $PExpr'$ & \verb"O'" \\\hline
-  $Mdl$ & \verb"M" & $Mdl'$ & \verb"M'" \\\hline
-  $Scr$ & \verb"S" & $Scr'$ & \verb"S'" \\
-  \hline
-\end{tabular}
-
-List variables are distinguished from ordinary variables by a postfix $\lst{}$
-(e.g. $\lst x$).
-
-In effect, \texttt{O}, \texttt{S} and \texttt{M} are reserved variable roots.
 \begin{code}
-listVarFlag = '$'
-
-chrOBS = 'O'
-chrMDL = 'M'
-chrSCR = 'S'
-strOBS = [chrOBS]
-strMDL = [chrMDL]
-strSCR = [chrSCR]
-strOMS = [chrOBS,chrMDL,chrSCR]
-
-genRootString :: GenRoot -> String
-genRootString (Std s)  =  s
-genRootString (Lst s)  =  s ++ [listVarFlag]
-
-rootString :: Root -> String
-rootString (Gen r)  =  genRootString r
-rootString (Rsv OBS grs)    =  strOBS ++ lessString grs
-rootString (Rsv MDL grs)    =  strMDL ++ lessString grs
-rootString (Rsv SCR grs)    =  strSCR ++ lessString grs
-lessString [] = ""
-lessString grs = '\\':(concat $ intersperse ":" $ map genRootString grs)
-
-stringToRoot :: String -> Root -- accepts ill-formed roots !!!
-stringToRoot  s
-  | null s                 =  Gen $ Std s
-  | s == strOBS            =  Rsv OBS []
-  | s == strMDL            =  Rsv MDL []
-  | s == strSCR            =  Rsv SCR []
-  | last s == listVarFlag  =  Gen $ Lst (init s)
-  | otherwise              =  Gen $ Std s
-
-forceLst :: String -> Root  -- make it a listvar, even if last $ is missing
-forceLst  s
-  | null s                 =  Gen $ Lst s
-  | s == strOBS            =  Rsv OBS []
-  | s == strMDL            =  Rsv MDL []
-  | s == strSCR            =  Rsv SCR []
-  | last s == listVarFlag  =  Gen $ Lst (init s)
-  | otherwise              =  Gen $ Lst s
-
-varRoot :: Variable -> Root
-varRoot (r,_,_) = r
-varGenRoot :: Variable -> GenRoot
-varGenRoot (Gen g,_,_) = g
-varGenRoot (r@(Rsv _ _),_,_) = Lst ('!':rootString r)
-varDecor :: Variable -> Decor
-varDecor (_,d,_) = d
-varLess :: Variable -> [GenRoot]
-varLess (Rsv _ rs,_,_) = rs
-varLess (_,_,_) = []
 varKey :: Variable -> String
-varKey (_,_,s) = s
-
-varRootAsString :: Variable -> String -- ignores decoration, etc..
-varRootAsString = rootString . varRoot
-
-isStdV,isLstV,isGenV,isRsvV :: Variable -> Bool
-
-isStdV (Gen (Std _), _, _)  =  True
-isStdV _                    =  False
-
-isLstV (Gen (Std _), _, _)  =  False
-isLstV _                    =  True
-
-isGenV (Gen (Lst _), _, _)  =  True
-isGenV _                    =  False
-
-isRsvV (Rsv _ _, _, _)    =  True
-isRsvV _                    =  False
-
-isStdS,isLstS,isRsv :: String -> Bool -- roots only
-
-isStdS ""   =  False
-isStdS [c]  =  not(c `elem` strOMS)
-isStdS (c:n:_)
- | c `elem` strOMS && not (isAlphaNum n) = False
-isStdS s    =  last s /= listVarFlag
-
-isLstS ""   =  False
-isLstS [c]  =  c `elem` strOMS
-isLstS (c:n:_)
- | c `elem` strOMS && not (isAlphaNum n) = True
-isLstS s    =  last s == listVarFlag
-
-isRsv [c]   =  c `elem` strOMS
-isRsv _     =  False
-
-normalVariable, noDecorVariable :: String -> Variable
-normalVariable  s   =  (stringToRoot s, Pre,     s)
-noDecorVariable  s  =  (stringToRoot s, NoDecor, s)
-nullVar = noDecorVariable ""
-
-rootAsVar :: Root -> Variable
-rootAsVar r = (r,NoDecor,rootString r)
-genRootAsVar :: GenRoot -> Variable
-genRootAsVar = rootAsVar . Gen
+varKey (n,_,_) = n
 \end{code}
 
 \newpage
@@ -283,17 +180,6 @@ ssvlookup tries = sslookup tries . varKey
 tvupdate :: Variable -> t -> Trie t -> Trie t
 tvupdate v a trie = tupdate (varKey v) a trie
 \end{code}
-We want support for \texttt{GenRoot} lookups as well:
-\begin{code}
-tglookup :: Trie t -> GenRoot -> Maybe t
-tglookup trie = tlookup trie . genRootString
-
-tsglookup :: [Trie t] -> GenRoot -> Maybe t
-tsglookup tries = tslookup tries . genRootString
-
-tgupdate :: GenRoot -> t -> Trie t -> Trie t
-tgupdate g a trie = tupdate (genRootString g) a trie
-\end{code}
 
 We will often want to split variable lists into
 two: the standard variables, and the rest.
@@ -301,8 +187,15 @@ Also, list variables can be split into general, and reserved.
 \begin{code}
 vPartition :: [Variable] -> ([Variable],[Variable])
 vPartition = partition isStdV
+
+isStdV (_,LstV _,_) = False
+isStdV _            = True
+
 rPartition :: [Variable] -> ([Variable],[Variable])
 rPartition = partition isRsvV
+isRsvV(nm,LstV _,_) = isRsv nm
+isRsvV _ = False
+isRsv nm = nm `elem` ["O","M","S"]
 \end{code}
 
 \newpage
@@ -526,16 +419,8 @@ type ESubst = Substn Variable Expr
 We need some builders that perform
 tidying up for corner cases:
 \begin{code}
-noDecorVar = Var . noDecorVariable
-
 mkEsub e (Substn []) = e
 mkEsub e sub = ESub e sub
-\end{code}
-
-Drop is  useful:
-\begin{code}
-eDrop (Var v)   =  v
-eDrop _         =  (Gen $ Std ee, NoDecor, ee) where ee = "eDrop?"
 \end{code}
 
 Useful to know when an expression is a variable:
@@ -547,6 +432,7 @@ isVar _         =  False
 getVar :: Expr -> Variable
 getVar (Var v)   =  v
 getVar _         =  nullVar
+nullVar  = ("",Scrpt,Static)
 
 mgetVar :: Expr -> Maybe Variable
 mgetVar (Var v)   =  Just v
@@ -575,7 +461,7 @@ data Pred
 n_Perror = "PRED_ERR: "
 perror str = PApp (n_Perror ++ str) []
 
-type PSubst = Substn GenRoot  Pred
+type PSubst = Substn Variable  Pred
 \end{code}
 
 We define two constructor functions to handle the \texttt{Expr}/\texttt{Pred} ``crossovers'':
@@ -652,11 +538,6 @@ Some query functions:
 isObs (PExpr _) = True
 isObs _       = False
 \end{code}
-Drop is handy:
-\begin{code}
-pDrop (PVar p) = p
-pDrop _ = genRootAsVar $ Std "?pDrop"
-\end{code}
 
 \newpage
 \subsection{Quantifier Variables}
@@ -695,12 +576,9 @@ from quantifier lists:
 \begin{code}
 getqovars = filter isStdV
 getqqvars = filter isLstV
-getqvars  = id
-
-lqnorm :: QVars -> QVars
-lqnorm =  lnorm
+isLstV (_,LstV _,_) = True
+isLstV _ = False
 \end{code}
-(Normalising these lists is also useful)
 
 \subsection{Language Constructs}
 
@@ -1209,9 +1087,6 @@ dbgPshow i  (PAbs nm tts qs prs)
 dbgPshow i  (Sub pr sub)
  = hdr i ++ "SUB" ++ dbgESshow (i+1) sub++dbgPshow (i+1) pr
 
-dbgGshow (Std s) = "STD: " ++ s
-dbgGshow (Lst s) = "LST: " ++ s
-
 dbgSSshow i SSNull      = hdr i ++ "SSNULL"
 dbgSSshow i (SSTok s)   = hdr i ++ "SSTOK "  ++ s
 dbgSSshow i (SSSep s)   = hdr i ++ "SSSEP "  ++ s
@@ -1227,21 +1102,20 @@ dbgEshow i (Abs s tts qs es)
 dbgEshow i (ESub e sub)
  = hdr i ++ "ESUB "++dbgESshow (i+1) sub ++ dbgEshow (i+1) e
 
-dbgDshow NoDecor = "NODECOR"
-dbgDshow Pre = "PRE"
-dbgDshow Post = "POST"
-dbgDshow (Subscript s) = "SSCRPT:"++s
-dbgDshow Scrpt = "SCRIPT"
+dbgKshow Obs = "OBS"
+dbgKshow Exp = "EXP"
+dbgKshow Prd = "PRD"
+dbgKshow Scrpt = "SCRPT"
+dbgKshow (LstV k) = "LSTV "++dbgKshow k
 
-dbgRshow (Gen (Std s)) = "STD "++s
-dbgRshow (Gen (Lst s)) = "LST "++s
-dbgRshow (Rsv OBS rs)  = "OBS"++' ':(concat $ intersperse ":" $ map (dbgRshow . Gen) rs)
-dbgRshow (Rsv MDL rs)  = "MDL"++' ':(concat $ intersperse ":" $ map (dbgRshow . Gen) rs)
-dbgRshow (Rsv SCR rs)  = "SCR"++' ':(concat $ intersperse ":" $ map (dbgRshow . Gen) rs)
+dbgRshow Static = "STATIC"
+dbgRshow Pre = "PRE"
+dbgRshow Post = "POST"
+dbgRshow (Inter i) = "INTER "++show i
 
-dbgVshow (r,d,s) = dbgRshow r
-                    ++ ' ':dbgDshow d
-                    ++ " \"" ++ s ++ "\""
+dbgVshow (n,k,r) = dbgKshow k
+                    ++ ' ':n
+                    ++ ' ':dbgRshow r
 
 dbgVSshow vs = "<"
                ++ (concat $ intersperse ">, <" $ map dbgVshow vs)
@@ -1264,7 +1138,7 @@ dbgESshow i (Substn sub)
 
 dbgPSshow :: Int -> PSubst -> String
 dbgPSshow i (Substn sub)
-  = hdr i ++ "P-SUBSTN" ++ dbgSshow (dbgRshow . Gen) dbgPshow (i+2) sub
+  = hdr i ++ "P-SUBSTN" ++ dbgSshow dbgVshow dbgPshow (i+2) sub
 
 dbgSshow :: (v -> String) -> (Int -> a -> String) -> Int -> [(v,a)]
          -> String
@@ -1481,7 +1355,7 @@ in sub-predicates.
 \begin{code}
 exprParts :: Expr -> (String,[Pred],[Expr],[QVars])
 exprParts (Num _)            = ("Num",[],[],[])
-exprParts (Var (_,_,s))      = ("Var:"++s,[],[],[])
+exprParts (Var (n,_,_))      = ("Var:"++n,[],[],[])
 exprParts (App s es)          = ("App",[],es,[])
 exprParts (Abs s _ qs es)     = ("Abs",[],es,[qs])
 exprParts (ESub e (Substn ssub))
