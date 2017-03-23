@@ -1,5 +1,5 @@
 v3.7
-^TEST ^1 ^0 ^0 !MK
+^TEST ^2 ^0 ^0 !MK
 ^0 !ME
 ^0 !ME
 ^0 !MP
@@ -9,10 +9,19 @@ v3.7
 ^0 !MK
 ^0 !lM
 ^TEST ^Imp !PF
-^(Gen&32;(Std&32;"FALSE"),Pre,"Std&32;\"FALSE\"Pre") !PV
+^(Gen&32;(Std&32;"!BadVar<(Gen&32;(Std&32;\"FALSE\"),Pre,\"Std&32;\\\"FALSE\\\"Pre\")>"),NoDecor,"Std&32;\"!BadVar<(Gen&32;(Std&32;\\\"FALSE\\\"),Pre,\\\"Std&32;\\\\\\\"FALSE\\\\\\\"Pre\\\")>\"NoDecor") !PV
 ^2 !PAP
 !CT
 !L
-^1 !ML
+^TEST2 ^Eqv ^And ^(Gen&32;(Std&32;"P"),Pre,"P") !PV
+^(Gen&32;(Std&32;"Q"),Pre,"Q") !PV
+^2 !PAP
+^And ^(Gen&32;(Std&32;"Q"),Pre,"Q") !PV
+^(Gen&32;(Std&32;"P"),Pre,"Std&32;\"P\"Pre") !PV
+^2 !PAP
+^2 !PAP
+!CT
+!L
+^2 !ML
 ^0 !MT
 !@
