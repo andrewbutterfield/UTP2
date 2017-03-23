@@ -26,11 +26,12 @@ import Text.ParserCombinators.Parsec.Expr
 
 Current Version (changes as \texttt{ImportExport} is revised):
 \begin{code}
-versionArg = "3.7"
+versionArg = "4.0"
 \end{code}
 Historical Versions (once defined, these should never change)
 \begin{code}
 versionProv = "2.3"
+versionLVar = "3.7"
 \end{code}
 0.1, 0.2 --- early versions\\
 0.3 --- adding in alpha-substitution\\
@@ -54,6 +55,7 @@ versionProv = "2.3"
 3.5 --- introduction of \texttt{TTag}\\
 3.6 --- \texttt{Binding} revision (now 9 \texttt{Trie}s)\\
 3.7 --- \texttt{LVar} revision, from Var to GenRoot\\
+4.0 --- Massive Datastructure Revision
 The version command occurs only at the very start of a file.
 Conventionally
 the build and version commands end their argument with a newline.

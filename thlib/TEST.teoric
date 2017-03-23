@@ -1,5 +1,5 @@
-v3.7
-^TEST ^2 ^0 ^0 !MK
+v4.0
+^TEST ^1 ^0 ^0 !MK
 ^0 !ME
 ^0 !ME
 ^0 !MP
@@ -9,7 +9,7 @@ v3.7
 ^0 !MK
 ^0 !lM
 ^TEST ^Imp !PF
-^(Gen&32;(Std&32;"!BadVar<(Gen&32;(Std&32;\"FALSE\"),Pre,\"Std&32;\\\"FALSE\\\"Pre\")>"),NoDecor,"Std&32;\"!BadVar<(Gen&32;(Std&32;\\\"FALSE\\\"),Pre,\\\"Std&32;\\\\\\\"FALSE\\\\\\\"Pre\\\")>\"NoDecor") !PV
+^(Gen&32;(Std&32;"FALSE"),Pre,"Std&32;\"FALSE\"Pre") !PV
 ^2 !PAP
 !CT
 !L
