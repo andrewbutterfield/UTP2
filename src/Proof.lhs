@@ -950,6 +950,22 @@ findDefns lawtable = fd [] lawtable
 
 To be reconsidered \dots
 
+First,
+given a complete language construct (name and syntax-spec.)
+we generate a conservative definition entry,
+as well as a precedence entry.
+\begin{code}
+genDummyLangDefn user lname lspec
+ = (dname,llaw)
+ where
+   dname = defnNamePrefix++lname
+   llaw = ((lass,SCtrue),UserDEFN user,Bnil)
+   lass = genDummyLangLHS lname lspec === predUNINT
+
+genDummyLangLHS lname (LangSpec ss)
+ = PApp (concat $ map show ss) [] -- temporary hack
+\end{code}
+
 
 \subsection{Theory Stacks}
 

@@ -275,9 +275,6 @@ progMatching lawPrefix pid work tstack pred sc window
       allLaws (x:xs) = concatMap laws xs
       replaceLaws (newThry:x:xs) wpLaws = x{laws = wpLaws} : xs
 
-sepAtAnd (pr@(Lang s p les ss),_)
-  | lesPreds les /= [] = sepAtAnd (head.lesPreds $ les, False)
-  | otherwise = [pr]
 sepAtAnd ((PApp nm prs),_) | nm==n_And  =  prs
 sepAtAnd (pr,_)                         =  [pr]
 
@@ -329,8 +326,6 @@ instantiatepred inum mctxt bnds@(gpbnds,vebnds,ttbnds) pat
    bP (PAbs nm _ qs prs)
      = PAbs nm 0 (instantiateQ mctxt bnds qs) (map bP prs)
    bP (Sub pr sub) = mkSub (bP pr) (instantiateESub mctxt bnds sub)
-   bP (Lang nm p [le1,le2] ss) = bL2P nm p ss le1 le2
-   bP (Lang nm p les ss) = Lang nm p (bLES les) ss
 
    bP pat = pat
 \end{code}
@@ -397,52 +392,8 @@ and we should bind these first.
    b2E apred (e1,e2) = PExpr (apred e1 e2)
 \end{code}
 
-Doing it all for languages:
-\begin{code}
-   bL2P nm p ss le1 le2
-    | not $ isLELstV le1        =  std
-    | not $ isLELstV le2        =  std
-    | notSeq r1                 =  std
-    | notSeq r2                 =  std
-    | length es1 /= length es2  =  std
-    | otherwise = mkAnd (map (b2L nm p ss) (zip es1 es2))
-    where
-
-     std = Lang nm p (bLES [le1,le2]) ss
-
-     vof (LVar g) = mkGVar Scrpt g
-     vof (LExpr (Var v)) = v
-     v1 = vof le1
-     v2 = vof le2
-
-     r1 = velookupTO v1 vebnds
-     r2 = velookupTO v2 vebnds
-     notSeq (Just (App nm _)) | nm==n_seq  =  False
-     notSeq _                              =  True
-     (Just (App _ es1)) = r1  -- should be a n_seq
-     (Just (App _ es2)) = r2  -- should be a n_seq
-
-   -- end bL2P
-
-   b2L nm p ss (e1,e2) = Lang nm p [LExpr e1,LExpr e2] ss
-\end{code}
-
 Other \texttt{instantiatePred mctxt} auxilliaries:
 \begin{code}
-   bLES [] = []
-   bLES (le:les) = bLE le : bLES les
-
-   bLE (LVar g)     = LVar (case velookupTO (mkGVar Scrpt g) vebnds of
-                              Nothing       ->  g
-                              Just (Var (Gen g',_,_)) ->  g'
-                              Just e        ->  Std ("??Lvar '"++show g++"' to "++show e++"??")
-                           )
-   bLE (LType t)    = LType (instantiateType mctxt bnds t)
-   bLE (LExpr e)    = LExpr (instantiateExpr mctxt bnds e)
-   bLE (LPred pr)   = LPred (bP pr)
-   bLE (LList les)  = LList (map bLE les)
-   bLE (LCount les) = LCount (map bLE les)
-
    bPV pvs = map (stripPvar . bP . PVar . parseVariable . psName) pvs
 
    stripPvar (PVar r) = show r

@@ -1608,24 +1608,6 @@ toISeq_pred (prec,l2a) curprec (Sub pred sub)
           , toISeq_pred (prec,l2a) curprec pred, ITok P_PAREN_END]
 \end{code}
 
-The \texttt{Lext} cases output tokens
-in place of certain strings that represent known common operators.
-\begin{eqnarray*}
-   \ppr{P \oplus Q} &=& \ppr P~(\annote{Bin}@\rndr\oplus)~\ppr Q
-\\ \ppr{v \hookleftarrow e} &=& \ppr v~(\annote{AVE}@\rndr\hookleftarrow)~\ppr e
-\\ \ppr{e \diamond P} &=& \ppr e~(\annote{AEP}@\rndr\diamond)~\ppr P
-\\ \ppr{P \boxplus_e Q} &=& \ppr P~(\annote{A3}@\rndr{\boxplus_{\ppr e}})~\ppr Q
-\end{eqnarray*}
-\begin{code}
-toISeq_pred (prec,l2a) curprec (Lang opname p les ss)
- = iConcat ( [br_s,IString "Lang-NYI-",token,br_e] )
- where (br_s, br_e) = brackets curprec 16
-       token = case opname of -- SHOULD LOOKUP A TABLE !!!
-        "|~|" -> (ITok P_INT_CHOICE)
-        "[]"  -> (ITok P_EXT_CHOICE)
-        "&"   -> (ITok P_GUARD)
-        a     -> IString a
-\end{code}
 
 \subsubsection{Pretty-printing Quantified Predicates}
 

@@ -119,7 +119,6 @@ data IEelem = Txt String | Count Int | Flag Bool
             | SPelem PSubst
             | Eelem  Expr
             | Pelem  Pred
-            | LEelem LElem
             | SSelem SynSpec
             | SCelem SideCond
             | ASelem Assertion
@@ -174,7 +173,6 @@ styp (SEelem _) = "ESubst"
 styp (SPelem _) = "PSubst"
 styp (Eelem  _) = "Expr"
 styp (Pelem  _) = "Pred"
-styp (LEelem _) = "LElem"
 styp (SSelem _) = "SynSpec"
 styp (SCelem _) = "SideCond"
 styp (ASelem _) = "Assertion"
@@ -416,11 +414,6 @@ popPred stk = popFail stk "popPred" "predicate"
 -- popHP [] = popNone "popPredSet"
 -- popHP ((HPelem pr):stk) = (ImportOK,pr,stk)
 -- popHP stk = popFail stk "popPredSet" "predicate-set"
-
-popLE :: IEStack -> (ImportReport,LElem,IEStack)
-popLE [] = popNone "popLE"
-popLE ((LEelem le):stk) = (ImportOK,le,stk)
-popLE stk = popFail stk "popLE" "lang. elem"
 
 popSS :: IEStack -> (ImportReport,SynSpec,IEStack)
 popSS [] = popNone "popSS"
@@ -1461,11 +1454,6 @@ exportPred (Sub pr sub)
 exportPred (PExpr e)
  = exportExpr e
    ++ bPred codePExpr
-exportPred (Lang s p les ss)
-  = wrArg s ++ wrNum p
-            ++ exportList exportLE les
-            ++ exportList exportSS ss
-            ++ bPred codeLang
 exportPred (TypeOf e t)
  = exportExpr e ++ exportType t
    ++ bPred codeTypeOf
@@ -1479,7 +1467,6 @@ btable4a
     , (codePExpr  , build1  popExpr PExpr Pelem )
     , (codeTypeOf , build11 popType popExpr TypeOf Pelem )
     , (codePApp   , buildn1  popPred popStr PApp Pelem )
-    , (codeLang   , buildnn11 popSS popLE popNum popStr Lang Pelem )
     , (codePAbs   , buildn11 popPred popQVars popStr pabs Pelem )
     , (codeSub    , build11 popESubst popPred Sub Pelem )
     , (codePVar   , build1 popStr  (PVar . parseVariable) Pelem )
