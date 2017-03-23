@@ -19,145 +19,107 @@ type Message = String
 \end{code}
 
 \newpage
-\subsection{Substitutions}
-
-Substitutions associate a list of things (types,expressions,predicates)
-with some (quantified) variables.
-This is just
-\begin{code}
-data Substn v a
- = Substn [( v   -- variable type
-           , a   -- replacement object
-           )]
- deriving (Eq,Ord,Show)
-
-type VSubst = Substn Variable Variable
-\end{code}
-
-It helps to convert \texttt{Substn} into pairs of lists
-or lists of pairs (assuming no meta-variables, and correct matching),
-and vice-versa:
-\begin{code}
-unwrapQV  (Substn ssub)  =  twist $ unzip $ ssub
-sublistQV (Substn ssub)  =  map twist ssub
-mkSubs a v       =  Substn [(v,a)]
-packlistQV subs  =  Substn (map twist subs)
-packflipQV subs  =  Substn subs -- now a misnomer
-\end{code}
-The use of \texttt{twist} here is because
-the new revised \texttt{Substn} datatype
-now puts entries in association-list order \texttt{(from,to)}
-rather than substitution notation order \texttt{[to/from]},
-which was the basis for the old%
-\footnote{pre May 27th 2010}
-datatype.
-
-We provide a constructor
-that supports the old type, where we had a list of things and
-a corresponding \texttt{Variable},
-as well as a destructor that returns \texttt{QVars}.
-
-(We note that \texttt{QVars} have been demoted
-from \texttt{data} to \texttt{type}
-and will be phased out).
-\begin{code}
-mkQsubst as xs = Substn $ zip xs as
-
-mkSubQ (Substn ssub) =  map fst ssub
-\end{code}
-
-It is useful to be able to partition substitutions on Variables
-between those that are standard and those that are list:
-\begin{code}
-sPartition :: [(Variable,a)] -> ([(Variable,a)],[(Variable,a)])
-sPartition = partition (isStdV . fst)
-\end{code}
-
-
-
-Mapping across \texttt{Substn} types is also helpful:
-\begin{code}
-mapSub :: (a -> b) -> Substn v a -> Substn v b
-mapSub f (Substn ssub)
- = Substn (map (lift f) ssub)
- where lift f (v,a) = (v,f a)
-\end{code}
-
-\begin{code}
-qvunzip :: Substn v a -> ([a],[v])
-qvunzip (Substn sub) = twist $ unzip sub
-
-qvunzipWith :: (v -> Variable) -> Substn v a -> ([a],[Variable])
-qvunzipWith toV sub = setsnd (map toV ) $ qvunzip sub
-\end{code}
-
-\subsection{Types}
-
-For now, type variables are strings:
-\begin{code}
-type TVar = String
-\end{code}
-
-The ordering of data-constructors here is important,
-as type-inference relies on it.
-\begin{code}
-data Type -- most general types first
- = Tarb
- | Tvar TVar
- | TApp String [Type]
- | Tfree String [(String,[Type])]
- | Tfun Type Type
- | Tenv
- | Z
- | B
- | Terror String Type
- deriving (Eq,Ord,Show)
-
-type TSubst = Substn String   Type
-
-nonTypeCons Tarb      =  True
-nonTypeCons (Tvar _)  =  True
-nonTypeCons Tenv      =  True
-nonTypeCons Z         =  True
-nonTypeCons B         =  True
-nonTypeCons _         =  False
-\end{code}
-
-
-
-\newpage
 \subsection{Variables}
 
-\input{doc/Variable-Syntax}
-
-A variable has a root and decoration.
+A variable has a \emph{name}.
 \begin{code}
-data GenRoot = Std String       -- single (Standard) variable
-             | Lst String       -- List variables
-             deriving (Eq,Ord,Show)
+type Name = String -- no whitespace !
+\end{code}
 
-data RsvRoot = OBS  -- all observations
-             | MDL  -- model observations
-             | SCR  -- script observations
-             deriving (Eq,Ord,Show)
+A variable will have one of the following \emph{kinds}:
+\begin{description}
+  \item[Observational]
+    Corresponds to some observation that can be made of a program,
+    and hence belongs, in UTP,  to the alphabet of the corresponding predicate.
+  \item[Schematic]
+    Stands for an arbitrary chunk of abstract syntax,
+    of which we recognise two broad classes:
+    \begin{description}
+      \item[Expression] denotes an arbitrary expression
+      \item[Predicate] denotes an arbitrary predicate
+    \end{description}
+  \item[Script]
+    Represents an actual program variable itself,
+    rather than any associated value it may take.
+  \item[List]
+   In a context where a list of variables is required,
+   this can stand for zero or more variables,
+   all belonging to precisely one of the categories detailed above.
+\end{description}
+The above kinds all have different roles in the logic underlying UTP.
 
-data Root = Gen GenRoot
-          | Rsv RsvRoot [GenRoot]
-          deriving (Eq,Ord,Show)
+\begin{code}
+data VKind = Obs
+           | Exp
+           | Prd
+           | Scrpt
+           | LstV VKind -- cannot be ListV !
+           deriving (Eq, Ord, Show)
+\end{code}
 
-data Decor
- = NoDecor    -- for variable were decoration is irrelevant
- | Pre
- | Post
- | Subscript String
- | Scrpt             -- script variables, know or unknown
- deriving (Eq,Ord,Show)
+In addition, with most of the variable kinds above,
+we can associate one of the following \emph{roles}:
+\begin{description}
+  \item[Static]
+    variables whose values a fixed for the life of a (program) behaviour
+  \item[Dynamic]
+    variables whose values are expected to change over the life of a behaviour.
+    \begin{description}
+      \item[Pre]
+        variables that record the values taken when a behaviour starts
+      \item[Post]
+        variables that record the values taken when a behaviour ends
+      \item[Intermediate]
+        indexed variables that record values that arise between successive behaviours
+    \end{description}
+\end{description}
+These distinct roles do not effect how the underlying logic handles
+variables, but are used to tailor definitional shorthands that
+assume that these are enacting the relevant UTP variable conventions.
 
-type Variable = ( Root      -- variable (main) root
-                , Decor     -- variable decoration
-                , String    -- text representation (used as table key)
-                )
-type Vs = [Variable]
+\begin{code}
+data VRole = Static
+           | Pre
+           | Post
+           | Inter Int
+           deriving (Eq, Ord, Show)
+\end{code}
+
+
+A variable has a name, kind and role.
+\begin{code}
+type Variable = ( Name, VKind, VRole )
+\end{code}
+
+
+We now define a default printer and parser.
+\begin{code}
+showVarDef :: Variable -> String
+showVarDef (nm, kind, role)
+ = showKind kind ++ nm ++ showRole
+
+showKind Obs = ""
+showKind Exp = "_"
+showKind Prd = "$"
+showKind Scrpt = "'"
+showKind (LstV k) = "*"++showKind k
+
+showRole Static = "."
+showRole Pre = ""
+showRole Post = "'"
+showRole (Inter i) = "_"++show i
+\end{code}
+
+The parser is total --- ill-formed strings become
+some static script variable.
+\begin{code}
+parseVarDef :: String -> Variable
+parseVarDef str = (showVarDef( trim str, Scrpt, Static),Scrpt,Static)
+-- parseVarDef str = lookForKind $ trim str
+--
+-- lookForKind "" = (showVarDef( "", Scrpt, Static),Scrpt,Static)
+-- lookForKind (c:cs)
+--  | c == '_'
 \end{code}
 
 Variable utility code.
@@ -341,6 +303,111 @@ vPartition :: [Variable] -> ([Variable],[Variable])
 vPartition = partition isStdV
 rPartition :: [Variable] -> ([Variable],[Variable])
 rPartition = partition isRsvV
+\end{code}
+
+\newpage
+\subsection{Substitutions}
+
+Substitutions associate a list of things (types,expressions,predicates)
+with some (quantified) variables.
+This is just
+\begin{code}
+data Substn v a
+ = Substn [( v   -- variable type
+           , a   -- replacement object
+           )]
+ deriving (Eq,Ord,Show)
+
+type VSubst = Substn Variable Variable
+\end{code}
+
+It helps to convert \texttt{Substn} into pairs of lists
+or lists of pairs (assuming no meta-variables, and correct matching),
+and vice-versa:
+\begin{code}
+unwrapQV  (Substn ssub)  =  twist $ unzip $ ssub
+sublistQV (Substn ssub)  =  map twist ssub
+mkSubs a v       =  Substn [(v,a)]
+packlistQV subs  =  Substn (map twist subs)
+packflipQV subs  =  Substn subs -- now a misnomer
+\end{code}
+The use of \texttt{twist} here is because
+the new revised \texttt{Substn} datatype
+now puts entries in association-list order \texttt{(from,to)}
+rather than substitution notation order \texttt{[to/from]},
+which was the basis for the old%
+\footnote{pre May 27th 2010}
+datatype.
+
+We provide a constructor
+that supports the old type, where we had a list of things and
+a corresponding \texttt{Variable},
+as well as a destructor that returns \texttt{QVars}.
+
+(We note that \texttt{QVars} have been demoted
+from \texttt{data} to \texttt{type}
+and will be phased out).
+\begin{code}
+mkQsubst as xs = Substn $ zip xs as
+
+mkSubQ (Substn ssub) =  map fst ssub
+\end{code}
+
+It is useful to be able to partition substitutions on Variables
+between those that are standard and those that are list:
+\begin{code}
+sPartition :: [(Variable,a)] -> ([(Variable,a)],[(Variable,a)])
+sPartition = partition (isStdV . fst)
+\end{code}
+
+
+
+Mapping across \texttt{Substn} types is also helpful:
+\begin{code}
+mapSub :: (a -> b) -> Substn v a -> Substn v b
+mapSub f (Substn ssub)
+ = Substn (map (lift f) ssub)
+ where lift f (v,a) = (v,f a)
+\end{code}
+
+\begin{code}
+qvunzip :: Substn v a -> ([a],[v])
+qvunzip (Substn sub) = twist $ unzip sub
+
+qvunzipWith :: (v -> Variable) -> Substn v a -> ([a],[Variable])
+qvunzipWith toV sub = setsnd (map toV ) $ qvunzip sub
+\end{code}
+
+\subsection{Types}
+
+For now, type variables are strings:
+\begin{code}
+type TVar = String
+\end{code}
+
+The ordering of data-constructors here is important,
+as type-inference relies on it.
+\begin{code}
+data Type -- most general types first
+ = Tarb
+ | Tvar TVar
+ | TApp String [Type]
+ | Tfree String [(String,[Type])]
+ | Tfun Type Type
+ | Tenv
+ | Z
+ | B
+ | Terror String Type
+ deriving (Eq,Ord,Show)
+
+type TSubst = Substn String   Type
+
+nonTypeCons Tarb      =  True
+nonTypeCons (Tvar _)  =  True
+nonTypeCons Tenv      =  True
+nonTypeCons Z         =  True
+nonTypeCons B         =  True
+nonTypeCons _         =  False
 \end{code}
 
 \newpage

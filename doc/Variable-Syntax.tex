@@ -1,11 +1,45 @@
- Well-formed variables have the following syntax:
- \begin{eqnarray*}
-    s \in Std && \mbox{``standard'' variables}
- \\ \ell \in Lst && \mbox{list variables}
- \\ g \in Gen &::=&  s | \ell
- \\ R \in Rsv &::=& O | M | S
- \\ d \in Dcr &::=& {}^\cdot | {}' | {}_x | {}^{``}
- \\ v \in Var &::=& \left( g | R [g,\ldots,g] \right)^d
- \end{eqnarray*}
-THIS STRUCTURE NEEDS REWORKING! O,M and S are List Variables.
-AND STANDARD VARIABLES HAVE OBJECT-LOGIC VARIABLES AND SCHEMATIC VARIABLES.
+A variable has a \emph{name}.
+
+A variable will have one of the following \emph{kinds}:
+\begin{description}
+  \item[Observational]
+    Corresponds to some observation that can be made of a program,
+    and hence belongs, in UTP,  to the alphabet of the corresponding predicate.
+  \item[Schematic]
+    Stands for an arbitrary chunk of abstract syntax,
+    of which we recognise two broad classes:
+    \begin{description}
+      \item[Expression] denotes an arbitrary expression
+      \item[Predicate] denotes an arbitrary predicate
+    \end{description}
+  \item[Script]
+    Represents an actual program variable itself,
+    rather than any associated value it may take.
+  \item[List]
+   In a context where a list of variables is required,
+   this can stand for zero or more variables,
+   all belonging to precisely one of the categories detailed above.
+\end{description}
+The above kinds all have different roles in the logic underlying UTP.
+
+In addition, with most of the variable kinds above,
+we can associate one of the following \emph{roles}:
+\begin{description}
+  \item[Static]
+    variables whose values a fixed for the life of a (program) behaviour
+  \item[Dynamic]
+    variables whose values are expected to change over the life of a behaviour.
+    \begin{description}
+      \item[Pre]
+        variables that record the values taken when a behaviour starts
+      \item[Post]
+        variables that record the values taken when a behaviour ends
+      \item[Intermediate]
+        variables that record values that arise between successive behaviours
+    \end{description}
+\end{description}
+These distinct roles do not effect how the underlying logic handles
+variables, but are used to tailor definitional shorthands that
+assume that these are enacting the relevant UTP variable conventions.
+
+WE SHALL REVISIT SYNTACTICAL ISSUES LATER.
