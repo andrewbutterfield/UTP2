@@ -5,9 +5,9 @@
 
 module WxFiles where
 
-import GIFiles (establishAppUserDirGI)
-
-import Compatibility (utp2try)
+import           Compatibility  (utp2try)
+import           GIFiles (Args(..))
+import qualified GIFiles as GI
 
 import Utilities
 import Tables
@@ -108,41 +108,23 @@ The state of affairs, in particular any failures,
 are communicated to the user, along with any
 related initialisation actions.
 \begin{code}
-startupFileHandling w fstate
- = do fstate' <- determineAppData w fstate
-      fstate'' <- accessFrameworkData w fstate'
-      return fstate''
+startupFileHandling w fstate = do
+  let args = Args {
+      aW                 = w
+    , aState             = fstate
+    , aAppUserDir        = appUserDir 
+    , aCurrentFileSpace  = snd . currentFileSpace
+    , aDisplayError      = errorDialog w "Cannot create directory"
+    , aOnAppUserDirError = \state -> return state { appUserDir = "" }
+    }
+  aState <$> GI.startupFileHandlingGI args
 \end{code}
 
-\newpage
-\subsubsection{Accessing application user data}
-\begin{enumerate}
-  \item
-     Does the directory exist ? If not, initialise it.
-  \item
-     Does the set-up file exist ? If not, initialise it.
-  \item
-    Read the set-up file to get the current and previous filesspaces,
-    initialising the current, if corrupted
-\end{enumerate}
 \begin{code}
-determineAppData w fstate
- = do fstate' <- establishAppUserDir w fstate
-      fstate'' <- determineFSPs w fstate'
-      return fstate''
-
 -- |Wx implementation of GUI-independant 'establishAppUserDir'.
-establishAppUserDir w fstate = establishAppUserDirGI
-  (appUserDir fstate)
-  (errorDialog w "Cannot create directory")
-  (\fstate' -> return fstate' { appUserDir = "" })
-  fstate
-  
-determineFSPs w fstate
- = do let audPath = appUserDir fstate
-      if null audPath
-       then userCreateFS w fstate
-       else fileLookupFSPs w fstate
+-- establishAppUserDir w fstate = GI.establishAppUserDirGI
+--   (appUserDir fstate)
+--   fstate
 
 namePathSep = ';'
 
@@ -193,34 +175,9 @@ writeFSPFile path fstate
    showFSP (name,path) = name ++ namePathSep:path
 \end{code}
 
-
-
-\newpage
-\subsubsection{Accessing Framework Data}
-
-\begin{enumerate}
-  \item
-    Does it exist ? if not, initialise it.
-  \item
-    Does the framework file exist ? If not, initialise it.
-  \item
-    Read the framework file, initialising if corrupt.
-  \item
-    Does the current proof file exist ? If not, initialise it.
-  \item
-    Read the current proof file, initialising if corrupted.
 \end{enumerate}
-\begin{code}
-accessFrameworkData w fstate
- = do let cwdpath = snd (currentFileSpace fstate)
-      mres1 <- utp2try (createDirectoryIfMissing True cwdpath)
-      -- explainError mres1
-      mres3 <- utp2try (setCurrentDirectory cwdpath)
-      -- explainError mres3
-      -- xxx <- getCurrentDirectory
-      --toConsole ("\n\n***CURR DIR NOW = "++xxx)
-      return fstate
 
+\begin{code}
 explainError (Right _) = return ()
 explainError (Left ioerror) = toConsole ("Ioerror - "++show ioerror)
 \end{code}

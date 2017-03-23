@@ -34,6 +34,7 @@ Library
                    , AlphaSubs
                    , Archive
                    , Builtin
+                   , Compatibility
                    , DSL
                    , DataText
                    , Datatypes
@@ -42,6 +43,7 @@ Library
                    , Flatten
                    , Focus
                    , FreeBound
+                   , GIFiles
                    , Graphics.UI.Abstract
                    , Graphics.UI.Abstract.Threepenny
                    , GS3001
@@ -115,7 +117,8 @@ Library
                    , threepenny-gui-flexbox
                    , wxcore
                    , wx
-    extensions:      FlexibleContexts
+    extensions:      DoAndIfThenElse
+                   , FlexibleContexts
                    , FlexibleInstances
                    , StandaloneDeriving
                    , UndecidableInstances
