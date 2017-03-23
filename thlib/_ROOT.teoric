@@ -1,0 +1,316 @@
+v3.7
+^_ROOT ^1 ^0 ^0 !MK
+^0 !ME
+^0 !ME
+^0 !MP
+^0 !MV
+^/= ^220 ^0 !p
+^/\ ^80 ^1 !p
+^= ^220 ^0 !p
+^== ^20 ^1 !p
+^=> ^30 ^2 !p
+^IN ^83 ^0 !p
+^U ^85 ^1 !p
+^\/ ^60 ^1 !p
+^8 !MO
+^0 !MG
+^/= ^prod ^t !Tv
+^t !Tv
+^2 !T@
+!TB
+!TF
+^/\ ^prod !TB
+!TB
+^2 !T@
+!TB
+!TF
+^= ^prod ^t !Tv
+^t !Tv
+^2 !T@
+!TB
+!TF
+^== ^prod !TB
+!TB
+^2 !T@
+!TB
+!TF
+^=> ^prod !TB
+!TB
+^2 !T@
+!TB
+!TF
+^\/ ^prod !TB
+!TB
+^2 !T@
+!TB
+!TF
+^~ !TB
+!TB
+!TF
+^7 !MK
+^Ax-==-assoc ^Eqv ^Eqv ^Eqv ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^(Gen&32;(Std&32;"R"),NoDecor,"R") !PV
+^2 !PAP
+^Eqv ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^Eqv ^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^(Gen&32;(Std&32;"R"),NoDecor,"R") !PV
+^2 !PAP
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-==-symm ^Eqv ^Eqv ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^Eqv ^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-==-id ^Eqv !PT
+^Eqv ^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-FALSE-def ^Eqv !PF
+^Not !PT
+^1 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-~-==-distr ^Eqv ^Not ^Eqv ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^1 !PAP
+^Eqv ^Not ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^1 !PAP
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-\/-symm ^Eqv ^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^Or ^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-\/-assoc ^Eqv ^Or ^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^(Gen&32;(Std&32;"R"),NoDecor,"R") !PV
+^2 !PAP
+^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^Or ^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^(Gen&32;(Std&32;"R"),NoDecor,"R") !PV
+^2 !PAP
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-\/-idem ^Eqv ^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^2 !PAP
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-\/-==-distr ^Eqv ^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^Eqv ^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^(Gen&32;(Std&32;"R"),NoDecor,"R") !PV
+^2 !PAP
+^2 !PAP
+^Eqv ^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"R"),NoDecor,"R") !PV
+^2 !PAP
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-Excl-Mdl ^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^Not ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^1 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-Golden-Rule ^Eqv ^And ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^Eqv ^Eqv ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-=>-def ^Eqv ^Imp ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^Eqv ^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-all-x-scope ^Eqv ^Forall ^Lst&32;"x"Pre ^Lst&32;"y"Pre ^2 !QL
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^1 !PAB
+^Forall ^Lst&32;"y"Pre ^1 !QL
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^1 !PAB
+^2 !PAP
+^Lst&32;"x"Pre ^1 ^P !CP
+^ROOT !OS
+^Ax-\/-all-x-scope ^Eqv ^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^Forall ^Lst&32;"x"Pre ^Lst&32;"y"Pre ^2 !QL
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^1 !PAB
+^2 !PAP
+^Forall ^Lst&32;"x"Pre ^1 !QL
+^Or ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^Forall ^Lst&32;"y"Pre ^1 !QL
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^1 !PAB
+^2 !PAP
+^1 !PAB
+^2 !PAP
+^Lst&32;"x"Pre ^1 ^P !CP
+^ROOT !OS
+^Ax-all-O-distr ^Eqv ^Forall ^Lst&32;"x"Pre ^1 !QL
+^And ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^2 !PAP
+^1 !PAB
+^And ^Forall ^Lst&32;"x"Pre ^1 !QL
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^1 !PAB
+^Forall ^Lst&32;"x"Pre ^1 !QL
+^(Gen&32;(Std&32;"Q"),NoDecor,"Q") !PV
+^1 !PAB
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-all-x-inst ^Imp ^Forall ^Std&32;"x"Pre ^Lst&32;"x"Pre ^2 !QL
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^1 !PAB
+^Forall ^Lst&32;"x"Pre ^1 !QL
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^Std&32;"E_e"Pre !EV
+^1 ^Std&32;"x"Pre ^1 !QL
+!SE
+!PS
+^1 !PAB
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-any-x-def ^Eqv ^Exists ^Lst&32;"x"Pre ^1 !QL
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^1 !PAB
+^Not ^Forall ^Lst&32;"x"Pre ^1 !QL
+^Not ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^1 !PAP
+^1 !PAB
+^1 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-[[-]]-def ^Eqv ^Univ ^0 !QL
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^1 !PAB
+^Forall ^Lst&32;"x"Pre ^1 !QL
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^1 !PAB
+^2 !PAP
+^Lst&32;"x"Pre ^1 ^P !CC
+^ROOT !OS
+^Ax-=-refl ^Equal ^Std&32;"E_e"Pre !EV
+^Std&32;"E_e"Pre !EV
+^2 !EAP
+!PE
+!CT
+^ROOT !OS
+^Ax-the-def ^Eqv ^Equal ^Std&32;"E_e"Pre !EV
+^The ^Std&32;"x"Pre ^1 !QL
+^Std&32;"E_e"Pre !EV
+!EAB
+^2 !EAP
+!PE
+^And ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^Std&32;"E_e"Pre !EV
+^1 ^Std&32;"x"Pre ^1 !QL
+!SE
+!PS
+^Forall ^Std&32;"Std&32;\"y\"Pre"Pre ^1 !QL
+^Imp ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^Std&32;"E_y"Pre !EV
+^1 ^Std&32;"x"Pre ^1 !QL
+!SE
+!PS
+^Equal ^Std&32;"Std&32;\"y\"Pre"Pre !EV
+^Std&32;"E_e"Pre !EV
+^2 !EAP
+!PE
+^2 !PAP
+^1 !PAB
+^2 !PAP
+^2 !PAP
+^Std&32;"x"Pre ^1 ^e !CE
+^ROOT !OS
+^Ax-Leibniz ^Imp ^Equal ^Lst&32;"x"Pre !EV
+^Lst&32;"e"Pre !EV
+^2 !EAP
+!PE
+^Eqv ^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^(Gen&32;(Std&32;"P"),NoDecor,"P") !PV
+^Lst&32;"e"Pre !EV
+^1 ^Lst&32;"x"Pre ^1 !QL
+!SE
+!PS
+^2 !PAP
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-TRUE-xSubst ^Eqv !PT
+^Lst&32;"e"Pre !EV
+^1 ^Lst&32;"x"Pre ^1 !QL
+!SE
+!PS
+!PT
+^2 !PAP
+!CT
+^ROOT !OS
+^Ax-FALSE-xSubst ^Eqv !PF
+^Lst&32;"e"Pre !EV
+^1 ^Lst&32;"x"Pre ^1 !QL
+!SE
+!PS
+!PF
+^2 !PAP
+!CT
+^ROOT !OS
+^23 !lM
+^test ^Imp !PF
+^(Gen&32;(Std&32;"FALSE"),Pre,"Std&32;\"FALSE\"Pre") !PV
+^2 !PAP
+!CT
+!L
+^1 !ML
+^0 !MT
+!@
