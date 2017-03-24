@@ -16,6 +16,9 @@ We try to build an invariant fixer
 to go with each checker.
 
 \newpage
+\subsection{Variables}
+
+\newpage
 \subsection{\texttt{QVar} usage}
 
 We have a well-formedness condition for the use of

@@ -8,11 +8,7 @@ import Data.Maybe
 import Tables
 import Datatypes
 import Precedences
---import Focus
 import Utilities
--- import Invariants
--- import DSL
---import Types
 import NiceSymbols
 
 import Text.ParserCombinators.Parsec
@@ -27,6 +23,64 @@ import Control.Monad
 
 We define ways to render key datatypes in textual format
 that can itself be parsed.
+
+We now define a default printer and parser for\texttt{ Variable}s
+\begin{code}
+showVarDef :: Variable -> String
+showVarDef (nm, kind, role)
+ = showKind kind ++ nm ++ showRole role
+
+showKind VObs = ""
+showKind VExpr = "_"
+showKind VPred = "$"
+showKind VScript = "'"
+showKind (VList k) = "*"++showKind k
+
+showRole VStatic = "."
+showRole VPre = ""
+showRole VPost = "'"
+showRole VRel = "~"
+showRole (VInter i) = "_"++show i
+\end{code}
+
+The parser is total --- ill-formed strings become
+some static script variable.
+\begin{code}
+parseVarDef :: String -> Variable
+parseVarDef str = lookForKind $ trim str
+
+lookForKind "" = (showVarDef( "", VScript, VStatic),VScript,VStatic)
+lookForKind str@(c:cs)
+  | c == '_' = lookForName VExpr "" cs
+  | c == '$' = lookForName VPred "" cs
+  | c == '\'' = lookForName VScript "" cs
+  | c == '*' = lookForLKind  cs
+  | otherwise = lookForName VObs [c] cs
+
+lookForLKind "" = errorVar "*"
+lookForLKind str@(c:cs)
+  | c == '_' = lookForName (VList VExpr) "" cs
+  | c == '$' = lookForName (VList VPred) "" cs
+  | c == '\'' = lookForName (VList VScript) "" cs
+  | c == '*'  = errorVar ('*':str)
+  | otherwise = lookForName (VList VObs) "" cs
+
+lookForName kind eman "" = (reverse eman, kind, VPre)
+lookForName kind eman (c:cs)
+  | c == '.' && null cs  =  (reverse eman, kind, VStatic)
+  | c == '\'' && null cs  =  (reverse eman, kind, VPost)
+  | c == '~' && null cs  =  (reverse eman, kind, VRel)
+  | c == '_' = lookForInter kind (reverse eman) 0 cs
+  | otherwise = lookForName kind (c:eman) cs
+
+lookForInter kind name i "" = (name, kind, VInter i)
+lookForInter kind name i (c:cs)
+ | isDigit c  = lookForInter kind name (10*i+digitToInt c) cs
+ | otherwise = (name, kind, VInter i)
+
+
+errorVar str = ('!':str,VScript,VStatic)
+\end{code}
 
 
 \newpage
@@ -64,7 +118,7 @@ We have Names, Identifiers, Numerical Constants, Symbols, and White-space:
        \\ \LXDecor
     \end{eqnarray*}
 \begin{code}
-chrLST = listVarFlag ; strLST = [chrLST]
+chrLST = '$' ; strLST = [chrLST]
 chrPOST = '\'' ; strPOST = [chrPOST]
 chrSUBS = '_'  ; strSUBS = [chrSUBS]
 \end{code}
@@ -82,20 +136,11 @@ chrSUBS = '_'  ; strSUBS = [chrSUBS]
        \\ \LXRoots
     \end{eqnarray*}
 \begin{code}
+chrOBS = 'O' ; strOBS = [chrOBS]
+chrMDL = 'M' ; strMDL = [chrMDL]
+chrSCR = 'S' ; strSCR = [chrMDL]
 chrLESS = '\\' ; strLESS = [chrLESS]
 chrLSEP = ':'  ; strLSEP = [chrLSEP]
-\end{code}
-    This immediately induces a number of instances of \texttt{Show}:
-\begin{code}
-showGenRoot   = rootString . Gen
-showRsvRoot r = rootString $ Rsv r []
-showRoot      = rootString
-
-showDecor NoDecor        =  ""
-showDecor Pre            =  ""
-showDecor Post           =  strPOST
-showDecor (Subscript s)  =  chrSUBS:s
-showDecor Scrpt          =  "\""
 \end{code}
   \item
     Numerical constants begin with a digit or minus sign (\verb"-"),
@@ -138,6 +183,20 @@ chrSEP = '.'
     We also have ``key-'' versions of names and symbol tokens,
     which denote those with a special meaning or role.
 \end{itemize}
+
+Some useful predicates on variables:
+\begin{code}
+isStdV (_,VList _,_,_) = False
+isStdV _               = True
+
+isRsvV(nm,VList _,_,_) = isRsv nm
+isRsvV _               = False
+
+isRsv nm = nm `elem` [strOBS,strMDL,strSCR]
+
+isLstV (_,VList _,_,_) = True
+isLstV _               = False
+\end{code}
 
 
 
@@ -274,15 +333,15 @@ Seen initial $\lit O, \lit M, \lit S$.
     scanRsv skot spos kot pos cs@(c:cs')
      | isAlpha c  =  scanName skot spos (c:kot) pos' cs'
      | isDigit c  =  scanName skot spos (c:kot) pos' cs'
-     | c == chrSUBS   =  scanSbscrR skot spos tok "" pos' cs'
-     | c == chrPOST  =  scanPostR skot spos tok pos' cs'
-     | c == chrLESS  =  scanGenRoots skot spos tok (Pre,"") [] (pos,c) pos' cs'
+     | c == chrSUBS = scanSbscrR skot spos tok "" pos' cs'
+     | c == chrPOST = scanPostR skot spos tok pos' cs'
+     | c == chrLESS = scanGenRoots skot spos tok (VPre,"") [] (pos,c) pos' cs'
      | otherwise  =  scanroot ((spos,tokrsv tok):skot) pos cs
      where
        pos' = updatePosChar pos c
        tok = reverse kot
 
-    tokrsv tok = TIdent $ mkVar (stringToRoot tok) Pre   []
+    tokrsv tok = TIdent (tok, VList VObs, VPre, [])
 \end{code}
 
 \paragraph{Reserved Decorations}
@@ -298,13 +357,14 @@ Seen initial $\LXRsvN~\lit\_$
     scanSbscrR skot spos tok sbus pos cs@(c:cs')
      | isAlpha c  =  scanSbscrR skot spos tok (c:sbus) pos' cs'
      | isDigit c  =  scanSbscrR skot spos tok (c:sbus) pos' cs'
-     | c == chrLESS  =  scanGenRoots skot spos tok (Subscript subs,subs) [] (pos,c) pos' cs'
+     | c == chrLESS = scanGenRoots skot spos tok (VInter subs,subs) [] (pos,c)
+                                   pos' cs'
      | otherwise  =  scanroot ((spos,tokrsvsubs tok subs):skot) pos cs
      where
        pos' = updatePosChar pos c
        subs = reverse sbus
 
-    tokrsvsubs tok subs = TIdent $ mkVar (stringToRoot tok) (Subscript subs) []
+    tokrsvsubs tok subs = TIdent (tok, VList VObs, VInter subs, [])
 \end{code}
 
 Node \textsf{RsvPost}:
@@ -313,12 +373,13 @@ Seen initial $\LXRsvN~\lit'$.
     scanPostR skot spos tok pos []
        = scanroot ((spos,tokrsvpost tok):skot) pos []
     scanPostR skot spos tok pos cs@(c:cs')
-     | c == chrLESS  =  scanGenRoots skot spos tok (Post,strPOST) [] (pos,c) pos' cs'
+     | c == chrLESS = scanGenRoots skot spos tok (VPost,strPOST) [] (pos,c)
+                                   pos' cs'
      | otherwise  =  scanroot ((spos,tokrsvpost tok):skot) pos cs
      where
        pos' = updatePosChar pos c
 
-    tokrsvpost tok = TIdent $ mkVar (stringToRoot tok) Post []
+    tokrsvpost tok = TIdent (tok, VList VObs, VPost, [])
 \end{code}
 
 
@@ -328,48 +389,53 @@ Seen initial $\LXRsvN~\lit'$.
 \end{eqnarray*}
 Node \textsf{RsvL}:
 Seen initial $\lit O$, $\lit M$, or $\lit S$,
-followed by $\LXDecorN$.
+followed by $\LXDecorN$ and $\lit\BS$.
 \begin{code}
     scanGenRoots skot spos tok decor stoor (pos0,c0) pos []
-       = scanroot ((spos,tokrsvlnames tok decor (reverse stoor)):skot) pos0 [c0]
+       = scanroot ((spos,tokrsvlnames tok decor (reverse stoor)):skot)
+                  pos0 [c0]
     scanGenRoots skot spos tok decor stoor (pos0,c0) pos cs@(c:cs')
-     | isAlpha c  =  scanGenRoots' skot spos tok decor stoor [c] pos' cs'
-     | otherwise  =  scanroot ((spos,tokrsvlnames tok decor roots):skot) pos0 (c0:cs)
+     | isAlpha c = scanGenRoots' skot spos tok decor stoor [c] pos' cs'
+     | otherwise = scanroot ((spos,tokrsvlnames tok decor roots):skot)
+                            pos0 (c0:cs)
      where
        pos' = updatePosChar pos c
        roots = reverse stoor
 
     tokrsvlnames tok (dcr,s) roots
-       = TIdent $ mkVar (stringToRoot tok) dcr roots
+       = TIdent (tok, VList VObs, dcr, roots)
 \end{code}
 
 Node \textsf{RsvLs}:
-Seen initial $(\lit O | \lit M | \lit S)\LXDecorN$
+Seen initial $(\lit O | \lit M | \lit S)\LXDecorN \lit\BS$
 followed by 1 or more $\LXAlfDigN$.
 \begin{code}
     scanGenRoots' skot spos tok decor stoor eman pos []
-       = scanroot ((spos,tokrsvlnames tok decor (reverse (Std (reverse eman):stoor))):skot) pos []
+       = scanroot ((spos,tokrsvlnames tok decor (reverse (name:stoor))):skot)
+                  pos []
     scanGenRoots' skot spos tok decor stoor eman pos cs@(c:cs')
      | isAlpha c  =  scanGenRoots' skot spos tok decor stoor (c:eman) pos' cs'
      | isDigit c  =  scanGenRoots' skot spos tok decor stoor (c:eman) pos' cs'
-     | c == chrLSEP   =  scanGenRoots skot spos tok decor (Std name:stoor) (pos,c) pos' cs'
-     | c == chrLST   =  scanGenRoots'' skot spos tok decor (Lst name:stoor) pos' cs'
-     | otherwise  =  scanroot ((spos,tokrsvlnames tok decor roots):skot) pos cs
+     | c == chrLSEP = scanGenRoots skot spos tok decor (name:stoor) (pos,c)
+                                   pos' cs'
+     | c == chrLST = scanGenRoots'' skot spos tok decor (lname:stoor) pos' cs'
+     | otherwise = scanroot ((spos,tokrsvlnames tok decor roots):skot) pos cs
      where
        pos' = updatePosChar pos c
        name = reverse eman
-       roots = reverse (Std name:stoor)
+       lname = reverse (c:eman)
+       roots = reverse (name:stoor)
 \end{code}
 
 Node \textsf{RsvLss}:
-Seen initial $(\lit O | \lit M | \lit S)\LXDecorN$
+Seen initial $(\lit O | \lit M | \lit S)\LXDecorN\lit\BS$
 followed by 1 or more $\LXAlfDigN$ and a $\lit\$$.
 \begin{code}
     scanGenRoots'' skot spos tok decor stoor pos []
        = scanroot ((spos,tokrsvlnames tok decor (reverse stoor)):skot) pos []
     scanGenRoots'' skot spos tok decor stoor  pos cs@(c:cs')
-     | c == chrLSEP   =  scanGenRoots skot spos tok decor stoor (pos,c) pos' cs'
-     | otherwise  =  scanroot ((spos,tokrsvlnames tok decor roots):skot) pos cs
+     | c == chrLSEP = scanGenRoots skot spos tok decor stoor (pos,c) pos' cs'
+     | otherwise = scanroot ((spos,tokrsvlnames tok decor roots):skot) pos cs
      where
        pos' = updatePosChar pos c
        roots = reverse stoor
@@ -398,8 +464,21 @@ and zero or more $\LXAlfDigN$.
        pos' = updatePosChar pos c
        tok = reverse kot
 
-    tokpre tok  = TIdent $ mkVar (stringToRoot tok) Pre   []
-    tokpost tok = TIdent $ mkVar (stringToRoot tok) Post  []
+    tokpre tok  = TIdent (tok, inferKind tok, inferRole tok, [])
+    tokpost tok = TIdent (tok, inferKind tok, VPost,         [])
+\end{code}
+
+We hard-code a convention on how variables should be interpreted.
+It they are a single upper-case letter,
+we consider them to be predicate schematic variables.
+If they are undecorated and start with an underscore,
+we consider them to be in a static role.
+\begin{code}
+    inferKind [c] | isUpper c = VPred
+    inferKind _               = VObs
+
+    inferRole (c:_) | c == '_' = VStatic
+    inferRole _                = VPre
 \end{code}
 
 \paragraph{Subscript}
@@ -419,7 +498,7 @@ Seen initial $\LXNameN~\lit\_$.
        pos' = updatePosChar pos c
        subs = reverse sbus
 
-    toksubs tok subs = TIdent $ mkVar (stringToRoot tok) (Subscript subs) []
+    toksubs tok subs = TIdent (tok, VObs, VInter subs, [])
 \end{code}
 
 \paragraph{General List Variable}
@@ -438,7 +517,7 @@ Seen initial $\LXNameN~\lit\$$.
      where
        pos' = updatePosChar pos c
 
-    toklst tok = TIdent $ mkVar (forceLst $ tok) Pre []
+    toklst tok = TIdent (tok, VList $ inferKind tok, inferRole tok, [])
 \end{code}
 
 Node \textsf{LstPost}:
@@ -451,7 +530,7 @@ Seen initial $\LXNameN~\lit\$$\lit'.
      where
        pos' = updatePosChar pos c
 
-    toklstpost tok = TIdent $ mkVar (forceLst tok) Post []
+    toklstpost tok = TIdent (tok, VList $ inferKind tok, VPost, [])
 \end{code}
 
 
@@ -468,7 +547,7 @@ Seen initial $\LXNameN~\lit\$\lit\_$.
        pos' = updatePosChar pos c
        subs = reverse sbus
 
-    toklstsubs tok subs = TIdent $ mkVar (forceLst tok) (Subscript subs) []
+    toklstsubs tok subs = TIdent (tok, VList VObs, VInter subs, [])
 \end{code}
 
 \newpage
@@ -655,16 +734,6 @@ renderVar (Rsv r rs) d  = show r ++ show d ++ showrs rs
   showrs [] = ""
   showrs rs = chrLESS : concat (intersperse strLSEP $ map show rs)
 
-mkVar :: Root -> Decor -> [GenRoot] -> Variable
-mkVar r@(Gen g) d _ = (r, d, renderVar r d)
-mkVar (Rsv r _) d rs
- | any badroot rs  = badvar
- | otherwise  = (root', d, renderVar root' d)
- where
-  root' = Rsv r $ lnorm rs
-  badroot (Std s)  =  s `elem` [strOBS,strMDL,strSCR]
-  badroot _        =  False
-  badvar = predVar ("!BadGenRoots"++show rs)
 
 mkGVar :: Decor -> GenRoot -> Variable
 mkGVar d g   = (r, d, renderVar r d) where r = Gen g
@@ -753,11 +822,11 @@ badVariable _                =  False
 
 \begin{code}
 preVar, postVar, scrptVar, lstVar, lstVar', predVar :: String -> Variable
-preVar nm  = mkVar (stringToRoot nm) Pre     []
-postVar nm = mkVar (stringToRoot nm) Post    []
-scrptVar nm   = mkVar (stringToRoot nm) Scrpt   []
-lstVar  nm = mkVar (Gen $ Lst nm) Pre     []
-lstVar' nm = mkVar (Gen $ Lst nm) Post    []
+preVar nm  = mkVar (stringToRoot nm) VPre     []
+postVar nm = mkVar (stringToRoot nm) VPost    []
+scrptVar nm   = mkVar (stringToRoot nm) VScript   []
+lstVar  nm = mkVar (Gen $ Lst nm) VPre     []
+lstVar' nm = mkVar (Gen $ Lst nm) VPost    []
 predVar nm = mkVar (Gen $ Std nm) NoDecor []
 
 subVar, lsubVar :: String -> String -> Variable
@@ -798,7 +867,7 @@ We adopt the following ASCII representations of these variables:
 \begin{tabular}{|c|c||c|c|}
   \hline
   % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
-  $Obs$ & \verb"O" & $Obs'$ & \verb"O'" \\\hline
+  $VObs$ & \verb"O" & $VObs'$ & \verb"O'" \\\hline
   $Mdl$ & \verb"M" & $Mdl'$ & \verb"M'" \\\hline
   $Scr$ & \verb"S" & $Scr'$ & \verb"S'" \\
   \hline
@@ -808,12 +877,12 @@ In effect, \texttt{O}, \texttt{S} and \texttt{M} are reserved variable roots.
 \begin{code}
 strLISTS = [ strOBS, strMDL, strSCR ]
 
-obsList  =  mkVar (Rsv OBS []) Pre  []
-obsList' =  mkVar (Rsv OBS []) Post []
-mdlList  =  mkVar (Rsv MDL []) Pre  []
-mdlList' =  mkVar (Rsv MDL []) Post []
-scrList  =  mkVar (Rsv SCR []) Pre  []
-scrList' =  mkVar (Rsv SCR []) Post []
+obsList  =  mkVar (Rsv OBS []) VPre  []
+obsList' =  mkVar (Rsv OBS []) VPost []
+mdlList  =  mkVar (Rsv MDL []) VPre  []
+mdlList' =  mkVar (Rsv MDL []) VPost []
+scrList  =  mkVar (Rsv SCR []) VPre  []
+scrList' =  mkVar (Rsv SCR []) VPost []
 \end{code}
 
 A range of tests:
@@ -1095,10 +1164,10 @@ p_variable = ptoken pvar <?> "variable"
  where
    pvar (TIdent v)  =  Just v
    pvar (TName s)
-    | s == strOBS  =  Just (Rsv OBS [],   Pre, s)
-    | s == strMDL  =  Just (Rsv MDL [],   Pre, s)
-    | s == strSCR  =  Just (Rsv SCR [],   Pre, s)
-    | otherwise    =  Just (Gen $ Std s,  Pre, s)
+    | s == strOBS  =  Just (Rsv OBS [],   VPre, s)
+    | s == strMDL  =  Just (Rsv MDL [],   VPre, s)
+    | s == strSCR  =  Just (Rsv SCR [],   VPre, s)
+    | otherwise    =  Just (Gen $ Std s,  VPre, s)
    pvar _          =  Nothing
 
 variable = do{ v <- lexify p_variable; return $ TEPvar v }
@@ -2523,4 +2592,31 @@ show-function:
 showSep p sh sep [] = ""
 showSep p sh sep [t] = sh p t
 showSep p sh sep (t:ts) = sh p t ++ sep ++ showSep p sh sep ts
+\end{code}
+
+\subsection{Not sure this belongs here?}
+
+We will often want to split variable lists into
+two: the standard variables, and the rest.
+Also, list variables can be split into general, and reserved.
+\begin{code}
+vPartition :: [Variable] -> ([Variable],[Variable])
+vPartition = partition isStdV
+
+rPartition :: [Variable] -> ([Variable],[Variable])
+rPartition = partition isRsvV
+\end{code}
+
+We get observation variables  and ``multiple'' meta-variables
+from quantifier lists:
+\begin{code}
+getqovars = filter isStdV
+getqqvars = filter isLstV
+\end{code}
+
+It is useful to be able to partition substitutions on Variables
+between those that are standard and those that are list:
+\begin{code}
+sPartition :: [(Variable,a)] -> ([(Variable,a)],[(Variable,a)])
+sPartition = partition (isStdV . fst)
 \end{code}

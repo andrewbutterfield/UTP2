@@ -49,11 +49,12 @@ A variable will have one of the following \emph{kinds}:
 The above kinds all have different roles in the logic underlying UTP.
 
 \begin{code}
-data VKind = Obs
-           | Exp
-           | Prd
-           | Scrpt
-           | LstV VKind -- cannot be ListV !
+data VKind = VObs
+           | VExpr
+           | VPred
+           | VScript
+           | VList
+               VKind -- cannot be ListV !
            deriving (Eq, Ord, Show)
 \end{code}
 
@@ -69,6 +70,9 @@ we can associate one of the following \emph{roles}:
         variables that record the values taken when a behaviour starts
       \item[Post]
         variables that record the values taken when a behaviour ends
+      \item[Relational]
+        Expression or Predicate variables that denote relations
+        between the start and end of behaviours.
       \item[Intermediate]
         indexed variables that record values that arise between successive behaviours
     \end{description}
@@ -78,86 +82,60 @@ variables, but are used to tailor definitional shorthands that
 assume that these are enacting the relevant UTP variable conventions.
 
 \begin{code}
-data VRole = Static
-           | Pre
-           | Post
-           | Inter Int
+data VRole = VStatic
+           | VPre
+           | VPost
+           | VRel          -- VExpr, VPred only
+           | VInter String -- VObs only
            deriving (Eq, Ord, Show)
 \end{code}
 
 
-A variable has a name, kind and role.
+A variable has a name, kind and role,
+as well as a list of names used to identify exceptions
+to one of the reserved list variables
 \begin{code}
-type Variable = ( Name, VKind, VRole )
+type Variable = ( Name
+                , VKind
+                , VRole
+                , [Name] -- only VList, with name in O,M,S
+                )
+\end{code}
+
+Invariant:
+\begin{enumerate}
+  \item the argument of a \texttt{VList} cannot be another \texttt{VList}.
+  \item only kinds \texttt{VExpr} and \texttt{VPred} can have role \texttt{VRel}.
+  \item only kind \texttt{VObs} can have role \texttt{VInter}.
+  \item only kind \texttt{VList VObs} can have roots (lists of names).
+\end{enumerate}
+\begin{code}
+invVariable reserved (name, kind, role, roots)
+ = invKind kind
+   && (role == VRel)    `implies`  (kind `elem` [VExpr,VPred])
+   && isVInter role     `implies`  (kind  ==  VObs)
+   && not (null roots)  `implies`  (kind == VList VObs)
+
+invKind (VList (VList _)) = False
+invKind _                 = True
+
+isVInter (VInter _) = True
+isVInter _          = False
 \end{code}
 
 
-We now define a default printer and parser.
-\begin{code}
-showVarDef :: Variable -> String
-showVarDef (nm, kind, role)
- = showKind kind ++ nm ++ showRole role
 
-showKind Obs = ""
-showKind Exp = "_"
-showKind Prd = "$"
-showKind Scrpt = "'"
-showKind (LstV k) = "*"++showKind k
-
-showRole Static = "."
-showRole Pre = ""
-showRole Post = "'"
-showRole (Inter i) = "_"++show i
-\end{code}
-
-The parser is total --- ill-formed strings become
-some static script variable.
-\begin{code}
-parseVarDef :: String -> Variable
-parseVarDef str = lookForKind $ trim str
-
-lookForKind "" = (showVarDef( "", Scrpt, Static),Scrpt,Static)
-lookForKind str@(c:cs)
-  | c == '_' = lookForName Exp "" cs
-  | c == '$' = lookForName Prd "" cs
-  | c == '\'' = lookForName Scrpt "" cs
-  | c == '*' = lookForLKind  cs
-  | otherwise = lookForName Obs [c] cs
-
-lookForLKind "" = errorVar "*"
-lookForLKind str@(c:cs)
-  | c == '_' = lookForName (LstV Exp) "" cs
-  | c == '$' = lookForName (LstV Prd) "" cs
-  | c == '\'' = lookForName (LstV Scrpt) "" cs
-  | c == '*'  = errorVar ('*':str)
-  | otherwise = lookForName (LstV Obs) "" cs
-
-lookForName kind eman "" = (reverse eman, kind, Pre)
-lookForName kind eman (c:cs)
-  | c == '.' && null cs  =  (reverse eman, kind, Static)
-  | c == '\'' && null cs  =  (reverse eman, kind, Post)
-  | c == '_' = lookForInter kind (reverse eman) 0 cs
-  | otherwise = lookForName kind (c:eman) cs
-
-lookForInter kind name i "" = (name, kind, Inter i)
-lookForInter kind name i (c:cs)
- | isDigit c  = lookForInter kind name (10*i+digitToInt c) cs
- | otherwise = (name, kind, Inter i)
-
-
-errorVar str = ('!':str,Scrpt,Static)
-\end{code}
 
 Variable utility code.
 First three are used to create non-parseable error variables"
 \begin{code}
 varmap :: (String -> String) -> Variable -> Variable
-varmap f (n,k,r) = (f n, k, r)
+varmap f (n,k,r,ns) = (f n, k, r,ns)
 \end{code}
 
 \begin{code}
 varKey :: Variable -> String
-varKey (n,_,_) = n
+varKey (n,_,_,_) = n
 \end{code}
 
 \newpage
@@ -181,22 +159,6 @@ tvupdate :: Variable -> t -> Trie t -> Trie t
 tvupdate v a trie = tupdate (varKey v) a trie
 \end{code}
 
-We will often want to split variable lists into
-two: the standard variables, and the rest.
-Also, list variables can be split into general, and reserved.
-\begin{code}
-vPartition :: [Variable] -> ([Variable],[Variable])
-vPartition = partition isStdV
-
-isStdV (_,LstV _,_) = False
-isStdV _            = True
-
-rPartition :: [Variable] -> ([Variable],[Variable])
-rPartition = partition isRsvV
-isRsvV(nm,LstV _,_) = isRsv nm
-isRsvV _ = False
-isRsv nm = nm `elem` ["O","M","S"]
-\end{code}
 
 \newpage
 \subsection{Substitutions}
@@ -245,14 +207,6 @@ mkQsubst as xs = Substn $ zip xs as
 
 mkSubQ (Substn ssub) =  map fst ssub
 \end{code}
-
-It is useful to be able to partition substitutions on Variables
-between those that are standard and those that are list:
-\begin{code}
-sPartition :: [(Variable,a)] -> ([(Variable,a)],[(Variable,a)])
-sPartition = partition (isStdV . fst)
-\end{code}
-
 
 
 Mapping across \texttt{Substn} types is also helpful:
@@ -432,7 +386,7 @@ isVar _         =  False
 getVar :: Expr -> Variable
 getVar (Var v)   =  v
 getVar _         =  nullVar
-nullVar  = ("",Scrpt,Static)
+nullVar  = ("",VScript,VStatic,[])
 
 mgetVar :: Expr -> Maybe Variable
 mgetVar (Var v)   =  Just v
@@ -571,14 +525,6 @@ qs `qsmrg` rs  = qs ++ rs
 as `mrgqnorm` bs = as `mrgnorm` bs
 \end{code}
 
-We get observation variables  and ``multiple'' meta-variables
-from quantifier lists:
-\begin{code}
-getqovars = filter isStdV
-getqqvars = filter isLstV
-isLstV (_,LstV _,_) = True
-isLstV _ = False
-\end{code}
 
 \subsection{Language Constructs}
 
@@ -1102,20 +1048,22 @@ dbgEshow i (Abs s tts qs es)
 dbgEshow i (ESub e sub)
  = hdr i ++ "ESUB "++dbgESshow (i+1) sub ++ dbgEshow (i+1) e
 
-dbgKshow Obs = "OBS"
-dbgKshow Exp = "EXP"
-dbgKshow Prd = "PRD"
-dbgKshow Scrpt = "SCRPT"
-dbgKshow (LstV k) = "LSTV "++dbgKshow k
+dbgKshow VObs = "VOBS"
+dbgKshow VExpr = "VEXP"
+dbgKshow VPred = "VPRD"
+dbgKshow VScript = "VSCRPT"
+dbgKshow (VList k) = "LSTV "++dbgKshow k
 
-dbgRshow Static = "STATIC"
-dbgRshow Pre = "PRE"
-dbgRshow Post = "POST"
-dbgRshow (Inter i) = "INTER "++show i
+dbgRshow VStatic = "VSTATIC"
+dbgRshow VPre = "VPRE"
+dbgRshow VPost = "VPOST"
+dbgRshow VRel = "VREL"
+dbgRshow (VInter s) = "VINTER "++s
 
-dbgVshow (n,k,r) = dbgKshow k
+dbgVshow (n,k,r,ns) = dbgKshow k
                     ++ ' ':n
                     ++ ' ':dbgRshow r
+                    ++ ' ':show ns
 
 dbgVSshow vs = "<"
                ++ (concat $ intersperse ">, <" $ map dbgVshow vs)
@@ -1354,10 +1302,10 @@ and collecting top-level expressions before those
 in sub-predicates.
 \begin{code}
 exprParts :: Expr -> (String,[Pred],[Expr],[QVars])
-exprParts (Num _)            = ("Num",[],[],[])
-exprParts (Var (n,_,_))      = ("Var:"++n,[],[],[])
-exprParts (App s es)          = ("App",[],es,[])
-exprParts (Abs s _ qs es)     = ("Abs",[],es,[qs])
+exprParts (Num _)          =  ("Num",[],[],[])
+exprParts (Var (n,_,_,_))  =  ("Var:"++n,[],[],[])
+exprParts (App s es)       =  ("App",[],es,[])
+exprParts (Abs s _ qs es)  =  ("Abs",[],es,[qs])
 exprParts (ESub e (Substn ssub))
   = ( "ESub"
     , []

@@ -1043,3 +1043,10 @@ pmaxima  =  maximum . (0:)
 bmaxima :: (Ord a,Bounded a) => [a] -> a
 bmaxima  =  maximum . (minBound:)
 \end{code}
+
+Logical operators:
+\begin{code}
+implies :: Bool -> Bool -> Bool
+False `implies` _ = True
+True `implies` b  = b
+\end{code}
