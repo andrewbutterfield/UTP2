@@ -24,64 +24,6 @@ import Control.Monad
 We define ways to render key datatypes in textual format
 that can itself be parsed.
 
-We now define a default printer and parser for\texttt{ Variable}s
-\begin{code}
-showVarDef :: Variable -> String
-showVarDef (nm, kind, role)
- = showKind kind ++ nm ++ showRole role
-
-showKind VObs = ""
-showKind VExpr = "_"
-showKind VPred = "$"
-showKind VScript = "'"
-showKind (VList k) = "*"++showKind k
-
-showRole VStatic = "."
-showRole VPre = ""
-showRole VPost = "'"
-showRole VRel = "~"
-showRole (VInter i) = "_"++show i
-\end{code}
-
-The parser is total --- ill-formed strings become
-some static script variable.
-\begin{code}
-parseVarDef :: String -> Variable
-parseVarDef str = lookForKind $ trim str
-
-lookForKind "" = (showVarDef( "", VScript, VStatic),VScript,VStatic)
-lookForKind str@(c:cs)
-  | c == '_' = lookForName VExpr "" cs
-  | c == '$' = lookForName VPred "" cs
-  | c == '\'' = lookForName VScript "" cs
-  | c == '*' = lookForLKind  cs
-  | otherwise = lookForName VObs [c] cs
-
-lookForLKind "" = errorVar "*"
-lookForLKind str@(c:cs)
-  | c == '_' = lookForName (VList VExpr) "" cs
-  | c == '$' = lookForName (VList VPred) "" cs
-  | c == '\'' = lookForName (VList VScript) "" cs
-  | c == '*'  = errorVar ('*':str)
-  | otherwise = lookForName (VList VObs) "" cs
-
-lookForName kind eman "" = (reverse eman, kind, VPre)
-lookForName kind eman (c:cs)
-  | c == '.' && null cs  =  (reverse eman, kind, VStatic)
-  | c == '\'' && null cs  =  (reverse eman, kind, VPost)
-  | c == '~' && null cs  =  (reverse eman, kind, VRel)
-  | c == '_' = lookForInter kind (reverse eman) 0 cs
-  | otherwise = lookForName kind (c:eman) cs
-
-lookForInter kind name i "" = (name, kind, VInter i)
-lookForInter kind name i (c:cs)
- | isDigit c  = lookForInter kind name (10*i+digitToInt c) cs
- | otherwise = (name, kind, VInter i)
-
-
-errorVar str = ('!':str,VScript,VStatic)
-\end{code}
-
 
 \newpage
 \subsection{Lexical Analysis}
@@ -468,19 +410,6 @@ and zero or more $\LXAlfDigN$.
     tokpost tok = TIdent (tok, inferKind tok, VPost,         [])
 \end{code}
 
-We hard-code a convention on how variables should be interpreted.
-It they are a single upper-case letter,
-we consider them to be predicate schematic variables.
-If they are undecorated and start with an underscore,
-we consider them to be in a static role.
-\begin{code}
-    inferKind [c] | isUpper c = VPred
-    inferKind _               = VObs
-
-    inferRole (c:_) | c == '_' = VStatic
-    inferRole _                = VPre
-\end{code}
-
 \paragraph{Subscript}
 \begin{eqnarray*}
    \LXDecor
@@ -671,6 +600,23 @@ $$
 $$
 
 
+We hard-code a convention on how variables should be interpreted.
+It they are a single upper-case letter,
+we consider them to be predicate schematic variables.
+If they are undecorated and start with an underscore,
+we consider them to be in a static role.
+\begin{code}
+inferKind [c] | isUpper c = VPred
+inferKind _               = VObs
+
+inferRole (c:_) | c == '_' = VStatic
+inferRole _                = VPre
+\end{code}
+These can be overriden by having a table,
+indexed by the variable name,
+that maps to a different kind/role combination.
+
+
 
 \subsubsection{Symbol-Token splitting}
 
@@ -727,71 +673,31 @@ notWhtEOF _            = True
 We need to set the (key) string in a Variable to match its
 printed form
 \begin{code}
-renderVar :: Root -> Decor -> String
-renderVar (Gen g) d  = show g ++ show d
-renderVar (Rsv r rs) d  = show r ++ show d ++ showrs rs
- where
-  showrs [] = ""
-  showrs rs = chrLESS : concat (intersperse strLSEP $ map show rs)
-
-
-mkGVar :: Decor -> GenRoot -> Variable
-mkGVar d g   = (r, d, renderVar r d) where r = Gen g
-
-mkSVar :: String -> Decor -> Variable
-mkSVar s d  = (r, d, renderVar r d) where r = Gen $ Std s
-
-mkLVar :: String -> Decor -> Variable
-mkLVar l d  = (r, d, renderVar r d) where r = Gen $ Lst l
-
-mkRVar :: RsvRoot -> [GenRoot] -> Decor -> Variable
-mkRVar r subs d = (r', d, renderVar r' d) where r' = Rsv r subs
-
 showVar :: Variable -> String
-showVar (_, _, s) = s
+showVar (nm, k, r, rs)
+ = nm ++ showKind k ++ showRole r ++ showRoots rs
+
+showKind (VList _) = strLST
+showKind _         = ""
+
+showRole VPost      = strPOST
+showRole (VInter s) = chrSUBS:s
+showRole _          = ""
+
+showRoots [] = ""
+showRoots rs = chrLESS : concat (intersperse strLSEP $ map show rs)
+
+
+mkGVar :: VRole -> Name -> Variable
+mkGVar r nm   = (nm, VObs, r, [])
+
+mkSVar :: Name -> VRole -> Variable
+mkSVar nm r  = mkGVar r nm
+
+mkRVar :: Name -> [Name] -> VRole -> Variable
+mkRVar nm roots r = (nm, VList VObs, r, roots)
 \end{code}
 
-We also need to parse strings into roots
-    \begin{eqnarray*}
-       \LXName
-    \\ \LXAlfDig
-    \\ \LXRoots
-    \end{eqnarray*}
-\begin{code}
-parseRoot :: String -> Root
-parseRoot "" = Gen $ Std "!null-root!"
-parseRoot s@(c:cs)
- | isAlpha c  =  p1 [c] cs
- | otherwise  =  Gen $ Std ("!non-root:"++s++"!")
- where
-   -- seen initial alpha, and zero or more alphanum
-   p1 toor ""
-    = case reverse toor of
-        [c] | c == chrOBS  ->  Rsv OBS []
-            | c == chrMDL  ->  Rsv MDL []
-            | c == chrSCR  ->  Rsv SCR []
-        root                   ->  stringToRoot root
-   p1 toor str@(c:cs)
-    | isAlpha c                =  p1 (c:toor) cs
-    | isDigit c                =  p1 (c:toor) cs
-    | c == chrLST && null cs   =  Gen $ Lst $ reverse toor
-    | otherwise  =  Gen $ Std ("!non-root:"++reverse toor++str++"!")
-
-badRoot (Gen (Std ('!':_)))  =  True
-badRoot _                    =  False
-\end{code}
-Sometimes we just want a \texttt{GenRoot}:
-\begin{code}
-parseGenRoot :: String -> GenRoot
-parseGenRoot s
- = case parseRoot s of
-    (Gen g)  ->  g
-    r@(Rsv _ _)  ->  Lst ("!non-genroot:"++show r++"!")
-
-badGenRoot (Std ('!':_))  =  True
-badGenRoot (Lst ('!':_))  =  True
-badGenRoot _              =  False
-\end{code}
 \newpage
 Parsing variables:
     \begin{eqnarray*}
@@ -821,25 +727,24 @@ badVariable _                =  False
 \subsection{Making Variables}
 
 \begin{code}
-preVar, postVar, scrptVar, lstVar, lstVar', predVar :: String -> Variable
-preVar nm  = mkVar (stringToRoot nm) VPre     []
-postVar nm = mkVar (stringToRoot nm) VPost    []
-scrptVar nm   = mkVar (stringToRoot nm) VScript   []
-lstVar  nm = mkVar (Gen $ Lst nm) VPre     []
-lstVar' nm = mkVar (Gen $ Lst nm) VPost    []
-predVar nm = mkVar (Gen $ Std nm) NoDecor []
+preVar, postVar, scrptVar, lstVar, lstVar', predVar :: Name -> Variable
+preVar nm  = (nm, VObs, VPre, [])
+postVar nm = (nm, VObs, VPost, [])
+scrptVar nm   = (nm, VScript, VPre, [])
+lstVar  nm = (nm, VList VObs, VPre [])
+lstVar' nm = (nm, VList VObs, VPost [])
+predVar nm = (nm, VPred, VPre, [])
 
 subVar, lsubVar :: String -> String -> Variable
-subVar s nm  = mkVar (stringToRoot nm) (Subscript s) []
-lsubVar s nm = mkVar (Gen $ Lst nm) (Subscript s) []
+subVar s nm  = (nm, VObs, VInter s, [])
+lsubVar s nm = (nm, VList VObs, VInter s, [])
 
-decorVar :: Decor -> Variable -> Variable
-decorVar d (r@(Gen _),_,_) = mkVar r d []
-decorVar d (r@(Rsv _ rs),_,_) = mkVar r d rs
+decorVar :: VRole -> Variable -> Variable
+decorVar r (nm, k, _, rs) = (nm, k, r, rs)
 
-(\\\) :: Variable -> [GenRoot] -> Variable
-v@(Gen _,_,_) \\\ _ =  v
-(r@(Rsv _ less1),d,_) \\\ less2 =  mkVar r d (less1 `mrgnorm` less2)
+(\\\) :: Variable -> [Name] -> Variable
+(nm, VList VObs, r, less1) \\\ less2
+  =  (nm, VList VObs, r, less1 `mrgnorm` less2)
 
 qnil         =  []
 qvar   x     =  [preVar x]
@@ -848,8 +753,8 @@ qvarr  r     =  [lstVar r]
 qvarrs rs    =  mkQ $ map lstVar rs
 qvarsr xs r  =  mkQ $ (map preVar xs) ++ [lstVar r]
 
-rootVar :: Root -> Variable
-rootVar r = mkVar r NoDecor []
+rootVar :: Name -> Variable
+rootVar = preVar -- we dont have a null role - should we?
 \end{code}
 
 
@@ -877,12 +782,12 @@ In effect, \texttt{O}, \texttt{S} and \texttt{M} are reserved variable roots.
 \begin{code}
 strLISTS = [ strOBS, strMDL, strSCR ]
 
-obsList  =  mkVar (Rsv OBS []) VPre  []
-obsList' =  mkVar (Rsv OBS []) VPost []
-mdlList  =  mkVar (Rsv MDL []) VPre  []
-mdlList' =  mkVar (Rsv MDL []) VPost []
-scrList  =  mkVar (Rsv SCR []) VPre  []
-scrList' =  mkVar (Rsv SCR []) VPost []
+obsList  =  (strOBS, VList VObs, VPre, [])
+obsList' =  (strOBS, VList VObs, VPost, [])
+mdlList  =  (strMDL, VList VObs, VPre, [])
+mdlList' =  (strMDL, VList VObs, VPost, [])
+scrList  =  (strSCR, VList VObs, VPre, [])
+scrList' =  (strSCR, VList VObs, VPost, [])
 \end{code}
 
 A range of tests:

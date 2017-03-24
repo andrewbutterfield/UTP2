@@ -106,14 +106,14 @@ Invariant:
 \begin{enumerate}
   \item the argument of a \texttt{VList} cannot be another \texttt{VList}.
   \item only kinds \texttt{VExpr} and \texttt{VPred} can have role \texttt{VRel}.
-  \item only kind \texttt{VObs} can have role \texttt{VInter}.
+  \item only kind \texttt{VObs} or \texttt{VList VObs} can have role \texttt{VInter}.
   \item only kind \texttt{VList VObs} can have roots (lists of names).
 \end{enumerate}
 \begin{code}
 invVariable reserved (name, kind, role, roots)
  = invKind kind
    && (role == VRel)    `implies`  (kind `elem` [VExpr,VPred])
-   && isVInter role     `implies`  (kind  ==  VObs)
+   && isVInter role     `implies`  (kind `elem` [VObs,VList VObs])
    && not (null roots)  `implies`  (kind == VList VObs)
 
 invKind (VList (VList _)) = False
