@@ -162,6 +162,8 @@ We now discuss the required sub-bindings:
 \end{description}
 From the above we see that we need the following sub-bindings:
 
+THE OLD SETUP WITH GENROOTS ETC...
+
 \begin{tabular}{|c|l|}
   \hline
   Variable $\fun$ Expr
@@ -186,6 +188,36 @@ From the above we see that we need the following sub-bindings:
   & Lst (Substitution-Replacement; 2-Place Predicates)
   \\\hline
   GenRoot $\fun$ Pred${}^*$
+  & Lst (Substitution-Replacement; 2-Place Predicates)
+  \\\hline
+\end{tabular}
+
+THE NEW SETUP WITH ONLY VARIBLES
+
+\begin{tabular}{|c|l|}
+  \hline
+  Variable $\fun$ Expr
+  & Std (Regular, not bound)
+  \\\hline
+  Variable $\fun$ Pred
+  & Std (Regular, not bound)
+  \\\hline
+  Variable $\fun$ Variable
+  & Std (Regular, bound; Quantifier-List; Substitution-Target)
+  \\\hline
+  Variable $\fun$ Variable
+  & Std (Regular, bound; Quantifier-List; Substitution-Target)
+  \\\hline
+  Variable $\fun$ Variable${}^*$
+  & Lst (Quantifier-List; Substitution-Target)
+  \\\hline
+  Variable $\fun$ Variable${}^*$
+  & Lst (Quantifier-List; Substitution-Target)
+  \\\hline
+  Variable $\fun$ Expr${}^*$
+  & Lst (Substitution-Replacement; 2-Place Predicates)
+  \\\hline
+  Variable $\fun$ Pred${}^*$
   & Lst (Substitution-Replacement; 2-Place Predicates)
   \\\hline
 \end{tabular}
@@ -413,13 +445,13 @@ lmergeSBind = mergeSBind lmergeBObj lmergeBObj
 
 We will have three instances, one each for predicates, expressions and types:
 \begin{code}
-type GPBind = SBind GenRoot Pred
+type GPBind = SBind Name Pred
 showGPObj = showBObj (genRootString, show)
 showGPBind  :: GPBind -> String
 showGPBind = unlines' . trieShowWith showGPObj
-gpInj :: GenRoot -> Pred
+gpInj :: Name -> Pred
 gpInj = PVar . genRootAsVar
-gpProj :: Pred -> Maybe GenRoot
+gpProj :: Pred -> Maybe Name
 gpProj (PVar g)  =  Just $ varGenRoot g
 gpProj _         =  Nothing
 
@@ -468,31 +500,31 @@ showBinding (gpbnds,vebnds,ttbnds)
 \end{code}
 
 
-\paragraph{Specialising for \texttt{GenRoot}, \texttt{Pred}}~
+\paragraph{Specialising for \texttt{Name}, \texttt{Pred}}~
 
 \begin{code}
-gpupdateTO :: Monad m => GenRoot -> Pred -> GPBind -> m GPBind
+gpupdateTO :: Monad m => Name -> Pred -> GPBind -> m GPBind
 gpupdateTO r = updateTO gpProj (genRootString r)
 
-gplookupTO :: Monad m => GenRoot -> GPBind -> m Pred
+gplookupTO :: Monad m => Name -> GPBind -> m Pred
 gplookupTO r = lookupTO (PVar . genRootAsVar) (genRootString r)
 
-gpupdateVO :: Monad m => GenRoot -> GenRoot -> GPBind -> m GPBind
+gpupdateVO :: Monad m => Name -> Name -> GPBind -> m GPBind
 gpupdateVO r = updateVO (genRootString r)
 
-gplookupVO :: Monad m => GenRoot -> GPBind -> m GenRoot
+gplookupVO :: Monad m => Name -> GPBind -> m Name
 gplookupVO r = lookupVO (genRootString r)
 
-gpupdateVSO :: Monad m => GenRoot -> [GenRoot] -> GPBind -> m GPBind
+gpupdateVSO :: Monad m => Name -> [Name] -> GPBind -> m GPBind
 gpupdateVSO r = updateVSO (genRootString r)
 
-gplookupVSO :: Monad m => GenRoot -> GPBind -> m [GenRoot]
+gplookupVSO :: Monad m => Name -> GPBind -> m [Name]
 gplookupVSO r = lookupVSO (genRootString r)
 
-gplookupTSO :: Monad m => GenRoot -> GPBind -> m [Pred]
+gplookupTSO :: Monad m => Name -> GPBind -> m [Pred]
 gplookupTSO r = lookupTSO (PVar . genRootAsVar) (genRootString r)
 
-gpupdateTSO :: Monad m => GenRoot -> [Pred] -> GPBind -> m GPBind
+gpupdateTSO :: Monad m => Name -> [Pred] -> GPBind -> m GPBind
 gpupdateTSO r  = updateTSO gpProj (genRootString r)
 \end{code}
 
@@ -584,7 +616,7 @@ mkSubBind :: Maybe (SBind v t) -> SBind v t
 mkSubBind (Just sbind) = sbind
 mkSubBind Nothing      = sbnil
 
-bindP :: GenRoot -> Pred -> Binding
+bindP :: Name -> Pred -> Binding
 bindP r pr = ( mkSubBind $ gpupdateTO r pr sbnil, tnil, tnil )
 bindE :: Variable -> Expr -> Binding
 bindE v e = ( tnil, mkSubBind $ veupdateTO v e sbnil, tnil )
@@ -990,7 +1022,7 @@ type MatchOutcome = Maybe MatchResult
 okNoBinding :: Monad m => m MatchResult
 okNoBinding  = return noBinding
 
-okBindP :: Monad m => GenRoot -> Pred -> m MatchResult
+okBindP :: Monad m => Name -> Pred -> m MatchResult
 okBindP pv p = return ((bindP pv p),[],[])
 
 okBindE :: Monad m => Variable -> Expr -> m MatchResult
@@ -1190,7 +1222,7 @@ kPartition mctxt = partition (isKnownVar mctxt)
 isKnownExpr :: MatchContext -> Variable -> Bool
 isKnownExpr mctxt v = tsvlookup (knownExprs mctxt) v /= Nothing
 
-isKnownPred :: MatchContext -> GenRoot -> Bool
+isKnownPred :: MatchContext -> Name -> Bool
 isKnownPred mctxt r = tslookup (knownPreds mctxt) (genRootString r) /= Nothing
 \end{code}
 
@@ -1322,7 +1354,7 @@ classifyVars isknown here (v:vs)
 
 These lookups return the key if not bound and ``known''.
 \begin{code}
-bevalP :: MatchContext -> Binding -> GenRoot -> Pred
+bevalP :: MatchContext -> Binding -> Name -> Pred
 bevalP mctxt (gpbnds,_,_) r
  = case gplookupTO r gpbnds of
     Just pr -> pr
@@ -1409,7 +1441,7 @@ bevalVar mctxt bind@(_,vebnds,_) v  -- mctxt ignored
 Function \texttt{lVarDenote}  computes $\sem{L^d\setminus R}_{\Gamma}$,
 to the form $V \ominus X$ such that $X$ contains non-observation variables only.
 \begin{code}
-lVarDenote :: MatchContext -> Variable -> ([Variable],[GenRoot])
+lVarDenote :: MatchContext -> Variable -> ([Variable],[Name])
 lVarDenote mctxt (Rsv root subs,decor,_)
  | root == SCR  =  lVarDenote' obsvars srcvars decor subs
  | root == MDL  =  lVarDenote' obsvars mdlvars decor subs
@@ -1423,8 +1455,8 @@ lVarDenote _ v = ([v],[])
 lVarDenote' :: [Variable]   -- all known observables
             -> [Variable]   -- observable for this meta-root
             -> Decor        -- associated decoration
-            -> [GenRoot]    -- non-observable roots being subtracted
-            -> ([Variable],[GenRoot])
+            -> [Name]    -- non-observable roots being subtracted
+            -> ([Variable],[Name])
 lVarDenote' ovars dvars decor subs
  =  (denotation,csub)
  where
@@ -1439,25 +1471,25 @@ lVarDenote' ovars dvars decor subs
 Given a general variable, if a reserved list-variable,
 we replace it by its denotation:
 \begin{code}
-varExpand :: MatchContext -> Variable -> ([Variable],[GenRoot])
+varExpand :: MatchContext -> Variable -> ([Variable],[Name])
 varExpand mctxt var
  | isRsvV var  =  ( lnorm vars', lnorm roots' )
  | otherwise      =  ( [var], [] )
  where
    (vars',roots') =  lVarDenote mctxt var
 
-varsExpand :: MatchContext -> [Variable] -> [([Variable],[GenRoot])]
+varsExpand :: MatchContext -> [Variable] -> [([Variable],[Name])]
 varsExpand mctxt = map $ varExpand mctxt
 \end{code}
 
 A useful variant is a table binding variables to their expansion:
 \begin{code}
-varExpandMaplet :: MatchContext -> Variable -> (String,([Variable],[GenRoot]))
+varExpandMaplet :: MatchContext -> Variable -> (String,([Variable],[Name]))
 varExpandMaplet mctxt var
  | isRsvV var  =  ( varKey var, varExpand mctxt var )
  | otherwise      =  ( varKey var, ([var],[])          )
 
-varExpandTable :: MatchContext -> [Variable] -> Trie ([Variable],[GenRoot])
+varExpandTable :: MatchContext -> [Variable] -> Trie ([Variable],[Name])
 varExpandTable mctxt = lbuild . map (varExpandMaplet mctxt)
 \end{code}
 
@@ -1472,7 +1504,7 @@ cleanVar mctxt v = null $ snd $ varExpand mctxt v
 Sometimes it is useful to convert a list of variables to their
 combined denotations:
 \begin{code}
-varsDenote :: MatchContext -> [Variable] -> ([Variable],[GenRoot])
+varsDenote :: MatchContext -> [Variable] -> ([Variable],[Name])
 varsDenote mctxt = vDmerge . map (lVarDenote mctxt)
  where
    vDmerge []  = ([],[])
@@ -1497,7 +1529,7 @@ varSize _ (Gen (Std _),_,_) = (EQ,1)
 varSize _ (Gen (Lst _),_,_) = (GT,-1) -- can be anything from zero upwards...
 varSize mctxt (Rsv r subs,decor,_) = rsvSize mctxt r decor subs
 
-rsvSize :: MatchContext -> RsvRoot -> Decor ->  [GenRoot] -> (Ordering,Int)
+rsvSize :: MatchContext -> RsvRoot -> Decor ->  [Name] -> (Ordering,Int)
 rsvSize mctxt OBS Post subs  =  subSize (sizeObs' mctxt) subs
 rsvSize mctxt OBS _    subs  =  subSize (sizeObs  mctxt) subs
 rsvSize mctxt MDL Post subs  =  subSize (sizeMdl' mctxt) subs
@@ -1505,11 +1537,11 @@ rsvSize mctxt MDL _    subs  =  subSize (sizeMdl  mctxt) subs
 rsvSize mctxt SCR Post subs  =  subSize (sizeScr' mctxt) subs
 rsvSize mctxt SCR _    subs  =  subSize (sizeScr  mctxt) subs
 
-subSize :: Int -> [GenRoot] -> (Ordering,Int)
+subSize :: Int -> [Name] -> (Ordering,Int)
 subSize 0 _         = (GT,-1)
 subSize rsize []    = (EQ,rsize)
 subSize rsize subs
- | any isLstG subs  =  (LT,rsize+1)
+ | any isLstV subs  =  (LT,rsize+1)
  | otherwise        =  (EQ,max 0 (rsize - length subs))
 \end{code}
 
@@ -1580,7 +1612,7 @@ We start with the ``can escape'' relation:
 Here we wrap a variable and its denotation together,
 to keep things consistent with \texttt{possDisjRSV} below.
 \begin{code}
-obsCanEscapeRSV :: Variable -> (Variable,([Variable],[GenRoot])) -> Bool
+obsCanEscapeRSV :: Variable -> (Variable,([Variable],[Name])) -> Bool
 obsCanEscapeRSV v (_,(vs,[]))  =  not (v `elem` vs)
 obsCanEscapeRSV v _            =  True
 \end{code}
@@ -1596,8 +1628,8 @@ and next, the ``possible disjoint'' reserved-variable relation:
 Here we wrap a variable and its denotation together,
 in case that denotation should be empty.
 \begin{code}
-possDisjRSV :: (Variable,([Variable],[GenRoot]))
-            -> (Variable,([Variable],[GenRoot]))
+possDisjRSV :: (Variable,([Variable],[Name]))
+            -> (Variable,([Variable],[Name]))
             -> Bool
 possDisjRSV ((Rsv r1 [],d1,_),([],[]))
             ((Rsv r2 [],d2,_),([],[]))   =  d1 /= d2 || isDisjRSV r1 r2
@@ -1658,9 +1690,6 @@ lstqnorm mctxt vs
    vs' = filter keep nvs
    keep v = not(v `elem` stripset)
    stripset = concat $ map (fst . lVarDenote mctxt) mvs
-   safemvs = filter safe mvs
-   safe (Rsv _ rs,_,_)  =  all isStdG rs
-   safe _               =  True
    mvs = filter isLstV nvs
 \end{code}
 
@@ -1693,10 +1722,9 @@ invESubst mctxt (Substn sub)
    &&
    all listReplList sub
  where
-   listReplList ( (Gen (Std _),_,_), _     )  =  True
-   listReplList ( (Gen (Lst _),_,_), Var v )  =  isLstV v
-   listReplList ( (Rsv _ _,_,_)    , Var v )  =  isLstV v
-   listReplList _                             =  False
+   listReplList ((_, VList VObs, _, _), Var v )  =  isLstV v
+   listReplList ((_, VObs,       _, _), _     )  =  True
+   listReplList _                                =  False
 \end{code}
 
 Lifting to \texttt{Expr} and \texttt{Pred}:

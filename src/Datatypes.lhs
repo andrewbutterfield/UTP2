@@ -86,7 +86,7 @@ data VRole = VStatic
            | VPre
            | VPost
            | VRel          -- VExpr, VPred only
-           | VInter String -- VObs only
+           | VInter String -- VObs, VList VObs only
            deriving (Eq, Ord, Show)
 \end{code}
 
