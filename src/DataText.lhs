@@ -157,13 +157,13 @@ data Tok = TEOF
 
 instance Show Tok where
  show TEOF                =  "EOF"
- show (TName s)           =  "N." ++ s
- show (TKey s)            =  "K." ++ s
- show (TIdent (_,_,s))    =  "I."++s
- show (TNum s)            =  "#." ++ s
- show (TSym s)            =  "S." ++ s
- show (TKSym s)           =  "KS." ++ s
- show (TWht s)            =  "W." ++ showLitString s
+ show (TName s)           =  "Name("  ++ s ++ ")"
+ show (TKey s)            =  "Key(" ++ s ++ ")"
+ show (TIdent (s,_,_,_))  =  "Id("  ++ s ++ ")"
+ show (TNum s)            =  "Nmbr(" ++ s ++ ")"
+ show (TSym s)            =  "Sym." ++ s
+ show (TKSym s)           =  "KSym." ++ s
+ show (TWht s)            =  "Wht(" ++ showLitString s ++")"
  show TLQt                =  "LQT"
  show TSep                =  "SEP"
 
@@ -731,8 +731,8 @@ preVar, postVar, scrptVar, lstVar, lstVar', predVar :: Name -> Variable
 preVar nm  = (nm, VObs, VPre, [])
 postVar nm = (nm, VObs, VPost, [])
 scrptVar nm   = (nm, VScript, VPre, [])
-lstVar  nm = (nm, VList VObs, VPre [])
-lstVar' nm = (nm, VList VObs, VPost [])
+lstVar  nm = (nm, VList VObs, VPre, [])
+lstVar' nm = (nm, VList VObs, VPost, [])
 predVar nm = (nm, VPred, VPre, [])
 
 subVar, lsubVar :: String -> String -> Variable
@@ -793,16 +793,16 @@ scrList' =  (strSCR, VList VObs, VPost, [])
 A range of tests:
 \begin{code}
 -- want a test for pure reserved list, with no _m
-isPureList (_, Subscript _, _)  =  False
+isPureList (_, _, VInter _, _)  =  False
 isPureList v                    =  isRsvV v
 
 -- want a test for subscripted reserved list
-isListSub v@(_, Subscript _, _)  =  isRsvV v
-isListSub _                         =  False
+isListSub v@(_, _, VInter _, _)  =  isRsvV v
+isListSub _                      =  False
 
 
 obslookup :: (Variable -> t) -> Trie t -> Variable -> Maybe t
-obslookup wrap trie v@(_, _, s)
+obslookup wrap trie v@(s, _, _, _)
  = case tlookup trie s of
      Nothing | isRsvV v  ->  Just $ wrap v
              | otherwise    ->  Nothing
@@ -1069,10 +1069,10 @@ p_variable = ptoken pvar <?> "variable"
  where
    pvar (TIdent v)  =  Just v
    pvar (TName s)
-    | s == strOBS  =  Just (Rsv OBS [],   VPre, s)
-    | s == strMDL  =  Just (Rsv MDL [],   VPre, s)
-    | s == strSCR  =  Just (Rsv SCR [],   VPre, s)
-    | otherwise    =  Just (Gen $ Std s,  VPre, s)
+    | s == strOBS  =  Just obsList
+    | s == strMDL  =  Just mdlList
+    | s == strSCR  =  Just scrList
+    | otherwise    =  Just (s, VObs, VPre, [])
    pvar _          =  Nothing
 
 variable = do{ v <- lexify p_variable; return $ TEPvar v }
@@ -2433,8 +2433,9 @@ genFreshVar used patvar
  = head $ dropWhile alreadyUsed $ map (genvar patvar . show) [1..]
  where
    alreadyUsed var = var `elem` used
-   genvar (r@(Gen _), _, _)       substr = mkVar r (Subscript substr) []
-   genvar (r@(Rsv _ roots), _, _) substr = mkVar r (Subscript substr) roots
+   genvar (r, VList VObs, _,             roots) substr
+        = (r, VList VObs, VInter substr, roots)
+   genvar (r, k, _, _) substr = (r, k, VInter substr, [])
 \end{code}
 
 We generalise this to a list of fresh patterns:
@@ -2483,7 +2484,6 @@ mkSepList s []   =  ""
 mkSepList s [x]  =  x
 mkSepList s (x:xs)  =  x ++ (s:(mkSepList s xs))
 \end{code}
-
 Simple ``showable-thing'' list showing:
 \begin{code}
 showSepList s []   =  ""
