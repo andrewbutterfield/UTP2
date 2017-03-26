@@ -79,6 +79,7 @@ Library
                    , UTP
                    , UTP2.GUI.Threepenny.Attributes
                    , UTP2.GUI.Threepenny.Dom
+                   , UTP2.GUI.Threepenny.Engine.Files
                    , UTP2.GUI.Threepenny.Events
                    , UTP2.GUI.Threepenny.FileSystem
                    , UTP2.GUI.Threepenny.Home

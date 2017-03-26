@@ -2,8 +2,8 @@ module UTP2.GUI.Threepenny.FileSystem where
 
 -- |Elements and functions for interacting with the file system.
 
-import           Control.Monad.Trans.Class   (lift)
-import qualified Graphics.UI.Threepenny      as UI
+import           Control.Monad.Trans.Class      (lift)
+import qualified Graphics.UI.Threepenny         as UI
 import           Graphics.UI.Threepenny.Core
 import           UTP2.GUI.Threepenny.Attributes
 import           UTP2.GUI.Threepenny.Events

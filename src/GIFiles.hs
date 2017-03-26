@@ -9,7 +9,7 @@ import qualified System.Directory as SD
 import qualified System.FilePath  as SF
 import           Utilities        (trim)
 
--- |GUI dependant data required by functions in this module.
+-- |GUI dependent data required by functions in this module.
 data Args w state = Args {
     aW                   :: w
   , aState               :: state

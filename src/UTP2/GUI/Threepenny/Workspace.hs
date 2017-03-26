@@ -7,6 +7,7 @@ import           Control.Monad.Trans.Class          (lift)
 import qualified Graphics.UI.Threepenny             as UI
 import           Graphics.UI.Threepenny.Core
 import           Graphics.UI.Threepenny.Ext.Flexbox as Flex
+import qualified UTP2.GUI.Threepenny.Engine.Files   as EF
 import           UTP2.GUI.Threepenny.Events
 import           UTP2.GUI.Threepenny.FileSystem
 import qualified UTP2.GUI.Threepenny.Materialize    as Mat
@@ -46,9 +47,18 @@ openWorkspaceSelector = do
   modalId <- readWorkspaceModalId
   case modalId of
     Just modalId -> lift $ Mat.openModal modalId
+    -- |If a workspace selector element hasn't been created yet.
     Nothing      -> do
       h4       <- lift $ UI.h4 # set UI.text "Select a workspace"
       selector <- dirSelector "select" $ eWorkspaceEmit <$> ask
+      workspaceBehavior <- eWorkspaceBehavior <$> ask
+      -- |Run startup file handling once a workspace is selected.
+      lift $ onChanges workspaceBehavior $ \mayWorkspace -> do
+        case mayWorkspace of
+          Nothing        -> liftIO $ putStrLn "No workspace selected"
+          Just workspace -> do
+            liftIO $ putStrLn "Running startupFileHandling"
+            liftIO $ EF.startupFileHandling workspace ""
       modalId  <- Mat.modal $ map element [h4, selector]
       setWorkspaceModalId modalId
       openWorkspaceSelector
