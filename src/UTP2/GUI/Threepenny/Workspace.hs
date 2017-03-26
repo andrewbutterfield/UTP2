@@ -10,6 +10,7 @@ import           Graphics.UI.Threepenny.Ext.Flexbox as Flex
 import qualified UTP2.GUI.Threepenny.Engine.Files   as EF
 import           UTP2.GUI.Threepenny.Events
 import           UTP2.GUI.Threepenny.FileSystem
+import           UTP2.GUI.Threepenny.Materialize    (ModalId)
 import qualified UTP2.GUI.Threepenny.Materialize    as Mat
 import           UTP2.GUI.Threepenny.Text
 import           UTP2.GUI.Threepenny.Types
@@ -41,7 +42,8 @@ currentWorkspace' = do
     Just workspace -> return mayWorkspace
     Nothing        -> openWorkspaceSelector >> return Nothing
 
--- |Opens the modal for selecting a workspace.
+-- |Opens the modal for selecting a workspace. If no modal element has yet been
+-- created, we create one.
 openWorkspaceSelector :: UTP2 ()
 openWorkspaceSelector = do
   modalId <- readWorkspaceModalId
@@ -49,16 +51,22 @@ openWorkspaceSelector = do
     Just modalId -> lift $ Mat.openModal modalId
     -- |If a workspace selector element hasn't been created yet.
     Nothing      -> do
-      h4       <- lift $ UI.h4 # set UI.text "Select a workspace"
-      selector <- dirSelector "select" $ eWorkspaceEmit <$> ask
-      workspaceBehavior <- eWorkspaceBehavior <$> ask
-      -- |Run startup file handling once a workspace is selected.
-      lift $ onChanges workspaceBehavior $ \mayWorkspace -> do
-        case mayWorkspace of
-          Nothing        -> liftIO $ putStrLn "No workspace selected"
-          Just workspace -> do
-            liftIO $ putStrLn "Running startupFileHandling"
-            liftIO $ EF.startupFileHandling workspace ""
-      modalId  <- Mat.modal $ map element [h4, selector]
+      modalId <- workspaceSelector
       setWorkspaceModalId modalId
       openWorkspaceSelector
+
+-- |Create a workspace selector which resides in a modal. The modal is attached
+-- to the document body.
+workspaceSelector :: UTP2 ModalId
+workspaceSelector = do
+  h4       <- lift $ UI.h4 # set UI.text "Select a workspace"
+  selector <- dirSelector "select" $ eWorkspaceEmit <$> ask
+  workspaceBehavior <- eWorkspaceBehavior <$> ask
+  -- |Run startup file handling once a workspace is selected.
+  lift $ onChanges workspaceBehavior $ \mayWorkspace -> do
+    case mayWorkspace of
+      Nothing        -> liftIO $ putStrLn "No workspace selected"
+      Just workspace -> do
+        liftIO $ putStrLn "Running startupFileHandling"
+        liftIO $ EF.startupFileHandling workspace ""
+  Mat.modal $ map element [h4, selector]
