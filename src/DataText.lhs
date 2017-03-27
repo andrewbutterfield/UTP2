@@ -80,7 +80,7 @@ chrSUBS = '_'  ; strSUBS = [chrSUBS]
 \begin{code}
 chrOBS = 'O' ; strOBS = [chrOBS]
 chrMDL = 'M' ; strMDL = [chrMDL]
-chrSCR = 'S' ; strSCR = [chrMDL]
+chrSCR = 'S' ; strSCR = [chrSCR]
 chrLESS = '\\' ; strLESS = [chrLESS]
 chrLSEP = ':'  ; strLSEP = [chrLSEP]
 \end{code}
@@ -159,7 +159,11 @@ instance Show Tok where
  show TEOF                =  "EOF"
  show (TName s)           =  "Name("  ++ s ++ ")"
  show (TKey s)            =  "Key(" ++ s ++ ")"
- show (TIdent (s,_,_,_))  =  "Id("  ++ s ++ ")"
+ show (TIdent (s,k,r,rs)) =  "Id(" ++ s
+                                   ++ ',':show k
+                                   ++ ',':show r
+                                   ++ show rs
+                                   ++ ")"
  show (TNum s)            =  "Nmbr(" ++ s ++ ")"
  show (TSym s)            =  "Sym." ++ s
  show (TKSym s)           =  "KSym." ++ s
@@ -275,13 +279,13 @@ Seen initial $\lit O, \lit M, \lit S$.
     scanRsv skot spos kot pos cs@(c:cs')
      | isAlpha c  =  scanName skot spos (c:kot) pos' cs'
      | isDigit c  =  scanName skot spos (c:kot) pos' cs'
-     | c == chrSUBS = scanSbscrR skot spos tok "" pos' cs'
-     | c == chrPOST = scanPostR skot spos tok pos' cs'
-     | c == chrLESS = scanGenRoots skot spos tok (VPre,"") [] (pos,c) pos' cs'
-     | otherwise  =  scanroot ((spos,tokrsv tok):skot) pos cs
+     | c == chrSUBS = scanSbscrR skot spos (c:kot) "" pos' cs'
+     | c == chrPOST = scanPostR skot spos (c:kot) pos' cs'
+     | c == chrLESS
+              = scanGenRoots skot spos (c:kot) (VPre,"") [] (pos,c) pos' cs'
+     | otherwise  =  scanroot ((spos,tokrsv $ reverse kot):skot) pos cs
      where
        pos' = updatePosChar pos c
-       tok = reverse kot
 
     tokrsv tok = TIdent (tok, VList VObs, VPre, [])
 \end{code}
@@ -294,17 +298,18 @@ Seen initial $\lit O, \lit M, \lit S$.
 Node \textsf{RsvSub}:
 Seen initial $\LXRsvN~\lit\_$
 \begin{code}
-    scanSbscrR skot spos tok sbus pos []
-       = scanroot ((spos,tokrsvsubs tok (reverse sbus)):skot) pos []
-    scanSbscrR skot spos tok sbus pos cs@(c:cs')
-     | isAlpha c  =  scanSbscrR skot spos tok (c:sbus) pos' cs'
-     | isDigit c  =  scanSbscrR skot spos tok (c:sbus) pos' cs'
-     | c == chrLESS = scanGenRoots skot spos tok (VInter subs,subs) [] (pos,c)
-                                   pos' cs'
+    scanSbscrR skot spos kot sbus pos []
+       = scanroot ((spos,tokrsvsubs (reverse kot) (reverse sbus)):skot) pos []
+    scanSbscrR skot spos kot sbus pos cs@(c:cs')
+     | isAlpha c  =  scanSbscrR skot spos (c:kot) (c:sbus) pos' cs'
+     | isDigit c  =  scanSbscrR skot spos (c:kot) (c:sbus) pos' cs'
+     | c == chrLESS = scanGenRoots skot spos (c:kot) (VInter subs,subs) []
+                                  (pos,c) pos' cs'
      | otherwise  =  scanroot ((spos,tokrsvsubs tok subs):skot) pos cs
      where
        pos' = updatePosChar pos c
        subs = reverse sbus
+       tok = reverse kot
 
     tokrsvsubs tok subs = TIdent (tok, VList VObs, VInter subs, [])
 \end{code}
@@ -312,14 +317,15 @@ Seen initial $\LXRsvN~\lit\_$
 Node \textsf{RsvPost}:
 Seen initial $\LXRsvN~\lit'$.
 \begin{code}
-    scanPostR skot spos tok pos []
-       = scanroot ((spos,tokrsvpost tok):skot) pos []
-    scanPostR skot spos tok pos cs@(c:cs')
-     | c == chrLESS = scanGenRoots skot spos tok (VPost,strPOST) [] (pos,c)
-                                   pos' cs'
+    scanPostR skot spos kot pos []
+       = scanroot ((spos,tokrsvpost $ reverse kot):skot) pos []
+    scanPostR skot spos kot pos cs@(c:cs')
+     | c == chrLESS = scanGenRoots skot spos (c:kot) (VPost,strPOST) []
+                                  (pos,c) pos' cs'
      | otherwise  =  scanroot ((spos,tokrsvpost tok):skot) pos cs
      where
        pos' = updatePosChar pos c
+       tok = reverse kot
 
     tokrsvpost tok = TIdent (tok, VList VObs, VPost, [])
 \end{code}
@@ -333,16 +339,17 @@ Node \textsf{RsvL}:
 Seen initial $\lit O$, $\lit M$, or $\lit S$,
 followed by $\LXDecorN$ and $\lit\BS$.
 \begin{code}
-    scanGenRoots skot spos tok decor stoor (pos0,c0) pos []
-       = scanroot ((spos,tokrsvlnames tok decor (reverse stoor)):skot)
+    scanGenRoots skot spos kot decor stoor (pos0,c0) pos []
+       = scanroot ((spos,tokrsvlnames (reverse kot) decor (reverse stoor)):skot)
                   pos0 [c0]
-    scanGenRoots skot spos tok decor stoor (pos0,c0) pos cs@(c:cs')
-     | isAlpha c = scanGenRoots' skot spos tok decor stoor [c] pos' cs'
+    scanGenRoots skot spos kot decor stoor (pos0,c0) pos cs@(c:cs')
+     | isAlpha c = scanGenRoots' skot spos (c:kot) decor stoor [c] pos' cs'
      | otherwise = scanroot ((spos,tokrsvlnames tok decor roots):skot)
                             pos0 (c0:cs)
      where
        pos' = updatePosChar pos c
        roots = reverse stoor
+       tok = reverse kot
 
     tokrsvlnames tok (dcr,s) roots
        = TIdent (tok, VList VObs, dcr, roots)
@@ -352,35 +359,37 @@ Node \textsf{RsvLs}:
 Seen initial $(\lit O | \lit M | \lit S)\LXDecorN \lit\BS$
 followed by 1 or more $\LXAlfDigN$.
 \begin{code}
-    scanGenRoots' skot spos tok decor stoor eman pos []
-       = scanroot ((spos,tokrsvlnames tok decor (reverse (name:stoor))):skot)
+    scanGenRoots' skot spos kot decor stoor eman pos []
+       = scanroot ((spos,tokrsvlnames (reverse kot) decor (reverse ((reverse eman):stoor))):skot)
                   pos []
-    scanGenRoots' skot spos tok decor stoor eman pos cs@(c:cs')
-     | isAlpha c  =  scanGenRoots' skot spos tok decor stoor (c:eman) pos' cs'
-     | isDigit c  =  scanGenRoots' skot spos tok decor stoor (c:eman) pos' cs'
-     | c == chrLSEP = scanGenRoots skot spos tok decor (name:stoor) (pos,c)
+    scanGenRoots' skot spos kot decor stoor eman pos cs@(c:cs')
+     | isAlpha c  =  scanGenRoots' skot spos (c:kot) decor stoor (c:eman) pos' cs'
+     | isDigit c  =  scanGenRoots' skot spos (c:kot) decor stoor (c:eman) pos' cs'
+     | c == chrLSEP = scanGenRoots skot spos (c:kot) decor (name:stoor) (pos,c)
                                    pos' cs'
-     | c == chrLST = scanGenRoots'' skot spos tok decor (lname:stoor) pos' cs'
+     | c == chrLST = scanGenRoots'' skot spos (c:kot) decor (lname:stoor) pos' cs'
      | otherwise = scanroot ((spos,tokrsvlnames tok decor roots):skot) pos cs
      where
        pos' = updatePosChar pos c
        name = reverse eman
        lname = reverse (c:eman)
        roots = reverse (name:stoor)
+       tok = reverse kot
 \end{code}
 
 Node \textsf{RsvLss}:
 Seen initial $(\lit O | \lit M | \lit S)\LXDecorN\lit\BS$
 followed by 1 or more $\LXAlfDigN$ and a $\lit\$$.
 \begin{code}
-    scanGenRoots'' skot spos tok decor stoor pos []
-       = scanroot ((spos,tokrsvlnames tok decor (reverse stoor)):skot) pos []
-    scanGenRoots'' skot spos tok decor stoor  pos cs@(c:cs')
-     | c == chrLSEP = scanGenRoots skot spos tok decor stoor (pos,c) pos' cs'
+    scanGenRoots'' skot spos kot decor stoor pos []
+       = scanroot ((spos,tokrsvlnames (reverse kot) decor (reverse stoor)):skot) pos []
+    scanGenRoots'' skot spos kot decor stoor  pos cs@(c:cs')
+     | c == chrLSEP = scanGenRoots skot spos (c:kot) decor stoor (pos,c) pos' cs'
      | otherwise = scanroot ((spos,tokrsvlnames tok decor roots):skot) pos cs
      where
        pos' = updatePosChar pos c
        roots = reverse stoor
+       tok = reverse kot
 \end{code}
 
 \newpage
@@ -394,19 +403,20 @@ Seen initial $\LXalphaN$ less $\setof{\lit O,\lit M,\lit S}$,
 and zero or more $\LXAlfDigN$.
 \begin{code}
     scanName skot spos kot pos []
-       = scanroot ((spos,tokpre (reverse kot)):skot) pos []
+       = scanroot ((spos,TName (reverse kot)):skot) pos []
     scanName skot spos kot pos cs@(c:cs')
      | isAlpha c  =  scanName skot spos (c:kot) pos' cs'
      | isDigit c  =  scanName skot spos (c:kot) pos' cs'
-     | c == chrPOST  =  scanroot ((spos,tokpost tok):skot) pos' cs'
-     | c == chrSUBS   =  scanSbscr skot spos tok "" pos' cs'
-     | c == chrLST   =  scanLst skot spos tok pos' cs'
+     | c == chrPOST  =  scanroot ((spos,tokpost tok'):skot) pos' cs'
+     | c == chrSUBS   =  scanSbscr skot spos (c:kot) "" pos' cs'
+     | c == chrLST   =  scanLst skot spos (c:kot) pos' cs'
      | otherwise  =  scanroot ((spos,TName tok):skot) pos cs
      where
        pos' = updatePosChar pos c
        tok = reverse kot
+       tok' = reverse (c:kot)
 
-    tokpre tok  = TIdent (tok, inferKind tok, inferRole tok, [])
+    -- tokpre tok  = TIdent (tok, inferKind tok, inferRole tok, [])
     tokpost tok = TIdent (tok, inferKind tok, VPost,         [])
 \end{code}
 
@@ -417,15 +427,16 @@ and zero or more $\LXAlfDigN$.
 Node \textsf{StdSub}:
 Seen initial $\LXNameN~\lit\_$.
 \begin{code}
-    scanSbscr skot spos tok sbus pos []
-       = scanroot ((spos,toksubs tok (reverse sbus)):skot) pos []
-    scanSbscr skot spos tok sbus pos cs@(c:cs')
-     | isAlpha c  =  scanSbscr skot spos tok (c:sbus) pos' cs'
-     | isDigit c  =  scanSbscr skot spos tok (c:sbus) pos' cs'
+    scanSbscr skot spos kot sbus pos []
+       = scanroot ((spos,toksubs (reverse kot) (reverse sbus)):skot) pos []
+    scanSbscr skot spos kot sbus pos cs@(c:cs')
+     | isAlpha c  =  scanSbscr skot spos (c:kot) (c:sbus) pos' cs'
+     | isDigit c  =  scanSbscr skot spos (c:kot) (c:sbus) pos' cs'
      | otherwise  =  scanroot ((spos,toksubs tok subs):skot) pos cs
      where
        pos' = updatePosChar pos c
        subs = reverse sbus
+       tok = reverse kot
 
     toksubs tok subs = TIdent (tok, VObs, VInter subs, [])
 \end{code}
@@ -437,14 +448,15 @@ Seen initial $\LXNameN~\lit\_$.
 Node \textsf{LstPre}:
 Seen initial $\LXNameN~\lit\$$.
 \begin{code}
-    scanLst skot spos tok pos []
-       = scanroot ((spos,toklst tok):skot) pos []
-    scanLst skot spos tok pos cs@(c:cs')
-     | c == chrSUBS  =  scanSbscrL skot spos tok "" pos' cs'
-     | c == chrPOST  =  scanPost skot spos tok pos' cs'
+    scanLst skot spos kot pos []
+       = scanroot ((spos,toklst $ reverse kot):skot) pos []
+    scanLst skot spos kot pos cs@(c:cs')
+     | c == chrSUBS  =  scanSbscrL skot spos (c:kot) "" pos' cs'
+     | c == chrPOST  =  scanPost skot spos (c:kot) pos' cs'
      | otherwise  =  scanroot ((spos,toklst tok):skot) pos cs
      where
        pos' = updatePosChar pos c
+       tok = reverse kot
 
     toklst tok = TIdent (tok, VList $ inferKind tok, inferRole tok, [])
 \end{code}
@@ -452,10 +464,10 @@ Seen initial $\LXNameN~\lit\$$.
 Node \textsf{LstPost}:
 Seen initial $\LXNameN~\lit\$$\lit'.
 \begin{code}
-    scanPost skot spos tok pos []
-       = scanroot ((spos,toklstpost tok):skot) pos []
-    scanPost skot spos tok pos cs@(c:cs')
-     | otherwise  =  scanroot ((spos,toklstpost tok):skot) pos cs
+    scanPost skot spos kot pos []
+       = scanroot ((spos,toklstpost $ reverse kot):skot) pos []
+    scanPost skot spos kot pos cs@(c:cs')
+     | otherwise  =  scanroot ((spos,toklstpost $ reverse kot):skot) pos cs
      where
        pos' = updatePosChar pos c
 
@@ -466,15 +478,16 @@ Seen initial $\LXNameN~\lit\$$\lit'.
 Node \textsf{LstSubscr}:
 Seen initial $\LXNameN~\lit\$\lit\_$.
 \begin{code}
-    scanSbscrL skot spos tok sbus pos []
-       = scanroot ((spos,toklstsubs tok (reverse sbus)):skot) pos []
-    scanSbscrL skot spos tok sbus pos cs@(c:cs')
-     | isAlpha c  =  scanSbscrL skot spos tok (c:sbus) pos' cs'
-     | isDigit c  =  scanSbscrL skot spos tok (c:sbus) pos' cs'
+    scanSbscrL skot spos kot sbus pos []
+       = scanroot ((spos,toklstsubs (reverse kot) (reverse sbus)):skot) pos []
+    scanSbscrL skot spos kot sbus pos cs@(c:cs')
+     | isAlpha c  =  scanSbscrL skot spos (c:kot) (c:sbus) pos' cs'
+     | isDigit c  =  scanSbscrL skot spos (c:kot) (c:sbus) pos' cs'
      | otherwise  =  scanroot ((spos,toklstsubs tok subs):skot) pos cs
      where
        pos' = updatePosChar pos c
        subs = reverse sbus
+       tok = reverse kot
 
     toklstsubs tok subs = TIdent (tok, VList VObs, VInter subs, [])
 \end{code}
