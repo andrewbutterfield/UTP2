@@ -1,26 +1,24 @@
 module UTP2.GUI.Threepenny.Engine.Files where
 
-import           Control.Monad (void)
-import           GIFiles       (Args (..))
-import qualified GIFiles       as GI
+import           Control.Monad             (void)
+import           Control.Monad.IO.Class    (liftIO)
+import           GIFiles                   (Args (..))
+import qualified GIFiles                   as GI
+import           UTP2.GUI.Threepenny.Types
+import           WxState                   (FileState)
 
 -- |Arguments for Threepenny-gui implementation of GIFiles.hs.
-args :: String -> String -> Args () ()
-args appUserDir currentFileSpace = Args {
+args :: String -> FileState -> Args ()
+args appUserDir fstate = Args {
     aW                   = ()
-  , aState               = ()
-  , aAppUserDir          = const $ appUserDir
-  , aCurrentFileSpace    = const $ currentFileSpace
+  , aFstate              = fstate
   , aDisplayError        = \x y -> putStrLn $ concat [x, "\n", y]
-  , aOnAppUserDirError   = const $ return ()
-  , aFSDirOpenDialog     = return Nothing
-  , aFSNameDialog        = const $ return ""
-  , aNewFS               = const $ const ()
-  , aReadFSPFileNewState = const $ const ()
-  , aWriteFSPFileFSPs    = const $ []
+  , aFSDirOpenDialog     = return $ Just appUserDir
+  , aFSNameDialog        = const $ return "UTP2"
   }
 
-startupFileHandling :: String -> String -> IO ()
-startupFileHandling appUserDir currentFileSpace = void $
-  GI.startupFileHandling_GI $ args appUserDir currentFileSpace
-
+-- |UTP2 version of 'startupFileHandling', 'fstate' is stored in the monad.
+startupFileHandling :: String -> UTP2 ()
+startupFileHandling appUserDir = void $ do
+  fstate <- readFileState
+  liftIO $ GI.startupFileHandling_GI $ args appUserDir fstate

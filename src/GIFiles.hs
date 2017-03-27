@@ -8,23 +8,54 @@ import qualified Files
 import qualified System.Directory as SD
 import qualified System.FilePath  as SF
 import           Utilities        (trim)
+import           WxState          (FileState (..), emptyFS, newFS)
 
 -- |GUI dependent data required by functions in this module.
-data Args w state = Args {
-    aW                   :: w
-  , aState               :: state
-  , aAppUserDir          :: (state -> FilePath)           -- ^ User's application directory from current state.
-  , aCurrentFileSpace    :: (state -> FilePath)           -- ^ Current filespace from current state.
-  , aDisplayError        :: (String -> String -> IO ())   -- ^ Display an error with given title and body.
-  , aOnAppUserDirError   :: (state -> IO state)           -- ^ What to return on error in 'establishAppUserDirGI'.
-  , aFSDirOpenDialog     :: IO (Maybe FilePath)           -- ^ Dialog to select the current working filespace.
-  , aFSNameDialog        :: w -> IO String                -- ^ Get name from filespace dialog.
-  , aNewFS               :: state -> FileSpace -> state   -- ^ Create a new filespace from current state, name and cwd.
-  , aReadFSPFileNewState :: state -> [FileSpace] -> state -- ^ Determine new state in 'readFSPs_GI'.
-  , aWriteFSPFileFSPs    :: state -> [FileSpace]
+data Args w = Args {
+    aW                   :: w                           -- ^ Additional argument required by Wx.
+  , aFstate              :: FileState                   -- ^ The current filestate.
+  , aDisplayError        :: (String -> String -> IO ()) -- ^ Display an error with given title and body.
+  , aFSDirOpenDialog     :: IO (Maybe FilePath)         -- ^ Dialog to select the current workspace if none.
+  , aFSNameDialog        :: w -> IO String              -- ^ Get name from filespace dialog.
   }
 
-startupFileHandling_GI :: Args w state -> IO (Args w state)
+saoithinExeName = "UTP2"
+
+systemFilePaths :: IO (String, FileState)
+systemFilePaths = do
+  user    <- getUsername
+  appuser <- dirget (SD.getAppUserDataDirectory saoithinExeName) "App User Data" ""
+  return (user, emptyFS { appUserDir=appuser })
+
+getUsername :: IO String
+getUsername = do
+  attempt <- utp2try SD.getHomeDirectory
+  case attempt of
+    Left ioerror -> do
+      putStrLn $ "Cannot get username: " ++ show ioerror
+      return "_anonymous_"
+    Right uhome  -> return $ extractUsername "" $ reverse uhome
+
+extractUsername uname "" = uname
+extractUsername uname (c:cs)
+ | c == '\\'  =  uname
+ | c == '/'   =  uname
+ | otherwise  =  extractUsername (c:uname) cs
+
+dirget get descr def = do
+  attempt <- utp2try $ get
+  case attempt of
+    Left ioerror -> do
+      putStrLn $ concat [
+          "Cannot get "
+        , descr
+        , " Directory : "
+        , show ioerror
+        ]
+      return def
+    Right thing  -> return thing
+
+startupFileHandling_GI :: Args w -> IO (Args w)
 startupFileHandling_GI args = do
   args'  <- determineAppData_GI args
   args'' <- accessFrameworkData_GI args'
@@ -33,7 +64,7 @@ startupFileHandling_GI args = do
 -- |Does the directory exist ? If not, initialise it. Does the set-up file exist
 -- ? If not, initialise it. Read the set-up file to get the current and previous
 -- filesspaces, initialising the current, if corrupted.
-determineAppData_GI :: Args w state -> IO (Args w state)
+determineAppData_GI :: Args w -> IO (Args w)
 determineAppData_GI args = do
   args'  <- establishAppUserDir_GI args
   args'' <- determineFSPs_GI       args'
@@ -43,9 +74,9 @@ determineAppData_GI args = do
 -- not, initialise it. Read the framework file, initialising if corrupt. Does
 -- the current proof file exist ? If not, initialise it. Read the current proof
 -- file, initialising if corrupted.
-accessFrameworkData_GI :: Args w state -> IO (Args w state)
+accessFrameworkData_GI :: Args w -> IO (Args w)
 accessFrameworkData_GI args = do
-  let cwdpath = aCurrentFileSpace args $ aState args
+  let cwdpath = snd $ currentFileSpace $ aFstate args
   mres1 <- utp2try $ SD.createDirectoryIfMissing True cwdpath
   -- explainError mres1
   mres3 <- utp2try $ SD.setCurrentDirectory cwdpath
@@ -54,20 +85,20 @@ accessFrameworkData_GI args = do
   --toConsole $ "\n\n***CURR DIR NOW = "++xxx
   return args
 
-establishAppUserDir_GI :: Args w state -> IO (Args w state)
+establishAppUserDir_GI :: Args w -> IO (Args w)
 establishAppUserDir_GI args = do
-  let dirpath = aAppUserDir args $ aState args
+  let dirpath = appUserDir $ aFstate args
   present <- SD.doesDirectoryExist dirpath
   if   present
   then return args
   else do
     res <- utp2try $ SD.createDirectory dirpath
     case res of
-      Right _       -> return  args
+      Right _       -> return args
       Left  ioError -> do
         aDisplayError args "Cannot create directory" $ msg ioError dirpath
-        state' <- aOnAppUserDirError args $ aState args
-        return $ args { aState = state' }
+        let fstate = (aFstate args) { appUserDir = "" }
+        return $ args { aFstate = fstate }
   where
     msg err path = unlines [
         "Cannot create application user data directory"
@@ -79,14 +110,14 @@ establishAppUserDir_GI args = do
       , "every time this application is launched"
       ]
 
-determineFSPs_GI :: Args w state -> IO (Args w state)
+determineFSPs_GI :: Args w -> IO (Args w)
 determineFSPs_GI args = do
-  let  audPath = aAppUserDir args $ aState args
+  let  audPath = appUserDir $ aFstate args
   if   null audPath
   then userCreateFS_GI   args
   else fileLookupFSPs_GI args
 
-userCreateFS_GI :: Args w state -> IO (Args w state)
+userCreateFS_GI :: Args w -> IO (Args w)
 userCreateFS_GI args = do
   mcwd <- aFSDirOpenDialog args
   case mcwd of
@@ -95,19 +126,17 @@ userCreateFS_GI args = do
       error "No FileSpace defined"
     Just cwd -> do
       name <- aFSNameDialog args $ aW args
-      let newFS = aNewFS args (aState args) (name, cwd)
-      return $ args { aState = newFS }
+      return $ args { aFstate = newFS (aFstate args) (name, cwd) }
 
-fileLookupFSPs_GI :: Args w state -> IO (Args w state)
+fileLookupFSPs_GI :: Args w -> IO (Args w)
 fileLookupFSPs_GI args = do
   let cfgpath = concat [
-          aAppUserDir args $ aState args
+          appUserDir $ aFstate args
         , [SF.pathSeparator]
         , Files.acalai
         , Files.cumraiocht
         ]
   present <- SD.doesFileExist cfgpath
-  return args
   if   present
   then readFSPFile_GI args cfgpath
   else do
@@ -115,20 +144,24 @@ fileLookupFSPs_GI args = do
     writeFSPFile_GI cfgpath args'
     return args'
 
-readFSPFile_GI :: Args w state -> FilePath -> IO (Args w state)
+readFSPFile_GI :: Args w -> FilePath -> IO (Args w)
 readFSPFile_GI args path = do
   txt <- readFile path
   let fsps = filter validFS $ map fsParse $ lines txt
   if   null fsps
   then userCreateFS_GI args
   else do
-    let state = aReadFSPFileNewState args (aState args) fsps
-    return args { aState = state }
+    let state = (aFstate args) {
+            currentFileSpace = head fsps
+          , previousFileSpaces = tail fsps
+          }
+    return args { aFstate = state }
 
-writeFSPFile_GI :: FilePath -> Args w state -> IO ()
+writeFSPFile_GI :: FilePath -> Args w -> IO ()
 writeFSPFile_GI path args = do
-  let fsps = aWriteFSPFileFSPs args $ aState args
-  writeFile path (unlines (map showFSP fsps))
+  let fstate = aFstate args
+      fsps = (currentFileSpace fstate):(previousFileSpaces fstate)
+  writeFile path $ unlines $ map showFSP fsps
   where showFSP (name, path) = name ++ namePathSep:path
 
 fsParse txt = (name, path)

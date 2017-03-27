@@ -71,6 +71,8 @@ import System.FilePath
 import Data.Version
 import Data.Time
 
+import qualified GIFiles
+
 -- IMPORTANT: INCOMPATIBLE LIBRARY CHANGES
 #if __GLASGOW_HASKELL__ < 700
 import Data.HashTable        -- needed with 6.10
@@ -96,7 +98,7 @@ initLayout = space initWidth initHeight
 
 \begin{code}
 utp2_gui_run
- = do (uname,fstate) <- systemFilePaths
+ = do (uname,fstate) <- GIFiles.systemFilePaths
       f <- frame  [text := (fullname++" - "++uname)]
       initfs <- startupFileHandling f fstate
       toConsole uname

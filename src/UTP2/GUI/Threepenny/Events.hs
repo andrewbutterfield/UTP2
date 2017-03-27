@@ -18,3 +18,10 @@ on_ event el run = do
   env <- ask
   lift $ on event el $ \a ->
     runUTP2 (run a) env
+
+-- |Wrapper around Threepenny's 'onChanges' that runs in the UTP2 monad.
+onChanges_ :: (Behavior a) -> (a -> UTP2 ()) -> UTP2 ()
+onChanges_ behavior run = do
+  env <- ask
+  lift $ onChanges behavior $ \a ->
+    runUTP2 (run a) env

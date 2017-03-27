@@ -22,6 +22,7 @@ fileSelector text emitter = do
     liftIO $ emit $ Just filepath
   return selector
 
+-- |Given the ID of a file selector, returns its current value.
 selectorPath :: String -> UI String
 selectorPath id = callFunction $
   ffi "$(%1)[0].files[0].path" $ "#" ++ id
@@ -35,6 +36,7 @@ selectorPath id = callFunction $
 --           , "return result"
 --           ]
 
+-- |Variant of 'fileSelector' that only allows the selection of directories.
 dirSelector :: String -> UTP2 (Handler (Maybe String)) -> UTP2 Element
 dirSelector text emitter = do
   selector <- fileSelector text emitter

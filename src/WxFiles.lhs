@@ -33,68 +33,22 @@ import System.IO.Error
 import System.FilePath
 \end{code}
 
-We handle tracking files for the program here.
-
-
-\subsection{\UTP2\ Executable Name}
-
-\begin{code}
-saoithinExeName = "UTP2"
-\end{code}
-
-
-\subsection{System Directories}
-
-\begin{code}
-systemFilePaths :: IO (String,FileState)
-systemFilePaths
- = do user <- getUsername
-      appuser <- dirget (getAppUserDataDirectory saoithinExeName) "App User Data" ""
-      return (user,emptyFS{appUserDir=appuser})
-
-dirget get descr def
- = do attempt <- utp2try $ get
-      case attempt of
-       Left ioerror -> do putStrLn ( "cannot get "
-                                    ++ descr ++" Directory : "
-                                    ++ show ioerror )
-                          return def
-       Right thing  -> return thing
-
-getUsername -- :: IO String
- = do attempt <- utp2try $ getHomeDirectory
-      case attempt of
-       Left ioerror -> do putStrLn ("cannot get username: "++show ioerror)
-                          return "_anonymous_"
-       Right uhome  -> return (extractUsername "" (reverse uhome))
-
-extractUsername uname "" = uname
-extractUsername uname (c:cs)
- | c == '\\'  =  uname
- | c == '/'   =  uname
- | otherwise  =  extractUsername (c:uname) cs
-\end{code}
-
 \subsection{Startup File Handling}
 
-The expected state of affairs during a normal run
-of \UTP2\ is that the user application data directory
-contains a configuration file, currently just listing
-the current working directory.
-The working directory contains the theory framework and
-current proof files,
-as well as all the current theories
-and related material.
+The expected state of affairs during a normal run of \UTP2\ is that the user
+application data directory contains a configuration file, currently just listing
+the current working directory. The working directory contains the theory
+framework and current proof files, as well as all the current theories and
+related material.
 
-Of course, the first time the program is run after installation,
-none of this will exist, so the user will then be walked through
-setting these directories up. The motivation behind this scheme
-is to avoid having complicated os-specific setup instructions or
-the need to generate binary installers.
+Of course, the first time the program is run after installation, none of this
+will exist, so the user will then be walked through setting these directories
+up. The motivation behind this scheme is to avoid having complicated os-specific
+setup instructions or the need to generate binary installers.
 
-At startup, we follow a number of steps
-to establish the relevant system/user directories
-and configuration files to be used:
+At startup, we follow a number of steps to establish the relevant system/user
+directories and configuration files to be used:
+
 \begin{enumerate}
   \item
     First we access application user data
@@ -113,28 +67,17 @@ related initialisation actions.
 -- GUI-independent code, in GIFiles.hs requires.
 args w fstate = Args {
     aW                   = w
-  , aState               = fstate
-  , aAppUserDir          = appUserDir
-  , aCurrentFileSpace    = snd . currentFileSpace
+  , aFstate              = fstate
   , aDisplayError        = errorDialog w
-  , aOnAppUserDirError   = \state -> return state { appUserDir = "" }
   , aFSDirOpenDialog     = dirOpenDialog w True "Select Working FileSpace" ""
   , aFSNameDialog        = fsNameDialog
-  , aNewFS               = newFS
-  , aReadFSPFileNewState = readFSPFileNewState
-  , aWriteFSPFileFSPs    = \state -> (currentFileSpace state):(previousFileSpaces state)
   }
-  where readFSPFileNewState state fsps = state {
-            currentFileSpace   = head fsps
-          , previousFileSpaces = tail fsps
-          }
-
 
 -- |Wx specific implementations of GUI independent counterparts.
 startupFileHandling w fstate =
-  aState <$> GI.startupFileHandling_GI (args w fstate)
+  aFstate <$> GI.startupFileHandling_GI (args w fstate)
 userCreateFS w fstate =
-  aState <$> GI.userCreateFS_GI (args w fstate)
+  aFstate <$> GI.userCreateFS_GI (args w fstate)
 writeFSPFile path w fstate =
   GI.writeFSPFile_GI path (args w fstate)
 \end{code}

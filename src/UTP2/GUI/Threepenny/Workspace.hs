@@ -63,10 +63,8 @@ workspaceSelector = do
   selector <- dirSelector "select" $ eWorkspaceEmit <$> ask
   workspaceBehavior <- eWorkspaceBehavior <$> ask
   -- |Run startup file handling once a workspace is selected.
-  lift $ onChanges workspaceBehavior $ \mayWorkspace -> do
+  onChanges_ workspaceBehavior $ \mayWorkspace -> do
     case mayWorkspace of
       Nothing        -> liftIO $ putStrLn "No workspace selected"
-      Just workspace -> do
-        liftIO $ putStrLn "Running startupFileHandling"
-        liftIO $ EF.startupFileHandling workspace ""
+      Just workspace -> EF.startupFileHandling workspace
   Mat.modal $ map element [h4, selector]
