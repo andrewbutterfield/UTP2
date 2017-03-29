@@ -413,14 +413,14 @@ lmergeSBind = mergeSBind lmergeBObj lmergeBObj
 
 We will have three instances, one each for predicates, expressions and types:
 \begin{code}
-type GPBind = SBind Name Pred
-showGPObj = showBObj (genRootString, show)
-showGPBind  :: GPBind -> String
-showGPBind = unlines' . trieShowWith showGPObj
-gpInj :: Name -> Pred
-gpInj = PVar . genRootAsVar
-gpProj :: Pred -> Maybe Name
-gpProj (PVar g)  =  Just $ varGenRoot g
+type VPBind = SBind Variable Pred
+showVPObj = showBObj (varKey, show)
+showVPBind  :: VPBind -> String
+showVPBind = unlines' . trieShowWith showGPObj
+gpInj :: Variable -> Pred
+gpInj = PVar
+gpProj :: Pred -> Maybe Variable
+gpProj (PVar v)  =  Just v
 gpProj _         =  Nothing
 
 type VEBind = SBind Variable Expr
