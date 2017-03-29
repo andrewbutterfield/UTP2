@@ -162,38 +162,6 @@ We now discuss the required sub-bindings:
 \end{description}
 From the above we see that we need the following sub-bindings:
 
-THE OLD SETUP WITH GENROOTS ETC...
-
-\begin{tabular}{|c|l|}
-  \hline
-  Variable $\fun$ Expr
-  & Std (Regular, not bound)
-  \\\hline
-  GenRoot $\fun$ Pred
-  & Std (Regular, not bound)
-  \\\hline
-  Variable $\fun$ Variable
-  & Std (Regular, bound; Quantifier-List; Substitution-Target)
-  \\\hline
-  GenRoot $\fun$ GenRoot
-  & Std (Regular, bound; Quantifier-List; Substitution-Target)
-  \\\hline
-  Variable $\fun$ Variable${}^*$
-  & Lst (Quantifier-List; Substitution-Target)
-  \\\hline
-  GenRoot $\fun$ GenRoot${}^*$
-  & Lst (Quantifier-List; Substitution-Target)
-  \\\hline
-  Variable $\fun$ Expr${}^*$
-  & Lst (Substitution-Replacement; 2-Place Predicates)
-  \\\hline
-  GenRoot $\fun$ Pred${}^*$
-  & Lst (Substitution-Replacement; 2-Place Predicates)
-  \\\hline
-\end{tabular}
-
-THE NEW SETUP WITH ONLY VARIBLES
-
 \begin{tabular}{|c|l|}
   \hline
   Variable $\fun$ Expr
@@ -224,30 +192,30 @@ THE NEW SETUP WITH ONLY VARIBLES
 
 
 \subsubsection{Binding Types}
-We see a pattern emerging, given a variable type $V$
-and an object type $T$, we get the following four bindings:
+We see a pattern emerging, given a variable type $Var$
+and an term type $Trm$, we get the following four bindings:
 \begin{eqnarray*}
-   V|_{Std} &\fun& T
-\\ V|_{Std} &\fun& V
-\\ V|_{Lst} &\fun& V^*
-\\ V|_{Lst} &\fun& T^*
+   Var|_{Std} &\fun& Trm
+\\ Var|_{Std} &\fun& Var
+\\ Var|_{Lst} &\fun& Var^*
+\\ Var|_{Lst} &\fun& Trm^*
 \end{eqnarray*}
 We shall implement the above four lookup functions
 as a single \texttt{Trie}, which simplifies the enforcing of the
 rule regarding exactly one binding per variable.
-\[ V \fun (T + V + V^* + T^*)\]
+\[ Var \fun (Trm + Var + Var^* + Trm^*)\]
 It also encapsulates the \textbf{Std} vs \textbf{Lst} distinction.
 
-A binding object represents the sum type $T+V+V^*+T^*$:
+A binding object represents the sum type $Trm + Var + Var^* + Trm^*$:
 \begin{code}
-data BObj v t
- = TO t       -- Std, Regular not bound
- | VO v       -- Std, Irregular
- | VSO [v]    -- Lst, Quantifier, Subst-Target
- | TSO [t]    -- Lst, Subst-Replace, 2-Place
+data BObj var trm
+ = TO trm       -- Std, Regular not bound
+ | VO var       -- Std, Irregular
+ | VSO [var]    -- Lst, Quantifier, Subst-Target
+ | TSO [trm]    -- Lst, Subst-Replace, 2-Place
  deriving (Eq,Ord)
 
-showBObj :: (v -> String, t-> String) -> BObj v t -> String
+showBObj :: (var -> String, trm -> String) -> BObj var trm -> String
 showBObj (shwv, shwt) (TO t)  =  shwt t
 showBObj (shwv, shwt) (VO v)  =  shwv v
 showBObj (shwv, shwt) (VSO [])  = "."
@@ -255,25 +223,25 @@ showBObj (shwv, shwt) (VSO vs)  = concat $ intersperse "," $ map shwv vs
 showBObj (shwv, shwt) (TSO [])  = "."
 showBObj (shwv, shwt) (TSO ts)  = concat $ intersperse "," $ map shwt ts
 
-instance (Show v, Show t) => Show (BObj v t) where
+instance (Show var, Show trm) => Show (BObj var trm) where
   show = showBObj (show, show)
 \end{code}
 We define a sub-binding as:
 \begin{code}
-type SBind v t = Trie (BObj v t)
+type SBind var trm = Trie (BObj var trm)
 
-sbnil :: SBind v t
+sbnil :: SBind var trm
 sbnil = tnil
 
 -- explicitly show tagging of object types
-oShow :: (v -> String, t -> String) -> SBind v t -> String
+oShow :: (var -> String, trm -> String) -> SBind var trm -> String
 oShow (vshw, tshw) = unlines . map oshow . flattenTrie
  where
    oshow (str,obj) = str ++ " >-> " ++ oshow' obj
-   oshow' (TO t)   = "TO   " ++ tshw t
-   oshow' (VO v)   = "VO " ++ vshw v
-   oshow' (VSO vs) = "VSO " ++ show (map vshw vs)
-   oshow' (TSO ts) = "TSO " ++ show (map tshw ts)
+   oshow' (TO trm)   = "Trm  " ++ tshw trm
+   oshow' (VO var)   = "Var  " ++ vshw var
+   oshow' (VSO vars) = "Var$ " ++ show (map vshw vars)
+   oshow' (TSO trms) = "Trm$ " ++ show (map tshw trms)
 \end{code}
 
 
@@ -281,27 +249,27 @@ oShow (vshw, tshw) = unlines . map oshow . flattenTrie
 \subsubsection{Binding Update and Lookup}
 
 
-The \texttt{BObj v t} type involves a linkage between variables ($V$)
-and some type of interest ($T$,
+The \texttt{BObj var trm} type involves a linkage between variables ($Var$)
+and some term of interest ($Trm$,
 usually one of \texttt{Pred}, \texttt{Expr} or \texttt{Type}).
-We also assume the existence of a total injective function $vinj : V \fun T$
-that embeds a variable in an object of the relevant type,
-and a partial projection function $vproj : T \pfun V$ whose domain of definition
+We also assume the existence of a total injective function $vinj : Var \fun Trm$
+that embeds a variable in an term of the relevant type,
+and a partial projection function $vproj : Trm \pfun Var$ whose domain of definition
 is precisely the image of $vinj$.
 
-The idea is to view $V$ as ``lower'' than $T$
+The idea is to view $Var$ as ``lower'' than $Trm$
 (think of $vinj$ as a sub-object embedding).
 The plan is always to record a range item at the lowest possible level:
 \begin{eqnarray*}
-   updVO &:& V \fun V \fun (SBind~V~T) \fun \mathbf{1}+(SBind~V~T)
+   updVO &:& Var \fun Var \fun (SBind~Var~Trm) \fun \mathbf{1}+(SBind~Var~Trm)
 \\ updVO~k~v~\beta &\defs& \beta\uplus\maplet k {VO~v}
 \\
-\\ updTO &:& V \fun T \fun (SBind~V~T) \fun \mathbf{1}+(SBind~V~T)
+\\ updTO &:& Var \fun Trm \fun (SBind~Var~Trm) \fun \mathbf{1}+(SBind~Var~Trm)
 \\ updTO~k~t~\beta
    &\defs&
    \left\{
      \begin{array}{ll}
-        updVO~k~(vproj~t)~\beta,     &  t \in vinj(V)
+        updVO~k~(vproj~t)~\beta,     &  t \in vinj(Var)
      \\ \beta\uplus\maplet k {TO~t}, & \hbox{otherwise}
      \end{array}
    \right.
@@ -309,8 +277,8 @@ The plan is always to record a range item at the lowest possible level:
 Here $\uplus$ denotes an update that fails if the new entry conflicts
 with an existing one.
 
-Lookup expecting a $V$ result succeeds only if a $VO$ object is found,
-while those expecting a $T$ result will accept a $TO$ result,
+Lookup expecting a $Var$ result succeeds only if a $VO$ object is found,
+while those expecting a $Trm$ result will accept a $TO$ result,
 but also use $vinj$ if a $VO$ result is found.
 
 We do similarly for $VSO$ and $TSO$, provided all list elements are in the

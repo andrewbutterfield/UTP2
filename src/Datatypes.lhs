@@ -123,6 +123,14 @@ isVInter (VInter _) = True
 isVInter _          = False
 \end{code}
 
+Some useful predicates on variables:
+\begin{code}
+isStdV (_,VList _,_,_) = False
+isStdV _               = True
+
+isLstV (_,VList _,_,_) = True
+isLstV _               = False
+\end{code}
 
 
 

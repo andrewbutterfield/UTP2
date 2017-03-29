@@ -126,20 +126,6 @@ chrSEP = '.'
     which denote those with a special meaning or role.
 \end{itemize}
 
-Some useful predicates on variables:
-\begin{code}
-isStdV (_,VList _,_,_) = False
-isStdV _               = True
-
-isRsvV(nm,VList _,_,_) = isRsv nm
-isRsvV _               = False
-
-isRsv nm = nm `elem` [strOBS,strMDL,strSCR]
-
-isLstV (_,VList _,_,_) = True
-isLstV _               = False
-\end{code}
-
 
 
 \newpage
@@ -220,6 +206,29 @@ We define a Parsec-compliant scanner, that returns no errors
 \end{center}
 \newpage
 
+
+
+Some useful syntax related predicates on variables:
+\begin{code}
+isRsvV(nm,VList _,_,_) = isRsv nm
+isRsvV _               = False
+
+isRsv nm = nm `elem` [strOBS,strMDL,strSCR]
+
+varRoot :: Variable -> String
+varRoot ( nm, _, _, _) = varStringRoot nm
+
+varStringRoot nm = takeWhile isRootChar nm
+
+isRootChar c  = isAlpha c || isDigit c || c `elem` [chrSUBS, chrLST]
+
+isStdS nm
+ = case varStringRoot nm of
+    "" -> False
+    root -> last root /= chrLST
+
+isLstS nm = not . isStdS
+\end{code}
 
 
 Now, the scanner itself:
