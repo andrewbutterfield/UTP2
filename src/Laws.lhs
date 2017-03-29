@@ -427,7 +427,8 @@ lawMatch tags fovs ttts mctxt tsc tpr (ppr,lawsc) ptts
        let pscnf = normaliseSC lawsc
        unboundFresh <- checkFreshness pscnf bindings
        let goalvars = getAllGoalVars bindings
-       let frshBinds = lbuild $ mapboth (varKey,TO . Var) $ genFreshVars goalvars unboundFresh
+       let frshBinds = lbuild $ mapboth (varKey,TO . Var)
+                         $ genFreshVars goalvars unboundFresh
        bindings' <- (tnil,frshBinds,tnil) `mrgB` bindings
        checkPBindings (knownTypes mctxt) $ fst3 bindings'
        completeMatch fovs mctxt tscnf lawsc bindings' qvms subms

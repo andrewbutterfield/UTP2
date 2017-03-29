@@ -101,7 +101,7 @@ Invariant:
 \begin{code}
 invVariable reserved (name, kind, role, roots)
  = (role == VRel)    `implies`  (kind `elem` [VExpr,VPred])
-   && 
+   &&
    isVInter role     `implies`  (kind == VObs)
 
 isVInter (VInter _) = True
@@ -148,7 +148,7 @@ for use in binding constructs,
 which may themselves contain special variables
 that denote lists of variables.
 \begin{code}
-data ListVar 
+data ListVar
  = V Variable -- regular variable
  | L Variable -- variable denoting a list of variables
      [Name]
@@ -364,7 +364,7 @@ data Expr
 n_Eerror = "EXPR_ERR: "
 eerror str = App (n_Eerror ++ str) []
 
-type ESubst = Substn Variable Expr
+type ESubst = Substn ListVar Expr
 \end{code}
 
 We need some builders that perform
@@ -383,7 +383,7 @@ isVar _         =  False
 getVar :: Expr -> Variable
 getVar (Var v)   =  v
 getVar _         =  nullVar
-nullVar  = ("",VScript,VStatic,[])
+nullVar  = ("",VScript,VStatic)
 
 mgetVar :: Expr -> Maybe Variable
 mgetVar (Var v)   =  Just v
@@ -412,7 +412,7 @@ data Pred
 n_Perror = "PRED_ERR: "
 perror str = PApp (n_Perror ++ str) []
 
-type PSubst = Substn Variable  Pred
+type PSubst = Substn ListVar Pred
 \end{code}
 
 We define two constructor functions to handle the \texttt{Expr}/\texttt{Pred} ``crossovers'':
@@ -993,7 +993,6 @@ instance Dshow Pred  where dshow = debugPshow
 instance Dshow Expr  where dshow = debugEshow
 instance Dshow Type  where dshow = debugTshow
 instance Dshow SideCond where dshow sc = "SC"
-instance Dshow QVars where dshow = debugQSshow
 
 instance (Dshow a,Dshow b) => Dshow (a,b) where
  dshow (a,b) = "FIRST:\n"++dshow a++"\nSECOND\n"++dshow b
@@ -1059,7 +1058,6 @@ dbgRshow (VInter s) = "VINTER "++s
 dbgVshow (n,k,r) = dbgKshow k
                    ++ ' ':n
                    ++ ' ':dbgRshow r
-                   ++ ' ':show ns
 
 dbgVSshow vs = "<"
                ++ (concat $ intersperse ">, <" $ map dbgVshow vs)
@@ -1068,21 +1066,23 @@ dbgVSshow vs = "<"
 debugQSshow :: VarList -> String
 debugQSshow = dbgQSshow 0
 
-dbgQSshow i ( [])  = hdr i ++ "QVARS(empty)"
+dbgQSshow i ( [])  = hdr i ++ "VARS(empty)"
 dbgQSshow i ( qs)
- = hdr i ++ "QVARS:"
-   ++ (concat $ map ( (hdr (i+1) ++) . dbgVshow ) qs)
+ = hdr i ++ "VARS:"
+   ++ (concat $ map ( (hdr (i+1) ++) . dbgLVshow ) qs)
 
+dbgLVshow (V v) = dbgVshow v
+dbgLVshow (L v ns) = dbgVshow v ++ " LESS " ++ show ns
 
 dbgMshow i (x,y) = hdr i ++ "DOM" ++ dbgEshow (i+1) x ++ hdr i ++ "RNG" ++ dbgEshow (i+1) y
 
 dbgESshow :: Int -> ESubst -> String
 dbgESshow i (Substn sub)
-  = hdr i ++ "E-SUBSTN" ++ dbgSshow dbgVshow dbgEshow (i+1) sub
+  = hdr i ++ "E-SUBSTN" ++ dbgSshow dbgLVshow dbgEshow (i+1) sub
 
 dbgPSshow :: Int -> PSubst -> String
 dbgPSshow i (Substn sub)
-  = hdr i ++ "P-SUBSTN" ++ dbgSshow dbgVshow dbgPshow (i+2) sub
+  = hdr i ++ "P-SUBSTN" ++ dbgSshow dbgLVshow dbgPshow (i+2) sub
 
 dbgSshow :: (v -> String) -> (Int -> a -> String) -> Int -> [(v,a)]
          -> String
@@ -1263,7 +1263,7 @@ outAlpha  = mkAlpha . filter isOutA . trieDom
 For debugging it is useful to be able to take predicates
 and expressions apart:
 \begin{code}
-predParts :: Pred -> (String,[Pred],[Expr],[QVars],[Type])
+predParts :: Pred -> (String,[Pred],[Expr],[VarList],[Type])
 predParts TRUE = ("TRUE",[],[],[],[])
 predParts FALSE = ("FALSE",[],[],[],[])
 predParts (PVar pv) = ("PVar-"++varKey pv,[],[],[],[])
@@ -1297,9 +1297,9 @@ Generally we pull out expressions using \texttt{predParts},
 and collecting top-level expressions before those
 in sub-predicates.
 \begin{code}
-exprParts :: Expr -> (String,[Pred],[Expr],[QVars])
+exprParts :: Expr -> (String,[Pred],[Expr],[VarList])
 exprParts (Num _)          =  ("Num",[],[],[])
-exprParts (Var (n,_,_,_))  =  ("Var:"++n,[],[],[])
+exprParts (Var (n,_,_))    =  ("Var:"++n,[],[],[])
 exprParts (App s es)       =  ("App",[],es,[])
 exprParts (Abs s _ qs es)  =  ("Abs",[],es,[qs])
 exprParts (ESub e (Substn ssub))

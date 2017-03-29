@@ -135,6 +135,7 @@ chrSEP = '.'
 data Tok = TEOF
          | TName String  | TKey String
          | TIdent Variable
+         | TLVar Variable [Name]
          | TNum  String
          | TSym  String  | TKSym String
          | TLQt | TSep
@@ -145,11 +146,15 @@ instance Show Tok where
  show TEOF                =  "EOF"
  show (TName s)           =  "Name("  ++ s ++ ")"
  show (TKey s)            =  "Key(" ++ s ++ ")"
- show (TIdent (s,k,r,rs)) =  "Id(" ++ s
-                                   ++ ',':show k
-                                   ++ ',':show r
-                                   ++ show rs
-                                   ++ ")"
+ show (TIdent (s,k,r)) =  "Id(" ++ s
+                                ++ ',':show k
+                                ++ ',':show r
+                                ++ ")"
+ show (TLVar (s,k,r) rs) =  "LVar(" ++ s
+                                ++ ',':show k
+                                ++ ',':show r
+                                ++ ' ':show rs
+                                ++ ")"
  show (TNum s)            =  "Nmbr(" ++ s ++ ")"
  show (TSym s)            =  "Sym." ++ s
  show (TKSym s)           =  "KSym." ++ s
@@ -210,10 +215,17 @@ We define a Parsec-compliant scanner, that returns no errors
 
 Some useful syntax related predicates on variables:
 \begin{code}
-isRsvV(nm,VList _,_,_) = isRsv nm
+isStdV, isLstV :: ListVar -> Bool
+isStdV (V _)    =  True
+isStdV (L _ _)  =  False
+
+isLstV = not . isStdV
+
+isRsvV :: ListVar -> Bool
+isRsvV (L (nm,_,_) _)  =  isRsv nm
 isRsvV _               = False
 
-isRsv nm = nm `elem` [strOBS,strMDL,strSCR]
+isRsv nm = varStringRoot nm `elem` [strOBS,strMDL,strSCR]
 
 varRoot :: Variable -> String
 varRoot ( nm, _, _, _) = varStringRoot nm
@@ -296,7 +308,7 @@ Seen initial $\lit O, \lit M, \lit S$.
      where
        pos' = updatePosChar pos c
 
-    tokrsv tok = TIdent (tok, VList VObs, VPre, [])
+    tokrsv tok = TLVar (tok, VObs, VPre) []
 \end{code}
 
 \paragraph{Reserved Decorations}
@@ -320,7 +332,7 @@ Seen initial $\LXRsvN~\lit\_$
        subs = reverse sbus
        tok = reverse kot
 
-    tokrsvsubs tok subs = TIdent (tok, VList VObs, VInter subs, [])
+    tokrsvsubs tok subs = TLVar (tok, VObs, VInter subs) []
 \end{code}
 
 Node \textsf{RsvPost}:
@@ -336,7 +348,7 @@ Seen initial $\LXRsvN~\lit'$.
        pos' = updatePosChar pos c
        tok = reverse kot
 
-    tokrsvpost tok = TIdent (tok, VList VObs, VPost, [])
+    tokrsvpost tok = TLVar (tok, VObs, VPost) []
 \end{code}
 
 
@@ -360,8 +372,7 @@ followed by $\LXDecorN$ and $\lit\BS$.
        roots = reverse stoor
        tok = reverse kot
 
-    tokrsvlnames tok (dcr,s) roots
-       = TIdent (tok, VList VObs, dcr, roots)
+    tokrsvlnames tok (dcr,s) roots = TLVar (tok, VObs, dcr) roots
 \end{code}
 
 Node \textsf{RsvLs}:
@@ -467,7 +478,7 @@ Seen initial $\LXNameN~\lit\$$.
        pos' = updatePosChar pos c
        tok = reverse kot
 
-    toklst tok = TIdent (tok, VList $ inferKind tok, inferRole tok, [])
+    toklst tok = TLVar (tok, inferKind tok, inferRole tok) []
 \end{code}
 
 Node \textsf{LstPost}:
@@ -480,7 +491,7 @@ Seen initial $\LXNameN~\lit\$$\lit'.
      where
        pos' = updatePosChar pos c
 
-    toklstpost tok = TIdent (tok, VList $ inferKind tok, VPost, [])
+    toklstpost tok = TLVar (tok, inferKind tok, VPost) []
 \end{code}
 
 
@@ -498,7 +509,7 @@ Seen initial $\LXNameN~\lit\$\lit\_$.
        subs = reverse sbus
        tok = reverse kot
 
-    toklstsubs tok subs = TIdent (tok, VList VObs, VInter subs, [])
+    toklstsubs tok subs = TLVar (tok, VObs, VInter subs) []
 \end{code}
 
 \newpage
@@ -696,11 +707,11 @@ We need to set the (key) string in a Variable to match its
 printed form
 \begin{code}
 showVar :: Variable -> String
-showVar (nm, k, r, rs)
- = nm ++ showKind k ++ showRole r ++ showRoots rs
+showVar (nm, k, r) = nm ++ showRole r
 
-showKind (VList _) = strLST
-showKind _         = ""
+showLVar :: ListVar -> String
+showLVar (V (nm, k, r)) = nm ++ showRole r
+showLVar (L (nm, k, r) rs) = nm ++ showRole r ++ showRoots rs
 
 showRole VPost      = strPOST
 showRole (VInter s) = chrSUBS:s
@@ -709,15 +720,14 @@ showRole _          = ""
 showRoots [] = ""
 showRoots rs = chrLESS : concat (intersperse strLSEP $ map show rs)
 
-
 mkGVar :: VRole -> Name -> Variable
-mkGVar r nm   = (nm, VObs, r, [])
+mkGVar r nm   = (nm, VObs, r)
 
 mkSVar :: Name -> VRole -> Variable
 mkSVar nm r  = mkGVar r nm
 
-mkRVar :: Name -> [Name] -> VRole -> Variable
-mkRVar nm roots r = (nm, VList VObs, r, roots)
+mkRVar :: Name -> [Name] -> VRole -> ListVar
+mkRVar nm roots r = L (nm, VObs, r)  roots
 \end{code}
 
 \newpage
@@ -749,31 +759,36 @@ badVariable _                =  False
 \subsection{Making Variables}
 
 \begin{code}
-preVar, postVar, scrptVar, lstVar, lstVar', predVar :: Name -> Variable
-preVar nm  = (nm, VObs, VPre, [])
-postVar nm = (nm, VObs, VPost, [])
-scrptVar nm   = (nm, VScript, VPre, [])
-lstVar  nm = (nm, VList VObs, VPre, [])
-lstVar' nm = (nm, VList VObs, VPost, [])
-predVar nm = (nm, VPred, VPre, [])
+preVar, postVar, scrptVar, predVar :: Name -> Variable
+preVar nm  = (nm, VObs, VPre)
+postVar nm = (nm, VObs, VPost)
+scrptVar nm  = (nm, VScript, VPre)
+predVar nm = (nm, VPred, VPre)
 
-subVar, lsubVar :: String -> String -> Variable
-subVar s nm  = (nm, VObs, VInter s, [])
-lsubVar s nm = (nm, VList VObs, VInter s, [])
+subVar :: String -> String -> Variable
+subVar s nm  = (nm, VObs, VInter s)
 
 decorVar :: VRole -> Variable -> Variable
-decorVar r (nm, k, _, rs) = (nm, k, r, rs)
+decorVar r (nm, k, _) = (nm, k, r)
 
-(\\\) :: Variable -> [Name] -> Variable
-(nm, VList VObs, r, less1) \\\ less2
-  =  (nm, VList VObs, r, less1 `mrgnorm` less2)
+lstVar, lstVar' :: Name -> ListVar
+lstVar  nm = L (nm, VObs, VPre) []
+lstVar' nm = L (nm, VObs, VPost) []
+
+lsubVar :: String -> String -> ListVar
+lsubVar s nm = L (nm, VObs, VInter s) []
+
+(\\\) :: ListVar -> [Name] -> ListVar
+(L (nm, VObs, r) less1) \\\ less2
+  =  L (nm, VObs, r) (less1 `mrgnorm` less2)
+lv \\ _ = lv
 
 qnil         =  []
-qvar   x     =  [preVar x]
-qvars  xs    =  mkQ $ map preVar xs
+qvar   x     =  [V $ preVar x]
+qvars  xs    =  mkQ $ map (V . preVar) xs
 qvarr  r     =  [lstVar r]
 qvarrs rs    =  mkQ $ map lstVar rs
-qvarsr xs r  =  mkQ $ (map preVar xs) ++ [lstVar r]
+qvarsr xs r  =  mkQ $ (map (V . preVar) xs ++ [lstVar r])
 
 rootVar :: Name -> Variable
 rootVar = preVar -- we dont have a null role - should we?
@@ -804,27 +819,28 @@ In effect, \texttt{O}, \texttt{S} and \texttt{M} are reserved variable roots.
 \begin{code}
 strLISTS = [ strOBS, strMDL, strSCR ]
 
-obsList  =  (strOBS, VList VObs, VPre, [])
-obsList' =  (strOBS, VList VObs, VPost, [])
-mdlList  =  (strMDL, VList VObs, VPre, [])
-mdlList' =  (strMDL, VList VObs, VPost, [])
-scrList  =  (strSCR, VList VObs, VPre, [])
-scrList' =  (strSCR, VList VObs, VPost, [])
+obsList  =  L (strOBS, VObs, VPre)  []
+obsList' =  L (strOBS, VObs, VPost) []
+mdlList  =  L (strMDL, VObs, VPre)  []
+mdlList' =  L (strMDL, VObs, VPost) []
+scrList  =  L (strSCR, VObs, VPre)  []
+scrList' =  L (strSCR, VObs, VPost) []
 \end{code}
 
 A range of tests:
 \begin{code}
 -- want a test for pure reserved list, with no _m
-isPureList (_, _, VInter _, _)  =  False
-isPureList v                    =  isRsvV v
+isPureList (L (_, _, VInter _) _)  =  False
+isPureList (L v                _)  =  isRsvV v
+isPureList _                       =  False
 
 -- want a test for subscripted reserved list
-isListSub v@(_, _, VInter _, _)  =  isRsvV v
-isListSub _                      =  False
+isListSub (L v@(_, _, VInter _) _)  =  isRsvV v
+isListSub _                         =  False
 
 
 obslookup :: (Variable -> t) -> Trie t -> Variable -> Maybe t
-obslookup wrap trie v@(s, _, _, _)
+obslookup wrap trie v@(s, _, _)
  = case tlookup trie s of
      Nothing | isRsvV v  ->  Just $ wrap v
              | otherwise    ->  Nothing
@@ -2450,19 +2466,19 @@ and a variable  as a pattern, generate a fresh variable
 based
 on that pattern that is not already used:
 \begin{code}
-genFreshVar :: [Variable] -> Variable -> Variable
+genFreshVar :: [ListVar] -> ListVar -> ListVar
 genFreshVar used patvar
  = head $ dropWhile alreadyUsed $ map (genvar patvar . show) [1..]
  where
    alreadyUsed var = var `elem` used
-   genvar (r, VList VObs, _,             roots) substr
-        = (r, VList VObs, VInter substr, roots)
-   genvar (r, k, _, _) substr = (r, k, VInter substr, [])
+   genvar (V v) substr = V $ addsub v substr
+   genvar (L v rs) substr = L (addsub v substr) rs
+   addsub (r, k, _) substr = (r, k, VInter substr)
 \end{code}
 
 We generalise this to a list of fresh patterns:
 \begin{code}
-genFreshVars :: [Variable] -> [Variable] -> [(Variable,Variable)]
+genFreshVars :: [ListVar] -> [ListVar] -> [(ListVar,ListVar)]
 genFreshVars used [] = []
 genFreshVars used (patvar:rest)
  = let gvar = genFreshVar used patvar
@@ -2527,10 +2543,10 @@ We will often want to split variable lists into
 two: the standard variables, and the rest.
 Also, list variables can be split into general, and reserved.
 \begin{code}
-vPartition :: [Variable] -> ([Variable],[Variable])
+vPartition :: VarList -> (VarList,VarList)
 vPartition = partition isStdV
 
-rPartition :: [Variable] -> ([Variable],[Variable])
+rPartition :: VarList -> (VarList,VarList)
 rPartition = partition isRsvV
 \end{code}
 
