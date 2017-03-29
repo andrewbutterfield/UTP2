@@ -41,10 +41,6 @@ A variable will have one of the following \emph{kinds}:
   \item[Script]
     Represents an actual program variable itself,
     rather than any associated value it may take.
-  \item[List]
-   In a context where a list of variables is required,
-   this can stand for zero or more variables,
-   all belonging to precisely one of the categories detailed above.
 \end{description}
 The above kinds all have different roles in the logic underlying UTP.
 
@@ -53,8 +49,6 @@ data VKind = VObs
            | VExpr
            | VPred
            | VScript
-           | VList
-               VKind -- cannot be ListV !
            deriving (Eq, Ord, Show)
 \end{code}
 
@@ -91,64 +85,45 @@ data VRole = VStatic
 \end{code}
 
 
-A variable has a name, kind and role,
-as well as a list of names used to identify exceptions
-to one of the reserved list variables
+A variable has a name, kind and role:
 \begin{code}
 type Variable = ( Name
                 , VKind
                 , VRole
-                , [Name] -- only VList, with name in O,M,S
                 )
 \end{code}
 
 Invariant:
 \begin{enumerate}
-  \item the argument of a \texttt{VList} cannot be another \texttt{VList}.
   \item only kinds \texttt{VExpr} and \texttt{VPred} can have role \texttt{VRel}.
-  \item only kind \texttt{VObs} or \texttt{VList VObs} can have role \texttt{VInter}.
-  \item only kind \texttt{VList VObs} can have roots (lists of names).
+  \item only kind \texttt{VObs} can have role \texttt{VInter}.
 \end{enumerate}
 \begin{code}
 invVariable reserved (name, kind, role, roots)
- = invKind kind
-   && (role == VRel)    `implies`  (kind `elem` [VExpr,VPred])
-   && isVInter role     `implies`  (kind `elem` [VObs,VList VObs])
-   && not (null roots)  `implies`  (kind == VList VObs)
-
-invKind (VList (VList _)) = False
-invKind _                 = True
+ = (role == VRel)    `implies`  (kind `elem` [VExpr,VPred])
+   && 
+   isVInter role     `implies`  (kind == VObs)
 
 isVInter (VInter _) = True
 isVInter _          = False
 \end{code}
-
-Some useful predicates on variables:
-\begin{code}
-isStdV (_,VList _,_,_) = False
-isStdV _               = True
-
-isLstV (_,VList _,_,_) = True
-isLstV _               = False
-\end{code}
-
 
 
 Variable utility code.
 First three are used to create non-parseable error variables"
 \begin{code}
 varmap :: (String -> String) -> Variable -> Variable
-varmap f (n,k,r,ns) = (f n, k, r,ns)
+varmap f (n,k,r) = (f n, k, r)
 \end{code}
 
 \begin{code}
 varKey :: Variable -> String
-varKey (n,_,_,_) = n
+varKey (n,_,_) = n
 \end{code}
 
 \newpage
 We will often want to store variable information
-in string-indexed tables (\texttt{Trie}), which is what the 3rd component
+in string-indexed tables (\texttt{Trie}), which is what the 1st component
 (\texttt{varKey}) is for:
 \begin{code}
 tvlookup :: Trie t -> Variable -> Maybe t
@@ -165,6 +140,20 @@ ssvlookup tries = sslookup tries . varKey
 
 tvupdate :: Variable -> t -> Trie t -> Trie t
 tvupdate v a trie = tupdate (varKey v) a trie
+\end{code}
+
+
+We also need to introduce the idea of lists of variables,
+for use in binding constructs,
+which may themselves contain special variables
+that denote lists of variables.
+\begin{code}
+data ListVar 
+ = V Variable -- regular variable
+ | L Variable -- variable denoting a list of variables
+     [Name]
+ deriving (Eq, Ord, Show)
+type VarList = [ListVar]
 \end{code}
 
 
@@ -366,7 +355,7 @@ data Expr
  = Num Int
  | Var Variable
  | App String [Expr]
- | Abs String TTTag [Variable] [Expr]
+ | Abs String TTTag VarList [Expr]
  | ESub Expr ESubst
  | EPred Pred
  deriving (Eq, Ord, Show)
@@ -413,7 +402,7 @@ data Pred
  | FALSE
  | PVar Variable
  | PApp String [Pred]
- | PAbs String TTTag [Variable] [Pred]
+ | PAbs String TTTag VarList [Pred]
  | Sub Pred ESubst
  | PExpr Expr
  | TypeOf Expr Type
@@ -1060,7 +1049,6 @@ dbgKshow VObs = "VOBS"
 dbgKshow VExpr = "VEXP"
 dbgKshow VPred = "VPRD"
 dbgKshow VScript = "VSCRPT"
-dbgKshow (VList k) = "LSTV "++dbgKshow k
 
 dbgRshow VStatic = "VSTATIC"
 dbgRshow VPre = "VPRE"
@@ -1068,16 +1056,16 @@ dbgRshow VPost = "VPOST"
 dbgRshow VRel = "VREL"
 dbgRshow (VInter s) = "VINTER "++s
 
-dbgVshow (n,k,r,ns) = dbgKshow k
-                    ++ ' ':n
-                    ++ ' ':dbgRshow r
-                    ++ ' ':show ns
+dbgVshow (n,k,r) = dbgKshow k
+                   ++ ' ':n
+                   ++ ' ':dbgRshow r
+                   ++ ' ':show ns
 
 dbgVSshow vs = "<"
                ++ (concat $ intersperse ">, <" $ map dbgVshow vs)
                ++ ">"
 
-debugQSshow :: QVars -> String
+debugQSshow :: VarList -> String
 debugQSshow = dbgQSshow 0
 
 dbgQSshow i ( [])  = hdr i ++ "QVARS(empty)"
