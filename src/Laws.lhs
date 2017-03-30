@@ -1840,7 +1840,7 @@ existentialWitness mctxt sc wsubs epr@(PAbs nm _ qvs [body])
     wpr
      | null qws  =  wbody
      | otherwise  =  mkExists qws wbody
-    qws = remSubVars (lnorm (snd (unwrapQV wsubs))) (lnorm(getqovars qvs))
+    qws = remSubVars (lnorm (snd (unwrapQV wsubs))) (lnorm(getstdlvars qvs))
     wbody = predONSub mctxt sc wsubs body
 
 existentialWitness mctxt sc wsubs pr = pr

@@ -214,7 +214,7 @@ downPFocus (PApp nm (pr:prs), ctxt, wayup)
    , (PApp' nm [] prs, ctxt) : wayup )
 downPFocus (PAbs nm tag qs (pr:prs), ctxt, wayup)
  = ( pr
-   , ctxtPush (getqovars qs,tag) ctxt
+   , ctxtPush (getstdlvars qs,tag) ctxt
    , (PAbs' nm tag qs [] prs, ctxt) : wayup )
 downPFocus (Sub pr sub, ctxt, wayup)
  = ( pr

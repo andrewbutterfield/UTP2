@@ -215,20 +215,23 @@ We define a Parsec-compliant scanner, that returns no errors
 
 Some useful syntax related predicates on variables:
 \begin{code}
-isStdV, isLstV :: ListVar -> Bool
-isStdV (V _)    =  True
-isStdV (L _ _)  =  False
+isStdLV, isLstLV :: ListVar -> Bool
+isStdLV (V _)    =  True
+isStdLV (L _ _)  =  False
 
-isLstV = not . isStdV
+isLstLV = not . isStdLV
 
-isRsvV :: ListVar -> Bool
-isRsvV (L (nm,_,_) _)  =  isRsv nm
-isRsvV _               = False
+isRsvLV :: ListVar -> Bool
+isRsvLV (L v _)  =  isRsvV v
+isRsvLV _        =  False
+
+isRsvV :: Variable -> Bool
+isRsvV (nm,_,_)  =  isRsv nm
 
 isRsv nm = varStringRoot nm `elem` [strOBS,strMDL,strSCR]
 
 varRoot :: Variable -> String
-varRoot ( nm, _, _, _) = varStringRoot nm
+varRoot (nm, _, _) = varStringRoot nm
 
 varStringRoot nm = takeWhile isRootChar nm
 
@@ -437,7 +440,7 @@ and zero or more $\LXAlfDigN$.
        tok' = reverse (c:kot)
 
     -- tokpre tok  = TIdent (tok, inferKind tok, inferRole tok, [])
-    tokpost tok = TIdent (tok, inferKind tok, VPost,         [])
+    tokpost tok = TIdent (tok, inferKind tok, VPost)
 \end{code}
 
 \paragraph{Subscript}
@@ -458,7 +461,7 @@ Seen initial $\LXNameN~\lit\_$.
        subs = reverse sbus
        tok = reverse kot
 
-    toksubs tok subs = TIdent (tok, VObs, VInter subs, [])
+    toksubs tok subs = TIdent (tok, VObs, VInter subs)
 \end{code}
 
 \paragraph{General List Variable}
@@ -785,10 +788,10 @@ lv \\ _ = lv
 
 qnil         =  []
 qvar   x     =  [V $ preVar x]
-qvars  xs    =  mkQ $ map (V . preVar) xs
+qvars  xs    =  lnorm $ map (V . preVar) xs
 qvarr  r     =  [lstVar r]
-qvarrs rs    =  mkQ $ map lstVar rs
-qvarsr xs r  =  mkQ $ (map (V . preVar) xs ++ [lstVar r])
+qvarrs rs    =  lnorm $ map lstVar rs
+qvarsr xs r  =  lnorm $ (map (V . preVar) xs ++ [lstVar r])
 
 rootVar :: Name -> Variable
 rootVar = preVar -- we dont have a null role - should we?
@@ -831,12 +834,12 @@ A range of tests:
 \begin{code}
 -- want a test for pure reserved list, with no _m
 isPureList (L (_, _, VInter _) _)  =  False
-isPureList (L v                _)  =  isRsvV v
+isPureList (L v _)                 =  isRsvV lv
 isPureList _                       =  False
 
 -- want a test for subscripted reserved list
-isListSub (L v@(_, _, VInter _) _)  =  isRsvV v
-isListSub _                         =  False
+isListSub (L (v, _, VInter _) _)  =  isRsvV v
+isListSub _                       =  False
 
 
 obslookup :: (Variable -> t) -> Trie t -> Variable -> Maybe t
@@ -1107,10 +1110,21 @@ p_variable = ptoken pvar <?> "variable"
  where
    pvar (TIdent v)  =  Just v
    pvar (TName s)
+    | s `elem` [strOBS,strMDL,strSCR]  = Nothing
+    | otherwise    =  Just (s, VObs, VPre)
+   pvar _          =  Nothing
+
+variable = do{ v <- lexify p_variable; return $ TEPvar v }
+
+p_variable :: TEP_Parser Variable
+p_variable = ptoken pvar <?> "variable"
+ where
+   pvar (TIdent v)  =  Just v
+   pvar (TName s)
     | s == strOBS  =  Just obsList
     | s == strMDL  =  Just mdlList
     | s == strSCR  =  Just scrList
-    | otherwise    =  Just (s, VObs, VPre, [])
+    | otherwise    =  Just (s, VObs, VPre)
    pvar _          =  Nothing
 
 variable = do{ v <- lexify p_variable; return $ TEPvar v }
@@ -2544,22 +2558,21 @@ two: the standard variables, and the rest.
 Also, list variables can be split into general, and reserved.
 \begin{code}
 vPartition :: VarList -> (VarList,VarList)
-vPartition = partition isStdV
+vPartition = partition isStdLV
 
 rPartition :: VarList -> (VarList,VarList)
-rPartition = partition isRsvV
+rPartition = partition isRsvLV
 \end{code}
 
 We get observation variables  and ``multiple'' meta-variables
 from quantifier lists:
 \begin{code}
-getqovars = filter isStdV
-getqqvars = filter isLstV
+getstdlvars = filter isStdLV
 \end{code}
 
 It is useful to be able to partition substitutions on Variables
 between those that are standard and those that are list:
 \begin{code}
-sPartition :: [(Variable,a)] -> ([(Variable,a)],[(Variable,a)])
-sPartition = partition (isStdV . fst)
+sPartition :: [(ListVar,a)] -> ([(ListVar,a)],[(ListVar,a)])
+sPartition = partition (isStdLV . fst)
 \end{code}

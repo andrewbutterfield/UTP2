@@ -37,7 +37,7 @@ date.
 Also adding in quantifier variables to a bindings
 list will be handy:
 \begin{code}
-bs +|+ qs = bs ++ getqovars qs
+bs +|+ qs = bs ++ getstdlvars qs
 \end{code}
 
 \newpage

@@ -500,29 +500,6 @@ as well as variables that can match against these.
 Generally we want to match against a specified list of
 variables, and then ``all the rest''.
 
-We have changed \texttt{QVars}
-from a \texttt{data}-type
-to a \texttt{type}-synonym.
-Functions below are to be deprecated.
-\begin{code}
-type QVars = [Variable]
-
-mkQ :: [Variable] -> QVars
-mkQ = lnorm
-
-snglQ :: Variable -> QVars
-snglQ v = [v]
-
-qvarmrg qs rs = mkQ (qs++rs)
-
-qsmrg :: QVars -> QVars -> QVars -- no normalisation for subst-lists!
-qs `qsmrg` rs  = qs ++ rs
-
--- except when we explicitly want it!
-as `mrgqnorm` bs = as `mrgnorm` bs
-\end{code}
-
-
 \subsection{Language Constructs}
 
 We need to surround language elements by a syntax specification:
