@@ -108,7 +108,7 @@ of ``parts'', so we actually need a  number of sub-bindings,
 each modelled as a partial function from variable strings
 to objects of the relevant kind, here implemented using \texttt{Trie}s.
 
-We expect the collection of sub-bindings of a succesful match
+We expect the collection of sub-bindings of a successful match
 to satisfy the following
  conditions:
 \begin{itemize}
@@ -123,17 +123,17 @@ We now discuss the required sub-bindings:
   \item[Standard Variables] can occur in three contexts:
     \begin{description}
       \item[Regular]
-         is an ordinary occurence in some expression,
+         is an ordinary occurrence in some expression,
          e.g. $x$ in $x+3$ or $P$ in $P \land \True$.
          If not in the scope of an outer quantifier, these can match
          expressions and predicates respectively.
          If bound, they can only match variables of the same kind.
       \item[Quantifier-List]
-         is an occurence in a quantifier list of variables,
+         is an occurrence in a quantifier list of variables,
          e.g. $y$ in $\exists y @ \ldots$ or $Q$ in $\forall Q @ \ldots$.
          These can only match other variables of the same kind.
       \item[Substitution-Target]
-         is an occurence in a substitution
+         is an occurrence in a substitution
          as a target variable to be replaced, e.g. $z$ in $[3/z]$,
          or $R$ in $[\True/R]$.
          These can only match other variables of the same kind.
@@ -145,11 +145,11 @@ We now discuss the required sub-bindings:
          e.g. $\lst a$ in $\forall \lst a @ \ldots$.
          These can only match lists of variables of the same kind.
       \item[Substitution-Target]
-         is an occurence as a target variable
+         is an occurrence as a target variable
          in a substitution, e.g. $\lst b$ in $[\lst e/\lst b]$.
          These can only match lists of variables of the same kind.
       \item[Substitution-Replacement]
-         is an occurence as a replacement expression variable
+         is an occurrence as a replacement expression variable
          in a substitution, e.g. $\lst e$ in $[\lst e/\lst b]$.
          These can only match lists of expressions of the same kind.
       \item[2-Place Predicates]
@@ -202,7 +202,7 @@ and an term type $Trm$, we get the following four bindings:
 \end{eqnarray*}
 We shall implement the above four lookup functions
 as a single \texttt{Trie}, which simplifies the enforcing of the
-rule regarding exactly one binding per variable.
+rule regarding exactly one binding per ``variable name''.
 \[ Var \fun (Trm + Var + Var^* + Trm^*)\]
 It also encapsulates the \textbf{Std} vs \textbf{Lst} distinction.
 
@@ -252,12 +252,12 @@ oShow (vshw, tshw) = unlines . map oshow . flattenTrie
 The \texttt{BObj var trm} type involves a linkage between variables ($Var$)
 and some term of interest ($Trm$,
 usually one of \texttt{Pred}, \texttt{Expr} or \texttt{Type}).
-We also assume the existence of a total injective function $vinj : Var \fun Trm$
-that embeds a variable in an term of the relevant type,
+We also assume the existence of a total injective function $vinj : Var|_{Std} \fun Trm$
+that embeds a \emph{standard} variable in an term of the relevant type,
 and a partial projection function $vproj : Trm \pfun Var$ whose domain of definition
 is precisely the image of $vinj$.
 
-The idea is to view $Var$ as ``lower'' than $Trm$
+The idea is to view $Var|_{Std}$ as ``lower'' than $Trm$
 (think of $vinj$ as a sub-object embedding).
 The plan is always to record a range item at the lowest possible level:
 \begin{eqnarray*}
@@ -269,7 +269,7 @@ The plan is always to record a range item at the lowest possible level:
    &\defs&
    \left\{
      \begin{array}{ll}
-        updVO~k~(vproj~t)~\beta,     &  t \in vinj(Var)
+        updVO~k~(vproj~t)~\beta,     &  t \in vinj(Var|_{Std})
      \\ \beta\uplus\maplet k {TO~t}, & \hbox{otherwise}
      \end{array}
    \right.
@@ -281,23 +281,19 @@ Lookup expecting a $Var$ result succeeds only if a $VO$ object is found,
 while those expecting a $Trm$ result will accept a $TO$ result,
 but also use $vinj$ if a $VO$ result is found.
 
-We do similarly for $VSO$ and $TSO$, provided all list elements are in the
-image of $vinj$.
+However, for  $VSO$ and $TSO$, we do not use $vinj$ or $vproj$ in this way.
 
-For now, we enforce the Std/Lst variable separation at update time.
-This check might be removed to improve performance later,
-if we can be sure that calls are OK.
 
 \paragraph{$VO$ update and lookup}~
 
 \begin{code}
-updateVO :: (Monad m, Eq v, Eq t)
-         => String -> v -> SBind v t -> m (SBind v t)
+updateVO :: (Monad m, Eq var, Eq trm)
+         => String -> var -> SBind var trm -> m (SBind var trm)
 updateVO key v sbind
  | isStdS key  =  m2m $ mtenter same key (VO v) sbind
  | otherwise   =  nowt
 
-lookupVO :: (Monad m, Eq v, Eq t) => String -> SBind v t -> m v
+lookupVO :: (Monad m, Eq var, Eq trm) => String -> SBind var trm -> m var
 lookupVO key sbind
   = case tlookup sbind key of
       Just (VO v)  ->  return v
@@ -348,17 +344,13 @@ updateTSO :: (Monad m, Show v, Show t, Eq v, Eq t)
           => (t -> Maybe v) -> String -> [t] -> SBind v t -> m (SBind v t)
 updateTSO vproj key ts sbind
  | isStdS key      =  nowt
- | all isJust mvs  =  m2m $ mtenter same key (VSO $ map fromJust mvs) sbind
- | otherwise       =  m2m $ mtenter same key (TSO ts)                 sbind
- where
-    mvs = map vproj ts
+ | otherwise       =  m2m $ mtenter same key (TSO ts) sbind
 
 lookupTSO :: (Monad m, Eq v, Eq t)
            => (v -> t) -> String -> SBind v t -> m [t]
 lookupTSO vinj key sbind
   = case tlookup sbind key of
       Just (TSO ts)  ->  return ts
-      Just (VSO vs)  ->  return $ map vinj vs
       _              ->  nowt
 \end{code}
 
@@ -413,24 +405,28 @@ lmergeSBind = mergeSBind lmergeBObj lmergeBObj
 
 We will have three instances, one each for predicates, expressions and types:
 \begin{code}
-type VPBind = SBind Variable Pred
+type VPBind = SBind ListVar Pred
 showVPObj = showBObj (varKey, show)
 showVPBind  :: VPBind -> String
-showVPBind = unlines' . trieShowWith showGPObj
-gpInj :: Variable -> Pred
-gpInj = PVar
-gpProj :: Pred -> Maybe Variable
-gpProj (PVar v)  =  Just v
-gpProj _         =  Nothing
+showVPBind = unlines' . trieShowWith showVPObj
+vpInj :: ListVar -> Pred
+vpInj (V v) = PVar v
+vpInj (L (nm,_,_) _) = vinjErr nm
+vpProj :: Pred -> Maybe ListVar
+vpProj (PVar v)  =  Just $ V v
+vpProj _         =  Nothing
 
-type VEBind = SBind Variable Expr
+vinjErr nm =  error ("vpInj/veInj not defined for list-variable : "++nm)
+
+type VEBind = SBind ListVar Expr
 showVEObj = showBObj (varKey, show)
 showVEBind :: VEBind -> String
 showVEBind = unlines' . trieShowWith showVEObj
-veInj :: Variable -> Expr
-veInj = Var
-veProj :: Expr -> Maybe Variable
-veProj (Var v)    =  Just v
+veInj :: ListVar -> Expr
+veInj (V v) = Var v
+veInj (L (nm,_,_) _) = vinjErr nm
+veProj :: Expr -> Maybe ListVar
+veProj (Var v)    =  Just $ V v
 veProj _          =  Nothing
 
 type TTBind = SBind TVar Type
@@ -446,22 +442,22 @@ ttProj _         =  Nothing
 We now define the overall binding as a triple of sub-bindings,
 one each for predicates, expressions and types:
 \begin{code}
-type Binding = (GPBind, VEBind, TTBind)
+type Binding = (VPBind, VEBind, TTBind)
 
 nullBinds :: Binding
 nullBinds = (tnil,tnil,tnil)
 
 showBinding :: Binding -> [String]
-showBinding (gpbnds,vebnds,ttbnds)
+showBinding (vpbnds,vebnds,ttbnds)
  = let
-     (gpkeysize,gppairs) = flattenTrieD gpbnds
+     (vpkeysize,vppairs) = flattenTrieD vpbnds
      (vekeysize,vepairs) = flattenTrieD vebnds
      (ttkeysize,ttpairs) = flattenTrieD ttbnds
-     keywidth = maximum [gpkeysize,vekeysize,ttkeysize]
-     gpShown = bshow keywidth gppairs
+     keywidth = maximum [vpkeysize,vekeysize,ttkeysize]
+     vpShown = bshow keywidth vppairs
      veShown = bshow keywidth vepairs
      ttShown = bshow keywidth ttpairs
-   in concat [gpShown,veShown,ttShown]
+   in concat [vpShown,veShown,ttShown]
  where
    bshow _ [] = []
    bshow w pairs = showFlatTrieWith show "" (w,pairs)
@@ -471,29 +467,29 @@ showBinding (gpbnds,vebnds,ttbnds)
 \paragraph{Specialising for \texttt{Name}, \texttt{Pred}}~
 
 \begin{code}
-gpupdateTO :: Monad m => Name -> Pred -> GPBind -> m GPBind
-gpupdateTO r = updateTO gpProj (genRootString r)
+vpupdateTO :: Monad m => Name -> Pred -> VPBind -> m VPBind
+vpupdateTO nm = updateTO vpProj (varStringRoot nm)
 
-gplookupTO :: Monad m => Name -> GPBind -> m Pred
-gplookupTO r = lookupTO (PVar . genRootAsVar) (genRootString r)
+vplookupTO :: Monad m => Name -> VPBind -> m Pred
+vplookupTO nm = lookupTO PVar (varStringRoot nm)
 
-gpupdateVO :: Monad m => Name -> Name -> GPBind -> m GPBind
-gpupdateVO r = updateVO (genRootString r)
+vpupdateVO :: Monad m => Name -> Name -> VPBind -> m VPBind
+vpupdateVO nm = updateVO (varStringRoot nm)
 
-gplookupVO :: Monad m => Name -> GPBind -> m Name
-gplookupVO r = lookupVO (genRootString r)
+vplookupVO :: Monad m => Name -> VPBind -> m Name
+vplookupVO nm = lookupVO (varStringRoot nm)
 
-gpupdateVSO :: Monad m => Name -> [Name] -> GPBind -> m GPBind
-gpupdateVSO r = updateVSO (genRootString r)
+vpupdateVSO :: Monad m => Name -> [Name] -> VPBind -> m VPBind
+vpupdateVSO nm = updateVSO (varStringRoot nm)
 
-gplookupVSO :: Monad m => Name -> GPBind -> m [Name]
-gplookupVSO r = lookupVSO (genRootString r)
+vplookupVSO :: Monad m => Name -> VPBind -> m [Name]
+vplookupVSO nm = lookupVSO (varStringRoot nm)
 
-gplookupTSO :: Monad m => Name -> GPBind -> m [Pred]
-gplookupTSO r = lookupTSO (PVar . genRootAsVar) (genRootString r)
+vplookupTSO :: Monad m => Name -> VPBind -> m [Pred]
+vplookupTSO nm = lookupTSO PVar (varStringRoot nm)
 
-gpupdateTSO :: Monad m => Name -> [Pred] -> GPBind -> m GPBind
-gpupdateTSO r  = updateTSO gpProj (genRootString r)
+vpupdateTSO :: Monad m => Name -> [Pred] -> VPBind -> m VPBind
+vpupdateTSO nm  = updateTSO vpProj (varStringRoot nm)
 \end{code}
 
 \paragraph{Specialising for \texttt{Variable}, \texttt{Expr}}~
@@ -585,7 +581,7 @@ mkSubBind (Just sbind) = sbind
 mkSubBind Nothing      = sbnil
 
 bindP :: Name -> Pred -> Binding
-bindP r pr = ( mkSubBind $ gpupdateTO r pr sbnil, tnil, tnil )
+bindP r pr = ( mkSubBind $ vpupdateTO r pr sbnil, tnil, tnil )
 bindE :: Variable -> Expr -> Binding
 bindE v e = ( tnil, mkSubBind $ veupdateTO v e sbnil, tnil )
 
@@ -772,11 +768,11 @@ lmergeObs :: VEBind -> VEBind -> Maybe VEBind
 lmergeObs = mergeSBind lmergeVE lmergeBObj
 
 lmrgObs :: Binding -> Binding -> Maybe Binding
-(gp1,ev1,tt1) `lmrgObs` (gp2,ev2,tt2)
-  = do gp' <- gp1 `lmergeSBind` gp2
+(vp1,ev1,tt1) `lmrgObs` (vp2,ev2,tt2)
+  = do vp' <- vp1 `lmergeSBind` vp2
        ev' <- ev1 `lmergeObs` ev2
        tt' <- tt1 `lmergeSBind` tt2
-       return (gp',ev',tt')
+       return (vp',ev',tt')
 \end{code}
 
 
@@ -830,11 +826,11 @@ Operationally, the check that $\beta_1 \cong \beta_2$
 is carried out while attempting to compute $\beta_1 \uplus \beta_2$:
 \begin{code}
 mrgB :: Monad m => Binding -> Binding -> m Binding
-(gp1,ev1,tt1) `mrgB` (gp2,ev2,tt2)
-  = do gp' <- gp1 `tglue` gp2
+(vp1,ev1,tt1) `mrgB` (vp2,ev2,tt2)
+  = do vp' <- vp1 `tglue` vp2
        ev' <- ev1 `tglue` ev2
        tt' <- tt1 `tglue` tt2
-       return (gp',ev',tt')
+       return (vp',ev',tt')
 
 mrgMB :: Monad m => m Binding -> m Binding -> m Binding
 mrgMB mb1 mb2
@@ -846,11 +842,11 @@ mrgMB mb1 mb2
 We also have variants that fuse lists in VSO/TSO bindings:
 \begin{code}
 lmrgB :: Binding -> Binding -> Maybe Binding
-(gp1,ev1,tt1) `lmrgB` (gp2,ev2,tt2)
-  = do gp' <- gp1 `lmergeSBind` gp2
+(vp1,ev1,tt1) `lmrgB` (vp2,ev2,tt2)
+  = do vp' <- vp1 `lmergeSBind` vp2
        ev' <- ev1 `lmergeSBind` ev2
        tt' <- tt1 `lmergeSBind` tt2
-       return (gp',ev',tt')
+       return (vp',ev',tt')
 
 lmrgJB :: Binding -> Binding -> Binding
 bnd1 `lmrgJB` bnd2
@@ -1323,8 +1319,8 @@ classifyVars isknown here (v:vs)
 These lookups return the key if not bound and ``known''.
 \begin{code}
 bevalP :: MatchContext -> Binding -> Name -> Pred
-bevalP mctxt (gpbnds,_,_) r
- = case gplookupTO r gpbnds of
+bevalP mctxt (vpbnds,_,_) r
+ = case vplookupTO r vpbnds of
     Just pr -> pr
     Nothing ->
      case tslookup (knownPreds mctxt) rs of
