@@ -156,6 +156,12 @@ data ListVar
 type VarList = [ListVar]
 \end{code}
 
+\begin{code}
+lvarKey :: ListVar -> String
+lvarKey (V v)    =  varKey v
+lvarKey (L v _)  =  varKey v
+\end{code}
+
 
 \newpage
 \subsection{Substitutions}

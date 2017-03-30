@@ -78,9 +78,9 @@ chrSUBS = '_'  ; strSUBS = [chrSUBS]
        \\ \LXRoots
     \end{eqnarray*}
 \begin{code}
-chrOBS = 'O' ; strOBS = [chrOBS]
-chrMDL = 'M' ; strMDL = [chrMDL]
-chrSCR = 'S' ; strSCR = [chrSCR]
+chrOBS = 'O' ; strOBS = [chrOBS] ; strOBS' = strOBS ++ "'"
+chrMDL = 'M' ; strMDL = [chrMDL] ; strMDL' = strMDL ++ "'"
+chrSCR = 'S' ; strSCR = [chrSCR] ; strSCR' = strSCR ++ "'"
 chrLESS = '\\' ; strLESS = [chrLESS]
 chrLSEP = ':'  ; strLSEP = [chrLSEP]
 \end{code}
@@ -820,26 +820,28 @@ We adopt the following ASCII representations of these variables:
 
 In effect, \texttt{O}, \texttt{S} and \texttt{M} are reserved variable roots.
 \begin{code}
-strLISTS = [ strOBS, strMDL, strSCR ]
+preRSV = [ strOBS, strMDL, strSCR ]
+postRSV = [ strOBS', strMDL', strSCR' ]
+allRSV = preRSV ++ postRSV
 
-obsList  =  L (strOBS, VObs, VPre)  []
-obsList' =  L (strOBS, VObs, VPost) []
-mdlList  =  L (strMDL, VObs, VPre)  []
-mdlList' =  L (strMDL, VObs, VPost) []
-scrList  =  L (strSCR, VObs, VPre)  []
-scrList' =  L (strSCR, VObs, VPost) []
+obsList  =  L (strOBS,  VObs, VPre)  []
+obsList' =  L (strOBS', VObs, VPost) []
+mdlList  =  L (strMDL,  VObs, VPre)  []
+mdlList' =  L (strMDL', VObs, VPost) []
+scrList  =  L (strSCR,  VObs, VPre)  []
+scrList' =  L (strSCR', VObs, VPost) []
 \end{code}
 
 A range of tests:
 \begin{code}
 -- want a test for pure reserved list, with no _m
 isPureList (L (_, _, VInter _) _)  =  False
-isPureList (L v _)                 =  isRsvV lv
+isPureList (L v _)                 =  isRsvV v
 isPureList _                       =  False
 
 -- want a test for subscripted reserved list
-isListSub (L (v, _, VInter _) _)  =  isRsvV v
-isListSub _                       =  False
+isListSub (L (nm, _, VInter _) _)  =  isRsv nm
+isListSub _                        =  False
 
 
 obslookup :: (Variable -> t) -> Trie t -> Variable -> Maybe t
@@ -897,6 +899,7 @@ data TEP
  | TEPnum Int
  | TEPname String
  | TEPvar Variable
+ | TEPlvar ListVar
  | TEPprefix TEP TEP
  | TEPinfix Int String TEP TEP
  | TEPpostfix TEP TEP
@@ -1108,26 +1111,27 @@ Finally, special handling for variables:
 p_variable :: TEP_Parser Variable
 p_variable = ptoken pvar <?> "variable"
  where
-   pvar (TIdent v)  =  Just v
+   pvar (TIdent v)     =  Just v
    pvar (TName s)
-    | s `elem` [strOBS,strMDL,strSCR]  = Nothing
-    | otherwise    =  Just (s, VObs, VPre)
-   pvar _          =  Nothing
+    | s `elem` allRSV  =  Nothing
+    | otherwise        =  Just (s, VObs, VPre)
+   pvar _              =  Nothing
 
 variable = do{ v <- lexify p_variable; return $ TEPvar v }
 
-p_variable :: TEP_Parser Variable
-p_variable = ptoken pvar <?> "variable"
+p_listvar :: TEP_Parser ListVar
+p_listvar = ptoken plvar <?> "list-variable"
  where
-   pvar (TIdent v)  =  Just v
-   pvar (TName s)
-    | s == strOBS  =  Just obsList
-    | s == strMDL  =  Just mdlList
-    | s == strSCR  =  Just scrList
-    | otherwise    =  Just (s, VObs, VPre)
-   pvar _          =  Nothing
+   plvar (TLVar v rs)  =  Just $ L v rs
+   plvar (TIdent v)    =  Just $ V v
+   plvar (TName s)
+    | s == strOBS      =  Just obsList
+    | s == strMDL      =  Just mdlList
+    | s == strSCR      =  Just scrList
+    | otherwise        =  Just $ V (s, VObs, VPre)
+   plvar _             =  Nothing
 
-variable = do{ v <- lexify p_variable; return $ TEPvar v }
+listvar = do{ lv <- lexify p_listvar; return $ TEPlvar lv }
 
 
 names :: TEP_Parser [String]
@@ -1918,7 +1922,7 @@ showESubst (Substn sub)
     where
       as = map snd sub
       qv = map fst sub
-      showvs = concat . intersperse "," . map varKey
+      showvs = concat . intersperse "," . map lvarKey
 
 showPSubst :: PSubst -> String
 showPSubst (Substn sub)
@@ -2055,7 +2059,7 @@ $$
   x_1,\ldots,x_m
 $$
 \begin{code}
-showQVars qs = mkSepList ',' $ map showVar qs
+showQVars qs = mkSepList ',' $ map showLVar qs
 \end{code}
 
 
