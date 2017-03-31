@@ -709,29 +709,36 @@ notWhtEOF _            = True
 We need to set the (key) string in a Variable to match its
 printed form
 \begin{code}
+mkVarName :: Name -> VKind -> VRole -> Name
+mkVarName nm k r = nm ++ showRole r
+
 showVar :: Variable -> String
-showVar (nm, k, r) = nm ++ showRole r
+showVar (nm, _, _) = nm
+
+mkLVarName :: Name -> VKind -> VRole -> Name
+mkLVarName nm k r = nm ++ strLST ++ showRole r
 
 showLVar :: ListVar -> String
-showLVar (V (nm, k, r)) = nm ++ showRole r
-showLVar (L (nm, k, r) rs) = nm ++ showRole r ++ showRoots rs
+showLVar (V (nm, _, _)) = nm
+showLVar (L (nm, _, _) rs) = nm ++ showRoots rs
 
 showRole VPost      = strPOST
 showRole (VInter s) = chrSUBS:s
 showRole _          = ""
 
 showRoots [] = ""
-showRoots rs = chrLESS : concat (intersperse strLSEP $ map show rs)
+showRoots rs = chrLESS : concat (intersperse strLSEP rs)
 
 mkGVar :: VRole -> Name -> Variable
-mkGVar r nm   = (nm, VObs, r)
+mkGVar r nm  = (mkVarName nm VObs r, VObs, r)
 
 mkSVar :: Name -> VRole -> Variable
 mkSVar nm r  = mkGVar r nm
 
 mkRVar :: Name -> [Name] -> VRole -> ListVar
-mkRVar nm roots r = L (nm, VObs, r)  roots
+mkRVar nm roots r = L (mkLVarName nm VObs r, VObs, r)  roots
 \end{code}
+
 
 \newpage
 Parsing variables:
@@ -784,7 +791,7 @@ lsubVar s nm = L (nm, VObs, VInter s) []
 (\\\) :: ListVar -> [Name] -> ListVar
 (L (nm, VObs, r) less1) \\\ less2
   =  L (nm, VObs, r) (less1 `mrgnorm` less2)
-lv \\ _ = lv
+lv \\\ _ = lv
 
 qnil         =  []
 qvar   x     =  [V $ preVar x]
@@ -854,6 +861,13 @@ obslookup wrap trie v@(s, _, _)
 nonRsvList = not . isRsvV
 \end{code}
 
+We note that the roots can be Names that signify a list variable
+\begin{code}
+isStdN, isLstN :: Name -> Bool
+isLstN "" = False
+isLstN nm = last nm == chrLST
+isStdN = not . isLstN
+\end{code}
 \newpage
 \subsection{Generic Abstract Syntax (Type/Expr/Pred)}
 

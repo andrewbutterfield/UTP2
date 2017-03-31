@@ -591,28 +591,23 @@ bindT tv t = ( tnil, tnil, mkSubBind $ ttupdateTO tv t sbnil )
 bindQ :: Variable -> Variable -> Binding
 bindQ v vv = ( tnil, mkSubBind $ veupdateVO v vv sbnil, tnil )
 
-bindQL :: Variable -> [Variable] -> Binding
-bindQL v vs = ( tnil, sBindQL v vs, tnil )
-sBindQL v vs = mkSubBind $ veupdateVSO v vs sbnil
+bindQL :: ListVar -> VarList -> Binding
+bindQL lv vs = ( tnil, sBindQL lv vs, tnil )
+sBindQL lv vs = mkSubBind $ veupdateVSO lv vs sbnil
 \end{code}
 
-Putting a variable/variable binding into the right place:
+Putting a variable/variable binding into the right place
+(now redundant with Var/LVar distinction):
 \begin{code}
 bindV :: Variable -> Variable -> Binding
-bindV v x
- | isStdV v   =  bindQ  v  x
- | otherwise  =  bindQL v [x]
+bindV  =  bindQ
 \end{code}
 Putting a variable/variable-list binding into the right place,
 if possible:
 \begin{code}
-bindVL :: Variable -> [Variable] -> Binding
-bindVL v [x]
- | isStdV v && isStdV x  =  bindQ v x
- | otherwise             =  bindQL v [x]
-bindVL v xs
- | isStdV v              =  nullBinds
- | otherwise             =  bindQL v xs
+bindVL :: ListVar -> VarList -> Binding
+bindVL (V v) [(V x)]  =  bindQ v x
+bindVL lv xs          =  bindQL lv xs
 \end{code}
 
 A special case occurs when pattern and test variables
@@ -650,7 +645,7 @@ given the list $o1,\ldots,o\ell$ of observable roots (undecorated)
 and a pair of subscripts $a$ and $b$,
 generates the lefthand map above:
 \begin{code}
-genObsSubscriptMap :: [String] -- undecorated observable roots
+genObsSubscriptMap :: [Name] -- undecorated observable roots
                    -> String   -- from subscript
                    -> String   -- to subscript
                    -> VEBind
@@ -658,14 +653,14 @@ genObsSubscriptMap roots froms tos
  = lbuild (rsvMap ++ map (mkTo froms tos) roots)
  where
 
-   rsvMap = [ ( strOBS ++ sFrom, VSO $ [mkRVar OBS [] sTo] )
-            , ( strMDL ++ sFrom, VSO $ [mkRVar MDL [] sTo] )
-            , ( strSCR ++ sFrom, VSO $ [mkRVar SCR [] sTo] ) ]
+   rsvMap = [ ( strOBS ++ sFrom, VSO $ [mkRVar strOBS [] sTo] )
+            , ( strMDL ++ sFrom, VSO $ [mkRVar strMDL [] sTo] )
+            , ( strSCR ++ sFrom, VSO $ [mkRVar strSCR [] sTo] ) ]
 
-   mkTo froms tos root = ( root++sFrom, VO $ mkSVar root sTo )
+   mkTo froms tos root = ( root++sFrom, VO (mkSVar root sTo ) )
 
    sFrom = chrSUBS:froms
-   sTo = Subscript tos
+   sTo = VInter tos
 \end{code}
 
 \begin{code}
@@ -685,22 +680,29 @@ We now supply a function that takes two reserved variables: one the pattern,
 the other the test, and produces all such extra bindings.
 If there is more than one possible such binding then a deferred match is returned.
 \begin{code}
-genRsvLessMap :: [String] -- undecorated observable roots
-              -> Variable -- pattern reserved variable
-              -> Variable -- test reserved variable
+genRsvLessMap :: [Name] -- undecorated observable roots
+              -> ListVar -- pattern reserved variable
+              -> ListVar -- test reserved variable
               -> MatchResult
 
-genRsvLessMap roots (Rsv _ pless,_,_) (Rsv _ tless,_,_)
+genRsvLessMap roots (L (_, _, _) pless) (L (_ , _, _) tless)
  = case (pstrs, tstrs) of
-     ([pstr], _) -- shouldn't have to use parseVariable here.... !!!!
-       -> ( bindVL (parseVariable pstr) (map parseVariable tstrs)
+     ([pstr], [tstr]) | isLstN pstr
+       -> ( bindVL (var pstr) (var tstr)
+          , [], [] )
+     ([pstr], _) | isLstN pstr
+       -> ( bindVL (lvar pstr) (map var tstrs)
           , [], [] )
      _ -> ( nullBinds
-          , [ (map parseVariable pstrs, map parseVariable tstrs) ]
+          , [ (map var pstrs, map var tstrs) ]
           , [])
  where
-   pstrs = (map genRootString pless) \\ roots
-   tstrs = (map genRootString tless) -- \\ roots
+   pstrs = pless \\ roots
+   tstrs = tless -- \\ roots
+   var nm
+    | isLstN nm  =  L (nm, VObs, VPre) []
+    | otherwise  =  V (nm, VObs, VPre)
+   lvar nm = L (nm, VObs, VPre) []
 
 genRsvLessMap roots prv trv = noBinding
 \end{code}
