@@ -709,8 +709,8 @@ genRsvLessMap roots prv trv = noBinding
 
 Now functions to bind taking account the above considerations:
 \begin{code}
-bindO :: Monad m => [String] -> Variable -> Variable -> m MatchResult
-bindO roots p@(pr, pd@(Subscript ps), pkey)
+bindO :: Monad m => [Name] -> Variable -> Variable -> m MatchResult
+bindO roots p@(pr, _, pd@(Subscript ps), pkey)
             m@(_, md@(Subscript ms), _)
  | isObsVarRelated roots pr
  = ( bindV p m `lmrgJB` ( tnil, genObsSubscriptMap roots ps ms, tnil )
@@ -1005,9 +1005,6 @@ okBindQL qv qvs = return ((bindQL qv qvs),[],[])
 
 okBindV :: Monad m => Variable -> Variable -> m MatchResult
 okBindV v x = return ((bindV v x),[],[])
-
-okBindO :: Monad m => [String] -> Variable -> Variable -> m MatchResult
-okBindO roots v x = bindO roots v x  -- difference has disappeared !
 
 okBindES :: Monad m => Variable -> [Expr] -> m MatchResult
 okBindES v es = return ((bindES v es),[],[])

@@ -653,7 +653,7 @@ each variable in $X_p$ to those in $X_t \cup V_p\setminus V_t$.
 
 \newpage
 We want to construct bindings for a match,
-from general roots that appear in reserved lsit-variable subtraction
+from general roots that appear in reserved list-variable subtraction
 lists, so binding root $u$ to root $v$
 will result in the following variable bindings:
 \[u \to v, u' \to v'
