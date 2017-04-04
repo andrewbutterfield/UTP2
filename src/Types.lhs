@@ -1780,6 +1780,39 @@ prop_obsTypeReplace_id pr
    in pr' == fst (obsTypeReplace etypes pr')
 \end{code}
 
+\subsection{Parts}
+
+For type-checking it is useful to be able to extract all expressions
+within a predicate, in a standard order
+(top level first, the subcomponents in order).
+\begin{code}
+exprsOf pr
+ = let (prs,es) = predParts pr
+   in es ++ (concat $ map exprsOf prs)
+
+predsOf e
+ = let (prs,es) = exprParts e
+   in prs ++ (concat $ map predsOf es)
+\end{code}
+
+We use these mutually recursive term-walkers:
+\begin{code}
+predParts :: Pred -> ([Pred],[Expr])
+predParts (PApp _ prs)            =  (prs,[])
+predParts (PAbs _ _ _ prs)        =  (prs,[])
+predParts (Sub (PExpr e) sub)     =  ([], [ESub e sub])
+predParts (Sub pr (Substn ssub))  =  ([pr], map snd ssub)
+predParts (PExpr e)               =  ([],[e])
+predParts (TypeOf e t)            =  ([],[e])
+predParts _                       =  ([],[])
+
+exprParts :: Expr -> ([Pred],[Expr])
+exprParts (App s es)              =  ([],es)
+exprParts (Abs s _ qs es)         =  ([],es)
+exprParts (ESub e (Substn ssub))  =  ([], e:(map snd ssub))
+exprParts (EPred pr)              =  ([pr],[])
+exprParts _                       =  ([],[])
+\end{code}
 
 \subsubsection{Unification}
 

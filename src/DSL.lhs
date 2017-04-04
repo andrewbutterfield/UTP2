@@ -197,7 +197,7 @@ infixl 4 |=
 s |= c = mkRfdBy c s
 
 infixl 4 =|
-c =| s  =  PApp "=|" [c, s] 
+c =| s  =  PApp "=|" [c, s]
 
 
 precsLogic
@@ -630,5 +630,14 @@ mkPapp pf pa = PApp n_Papp [pf, pa]
 
 n_NDC = "NDC"
 mkNDC p1 p2 = PApp n_NDC [p1,p2]
+\end{code}
 
+\subsubsection{PVar table building}
+
+Building tables from \texttt{PVar}-value lists:
+\begin{code}
+plupdate :: Trie t -> [(Pred, t)] -> Trie t
+plupdate = foldr mkpentry
+mkpentry (PVar pv,t) trie = tupdate (varKey pv) t trie
+mkpentry _          trie = trie
 \end{code}

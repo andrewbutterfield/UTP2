@@ -636,6 +636,39 @@ $$
 $$
 
 
+\begin{code}
+varKey :: Variable -> String
+varKey (n,_,r) = n ++ roleKey r
+
+roleKey :: VRole -> String
+roleKey VStatic     =  ""
+roleKey VPre        =  ""
+roleKey VPost       =  "'"
+roleKey VRel        =  ""
+roleKey (VInter s)  =  '_':s
+\end{code}
+
+\begin{code}
+lvarKey :: ListVar -> String
+lvarKey (V v)    =  varKey v
+lvarKey (L v _)  =  varKey v
+\end{code}
+
+We will often want to store variable information
+in string-indexed tables (\texttt{Trie}), which is what the 1st component
+(\texttt{varKey}) is for:
+\begin{code}
+tvlookup :: Trie t -> Variable -> Maybe t
+tvlookup trie = tlookup trie . varKey
+
+tsvlookup :: [Trie t] -> Variable -> Maybe t
+tsvlookup tries = tslookup tries . varKey
+
+tvupdate :: Variable -> t -> Trie t -> Trie t
+tvupdate v a trie = tupdate (varKey v) a trie
+\end{code}
+
+
 We hard-code a convention on how variables should be interpreted.
 It they are a single upper-case letter,
 we consider them to be predicate schematic variables.

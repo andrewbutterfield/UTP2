@@ -110,36 +110,9 @@ isVInter _          = False
 
 
 Variable utility code.
-First three are used to create non-parseable error variables"
 \begin{code}
 varmap :: (String -> String) -> Variable -> Variable
 varmap f (n,k,r) = (f n, k, r)
-\end{code}
-
-\begin{code}
-varKey :: Variable -> String
-varKey (n,_,_) = n
-\end{code}
-
-\newpage
-We will often want to store variable information
-in string-indexed tables (\texttt{Trie}), which is what the 1st component
-(\texttt{varKey}) is for:
-\begin{code}
-tvlookup :: Trie t -> Variable -> Maybe t
-tvlookup trie = tlookup trie . varKey
-
-svlookup :: Trie t -> Variable -> Bool
-svlookup trie = slookup trie . varKey
-
-tsvlookup :: [Trie t] -> Variable -> Maybe t
-tsvlookup tries = tslookup tries . varKey
-
-ssvlookup :: [Trie t] -> Variable -> Bool
-ssvlookup tries = sslookup tries . varKey
-
-tvupdate :: Variable -> t -> Trie t -> Trie t
-tvupdate v a trie = tupdate (varKey v) a trie
 \end{code}
 
 
@@ -154,12 +127,6 @@ data ListVar
      [Name]
  deriving (Eq, Ord, Show)
 type VarList = [ListVar]
-\end{code}
-
-\begin{code}
-lvarKey :: ListVar -> String
-lvarKey (V v)    =  varKey v
-lvarKey (L v _)  =  varKey v
 \end{code}
 
 
@@ -283,21 +250,6 @@ Quantifiers induce nested scopes which we capture as a list of
 type-table tags. Tag 0 is special and always denotes the topmost global
 table.
 
-Given type-tables, and a list of \texttt{TTTag}s,
-lookup the type of a variable w.r.t. those,
-returning \texttt{Tarb} if nothing found.
-This facilitates early matching before types have been inferred.
-\begin{code}
-mttsLookup :: TypeTables -> Variable -> [TTTag] -> Type
-mttsLookup tts v [] = Tarb
-mttsLookup tts v (tag:tags)
- = case btlookup tts tag of
-     Nothing  ->  Tarb
-     Just vtyps
-       -> case tvlookup vtyps v of
-            Just t   ->  t
-            Nothing  ->  mttsLookup tts v tags
-\end{code}
 
 \newpage
 \subsection{Terms}
@@ -1237,92 +1189,4 @@ isOutA  v  =  last v == '\''
 
 inAlpha   = mkAlpha . filter isInA  . trieDom
 outAlpha  = mkAlpha . filter isOutA . trieDom
-\end{code}
-
-
-\subsection{Parts}
-
-
-For debugging it is useful to be able to take predicates
-and expressions apart:
-\begin{code}
-predParts :: Pred -> (String,[Pred],[Expr],[VarList],[Type])
-predParts TRUE = ("TRUE",[],[],[],[])
-predParts FALSE = ("FALSE",[],[],[],[])
-predParts (PVar pv) = ("PVar-"++varKey pv,[],[],[],[])
-predParts (PExpr e) = ("PExpr",[],[e],[],[])
-
-predParts (Sub (PExpr e) sub@(Substn ssub))
-   = ( "(e)Sub"
-     , []
-     , [ESub e sub]
-     , [map fst ssub]
-     , []
-     )
-predParts (Sub pr (Substn ssub))
-   = ( "Sub"
-     , [pr]
-     , map snd ssub
-     , [map fst ssub]
-     , []
-     )
-
-predParts _ = ("pred",[],[],[],[])
-
-predNPart  = fst5 . predParts
-predPParts = snd5 . predParts
-predEParts = thd5 . predParts
-predQParts = frt5 . predParts
-predTParts = fth5 . predParts
-\end{code}
-
-Generally we pull out expressions using \texttt{predParts},
-and collecting top-level expressions before those
-in sub-predicates.
-\begin{code}
-exprParts :: Expr -> (String,[Pred],[Expr],[VarList])
-exprParts (Num _)          =  ("Num",[],[],[])
-exprParts (Var (n,_,_))    =  ("Var:"++n,[],[],[])
-exprParts (App s es)       =  ("App",[],es,[])
-exprParts (Abs s _ qs es)  =  ("Abs",[],es,[qs])
-exprParts (ESub e (Substn ssub))
-  = ( "ESub"
-    , []
-    , e:(map snd ssub)
-    , [map fst ssub]
-    )
-exprParts _ = ("expr",[],[],[])
-
-exprNPart  = fst4 . exprParts
-exprPParts = snd4 . exprParts
-exprEParts = thd4 . exprParts
-exprQParts = frt4 . exprParts
-\end{code}
-
-Generally we pull out predicates from expressions using \texttt{exprParts},
-and collecting top-level predicates before those
-in sub-expressions.
-\begin{code}
-predsOf e
- = let (_,prs,es,_) = exprParts e
-   in prs ++ (concat $ map predsOf es)
-\end{code}
-
-Similarly we pull out expressions from predicates using \texttt{predParts},
-and collecting top-level predicates before those
-in sub-expressions.
-\begin{code}
-exprsOf pr
- = let (_,prs,es,_,_) = predParts pr
-   in es ++ (concat $ map exprsOf prs)
-\end{code}
-
-\subsubsection{PVar table building}
-
-Building tables from \texttt{PVar}-value lists:
-\begin{code}
-plupdate :: Trie t -> [(Pred, t)] -> Trie t
-plupdate = foldr mkpentry
-mkpentry (PVar pv,t) trie = tupdate (varKey pv) t trie
-mkpentry _          trie = trie
 \end{code}

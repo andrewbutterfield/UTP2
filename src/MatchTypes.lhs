@@ -30,6 +30,24 @@ functions.
 \subsection{Matching Type Utilities}
 
 Given type-tables, and a list of \texttt{TTTag}s,
+lookup the type of a variable w.r.t. those,
+returning \texttt{Tarb} if nothing found.
+This facilitates early matching before types have been inferred.
+\begin{code}
+mttsLookup :: TypeTables -> Variable -> [TTTag] -> Type
+mttsLookup tts v [] = Tarb
+mttsLookup tts v (tag:tags)
+ = case btlookup tts tag of
+     Nothing  ->  Tarb
+     Just vtyps
+       -> case tvlookup vtyps v of
+            Just t   ->  t
+            Nothing  ->  mttsLookup tts v tags
+\end{code}
+
+
+
+Given type-tables, and a list of \texttt{TTTag}s,
 lookup the type of a variable w.r.t. those:
 \begin{code}
 ttsLookup :: TypeTables -> String -> [TTTag] -> Type
