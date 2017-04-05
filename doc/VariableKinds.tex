@@ -8,9 +8,10 @@ The root is a simple name:
 \begin{eqnarray*}
   r \in Root &\defs& Name
 \end{eqnarray*}
-A decoration is either a pre-marking, a post-marking, or a subscript:
+A decoration indicates the UTP ``role'' being played by the variable:
+ static, pre-value, post-value, or an identified intermediate-value
 \begin{eqnarray*}
-  d \in Decor &\defs&  Pre | Post | PrePost | Subscript~Name
+  d \in Decor &\defs&  Static | Pre | Post | Inter~Name
 \end{eqnarray*}
 We use the notation $(r,d)$ when the subtracted-list is empty or irrelevant.
 
@@ -20,15 +21,12 @@ Current concrete rendering:
 
 \begin{tabular}{|c|c|}
   \hline
-  Abstract & Concrete 
+  Abstract & Concrete
   \\ \hline
   $(r,Pre)$ & \verb"r"
   \\ \hline
   $(r,Post)$ & \verb"r'"
   \\ \hline
-  $(r,PrePost)$ & \verb"r?"
-  \\ \hline
   $(r,Subscript~s)$ & \verb"r_s"
   \\ \hline
 \end{tabular}
-

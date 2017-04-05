@@ -820,8 +820,8 @@ predVar nm = (nm, VPred, VRel)
 subVar :: String -> String -> Variable
 subVar s nm  = (nm, VObs, VInter s)
 
-decorVar :: VRole -> Variable -> Variable
-decorVar r (nm, k, _) = (nm, k, r)
+updVRole :: VRole -> Variable -> Variable
+updVRole r (nm, k, _) = (nm, k, r)
 
 lstVar, lstVar' :: Name -> ListVar
 lstVar  nm = L (nm, VObs, VPre) []
@@ -861,7 +861,7 @@ We adopt the following ASCII representations of these variables:
 \begin{tabular}{|c|c||c|c|}
   \hline
   % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
-  $VObs$ & \verb"O" & $VObs'$ & \verb"O'" \\\hline
+  $Obs$ & \verb"O" & $Obs'$ & \verb"O'" \\\hline
   $Mdl$ & \verb"M" & $Mdl'$ & \verb"M'" \\\hline
   $Scr$ & \verb"S" & $Scr'$ & \verb"S'" \\
   \hline

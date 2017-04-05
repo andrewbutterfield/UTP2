@@ -589,7 +589,7 @@ tmapT :: (t -> s) -> SBind v t -> SBind v s
 tmapT f = tmap (mapT f)
 \end{code}
 
-
+\newpage
 \subsubsection{Binding Injections}
 
 Basic injections, starting with a safe way to get a sub-binding:
@@ -606,28 +606,24 @@ bindE v e = ( tnil, mkSubBind $ veupdateTO v e sbnil, tnil )
 bindT :: TVar -> Type -> Binding
 bindT tv t = ( tnil, tnil, mkSubBind $ ttupdateTO tv t sbnil )
 
-bindQ :: Variable -> Variable -> Binding
-bindQ v vv = ( tnil, mkSubBind $ veupdateVO v vv sbnil, tnil )
+bindV :: Variable -> Variable -> Binding
+bindV v vv = ( tnil, mkSubBind $ veupdateVO v vv sbnil, tnil )
 
 bindQL :: ListVar -> VarList -> Binding
 bindQL lv vs = ( tnil, sBindQL lv vs, tnil )
+
 sBindQL lv vs = mkSubBind $ veupdateVSO lv vs sbnil
 \end{code}
 
-Putting a variable/variable binding into the right place
-(now redundant with Var/LVar distinction):
-\begin{code}
-bindV :: Variable -> Variable -> Binding
-bindV  =  bindQ
-\end{code}
 Putting a variable/variable-list binding into the right place,
 if possible:
 \begin{code}
 bindVL :: ListVar -> VarList -> Binding
-bindVL (V v) [(V x)]  =  bindQ v x
+bindVL (V v) [(V x)]  =  bindV v x
 bindVL lv xs          =  bindQL lv xs
 \end{code}
 
+\newpage
 A special case occurs when pattern and test variables
 are both the same reserved variable, and the pattern has a subscript.
 If $R_a \to R^d$ then we include all three bindings
@@ -688,7 +684,7 @@ mergeMR :: Monad m => MatchResult -> MatchResult -> m MatchResult
        return (bnds', lnorm (qvm1++qvm2), lnorm (sbm1++sbm2))
 \end{code}
 
-
+\newpage
 Another case we must consider is where we have matched pattern $R\less{x}$
 against $R\less{y}$. In addition to the obvious binding $\maplet{R\less{x}}{R\less{y}}$,
 we also need to add the binding $\maplet x y$, except if $x$ is known and equal to $y$.
@@ -728,8 +724,7 @@ genRsvLessMap roots prv trv = noBinding
 Now functions to bind taking account the above considerations:
 \begin{code}
 bindO :: Monad m => [Name] -> Variable -> Variable -> m MatchResult
-bindO roots p@(pr, _, pd@(Subscript ps), pkey)
-            m@(_, md@(Subscript ms), _)
+bindO roots p@(pr, _, pd@(VInter ps)) m@(_, _,md@(VInter ms))
  | isObsVarRelated roots pr
  = ( bindV p m `lmrgJB` ( tnil, genObsSubscriptMap roots ps ms, tnil )
    , [], [] )
@@ -737,18 +732,19 @@ bindO roots p@(pr, _, pd@(Subscript ps), pkey)
 bindO roots rp rt
  = ( bindV rp rt, [], [] ) `mergeMR` (genRsvLessMap roots rp rt)
 
-isObsVarRelated :: [String] -> Root -> Bool
-isObsVarRelated _     (Rsv _ _)          =  True
-isObsVarRelated roots (Gen (Std root) )  =  root `elem` roots
-isObsVarRelated _     _                  =  False
+isObsVarRelated :: [Name] -> Name -> Bool
+isObsVarRelated roots root
+ | isRsv root  =  True
+ | otherwise   =  root `elem` roots
+isObsVarRelated _ _ =  False
 \end{code}
 
 When binding to observation-related variable lists,
 we want to ensure all subscripts are the same
 \begin{code}
-bindOL :: Monad m => [String] -> Variable -> [Variable] -> m Binding
+bindOL :: Monad m => [Name] -> Variable -> [Variable] -> m Binding
 
-bindOL roots p@(pr,(Subscript ps),_) mvs
+bindOL roots p@(pr,_,VInter ps) mvs
  | isObsVarRelated roots pr
  = case getSubscripts mvs of
     []    ->  return $ bindQL p mvs
@@ -770,16 +766,16 @@ lmergeVE xs ys
 getSubscripts :: [Variable] -> [String]
 getSubscripts = lnorm . concat . map getSubs
  where
-   getSubs (_,(Subscript s),_) = [s]
-   getSubs _                   = []
+   getSubs (_,_,VInter s) = [s]
+   getSubs _              = []
 
 sameSubscripts :: [Variable] -> Bool
 sameSubscripts [] = True
-sameSubscripts ((_,(Subscript s),_):rest)
+sameSubscripts ((_,_,VInter s):rest)
  = same s rest
  where
    same s [] = True
-   same s ((_,Subscript t,_):rest) = s==t && same s rest
+   same s ((_,_,VInter t):rest) = s==t && same s rest
    same s (_:rest) = same s rest
 sameSubscripts (_:rest) = sameSubscripts rest
 
@@ -878,11 +874,12 @@ bnd1 `lmrgJB` bnd2
 \newpage
 \subsubsection{Deferred Matching}
 
-Some matches, to do with \texttt{QVars}, have to be deferred for
+Some matches, to do with variable lists (usually in binders),
+have to be deferred for
 post-processing that requires free-variable information,
 as well using side-conditions as hints.
 \begin{code}
-type QVarMatchToDo = ([Variable],[Variable]) -- (test,pattern)
+type QVarMatchToDo = (VarList,VarList) -- (test,pattern)
 \end{code}
 We expect all instances of \texttt{QVarMatchToDo},
 here shown w.l.og. as:
@@ -903,14 +900,14 @@ well-formedness conditions:
     \]
 \end{itemize}
 \begin{code}
-isWFQVarToDo :: [Variable] -> [Variable] -> Bool
+isWFQVarToDo :: VarList -> VarList -> Bool
 isWFQVarToDo tvs pvs
  | n <  k            =  False
  | n == k && m == 0  =  True
  | otherwise         =  ell > 0
  where
-  (n,m) = setboth (length,length) (partition isStdV tvs)
-  (k,ell) = setboth (length,length) (partition isStdV pvs)
+  (n,m) = setboth (length,length) (partition isStdLV tvs)
+  (k,ell) = setboth (length,length) (partition isStdLV pvs)
 \end{code}
 
 We also have do do something similar with substitution matching.
@@ -940,7 +937,7 @@ type SubstMatchToDo v a
 \end{code}
 
 Well-formedness when \texttt{v} is instantiated by \texttt{Variable} is as for
-\texttt{QVars}:
+\texttt{VarList}:
 \begin{code}
 type ESubstMatchToDo = SubstMatchToDo Variable Expr
 
@@ -970,7 +967,7 @@ isCompleteMatch (_,qvms,subms) = null qvms && null subms
 noBinding :: MatchResult
 noBinding  = ( nullBinds, [], [] )
 
-deferQMatch :: QVars -> QVars -> MatchResult
+deferQMatch :: VarList -> VarList -> MatchResult
 deferQMatch tv pv = ( nullBinds, [(tv,pv)], [] )
 
 deferSMatch :: LocalContext -> ESubst -> ESubst -> MatchResult
@@ -999,7 +996,7 @@ injQLbind qbnd = ((tnil,lbuild $ mapsnd VSO qbnd,tnil),[],[])
 \end{code}
 
 A match-outcome either fails,
-or returns a binding with deferred \texttt{QVars} and \texttt{ESubst} matches.
+or returns a binding with deferred \texttt{VarList} and \texttt{ESubst} matches.
 \begin{code}
 type MatchOutcome = Maybe MatchResult
 
@@ -1016,7 +1013,7 @@ okBindT :: Monad m => TVar -> Type -> m MatchResult
 okBindT tv t = return ((bindT tv t),[],[])
 
 okBindQ :: Monad m => Variable -> Variable -> m MatchResult
-okBindQ qv q = return ((bindQ qv q),[],[])
+okBindQ qv q = return ((bindV qv q),[],[])
 
 okBindQL :: Monad m => Variable -> [Variable] -> m MatchResult
 okBindQL qv qvs = return ((bindQL qv qvs),[],[])
@@ -1164,9 +1161,9 @@ data MatchContext
     , mdlObs, srcObs, mdlObs', srcObs' :: [Variable]
     , sizeObs,  sizeMdl,  sizeScr
     , sizeObs', sizeMdl', sizeScr' :: Int
-    , mdlRoots :: [String]
-    , scrRoots :: [String]
-    , obsRoots :: [String]
+    , mdlRoots :: [Name]
+    , scrRoots :: [Name]
+    , obsRoots :: [Name]
     }
   deriving (Eq,Ord)
 
@@ -1204,7 +1201,7 @@ isKnownExpr :: MatchContext -> Variable -> Bool
 isKnownExpr mctxt v = tsvlookup (knownExprs mctxt) v /= Nothing
 
 isKnownPred :: MatchContext -> Name -> Bool
-isKnownPred mctxt r = tslookup (knownPreds mctxt) (genRootString r) /= Nothing
+isKnownPred mctxt r = tslookup (knownPreds mctxt) r /= Nothing
 \end{code}
 
 We derive some useful \texttt{knownObs} lookups
@@ -1223,14 +1220,14 @@ deriveMatchContext mctxt
    (mdls,scrs) = partition ((==Model).snd3) kobs
    (mobs,mobs') = partition before $ map fst3 $ mdls
    (sobs,sobs') = partition before $ map fst3 $ scrs
-   before (_, Pre, _)  =  True
-   before _            =  False
+   before (_, _, VPre)  =  True
+   before _             =  False
    lenMdl  = length mobs
    lenMdl' = length mobs'
    lenScr  = length sobs
    lenScr' = length sobs'
-   mroots = lnorm $ map varRootAsString (mobs++mobs')
-   sroots = lnorm $ map varRootAsString (sobs++sobs')
+   mroots = lnorm (mobs++mobs')
+   sroots = lnorm (sobs++sobs')
 
 nullMatchContext
  = MatchContext
@@ -1278,22 +1275,24 @@ isKnownObsVar mctxt v
  || v `elem` mdlObs' mctxt
  || v `elem` srcObs' mctxt
 
-getSrcObs Pre  mctxt  =  srcObs  mctxt
-getSrcObs Post mctxt  =  srcObs' mctxt
-getSrcObs d    mctxt  =  map (decorVar d) $ srcObs mctxt
+getSrcObs VPre  mctxt  =  srcObs  mctxt
+getSrcObs VPost mctxt  =  srcObs' mctxt
+getSrcObs d     mctxt  =  map (updVRole d) $ srcObs mctxt
 
-getMdlObs Pre  mctxt  =  mdlObs  mctxt
-getMdlObs Post mctxt  =  mdlObs' mctxt
-getMdlObs d    mctxt  =  map (decorVar d) $ mdlObs mctxt
+getMdlObs VPre  mctxt  =  mdlObs  mctxt
+getMdlObs VPost mctxt  =  mdlObs' mctxt
+getMdlObs d     mctxt  =  map (updVRole d) $ mdlObs mctxt
 
-rsvVRoots :: MatchContext -> Variable -> [String]
-rsvVRoots mctxt (Rsv r _,_,_) = rsvRoots mctxt r
-rsvVRoots _ _ = []
+rsvVRoots :: MatchContext -> ListVar -> [String]
+rsvVRoots mctxt (L r _)  =  rsvRoots mctxt r
+rsvVRoots _ _            =  []
 
-rsvRoots :: MatchContext -> RsvRoot -> [String]
-rsvRoots mctxt OBS  = obsRoots mctxt
-rsvRoots mctxt MDL  = mdlRoots mctxt
-rsvRoots mctxt SCR  = scrRoots mctxt
+rsvRoots :: MatchContext -> Name -> [String]
+rsvRoots mctxt root
+ | root == strOBS  =  obsRoots mctxt
+ | root == strMDL  =  mdlRoots mctxt
+ | root == strSCR  =  scrRoots mctxt
+ | otherwise       =  []
 \end{code}
 
 We can classify variables as being:
@@ -1305,108 +1304,30 @@ We can classify variables as being:
 \end{itemize}
 \begin{code}
 type ClassedVars
- = ( [Variable]    -- standard known
-   , [Variable]    -- standard unknown
-   , [Variable]    -- general list
-   , [Variable] )  -- reserved list
+ = ( [Variable]  -- standard known
+   , [Variable]  -- standard unknown
+   , VarList     -- general list
+   , VarList )   -- reserved list
 
 classifyVars :: (LocalContext -> Variable -> Bool)
              -> LocalContext
-             -> [Variable]
+             -> VarList
              -> ClassedVars
 classifyVars _ _ [] = ([],[],[],[])
-classifyVars isknown here (v:vs)
+classifyVars isknown here (lv:lvs)
  = (k,u,xs,r) `cmrg` (ks,us,xss,rs)
  where
-   (ks,us,xss,rs) = classifyVars isknown here vs
    (k,u,xs,r)
-      = case v of
-          (Gen (Std _),_,_)
+      = case lv of
+          (V v)
              | isknown here v  ->  ([v],[],[],[])
-             | otherwise        ->  ([],[v],[],[])
-          (Gen (Lst _),_,_)     ->  ([],[],[v],[])
-          (Rsv _ _,_,_)         ->  ([],[],[],[v])
+             | otherwise       ->  ([],[v],[],[])
+          (L v _)
+            | isRsvV v         ->  ([],[],[],[lv])
+          otherwise            ->  ([],[],[lv],[])
+   (ks,us,xss,rs) = classifyVars isknown here lvs
 
 (a,b,c,d) `cmrg` (e,f,g,h) = (a++e,b++f,c++g,d++h)
-\end{code}
-
-\newpage
-\subsubsection{Binding Lookup, knowingly\ldots }
-
-These lookups return the key if not bound and ``known''.
-\begin{code}
-bevalP :: MatchContext -> Binding -> Name -> Pred
-bevalP mctxt (vpbnds,_,_) r
- = case vplookupTO r vpbnds of
-    Just pr -> pr
-    Nothing ->
-     case tslookup (knownPreds mctxt) rs of
-      Just _   ->  PVar $ genRootAsVar r
-      Nothing  ->  PVar $ genRootAsVar $ gmap ('?':) r
- where rs = genRootString r
-
-bevalE :: MatchContext -> Binding -> Variable -> Expr
-bevalE mctxt (_,vebnds,_) v
- = case velookupTO v vebnds of
-    Just e  -> e
-    Nothing ->
-     case tslookup (knownObs mctxt) vs of
-      Just _  -> Var v
-      Nothing ->
-       case tslookup (knownExprs mctxt) vs of
-        Just _   ->  Var v
-        Nothing  ->  Var $ varmap ('?':) v
- where vs = varKey v
-
-bevalT :: MatchContext -> Binding -> TVar -> Type
-bevalT mctxt (_,_,ttbnds) tv
- = case ttlookupTO tv ttbnds of
-    Just t  -> t
-    Nothing ->
-     case tslookup (knownTypes mctxt) tv of
-      Just _   ->  Tvar tv
-      Nothing  ->   Tvar ('?':tv)
-
-bevalQ :: MatchContext -> Binding -> Variable -> QVars
-bevalQ _ (_,vebnds,_) v  -- mctxt ignored for now..
- | isStdV v   =  case velookupVO v vebnds of
-                   Just v   ->  [v]
-                   Nothing  ->  [varmap ('?':) v]
- | otherwise  =  case velookupVSO v vebnds of
-                   Just vs  ->  vs
-                   Nothing  ->  [varmap ('?':) v]
-
-bevalV :: MatchContext -> Binding -> Variable -> Either Variable [Variable]
-bevalV mctxt bind v
- | isStdV v
-   = case bevalE mctxt bind v of
-       Var v   ->  Left v
-       e       ->  Left $ noDecorVariable ('?':show e)
- | otherwise
-   = case bevalQ mctxt bind v of
-       vs  ->  Right vs
-
-bevalES :: MatchContext -> Binding -> Variable -> [Expr]
-bevalES mctxt (_,vebnds,_) v  -- mctxt ignored
-  | isStdV v  =  [Var $ varmap ('?':) v]
-  | otherwise
-     = case velookupTSO v vebnds of
-        Just es  ->  es
-        Nothing  ->  [Var $ varmap ('?':) v]
-
-bevalEE :: MatchContext -> Binding -> Expr -> [Expr]
-bevalEE mctxt bind e  -- mctxt effectively ignored
-  | isVar e    =  bevalES mctxt bind $ getVar e
-  | otherwise  =  [Var $ noDecorVariable ('?':show e)]
-
-bevalVar :: MatchContext -> Binding -> Variable -> Expr
-bevalVar mctxt bind@(_,vebnds,_) v  -- mctxt ignored
-  = case velookupTO v vebnds of
-     Just  e -> e
-     Nothing ->
-      case velookupVSO v vebnds of
-       Just vs -> Var $ varmap ("??"++) v
-       Nothing -> Var $ varmap ('?':) v
 \end{code}
 
 
@@ -1579,7 +1500,7 @@ sizeConformant mctxt s qvs
 \end{code}
 
 \newpage
-\subsection{Well-formed \texttt{QVars}}
+\subsection{Well-formed \texttt{VarList}}
 
 
 \input{doc/Quantifier-Invariant}
@@ -1627,7 +1548,7 @@ isDisjRSV r1  r2
 
 The invariant:
 \begin{code}
-invQVars :: MatchContext -> QVars -> Bool
+invQVars :: MatchContext -> VarList -> Bool
 invQVars mctxt qvs
  = sort qvs == lnorm qvs -- fails if any duplicates
    &&
@@ -1660,10 +1581,10 @@ exprQVarInv mctxt e = foldE (qVarInvFold mctxt) e
 
 We have code to fix things up:
 \begin{code}
-fixQVarsInv :: MatchContext -> QVars -> Maybe QVars
+fixQVarsInv :: MatchContext -> VarList -> Maybe VarList
 fixQVarsInv mctxt qvs = Just $ lstqnorm mctxt qvs
 
-lstqnorm :: MatchContext -> [Variable] -> QVars
+lstqnorm :: MatchContext -> [Variable] -> VarList
 lstqnorm mctxt vs
  = lnorm vs'
  where
@@ -1674,9 +1595,9 @@ lstqnorm mctxt vs
    mvs = filter isLstV nvs
 \end{code}
 
-We can lift this to \texttt{QVars} and \texttt{Pred} levels:
+We can lift this to \texttt{VarList} and \texttt{Pred} levels:
 \begin{code}
-lQnorm :: MatchContext -> QVars -> QVars
+lQnorm :: MatchContext -> VarList -> VarList
 lQnorm mctxt vs = lstqnorm mctxt vs
 
 lPQnorm :: MatchContext -> Pred -> Pred

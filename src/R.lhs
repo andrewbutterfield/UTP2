@@ -63,11 +63,11 @@ rComp n p q
    obs = [ok,wait,state,tr,ref]
    addn v = v ++ ntxt
    ntxt = show n
-   obsmid = map (decorVar $ Subscript ntxt) obs
+   obsmid = map (updVRole $ Subscript ntxt) obs
    p' = Sub p pre_sub
    q' = Sub q post_sub
    mides = map Var obsmid
-   pre_sub = mkQsubst mides (map (decorVar Post) obs)
+   pre_sub = mkQsubst mides (map (updVRole Post) obs)
    post_sub = mkQsubst mides obs
 \end{code}
 
