@@ -239,7 +239,7 @@ isRootChar c  = isAlpha c || isDigit c || c `elem` [chrSUBS, chrLST]
 
 isStdS nm
  = case varStringRoot nm of
-    "" -> False
+    ""   -> False
     root -> last root /= chrLST
 
 isLstS nm = not . isStdS
@@ -303,10 +303,10 @@ Seen initial $\lit O, \lit M, \lit S$.
     scanRsv skot spos kot pos cs@(c:cs')
      | isAlpha c  =  scanName skot spos (c:kot) pos' cs'
      | isDigit c  =  scanName skot spos (c:kot) pos' cs'
-     | c == chrSUBS = scanSbscrR skot spos (c:kot) "" pos' cs'
-     | c == chrPOST = scanPostR skot spos (c:kot) pos' cs'
+     | c == chrSUBS = scanSbscrR skot spos kot "" pos' cs'
+     | c == chrPOST = scanPostR skot spos kot pos' cs'
      | c == chrLESS
-              = scanGenRoots skot spos (c:kot) (VPre,"") [] (pos,c) pos' cs'
+              = scanGenRoots skot spos kot (VPre,"") [] (pos,c) pos' cs'
      | otherwise  =  scanroot ((spos,tokrsv $ reverse kot):skot) pos cs
      where
        pos' = updatePosChar pos c
@@ -325,9 +325,9 @@ Seen initial $\LXRsvN~\lit\_$
     scanSbscrR skot spos kot sbus pos []
        = scanroot ((spos,tokrsvsubs (reverse kot) (reverse sbus)):skot) pos []
     scanSbscrR skot spos kot sbus pos cs@(c:cs')
-     | isAlpha c  =  scanSbscrR skot spos (c:kot) (c:sbus) pos' cs'
-     | isDigit c  =  scanSbscrR skot spos (c:kot) (c:sbus) pos' cs'
-     | c == chrLESS = scanGenRoots skot spos (c:kot) (VInter subs,subs) []
+     | isAlpha c  =  scanSbscrR skot spos kot (c:sbus) pos' cs'
+     | isDigit c  =  scanSbscrR skot spos kot (c:sbus) pos' cs'
+     | c == chrLESS = scanGenRoots skot spos kot (VInter subs,subs) []
                                   (pos,c) pos' cs'
      | otherwise  =  scanroot ((spos,tokrsvsubs tok subs):skot) pos cs
      where
@@ -344,7 +344,7 @@ Seen initial $\LXRsvN~\lit'$.
     scanPostR skot spos kot pos []
        = scanroot ((spos,tokrsvpost $ reverse kot):skot) pos []
     scanPostR skot spos kot pos cs@(c:cs')
-     | c == chrLESS = scanGenRoots skot spos (c:kot) (VPost,strPOST) []
+     | c == chrLESS = scanGenRoots skot spos kot (VPost,strPOST) []
                                   (pos,c) pos' cs'
      | otherwise  =  scanroot ((spos,tokrsvpost tok):skot) pos cs
      where
@@ -367,7 +367,7 @@ followed by $\LXDecorN$ and $\lit\BS$.
        = scanroot ((spos,tokrsvlnames (reverse kot) decor (reverse stoor)):skot)
                   pos0 [c0]
     scanGenRoots skot spos kot decor stoor (pos0,c0) pos cs@(c:cs')
-     | isAlpha c = scanGenRoots' skot spos (c:kot) decor stoor [c] pos' cs'
+     | isAlpha c = scanGenRoots' skot spos kot decor stoor [c] pos' cs'
      | otherwise = scanroot ((spos,tokrsvlnames tok decor roots):skot)
                             pos0 (c0:cs)
      where
@@ -386,11 +386,11 @@ followed by 1 or more $\LXAlfDigN$.
        = scanroot ((spos,tokrsvlnames (reverse kot) decor (reverse ((reverse eman):stoor))):skot)
                   pos []
     scanGenRoots' skot spos kot decor stoor eman pos cs@(c:cs')
-     | isAlpha c  =  scanGenRoots' skot spos (c:kot) decor stoor (c:eman) pos' cs'
-     | isDigit c  =  scanGenRoots' skot spos (c:kot) decor stoor (c:eman) pos' cs'
-     | c == chrLSEP = scanGenRoots skot spos (c:kot) decor (name:stoor) (pos,c)
+     | isAlpha c  =  scanGenRoots' skot spos kot decor stoor (c:eman) pos' cs'
+     | isDigit c  =  scanGenRoots' skot spos kot decor stoor (c:eman) pos' cs'
+     | c == chrLSEP = scanGenRoots skot spos kot decor (name:stoor) (pos,c)
                                    pos' cs'
-     | c == chrLST = scanGenRoots'' skot spos (c:kot) decor (lname:stoor) pos' cs'
+     | c == chrLST = scanGenRoots'' skot spos kot decor (lname:stoor) pos' cs'
      | otherwise = scanroot ((spos,tokrsvlnames tok decor roots):skot) pos cs
      where
        pos' = updatePosChar pos c
@@ -407,7 +407,7 @@ followed by 1 or more $\LXAlfDigN$ and a $\lit\$$.
     scanGenRoots'' skot spos kot decor stoor pos []
        = scanroot ((spos,tokrsvlnames (reverse kot) decor (reverse stoor)):skot) pos []
     scanGenRoots'' skot spos kot decor stoor  pos cs@(c:cs')
-     | c == chrLSEP = scanGenRoots skot spos (c:kot) decor stoor (pos,c) pos' cs'
+     | c == chrLSEP = scanGenRoots skot spos kot decor stoor (pos,c) pos' cs'
      | otherwise = scanroot ((spos,tokrsvlnames tok decor roots):skot) pos cs
      where
        pos' = updatePosChar pos c
@@ -431,7 +431,7 @@ and zero or more $\LXAlfDigN$.
      | isAlpha c  =  scanName skot spos (c:kot) pos' cs'
      | isDigit c  =  scanName skot spos (c:kot) pos' cs'
      | c == chrPOST  =  scanroot ((spos,tokpost tok'):skot) pos' cs'
-     | c == chrSUBS   =  scanSbscr skot spos (c:kot) "" pos' cs'
+     | c == chrSUBS   =  scanSbscr skot spos kot "" pos' cs'
      | c == chrLST   =  scanLst skot spos (c:kot) pos' cs'
      | otherwise  =  scanroot ((spos,TName tok):skot) pos cs
      where
@@ -453,8 +453,8 @@ Seen initial $\LXNameN~\lit\_$.
     scanSbscr skot spos kot sbus pos []
        = scanroot ((spos,toksubs (reverse kot) (reverse sbus)):skot) pos []
     scanSbscr skot spos kot sbus pos cs@(c:cs')
-     | isAlpha c  =  scanSbscr skot spos (c:kot) (c:sbus) pos' cs'
-     | isDigit c  =  scanSbscr skot spos (c:kot) (c:sbus) pos' cs'
+     | isAlpha c  =  scanSbscr skot spos kot (c:sbus) pos' cs'
+     | isDigit c  =  scanSbscr skot spos kot (c:sbus) pos' cs'
      | otherwise  =  scanroot ((spos,toksubs tok subs):skot) pos cs
      where
        pos' = updatePosChar pos c
@@ -474,8 +474,8 @@ Seen initial $\LXNameN~\lit\$$.
     scanLst skot spos kot pos []
        = scanroot ((spos,toklst $ reverse kot):skot) pos []
     scanLst skot spos kot pos cs@(c:cs')
-     | c == chrSUBS  =  scanSbscrL skot spos (c:kot) "" pos' cs'
-     | c == chrPOST  =  scanPost skot spos (c:kot) pos' cs'
+     | c == chrSUBS  =  scanSbscrL skot spos kot "" pos' cs'
+     | c == chrPOST  =  scanPost skot spos kot pos' cs'
      | otherwise  =  scanroot ((spos,toklst tok):skot) pos cs
      where
        pos' = updatePosChar pos c
@@ -504,8 +504,8 @@ Seen initial $\LXNameN~\lit\$\lit\_$.
     scanSbscrL skot spos kot sbus pos []
        = scanroot ((spos,toklstsubs (reverse kot) (reverse sbus)):skot) pos []
     scanSbscrL skot spos kot sbus pos cs@(c:cs')
-     | isAlpha c  =  scanSbscrL skot spos (c:kot) (c:sbus) pos' cs'
-     | isDigit c  =  scanSbscrL skot spos (c:kot) (c:sbus) pos' cs'
+     | isAlpha c  =  scanSbscrL skot spos kot (c:sbus) pos' cs'
+     | isDigit c  =  scanSbscrL skot spos kot (c:sbus) pos' cs'
      | otherwise  =  scanroot ((spos,toklstsubs tok subs):skot) pos cs
      where
        pos' = updatePosChar pos c
@@ -796,6 +796,15 @@ parseVariable str
 
 badVariable (_, _, ('!':_))  =  True
 badVariable _                =  False
+
+parseListVar :: String -> ListVar
+parseListVar str
+ = case scanner "" str of
+    []                         ->  V $ predVar ("!NoVar<"++str++">")
+    [(_,TName n), (_,TEOF)]    ->  V $ preVar n
+    [(_,TIdent v),(_,TEOF)]    ->  V $ v
+    [(_,TLVar v rs),(_,TEOF)]  ->  L v rs
+    _                          ->  V $ predVar ("!BadVar<"++str++">")
 \end{code}
 
 \newpage
@@ -806,7 +815,7 @@ preVar, postVar, scrptVar, predVar :: Name -> Variable
 preVar nm  = (nm, VObs, VPre)
 postVar nm = (nm, VObs, VPost)
 scrptVar nm  = (nm, VScript, VPre)
-predVar nm = (nm, VPred, VPre)
+predVar nm = (nm, VPred, VRel)
 
 subVar :: String -> String -> Variable
 subVar s nm  = (nm, VObs, VInter s)
