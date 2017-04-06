@@ -878,8 +878,9 @@
 \def\withbind{\mathrel{~|~}}
 \def\deferred{\Vvdash}
 \def\MATCH#1#2#3#4{{#1}\wefind{#2}\matches{#3}\withbind{#4}}
-\def\disjRSV{\mathrel{\not{\!\cap}_{\exists}}}
-\def\notObsInRSV{\notin_{\exists}}
+\def\existsMu{{\scriptscriptstyle\exists\!\mu\!\bullet\!}}
+\def\disjRSV{\mathrel{\existsMu\!\not{\!\cap}}}
+\def\notObsInRSV{\mathrel{\existsMu\!\notin}}
 
 \def\ProofName#1{\textbf{#1}}
 

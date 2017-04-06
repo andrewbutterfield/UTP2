@@ -1,4 +1,4 @@
-A quantifier variable-list is well-formed if
+A (quantifier) variable-list is well-formed if
 \begin{itemize}
   \item all variables occur at most once
   \item all reserved list-variables have possible denotations that are disjoint
@@ -11,8 +11,10 @@ and so can only be determined at matching time, when a binding of such
 roots are available.
 In effect, we define two binary relations:
 \begin{enumerate}
-  \item one ($\disjRSV$), between two reserved list-variables, asserts that there does exist
-   a binding that makes their denotations disjoint (``possible disjointness'').
+  \item
+    one ($\disjRSV$), between two reserved list-variables,
+    asserts that there exists a binding
+    that makes their denotations disjoint (``possible disjointness'').
   \item the other ($\notObsInRSV$), between a known standard observation variable
   and a reserved-variable
    assert the existence of a binding that ensures the former is not contained in the denotation

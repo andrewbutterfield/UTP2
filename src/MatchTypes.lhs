@@ -1343,30 +1343,29 @@ classifyVars isknown here (lv:lvs)
 Function \texttt{lVarDenote}  computes $\sem{L^d\setminus R}_{\Gamma}$,
 to the form $V \ominus X$ such that $X$ contains non-observation variables only.
 \begin{code}
-lVarDenote :: MatchContext -> Variable -> ([Variable],[Name])
-lVarDenote mctxt (Rsv root subs,decor,_)
- | root == SCR  =  lVarDenote' obsvars srcvars decor subs
- | root == MDL  =  lVarDenote' obsvars mdlvars decor subs
- | root == OBS  =  lVarDenote' obsvars obsvars decor subs
+lVarDenote :: MatchContext -> ListVar -> (VarList,[Name])
+lVarDenote mctxt (L (root, _, decor) subs)
+ | root == strSCR  =  lVarDenote' obsvars srcvars decor subs
+ | root == strMDL  =  lVarDenote' obsvars mdlvars decor subs
+ | root == strOBS  =  lVarDenote' obsvars obsvars decor subs
  where
    srcvars = getSrcObs decor mctxt
    mdlvars = getMdlObs decor mctxt
    obsvars = mdlvars ++ srcvars
-lVarDenote _ v = ([v],[])
+lVarDenote _ lv = ([lv],[])
 
 lVarDenote' :: [Variable]   -- all known observables
             -> [Variable]   -- observable for this meta-root
-            -> Decor        -- associated decoration
+            -> VRole        -- associated decoration
             -> [Name]    -- non-observable roots being subtracted
-            -> ([Variable],[Name])
+            -> (VarList,[Name])
 lVarDenote' ovars dvars decor subs
  =  (denotation,csub)
  where
-  denotation = lnorm $ filter keptv dvars
-  keptv (Gen r,_,_) = not (r `elem` subs)
-  keptv _           = False
+  denotation = map V $ lnorm $ filter keptv dvars
+  keptv (r,_,_) = not (r `elem` subs)
   csub = lnorm $ filter kepts subs
-  kepts sr = not (Gen sr `elem` oroots)
+  kepts sr = not (sr `elem` oroots)
   oroots = map varRoot ovars
 \end{code}
 
@@ -1426,24 +1425,23 @@ We represent the outcome as a unary relation on numbers,
 of the form less than ($\_ < k$), equal to ($\_ = k$) or greater than ($\_ > k$)
 some constant $k$:
 \begin{code}
-varSize :: MatchContext -> Variable -> (Ordering,Int)
-varSize _ (Gen (Std _),_,_) = (EQ,1)
-varSize _ (Gen (Lst _),_,_) = (GT,-1) -- can be anything from zero upwards...
-varSize mctxt (Rsv r subs,decor,_) = rsvSize mctxt r decor subs
+varSize :: MatchContext -> ListVar -> (Ordering,Int)
+varSize _     (V _)                 =  (EQ,1)
+varSize mctxt (L (r,_,decor) subs)
+ | r == strOBS  =  subSize (roleSize (sizeObs,sizeObs') decor $ mctxt) subs
+ | r == strMDL  =  subSize (roleSize (sizeMdl,sizeMdl') decor $ mctxt) subs
+ | r == strSCR  =  subSize (roleSize (sizeScr,sizeScr') decor $ mctxt) subs
+ | otherwise  = (GT,-1) -- can be anything from zero upwards...
 
-rsvSize :: MatchContext -> RsvRoot -> Decor ->  [Name] -> (Ordering,Int)
-rsvSize mctxt OBS Post subs  =  subSize (sizeObs' mctxt) subs
-rsvSize mctxt OBS _    subs  =  subSize (sizeObs  mctxt) subs
-rsvSize mctxt MDL Post subs  =  subSize (sizeMdl' mctxt) subs
-rsvSize mctxt MDL _    subs  =  subSize (sizeMdl  mctxt) subs
-rsvSize mctxt SCR Post subs  =  subSize (sizeScr' mctxt) subs
-rsvSize mctxt SCR _    subs  =  subSize (sizeScr  mctxt) subs
+roleSize :: (a -> b, a -> b) -> VRole -> a -> b
+roleSize (_, size') VPost  =  size'
+roleSize (size,  _) _      =  size
 
 subSize :: Int -> [Name] -> (Ordering,Int)
 subSize 0 _         = (GT,-1)
 subSize rsize []    = (EQ,rsize)
 subSize rsize subs
- | any isLstV subs  =  (LT,rsize+1)
+ | any isLstN subs  =  (LT,rsize+1)
  | otherwise        =  (EQ,max 0 (rsize - length subs))
 \end{code}
 
@@ -1493,9 +1491,9 @@ sizeRelAdd r1     r2         =  sizeRelAdd r2 r1
 
 
 \begin{code}
-sizeConformant  :: MatchContext -> String -> [Variable] -> Bool
+sizeConformant  :: MatchContext -> String -> VarList -> Bool
 sizeConformant mctxt s qvs
-  = sizeRelSat2 (varSize mctxt $ parseVariable s)
+  = sizeRelSat2 (varSize mctxt $ parseListVar s)
                 (foldl sizeRelAdd (EQ,0) $ map (varSize mctxt) qvs)
 \end{code}
 
@@ -1514,9 +1512,9 @@ We start with the ``can escape'' relation:
 Here we wrap a variable and its denotation together,
 to keep things consistent with \texttt{possDisjRSV} below.
 \begin{code}
-obsCanEscapeRSV :: Variable -> (Variable,([Variable],[Name])) -> Bool
-obsCanEscapeRSV v (_,(vs,[]))  =  not (v `elem` vs)
-obsCanEscapeRSV v _            =  True
+obsCanEscapeRSV :: ListVar -> (ListVar,([Variable],[Name])) -> Bool
+obsCanEscapeRSV lv (_,(vs,[]))  =  not (v `elem` vs)
+obsCanEscapeRSV lv _            =  True
 \end{code}
 and next, the ``possible disjoint'' reserved-variable relation:
 \begin{eqnarray*}
