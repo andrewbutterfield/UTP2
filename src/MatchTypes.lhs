@@ -1513,8 +1513,8 @@ Here we wrap a variable and its denotation together,
 to keep things consistent with \texttt{possDisjRSV} below.
 \begin{code}
 obsCanEscapeRSV :: ListVar -> (ListVar,([Variable],[Name])) -> Bool
-obsCanEscapeRSV lv (_,(vs,[]))  =  not (v `elem` vs)
-obsCanEscapeRSV lv _            =  True
+obsCanEscapeRSV (V v) (_,(vs,[]))  =  not (v `elem` vs)
+obsCanEscapeRSV lv _               =  True
 \end{code}
 and next, the ``possible disjoint'' reserved-variable relation:
 \begin{eqnarray*}
@@ -1528,15 +1528,15 @@ and next, the ``possible disjoint'' reserved-variable relation:
 Here we wrap a variable and its denotation together,
 in case that denotation should be empty.
 \begin{code}
-possDisjRSV :: (Variable,([Variable],[Name]))
-            -> (Variable,([Variable],[Name]))
+possDisjRSV :: (ListVar,([Variable],[Name]))
+            -> (ListVar,([Variable],[Name]))
             -> Bool
 possDisjRSV ((Rsv r1 [],d1,_),([],[]))
             ((Rsv r2 [],d2,_),([],[]))   =  d1 /= d2 || isDisjRSV r1 r2
 possDisjRSV (_,(vs1,[]))  (_,(vs2,[]))   =  vs1 `disjoint` vs2
 possDisjRSV (_,(vs1,gs1)) (_,(vs2,gs2))  =  vs1 /= vs2 || gs1 /= gs2
 
-isDisjRSV OBS MDL  =  False
+isDisjRSV OBS MDL  =  Falseh
 isDisjRSV OBS SCR  =  False
 isDisjRSV MDL SCR  =  True
 isDisjRSV r1  r2

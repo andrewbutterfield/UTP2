@@ -135,15 +135,22 @@ type VarList = [ListVar]
 
 Substitutions associate a list of things (types,expressions,predicates)
 with some (quantified) variables.
-This is just
+We also want to allow list-variables of the appropriate kind
+to occur for things, but only when the target variable is also
+a list variable.
 \begin{code}
-data Substn v a
- = Substn [( v   -- variable type
-           , a   -- replacement object
-           )]
- deriving (Eq,Ord,Show)
+data SubsPair v lv a
+ = StdSub v    -- target variable
+          a    -- replacement object
+ | LstSub lv   -- target list-variable
+          lv   -- replacement list-variable
+ deriving (Eq, Ord, Show)
 
-type VSubst = Substn Variable Variable
+data Substn v lv a
+ = Substn [SubsPair v lv a]
+ deriving (Eq, Ord, Show)
+
+type VSubst = Substn Variable ListVar Variable
 \end{code}
 
 It helps to convert \texttt{Substn} into pairs of lists
@@ -216,8 +223,6 @@ data Type -- most general types first
  | B
  | Terror String Type
  deriving (Eq,Ord,Show)
-
-type TSubst = Substn String   Type
 
 nonTypeCons Tarb      =  True
 nonTypeCons (Tvar _)  =  True
@@ -322,7 +327,7 @@ data Expr
 n_Eerror = "EXPR_ERR: "
 eerror str = App (n_Eerror ++ str) []
 
-type ESubst = Substn ListVar Expr
+type ESubst = Substn Variable ListVar Expr
 \end{code}
 
 We need some builders that perform
@@ -352,8 +357,8 @@ mgetVar _         =  Nothing
 \subsection{Predicates}
 
 Again, a very simple abstract syntax,
-but with the add of a typing hook:
-
+but with the add of a typing hook,
+and an explicit 2-place predicate construct.
 \begin{code}
 data Pred
  = TRUE
@@ -364,13 +369,14 @@ data Pred
  | Sub Pred ESubst
  | PExpr Expr
  | TypeOf Expr Type
+ | P2 String ListVar ListVar
  deriving (Eq, Ord, Show)
 
 
 n_Perror = "PRED_ERR: "
 perror str = PApp (n_Perror ++ str) []
 
-type PSubst = Substn ListVar Pred
+type PSubst = Substn Variable ListVar Pred
 \end{code}
 
 We define two constructor functions to handle the \texttt{Expr}/\texttt{Pred} ``crossovers'':
