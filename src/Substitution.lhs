@@ -296,6 +296,8 @@ This code is only used in \texttt{Pvar} substitutions.
 Straight variable substitution for both
 single and multiple q-variables.
 \begin{code}
+type VSubst = Substn Variable ListVar Variable
+
 qvarOSub :: MatchContext -> VSubst -> QVars -> QVars
 qvarOSub mctxt (Substn sub) vs = map (areplace sub) vs
 \end{code}

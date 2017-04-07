@@ -146,25 +146,21 @@ data SubsPair v lv a
           lv   -- replacement list-variable
  deriving (Eq, Ord, Show)
 
-data Substn v lv a
- = Substn [SubsPair v lv a]
- deriving (Eq, Ord, Show)
-
-type VSubst = Substn Variable ListVar Variable
+type Substn v lv a  =  [SubsPair v lv a]
 \end{code}
 
-It helps to convert \texttt{Substn} into pairs of lists
-or lists of pairs (assuming no meta-variables, and correct matching),
-and vice-versa:
+Functions to get at things \dots
 \begin{code}
-unwrapQV  (Substn ssub)  =  twist $ unzip $ ssub
-sublistQV (Substn ssub)  =  map twist ssub
-mkSubs a v       =  Substn [(v,a)]
-packlistQV subs  =  Substn (map twist subs)
-packflipQV subs  =  Substn subs -- now a misnomer
+getSubstObjs :: Substn v lv a -> [a]
+getSubstObjs [] = []
+getSubstObjs ((StdSub _ obj):subs) = obj : getSubstObjs subs
+getSubstObjs (_:subs) = getSubstObjs subs
+
+unwrapQV  ( ssub)  =  twist $ unzip $ ssub
+mkSubs a v       =   [(v,a)]
 \end{code}
 The use of \texttt{twist} here is because
-the new revised \texttt{Substn} datatype
+the new revised \texttt{} datatype
 now puts entries in association-list order \texttt{(from,to)}
 rather than substitution notation order \texttt{[to/from]},
 which was the basis for the old%
@@ -180,25 +176,27 @@ as well as a destructor that returns \texttt{QVars}.
 from \texttt{data} to \texttt{type}
 and will be phased out).
 \begin{code}
-mkQsubst as xs = Substn $ zip xs as
+mkQsubst as xs =  zip xs as
 
-mkSubQ (Substn ssub) =  map fst ssub
+mkSubQ ( ssub) =  map fst ssub
 \end{code}
 
 
-Mapping across \texttt{Substn} types is also helpful:
+Mapping across \texttt{} types is also helpful:
 \begin{code}
-mapSub :: (a -> b) -> Substn v a -> Substn v b
-mapSub f (Substn ssub)
- = Substn (map (lift f) ssub)
- where lift f (v,a) = (v,f a)
+-- mapSub :: (a -> b) -> Substn v lv a -> Substn v lv b
+mapSub f ssub
+ = map (lift f) ssub
+ where
+   lift f (StdSub v a)  =  StdSub v (f a)
+   lift f spair         =  spair
 \end{code}
 
 \begin{code}
-qvunzip :: Substn v a -> ([a],[v])
-qvunzip (Substn sub) = twist $ unzip sub
+-- qvunzip :: Substn v a -> ([a],[v])
+qvunzip ( sub) = twist $ unzip sub
 
-qvunzipWith :: (v -> Variable) -> Substn v a -> ([a],[Variable])
+-- qvunzipWith :: (v -> Variable) -> Substn v a -> ([a],[Variable])
 qvunzipWith toV sub = setsnd (map toV ) $ qvunzip sub
 \end{code}
 
@@ -333,7 +331,7 @@ type ESubst = Substn Variable ListVar Expr
 We need some builders that perform
 tidying up for corner cases:
 \begin{code}
-mkEsub e (Substn []) = e
+mkEsub e ( []) = e
 mkEsub e sub = ESub e sub
 \end{code}
 
@@ -427,7 +425,7 @@ mkExists1 qvs p = PAbs "Exists1" 0 qvs [p]
 n_Univ = "Univ"
 mkUniv p =  PAbs n_Univ 0 [] [p]
 
-mkSub p (Substn []) = p
+mkSub p ( []) = p
 mkSub p sub = Sub p sub
 
 n_Pforall = "Pforall"
@@ -437,9 +435,6 @@ mkPforall qvs p = PAbs "Pforall" 0 qvs [p]
 n_Pexists = "Pexists"
 mkPexists ([]) p  = p
 mkPexists qvs p = PAbs "Pexists" 0 qvs [p]
-
-mkPsub p (Substn []) = p
-mkPsub p sub = Sub p $ mapSub EPred sub
 
 n_Peabs = "Peabs"
 mkPeabs ([]) p  = p
@@ -498,7 +493,8 @@ pequiv TRUE TRUE = True
 pequiv FALSE FALSE = True
 pequiv (PExpr e1) (PExpr e2) = e1 `eequiv` e2
 
-pequiv (Sub pr1 sub1) (Sub pr2 sub2) = pr1 `pequiv` pr2 && sub1 `estlequiv` sub2
+pequiv (Sub pr1 sub1) (Sub pr2 sub2)
+  = pr1 `pequiv` pr2 && sub1 `estlequiv` sub2
 
 pequiv (PVar s1) (PVar s2) = s1==s2
 pequiv (PAbs s1 _ qs1 prs1) (PAbs s2 _ qs2 prs2)
@@ -531,9 +527,17 @@ esequiv _ _ = False
 
 Substitution equivalence:
 \begin{code}
-estlequiv (Substn ssub1)  (Substn ssub2) = samealist eequiv ssub1 ssub2
+estlequiv  =  sublistequiv eequiv
+pstlequiv  =  sublistequiv pequiv
 
-pstlequiv (Substn ssub1)  (Substn ssub2) = samealist pequiv ssub1 ssub2
+sublistequiv eqv [] []          =  True
+sublistequiv eqv (s1:ss1) (s2:ss2)
+ =  subpairequiv eqv s1 s2 && sublistequiv eqv ss1 ss2
+sublistequiv _ _ _                =  False
+
+subpairequiv eqv (StdSub v1 a1) (StdSub v2 a2)    =  v1 == v2   && a1 `eqv` a2
+subpairequiv _ (LstSub lv1 la1) (LstSub lv2 la2)  =  lv1 == lv2 && la1 == la2
+subpairequiv _ _ _                                =  False
 \end{code}
 
 For now:
@@ -594,7 +598,6 @@ and only cover a subset of most cases.
 \subsubsection{Type Single Recursion}
 
 \begin{code}
-
 typeRec merge spec base ty
  = case spec ty of
      (Just res)  ->  res
@@ -607,7 +610,6 @@ typeRec merge spec base ty
   tRecurse (TApp _ ts) = merge $ map typerec ts
   tRecurse (Tfun ty1 ty2) = merge $ map typerec [ty1,ty2]
   tRecurse _ = base
-
 \end{code}
 
 \subsubsection{\texttt{Expr} Single Recursion}
@@ -624,8 +626,8 @@ exprRec merge spec base ex
 
   eRecurse (App _ exs) = merge $ map exprrec exs
   eRecurse (Abs _ _ _ exs) = merge $ map exprrec exs
-  eRecurse (ESub ex (Substn ssub))
-    = merge $ map exprrec (ex:(map snd ssub))
+  eRecurse (ESub ex ssub)
+    = merge $ map exprrec (ex : getSubstObjs ssub)
   eRecurse _ = base
 \end{code}
 
@@ -757,9 +759,9 @@ mapE (fp,fe) (ESub e sub)  = ESub (fe e) (mapS fe sub)
 
 mapE (fp,fe) e = e
 
-mapS f (Substn ssub) = Substn (maparng f ssub)
+mapS f ( ssub) =  (maparng f ssub)
 
-mapSf f (Substn ssub) = (Substn ssub', or dif)
+mapSf f ( ssub) = ( ssub', or dif)
  where
     (ssub', dif) = unzip (maparngf f ssub)
 \end{code}
@@ -826,10 +828,10 @@ foldE pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) e
 Folding auxilliaries:
 \begin{code}
 foldPS :: (Pred -> a) -> PSubst -> [a]
-foldPS f0 (Substn ssub) = map (f0 . snd) ssub
+foldPS f0 ( ssub) = map (f0 . snd) ssub
 
 foldES :: (Expr -> a) -> ESubst -> [a]
-foldES g0 (Substn ssub) = map (g0 . snd) ssub
+foldES g0 ( ssub) = map (g0 . snd) ssub
 \end{code}
 
 
@@ -912,10 +914,10 @@ accEseqm ef a ((de,re):ms) = ((de',re'):ms',a'')
 
 The Substitution versions
 \begin{code}
-accESseq (pf,ef) a (Substn ssub) = (Substn ssub',a')
+accESseq (pf,ef) a ( ssub) = ( ssub',a')
  where  (ssub',a')   =  accSseqs ef a ssub
 
-accPSseq (pf,ef) a (Substn ssub) = (Substn ssub',a')
+accPSseq (pf,ef) a ( ssub) = ( ssub',a')
  where (ssub',a')   =  accSseqs pf a ssub
 
 accSseqs f a [] = ([],a)
@@ -1018,11 +1020,11 @@ dbgLVshow (L v ns) = dbgVshow v ++ " LESS " ++ show ns
 dbgMshow i (x,y) = hdr i ++ "DOM" ++ dbgEshow (i+1) x ++ hdr i ++ "RNG" ++ dbgEshow (i+1) y
 
 dbgESshow :: Int -> ESubst -> String
-dbgESshow i (Substn sub)
+dbgESshow i ( sub)
   = hdr i ++ "E-SUBSTN" ++ dbgSshow dbgLVshow dbgEshow (i+1) sub
 
 dbgPSshow :: Int -> PSubst -> String
-dbgPSshow i (Substn sub)
+dbgPSshow i ( sub)
   = hdr i ++ "P-SUBSTN" ++ dbgSshow dbgLVshow dbgPshow (i+2) sub
 
 dbgSshow :: (v -> String) -> (Int -> a -> String) -> Int -> [(v,a)]
