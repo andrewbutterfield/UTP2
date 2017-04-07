@@ -821,7 +821,7 @@ subVar :: String -> String -> Variable
 subVar s nm  = (nm, VObs, VInter s)
 
 updVRole :: VRole -> Variable -> Variable
-updVRole r (nm, k, _) = (nm, k, r) 
+updVRole r (nm, k, _) = (nm, k, r)
 
 lstVar, lstVar' :: Name -> ListVar
 lstVar  nm = L (nm, VObs, VPre) []
@@ -1970,25 +1970,6 @@ parseSetMap ptlt
 
 \newpage
 \subsubsection{Substitutions}
-
-\begin{code}
-showESubst :: ESubst -> String
-showESubst (Substn sub)
-    = "[ "++(showSepList ',' as)++ksymESUB++showvs qv++" ]"
-    where
-      as = map snd sub
-      qv = map fst sub
-      showvs = concat . intersperse "," . map lvarKey
-
-showPSubst :: PSubst -> String
-showPSubst (Substn sub)
-    = "[ "++(showSepList ',' as)++ksymPSUB++showns qv++" ]"
-    where
-      as = map snd sub
-      qv = map fst sub
-      showns = concat . intersperse "," . map show
-\end{code}
-
 
 \subsubsection{Parsing List Expressions/Substitutions}
 
