@@ -242,7 +242,7 @@ isStdS nm
     ""   -> False
     root -> last root /= chrLST
 
-isLstS nm = not . isStdS
+isLstS = not . isStdS
 \end{code}
 
 
@@ -430,14 +430,13 @@ and zero or more $\LXAlfDigN$.
     scanName skot spos kot pos cs@(c:cs')
      | isAlpha c  =  scanName skot spos (c:kot) pos' cs'
      | isDigit c  =  scanName skot spos (c:kot) pos' cs'
-     | c == chrPOST  =  scanroot ((spos,tokpost tok'):skot) pos' cs'
+     | c == chrPOST  =  scanroot ((spos,tokpost tok):skot) pos' cs'
      | c == chrSUBS   =  scanSbscr skot spos kot "" pos' cs'
      | c == chrLST   =  scanLst skot spos (c:kot) pos' cs'
      | otherwise  =  scanroot ((spos,TName tok):skot) pos cs
      where
        pos' = updatePosChar pos c
        tok = reverse kot
-       tok' = reverse (c:kot)
 
     -- tokpre tok  = TIdent (tok, inferKind tok, inferRole tok, [])
     tokpost tok = TIdent (tok, inferKind tok, VPost)

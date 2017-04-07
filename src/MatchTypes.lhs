@@ -51,16 +51,16 @@ Given type-tables, and a list of \texttt{TTTag}s,
 lookup the type of a variable w.r.t. those:
 \begin{code}
 ttsLookup :: TypeTables -> String -> [TTTag] -> Type
-ttsLookup tts v [] = Terror ("No Type-entry for : "++v) Tarb
-ttsLookup tts v (tag:tags)
+ttsLookup tts s [] = Terror ("No Type-entry for : "++s) Tarb
+ttsLookup tts s (tag:tags)
  = case btlookup tts tag of
      Nothing  ->  Terror ("Invalid Type-table Tag : "++show tag) Tarb
      Just vtyps
-       -> case tlookup vtyps v of
+       -> case tlookup vtyps s of
             Just t   ->  t
-            Nothing  ->  ttsLookup tts v tags
+            Nothing  ->  ttsLookup tts s tags
 ttsVLookup :: TypeTables -> Variable -> [TTTag] -> Type
-ttsVLookup tts (_,_,s) = ttsLookup tts s
+ttsVLookup tts v = ttsLookup tts $ varKey v
 \end{code}
 
 
@@ -219,9 +219,14 @@ and an term type $Trm$, we get the following four bindings:
 \\ Var|_{Lst} &\fun& Trm^*
 \end{eqnarray*}
 We shall implement the above four lookup functions
-as a single \texttt{Trie}, which simplifies the enforcing of the
+as a pair of \texttt{Trie}s, which simplifies the enforcing of the
 rule regarding exactly one binding per ``variable name''.
-\[ Var \fun (Trm + Var + Var^* + Trm^*)\]
+\[
+  ( Var|_{Std} \fun (Trm + Var))
+  \times
+  ( Var|_{Lst} \fun  (Var^* + Trm^*))
+\]
+The Std/Lst distinction is already enforced by the \texttt{Variable}/\texttt{ListVar} typing.
 It also encapsulates the \textbf{Std} vs \textbf{Lst} distinction.
 
 A binding object represents the sum type $Trm + Var + Var^* + Trm^*$:
@@ -229,37 +234,51 @@ A binding object represents the sum type $Trm + Var + Var^* + Trm^*$:
 data BObj var trm
  = TO trm       -- Std, Regular not bound
  | VO var       -- Std, Irregular
- | VSO [var]    -- Lst, Quantifier, Subst-Target
+ deriving (Eq,Ord)
+
+data BObjs var trm
+ = VSO [var]    -- Lst, Quantifier, Subst-Target
  | TSO [trm]    -- Lst, Subst-Replace, 2-Place
  deriving (Eq,Ord)
 
 showBObj :: (var -> String, trm -> String) -> BObj var trm -> String
 showBObj (shwv, shwt) (TO t)  =  shwt t
 showBObj (shwv, shwt) (VO v)  =  shwv v
-showBObj (shwv, shwt) (VSO [])  = "."
-showBObj (shwv, shwt) (VSO vs)  = concat $ intersperse "," $ map shwv vs
-showBObj (shwv, shwt) (TSO [])  = "."
-showBObj (shwv, shwt) (TSO ts)  = concat $ intersperse "," $ map shwt ts
+
+showBObjs :: (var -> String, trm -> String) -> BObjs var trm -> String
+showBObjs (shwv, shwt) (VSO [])  = "."
+showBObjs (shwv, shwt) (VSO vs)  = concat $ intersperse "," $ map shwv vs
+showBObjs (shwv, shwt) (TSO [])  = "."
+showBObjs (shwv, shwt) (TSO ts)  = concat $ intersperse "," $ map shwt ts
 
 instance (Show var, Show trm) => Show (BObj var trm) where
   show = showBObj (show, show)
+
+instance (Show var, Show trm) => Show (BObjs var trm) where
+  show = showBObjs (show, show)
 \end{code}
 We define a sub-binding as:
 \begin{code}
-type SBind var trm = Trie (BObj var trm)
+type SBind var trm
+ = ( Trie (BObj var trm)
+   , Trie (BObjs var trm) )
 
 sbnil :: SBind var trm
-sbnil = tnil
+sbnil = ( tnil, tnil )
 
 -- explicitly show tagging of object types
 oShow :: (var -> String, trm -> String) -> SBind var trm -> String
-oShow (vshw, tshw) = unlines . map oshow . flattenTrie
+oShow (vshw, tshw) = unlines . map oshow . flattenTrie . fst
  where
    oshow (str,obj) = str ++ " >-> " ++ oshow' obj
    oshow' (TO trm)   = "Trm  " ++ tshw trm
    oshow' (VO var)   = "Var  " ++ vshw var
-   oshow' (VSO vars) = "Var$ " ++ show (map vshw vars)
-   oshow' (TSO trms) = "Trm$ " ++ show (map tshw trms)
+osShow :: (var -> String, trm -> String) -> SBind var trm -> String
+osShow (vshw, tshw) = unlines . map osshow . flattenTrie . snd
+ where
+   osshow (str,obj) = str ++ " >-> " ++ osshow' obj
+   osshow' (VSO vars) = "Var$ " ++ show (map vshw vars)
+   osshow' (TSO trms) = "Trm$ " ++ show (map tshw trms)
 \end{code}
 
 
@@ -424,7 +443,7 @@ lmergeSBind = mergeSBind lmergeBObj lmergeBObj
 We will have three instances, one each for predicates, expressions and types:
 \begin{code}
 type VPBind = SBind ListVar Pred
-showVPObj = showBObj (varKey, show)
+showVPObj = showBObj (lvarKey, show)
 showVPBind  :: VPBind -> String
 showVPBind = unlines' . trieShowWith showVPObj
 vpInj :: ListVar -> Pred
@@ -437,7 +456,7 @@ vpProj _         =  Nothing
 vinjErr nm =  error ("vpInj/veInj not defined for list-variable : "++nm)
 
 type VEBind = SBind ListVar Expr
-showVEObj = showBObj (varKey, show)
+showVEObj = showBObj (lvarKey, show)
 showVEBind :: VEBind -> String
 showVEBind = unlines' . trieShowWith showVEObj
 veInj :: ListVar -> Expr
@@ -484,30 +503,10 @@ showBinding (vpbnds,vebnds,ttbnds)
 
 \paragraph{Specialising for \texttt{Name}, \texttt{Pred}}~
 
+As required \dots
 \begin{code}
 vpupdateTO :: Monad m => Name -> Pred -> VPBind -> m VPBind
 vpupdateTO nm = updateTO vpProj (varStringRoot nm)
-
-vplookupTO :: Monad m => Name -> VPBind -> m Pred
-vplookupTO nm = lookupTO PVar (varStringRoot nm)
-
-vpupdateVO :: Monad m => Name -> Name -> VPBind -> m VPBind
-vpupdateVO nm = updateVO (varStringRoot nm)
-
-vplookupVO :: Monad m => Name -> VPBind -> m Name
-vplookupVO nm = lookupVO (varStringRoot nm)
-
-vpupdateVSO :: Monad m => Name -> [Name] -> VPBind -> m VPBind
-vpupdateVSO nm = updateVSO (varStringRoot nm)
-
-vplookupVSO :: Monad m => Name -> VPBind -> m [Name]
-vplookupVSO nm = lookupVSO (varStringRoot nm)
-
-vplookupTSO :: Monad m => Name -> VPBind -> m [Pred]
-vplookupTSO nm = lookupTSO PVar (varStringRoot nm)
-
-vpupdateTSO :: Monad m => Name -> [Pred] -> VPBind -> m VPBind
-vpupdateTSO nm  = updateTSO vpProj (varStringRoot nm)
 \end{code}
 
 \paragraph{Specialising for \texttt{Variable}, \texttt{Expr}}~
@@ -522,20 +521,11 @@ velookupTO v = lookupTO Var (varKey v)
 veupdateVO :: Monad m => Variable -> Variable -> VEBind -> m VEBind
 veupdateVO v = updateVO (varKey v)
 
-velookupVO :: Monad m => Variable -> VEBind -> m Variable
-velookupVO v = lookupVO (varKey v)
-
 veupdateVSO :: Monad m => Variable -> [Variable] -> VEBind -> m VEBind
 veupdateVSO v = updateVSO (varKey v)
 
-velookupVSO :: Monad m => Variable -> VEBind -> m [Variable]
-velookupVSO v = lookupVSO (varKey v)
-
 veupdateTSO :: Monad m => Variable -> [Expr] -> VEBind -> m VEBind
 veupdateTSO v = updateTSO veProj (varKey v)
-
-velookupTSO :: Monad m => Variable -> VEBind -> m [Expr]
-velookupTSO v = lookupTSO Var (varKey v)
 \end{code}
 
 A useful specialisation are variants of \texttt{lbuild} tailored
@@ -929,9 +919,9 @@ data LocalContext
 noLocalContext :: LocalContext
 noLocalContext = LC nullMatchContext Bnil Bnil [] [] [] []
 
-type SubstMatchToDo v a
- = ( [(v,a)]  -- test substitution pairs
-   , [(v,a)]  -- pattern substitution pairs
+type SubstMatchToDo v lv a
+ = ( Substn v lv a  -- test substitution pairs
+   , Substn v lv a  -- pattern substitution pairs
    , LocalContext
    )
 \end{code}
@@ -939,12 +929,15 @@ type SubstMatchToDo v a
 Well-formedness when \texttt{v} is instantiated by \texttt{Variable} is as for
 \texttt{VarList}:
 \begin{code}
-type ESubstMatchToDo = SubstMatchToDo Variable Expr
+type ESubstMatchToDo = SubstMatchToDo Variable ListVar Expr
 
-isWFSubstToDo :: [(Variable,Expr)] -> [(Variable,Expr)] -> Bool
-isWFSubstToDo tsubs psubs = isWFQVarToDo (map fst tsubs) (map fst psubs)
+isWFSubstToDo :: ESubstMatchToDo -> Bool
+isWFSubstToDo tsubs psubs
+ = isWFQVarToDo (getESubstListVar tsubs) (getESubstListVar psubs)
 
-dropLCtxt  :: SubstMatchToDo v a -> ([(v,a)],[(v,a)])
+dropLCtxt :: SubstMatchToDo v vl a
+          -> ( Substn v lv a
+             , Substn v lv a )
 dropLCtxt (ts,ps,_) = (ts,ps)
 \end{code}
 A match-result is bindings with lists of deferred \texttt{QVar} and \texttt{Substn}
@@ -971,8 +964,7 @@ deferQMatch :: VarList -> VarList -> MatchResult
 deferQMatch tv pv = ( nullBinds, [(tv,pv)], [] )
 
 deferSMatch :: LocalContext -> ESubst -> ESubst -> MatchResult
-deferSMatch lctxt (Substn ts) (Substn ps)
- = ( nullBinds, [], [(ts,ps,lctxt)] )
+deferSMatch lctxt ts ps  = ( nullBinds, [], [(ts,ps,lctxt)] )
 \end{code}
 
 \newpage
@@ -1531,17 +1523,16 @@ in case that denotation should be empty.
 possDisjRSV :: (ListVar,([Variable],[Name]))
             -> (ListVar,([Variable],[Name]))
             -> Bool
-possDisjRSV ((Rsv r1 [],d1,_),([],[]))
-            ((Rsv r2 [],d2,_),([],[]))   =  d1 /= d2 || isDisjRSV r1 r2
+possDisjRSV ( (L (r1, _, d1) []), ([],[]) )
+            ( (L (r2, _, d2) []), ([],[]) )
+ | isRsv r1 && isRsv r2   =  d1 /= d2 || isDisjRSV r1 r2
 possDisjRSV (_,(vs1,[]))  (_,(vs2,[]))   =  vs1 `disjoint` vs2
 possDisjRSV (_,(vs1,gs1)) (_,(vs2,gs2))  =  vs1 /= vs2 || gs1 /= gs2
 
-isDisjRSV OBS MDL  =  Falseh
-isDisjRSV OBS SCR  =  False
-isDisjRSV MDL SCR  =  True
-isDisjRSV r1  r2
-      | r1 == r2   =  False
-      | otherwise  =  isDisjRSV r2 r1
+isDisjRSV r1 r2
+ =  r1 == strSCR  &&  r2 == strMDL
+    ||
+    r1 == strMDL  &&  r2 == strSCR
 \end{code}
 
 The invariant:
@@ -1576,38 +1567,6 @@ exprQVarInv mctxt (Abs _ _ qvs es)
 exprQVarInv mctxt e = foldE (qVarInvFold mctxt) e
 \end{code}
 
-
-We have code to fix things up:
-\begin{code}
-fixQVarsInv :: MatchContext -> VarList -> Maybe VarList
-fixQVarsInv mctxt qvs = Just $ lstqnorm mctxt qvs
-
-lstqnorm :: MatchContext -> [Variable] -> VarList
-lstqnorm mctxt vs
- = lnorm vs'
- where
-   nvs = lnorm vs
-   vs' = filter keep nvs
-   keep v = not(v `elem` stripset)
-   stripset = concat $ map (fst . lVarDenote mctxt) mvs
-   mvs = filter isLstV nvs
-\end{code}
-
-We can lift this to \texttt{VarList} and \texttt{Pred} levels:
-\begin{code}
-lQnorm :: MatchContext -> VarList -> VarList
-lQnorm mctxt vs = lstqnorm mctxt vs
-
-lPQnorm :: MatchContext -> Pred -> Pred
-lPQnorm mctxt (PAbs nm tt qvs prs)
- = PAbs nm tt (lQnorm mctxt qvs) (map (lPQnorm mctxt) prs)
-
-lEQnorm :: MatchContext -> Expr -> Expr
-lEQnorm mctxt (Abs nm tt qvs es)
- = Abs nm tt (lQnorm mctxt qvs) (map (lEQnorm mctxt) es)
-lEQnorm mctxt e = mapE (lPQnorm mctxt,lEQnorm mctxt) e
-\end{code}
-
 \newpage
 \subsection{Well-formed \texttt{Substn}}
 
@@ -1617,14 +1576,8 @@ lEQnorm mctxt e = mapE (lPQnorm mctxt,lEQnorm mctxt) e
 The invariant:
 \begin{code}
 invESubst :: MatchContext -> ESubst -> Bool
-invESubst mctxt (Substn sub)
- = invQVars mctxt (map fst sub)
-   &&
-   all listReplList sub
- where
-   listReplList ((_, VList VObs, _, _), Var v )  =  isLstV v
-   listReplList ((_, VObs,       _, _), _     )  =  True
-   listReplList _                                =  False
+invESubst mctxt sub
+ = invQVars mctxt (getESubstListVar sub)
 \end{code}
 
 Lifting to \texttt{Expr} and \texttt{Pred}:
@@ -1833,9 +1786,9 @@ palfequiv bvs (PAbs n1 _ qs1 prs1) (PAbs n2 _ qs2 prs2)
    \alfSubL &\defs& \alfSubR
 \end{eqnarray*}
 \begin{code}
-palfequiv bvs (Sub pr1 (Substn sub1))
-              (Sub pr2 (Substn sub2))
-                = salfequiv bvs palfequiv id ealfequiv (pr1, sub1) (pr2, sub2)
+palfequiv bvs (Sub pr1 sub1)
+              (Sub pr2 sub2)
+ = salfequiv bvs palfequiv id ealfequiv (pr1, sub1) (pr2, sub2)
 \end{code}
 Leftover stuff
 \begin{code}
@@ -1934,9 +1887,9 @@ ealfequiv bvs (Abs n1 _ qs1 es1) (Abs n2 _ qs2 es2)
    \alfSubL &\defs& \alfSubL
 \end{eqnarray*}
 \begin{code}
-ealfequiv bvs (ESub e1 (Substn sub1))
-              (ESub e2 (Substn sub2))
-                  = salfequiv bvs ealfequiv id ealfequiv (e1, sub1) (e2, sub2)
+ealfequiv bvs (ESub e1 sub1)
+              (ESub e2  sub2)
+ = salfequiv bvs ealfequiv id ealfequiv (e1, sub1) (e2, sub2)
 
 ealfequiv bvs _ _ = Nothing
 \end{code}

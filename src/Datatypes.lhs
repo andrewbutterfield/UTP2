@@ -151,6 +151,17 @@ type Substn v lv a  =  [SubsPair v lv a]
 
 Functions to get at things \dots
 \begin{code}
+getSubstVars :: Substn v lv a -> [v]
+getSubstVars [] = []
+getSubstVars ((StdSub v _):subs) = v : getSubstVars subs
+getSubstVars (_:subs) = getSubstVars subs
+
+getSubstLVars :: Substn v lv a -> [lv]
+getSubstLVars [] = []
+getSubstLVars ((LstSub lv _):subs) = lv : getSubstLVars subs
+getSubstLVars (_:subs) = getSubstLVars subs
+
+
 getSubstObjs :: Substn v lv a -> [a]
 getSubstObjs [] = []
 getSubstObjs ((StdSub _ obj):subs) = obj : getSubstObjs subs
@@ -326,6 +337,9 @@ n_Eerror = "EXPR_ERR: "
 eerror str = App (n_Eerror ++ str) []
 
 type ESubst = Substn Variable ListVar Expr
+
+getESubstListVar subs
+ = (map V $ getSubstVars subs) ++ getSubstLVars subs
 \end{code}
 
 We need some builders that perform
