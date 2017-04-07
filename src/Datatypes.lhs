@@ -519,21 +519,11 @@ eequiv (ESub e1 sub1) (ESub e2 sub2)
  = e1 `eequiv` e2 && sub1 `estlequiv`  sub2
 
 eequiv _ _ = False
-
-esequiv [] [] = True
-esequiv (e1:es1) (e2:es2) = e1 `eequiv` e2 && es1 `esequiv` es2
-esequiv _ _ = False
 \end{code}
 
 Substitution equivalence:
 \begin{code}
-estlequiv  =  sublistequiv eequiv
-pstlequiv  =  sublistequiv pequiv
-
-sublistequiv eqv [] []          =  True
-sublistequiv eqv (s1:ss1) (s2:ss2)
- =  subpairequiv eqv s1 s2 && sublistequiv eqv ss1 ss2
-sublistequiv _ _ _                =  False
+estlequiv  =  samelist (subpairequiv eequiv)
 
 subpairequiv eqv (StdSub v1 a1) (StdSub v2 a2)    =  v1 == v2   && a1 `eqv` a2
 subpairequiv _ (LstSub lv1 la1) (LstSub lv2 la2)  =  lv1 == lv2 && la1 == la2
@@ -705,9 +695,6 @@ In practice we have two mutually recursive types,
 \texttt{Pred} and \texttt{Expr},
 so we pass in two functions, one for each datatype:
 \begin{code}
-mapP :: (Pred -> Pred,Expr -> Expr) -> Pred -> Pred
-mapE :: (Pred -> Pred,Expr -> Expr) -> Expr -> Expr
-
 mapPf :: (Pred -> (Pred,Bool), Expr -> (Expr,Bool)) -> Pred -> (Pred,Bool)
 mapEf :: (Pred -> (Pred,Bool), Expr -> (Expr,Bool)) -> Expr -> (Expr,Bool)
 
@@ -735,6 +722,13 @@ mapEf (fp,fe) (ESub e sub) = (ESub e' sub', dif1 || dif2)
     (e', dif2) = fe e
 
 mapEf (fp,fe) e = (e, False)
+
+mapSf f ssub = ( ssub', or dif)
+ where
+    (ssub', dif) = unzip $  map (appSf f) ssub
+
+appSf f (StdSub v a) =  (StdSub v a', dif) where (a', dif) = f a
+appSf f sp           =  (sp, False)
 \end{code}
 
 The intended usage is for the two functions
@@ -748,6 +742,9 @@ myPredMap pr = mapP (myPredMap,myExprMap) pr
 
 Now the \texttt{mapP}/\texttt{E} boilerplate:
 \begin{code}
+mapP :: (Pred -> Pred,Expr -> Expr) -> Pred -> Pred
+mapE :: (Pred -> Pred,Expr -> Expr) -> Expr -> Expr
+
 mapP (fp,fe) (PExpr e) = PExpr (fe e)
 mapP (fp,fe) (Sub pr sub) = Sub (fp pr) (mapS fe sub)
 
@@ -759,11 +756,11 @@ mapE (fp,fe) (ESub e sub)  = ESub (fe e) (mapS fe sub)
 
 mapE (fp,fe) e = e
 
-mapS f ( ssub) =  (maparng f ssub)
+mapS f []  =  []
+mapS f (s:ss) = appS f s : mapS f ss
 
-mapSf f ( ssub) = ( ssub', or dif)
- where
-    (ssub', dif) = unzip (maparngf f ssub)
+appS f (StdSub v a)  =  StdSub v $ f a
+appS f sp            =  sp
 \end{code}
 
 \newpage
@@ -827,106 +824,11 @@ foldE pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) e
 
 Folding auxilliaries:
 \begin{code}
-foldPS :: (Pred -> a) -> PSubst -> [a]
-foldPS f0 ( ssub) = map (f0 . snd) ssub
-
 foldES :: (Expr -> a) -> ESubst -> [a]
-foldES g0 ( ssub) = map (g0 . snd) ssub
+foldES g0 []                 =  []
+foldES g0 ((StdSub v a):ss)  =  g0 a : foldES g0 ss
+foldES g0 (_:ss)             =  foldES g0 ss
 \end{code}
-
-
-
-\subsubsection{Recursion boilerplate: \emph{accseq}}
-
-We want to define
-\begin{eqnarray*}
-   f &:& A \fun D \fun (D,A)
-\\ f~a~K_0 &\defs& f_0~a~K_0
-\\ f~a~(K_1~d) &\defs& (K_1~d',a') \WHERE (d',a') = f~a~d
-\\ f~a~(K_2~\delta) &\defs& (K_2~\delta',a') \WHERE (\delta',a') = seq~f~a~\delta
-\\
-\\ seq~f~a~\nil &\defs& (\nil,a)
-\\ seq~f~a~(d:\delta) &\defs& (d':\delta',a'') \WHERE
-\\ && (d',a') = f~a~d
-\\ && (\delta',a'') = seq~f~a'~\delta
-\end{eqnarray*}
-Here $f_0$ handles the base-case appropriately.
-The boilerplate support we provide
-is code to handle the recursive calls and their plumbing,
-but not the top-level case-split on the datatype $D$.
-\begin{eqnarray*}
-    accseq~f~a~(K_1~d) &\defs& (K_1~d',a') \WHERE (d',a') = f~a~d
-\\  accseq~f~a~(K_2~\delta) &\defs& (K_2~\delta',a') \WHERE (\delta',a') = seq~f~a~\delta
-\end{eqnarray*}
-So now we can write $f$ as:
-\begin{eqnarray*}
-   f~a~K_0 &\defs& f_0~a~K_0
-\\ f~a~d &\defs& accseq~f~a~d
-\end{eqnarray*}
-We can add additional cases if some recursive cases need special handling,
-and we add a handler for base cases to be treated uniformly
-Note that $f$ itself needs to call $accseq$ to ensure recursion occurs.
-
-As \texttt{Pred} and \texttt{Expr} are mutually recursive we have
-to pass around a pair of functions.
-Also, the focus variants of both must always be handled explicitly.
-\begin{code}
-accPseq :: (a -> Pred -> (Pred,a),a -> Expr -> (Expr,a))
-            -> a -> Pred -> (Pred,a)
-
-accPseq (pf,ef) a (PExpr e) = (PExpr e',a') where (e',a') = ef a e
-
-accPseq (pf,ef) a (Sub pr sub) = (Sub pr' sub',a'')
- where (pr',a') = pf a pr
-       (sub',a'') = accESseq (pf,ef) a' sub
-
-accPseq (pf,ef) a pr = (pr,a)
-
-accPseqs pf a [] = ([],a)
-accPseqs pf a (pr:prs) = (pr':prs',a'')
- where (pr',a') = pf a pr
-       (prs',a'') = accPseqs pf a' prs
-\end{code}
-
-The \texttt{Expr} version:
-\begin{code}
-accEseq :: (a -> Pred -> (Pred,a),a -> Expr -> (Expr,a))
-            -> a -> Expr -> (Expr,a)
-accEseq (pf,ef) a (App s es) = (App s es',a')
-  where (es',a') = accEseqs ef a es
-accEseq (pf,ef) a (Abs s ttts qs es) = (Abs s ttts qs es',a')
- where (es',a') = accEseqs ef a es
-accEseq (pf,ef) a (ESub e sub) = (ESub e' sub',a'')
- where (e',a') = ef a e
-       (sub',a'') = accESseq (pf,ef) a' sub
-accEseq (pf,ef) a e = (e,a)
-
-accEseqs ef a [] = ([],a)
-accEseqs ef a (e:es) = (e':es',a'')
- where (e',a') = ef a e
-       (es',a'') = accEseqs ef a' es
-
-accEseqm ef a [] = ([],a)
-accEseqm ef a ((de,re):ms) = ((de',re'):ms',a'')
- where ([de',re'],a') = accEseqs ef a [de,re]
-       (ms',a'') = accEseqm ef a' ms
-\end{code}
-
-The Substitution versions
-\begin{code}
-accESseq (pf,ef) a ( ssub) = ( ssub',a')
- where  (ssub',a')   =  accSseqs ef a ssub
-
-accPSseq (pf,ef) a ( ssub) = ( ssub',a')
- where (ssub',a')   =  accSseqs pf a ssub
-
-accSseqs f a [] = ([],a)
-accSseqs f a ((v,rep):rest) = ((v,rep'):rest',a'')
- where
-  (rep',a') = f a rep
-  (rest',a'') = accSseqs f a' rest
-\end{code}
-
 
 
 \subsubsection{Debugging}
@@ -1021,18 +923,20 @@ dbgMshow i (x,y) = hdr i ++ "DOM" ++ dbgEshow (i+1) x ++ hdr i ++ "RNG" ++ dbgEs
 
 dbgESshow :: Int -> ESubst -> String
 dbgESshow i ( sub)
-  = hdr i ++ "E-SUBSTN" ++ dbgSshow dbgLVshow dbgEshow (i+1) sub
+  = hdr i ++ "E-SUBSTN" ++ dbgSshow dbgVshow dbgLVshow dbgEshow (i+1) sub
 
-dbgPSshow :: Int -> PSubst -> String
-dbgPSshow i ( sub)
-  = hdr i ++ "P-SUBSTN" ++ dbgSshow dbgLVshow dbgPshow (i+2) sub
-
-dbgSshow :: (v -> String) -> (Int -> a -> String) -> Int -> [(v,a)]
+dbgSshow :: (v -> String)
+         -> (lv -> String )
+         -> (Int -> a -> String)
+         -> Int -> Substn v lv a
          -> String
-dbgSshow shv shth i  [] = ""
-dbgSshow shv shth i ((v,thing):rest)
+dbgSshow shv shlv shth i  [] = ""
+dbgSshow shv shlv shth i ((StdSub v thing):rest)
  = hdr i ++ shv v ++ "  |->" ++ shth (i+3) thing
-   ++ dbgSshow shv shth i rest
+   ++ dbgSshow shv shlv shth i rest
+dbgSshow shv shlv shth i ((LstSub lv1 lv2):rest)
+ = hdr i ++ shlv lv1 ++ " |-> " ++ shlv lv2
+   ++ dbgSshow shv shlv shth i rest
 
 dbgTshow i Tarb = hdr i ++ "TARB"
 dbgTshow i (Tvar s) = hdr i ++ "TVAR "++s
