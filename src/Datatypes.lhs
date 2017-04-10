@@ -139,36 +139,29 @@ We also want to allow list-variables of the appropriate kind
 to occur for things, but only when the target variable is also
 a list variable.
 \begin{code}
-data SubsPair v lv a
- = StdSub v    -- target variable
-          a    -- replacement object
- | LstSub lv   -- target list-variable
-          lv   -- replacement list-variable
- deriving (Eq, Ord, Show)
+type Substn v lv a
+  =  ( [(v,a)]     -- target variable, then replacememt object
+     , [(lv,lv)] ) -- target list-variable, then replacement l.v.
 
-type Substn v lv a  =  [SubsPair v lv a]
+substn :: [(v,a)] -> [(lv,lv)] -> Substn v lv a
+substn vas lvs = (lnorm vas, lnorm lvs)
+
+mkSubs a v = ([(v,a)],[])
 \end{code}
 
 Functions to get at things \dots
 \begin{code}
 getSubstVars :: Substn v lv a -> [v]
-getSubstVars [] = []
-getSubstVars ((StdSub v _):subs) = v : getSubstVars subs
-getSubstVars (_:subs) = getSubstVars subs
-
-getSubstLVars :: Substn v lv a -> [lv]
-getSubstLVars [] = []
-getSubstLVars ((LstSub lv _):subs) = lv : getSubstLVars subs
-getSubstLVars (_:subs) = getSubstLVars subs
-
+getSubstVars (vas, _) = map fst vas
 
 getSubstObjs :: Substn v lv a -> [a]
-getSubstObjs [] = []
-getSubstObjs ((StdSub _ obj):subs) = obj : getSubstObjs subs
-getSubstObjs (_:subs) = getSubstObjs subs
+getSubstObjs (vas, _) = map snd vas
+
+getSubstTgtLVars, getSubstRepLVars :: Substn v lv a -> [lv]
+getSubstTgtLVars (_, lvs) = map fst lvs
+getSubstRepLVars (_, lvs) = map snd lvs
 
 unwrapQV  ( ssub)  =  twist $ unzip $ ssub
-mkSubs a v       =   [(v,a)]
 \end{code}
 The use of \texttt{twist} here is because
 the new revised \texttt{} datatype
