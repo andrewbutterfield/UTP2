@@ -143,7 +143,8 @@ type Substn v lv a
   =  ( [(v,a)]     -- target variable, then replacememt object
      , [(lv,lv)] ) -- target list-variable, then replacement l.v.
 
-substn :: [(v,a)] -> [(lv,lv)] -> Substn v lv a
+substn :: (Ord v, Ord a, Ord lv)
+       => [(v,a)] -> [(lv,lv)] -> Substn v lv a
 substn vas lvs = (lnorm vas, lnorm lvs)
 
 mkSubs a v = ([(v,a)],[])
@@ -189,11 +190,7 @@ mkSubQ ( ssub) =  map fst ssub
 Mapping across \texttt{} types is also helpful:
 \begin{code}
 -- mapSub :: (a -> b) -> Substn v lv a -> Substn v lv b
-mapSub f ssub
- = map (lift f) ssub
- where
-   lift f (StdSub v a)  =  StdSub v (f a)
-   lift f spair         =  spair
+mapSub f (vas, lvs) = (mapsnd f vas, lvs)
 \end{code}
 
 \begin{code}
@@ -331,14 +328,13 @@ eerror str = App (n_Eerror ++ str) []
 
 type ESubst = Substn Variable ListVar Expr
 
-getESubstListVar subs
- = (map V $ getSubstVars subs) ++ getSubstLVars subs
+getESubstListVar (vas, lvs) = map (V . fst) vas ++ map fst lvs
 \end{code}
 
 We need some builders that perform
 tidying up for corner cases:
 \begin{code}
-mkEsub e ( []) = e
+mkEsub e ([],[]) = e
 mkEsub e sub = ESub e sub
 \end{code}
 
@@ -432,7 +428,7 @@ mkExists1 qvs p = PAbs "Exists1" 0 qvs [p]
 n_Univ = "Univ"
 mkUniv p =  PAbs n_Univ 0 [] [p]
 
-mkSub p ( []) = p
+mkSub p ([],[]) = p
 mkSub p sub = Sub p sub
 
 n_Pforall = "Pforall"
@@ -523,18 +519,21 @@ eequiv (App s1 es1) (App s2 es2)
 eequiv (Abs s1 _ qs1 es1) (Abs s2 _ qs2 es2)
  = s1==s2 && qs1==qs2 && samelist eequiv es1 es2
 eequiv (ESub e1 sub1) (ESub e2 sub2)
- = e1 `eequiv` e2 && sub1 `estlequiv`  sub2
+ = e1 `eequiv` e2 && sub1 `estlequiv` sub2
 
 eequiv _ _ = False
 \end{code}
 
 Substitution equivalence:
 \begin{code}
-estlequiv  =  samelist (subpairequiv eequiv)
+estlequiv :: (Eq v, Eq lv) => Substn v lv Expr -> Substn v lv Expr -> Bool
+(vas1, lvs1) `estlequiv` (vas2, lvs2)
+  =  samelist (subpairequiv eequiv) vas1 vas2
+     &&
+     samelist (subpairequiv (==)) lvs1 lvs2
 
-subpairequiv eqv (StdSub v1 a1) (StdSub v2 a2)    =  v1 == v2   && a1 `eqv` a2
-subpairequiv _ (LstSub lv1 la1) (LstSub lv2 la2)  =  lv1 == lv2 && la1 == la2
-subpairequiv _ _ _                                =  False
+subpairequiv :: Eq v => (a -> a -> Bool) -> (v,a) -> (v,a) -> Bool
+subpairequiv eqv (v1, a1) (v2, a2)  =  v1 == v2 && a1 `eqv` a2
 \end{code}
 
 For now:
@@ -709,10 +708,10 @@ run f e = f e
 
 mapPf (fp,fe) (PExpr e) = (PExpr e', dif)
   where (e', dif) = fe e
-mapPf (fp,fe) (Sub pr sub) = (Sub pr' sub', dif1 || dif2)
+mapPf (fp,fe) (Sub pr (vas, lvs)) = (Sub pr' (vas', lvs), dif1 || dif2)
   where
     (pr', dif1) = fp pr
-    (sub', dif2) = mapSf fe sub
+    (vas', dif2) = mapSf fe vas
 
 mapPf (fp,fe) (PAbs s ttts vs prs) = (PAbs s ttts vs prs', or difs)
   where (prs', difs) = unzip $ map (mapPf (fp,fe)) prs
@@ -723,19 +722,17 @@ mapEf (fp,fe) (App s es) = (App s es', or difs)
   where (es',difs) = unzip $ map fe es
 mapEf (fp,fe) (Abs s ttts qs es) = (Abs s ttts qs es', or difs)
   where (es',difs) = unzip $ map fe es
-mapEf (fp,fe) (ESub e sub) = (ESub e' sub', dif1 || dif2)
+mapEf (fp,fe) (ESub e (vas, lvs)) = (ESub e' (vas', lvs), dif1 || dif2)
   where
-    (sub', dif1) = mapSf fe sub
+    (vas', dif1) = mapSf fe vas
     (e', dif2) = fe e
 
 mapEf (fp,fe) e = (e, False)
 
-mapSf f ssub = ( ssub', or dif)
- where
-    (ssub', dif) = unzip $  map (appSf f) ssub
+mapSf f vas = (vas', or dif)
+  where (vas', dif) = unzip $ map (appSf f) vas
 
-appSf f (StdSub v a) =  (StdSub v a', dif) where (a', dif) = f a
-appSf f sp           =  (sp, False)
+appSf f (v, a) =  ((v, a'), dif) where (a', dif) = f a
 \end{code}
 
 The intended usage is for the two functions
@@ -753,21 +750,13 @@ mapP :: (Pred -> Pred,Expr -> Expr) -> Pred -> Pred
 mapE :: (Pred -> Pred,Expr -> Expr) -> Expr -> Expr
 
 mapP (fp,fe) (PExpr e) = PExpr (fe e)
-mapP (fp,fe) (Sub pr sub) = Sub (fp pr) (mapS fe sub)
+mapP (fp,fe) (Sub pr (vas,lvs)) = Sub (fp pr) (mapsnd fe vas, lvs)
 
 mapP (fp,fe) pr = pr
 
 mapE (fp,fe) (App s es)    = App s (map fe es)
 mapE (fp,fe) (Abs s ttts qs es) = Abs s ttts qs (map fe es)
-mapE (fp,fe) (ESub e sub)  = ESub (fe e) (mapS fe sub)
-
-mapE (fp,fe) e = e
-
-mapS f []  =  []
-mapS f (s:ss) = appS f s : mapS f ss
-
-appS f (StdSub v a)  =  StdSub v $ f a
-appS f sp            =  sp
+mapE (fp,fe) (ESub e (vas, lvs))  = ESub (fe e) (mapsnd fe vas, lvs)
 \end{code}
 
 \newpage
@@ -809,11 +798,9 @@ foldP pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) pr
   f (PApp s prs) = f2 $ map f0 prs
   f (PAbs s ttts qvs prs) = f2 $ map f0 prs
   f (PExpr e) = f1 $ g0 e
-  f (Sub p sub) = f2 (f p : foldES g0 sub)
+  f (Sub p (avs, _)) = f2 (f0 p : map (g0 . snd) avs)
 
   f pr = pa -- recursion must stop here !
-
--- end foldP
 \end{code}
 
 Folding over Expressions:
@@ -823,20 +810,10 @@ foldE pef@((pa,f0,f1,f2),(ea,g0,g1,g2)) e
  where
   f (App s es) = g2 $ map g0 es
   f (Abs s ttts qvs es) = g2 $ map g0 es
-  f (ESub e sub) = g2 (g0 e : foldES g0 sub)
+  f (ESub e (avs, _)) = g2 (g0 e : map (g0 . snd) avs)
 
   f e = ea -- recursion must stop here !
--- end foldE
 \end{code}
-
-Folding auxilliaries:
-\begin{code}
-foldES :: (Expr -> a) -> ESubst -> [a]
-foldES g0 []                 =  []
-foldES g0 ((StdSub v a):ss)  =  g0 a : foldES g0 ss
-foldES g0 (_:ss)             =  foldES g0 ss
-\end{code}
-
 
 \subsubsection{Debugging}
 
@@ -879,7 +856,7 @@ dbgPshow i  (PAbs nm tts qs prs)
    ++ dbgQSshow (i+1) qs
    ++ concat (map (dbgPshow (i+1)) prs)
 dbgPshow i  (Sub pr sub)
- = hdr i ++ "SUB" ++ dbgESshow (i+1) sub++dbgPshow (i+1) pr
+ = hdr i ++ "SUB" ++ dbgPshow (i+1) pr ++ dbgESshow (i+1) sub
 
 dbgSSshow i SSNull      = hdr i ++ "SSNULL"
 dbgSSshow i (SSTok s)   = hdr i ++ "SSTOK "  ++ s
@@ -894,7 +871,7 @@ dbgEshow i (Abs s tts qs es)
    ++ dbgQSshow (i+1) qs
    ++ concat (map (dbgEshow (i+1)) es)
 dbgEshow i (ESub e sub)
- = hdr i ++ "ESUB "++dbgESshow (i+1) sub ++ dbgEshow (i+1) e
+ = hdr i ++ "ESUB "  ++ dbgEshow (i+1) e ++ dbgESshow (i+1) sub
 
 dbgKshow VObs = "VOBS"
 dbgKshow VExpr = "VEXP"
@@ -929,21 +906,20 @@ dbgLVshow (L v ns) = dbgVshow v ++ " LESS " ++ show ns
 dbgMshow i (x,y) = hdr i ++ "DOM" ++ dbgEshow (i+1) x ++ hdr i ++ "RNG" ++ dbgEshow (i+1) y
 
 dbgESshow :: Int -> ESubst -> String
-dbgESshow i ( sub)
-  = hdr i ++ "E-SUBSTN" ++ dbgSshow dbgVshow dbgLVshow dbgEshow (i+1) sub
+dbgESshow i (vas, lvs)
+  = hdr i ++ "E-VAS"
+      ++ dbgPAIRSshow dbgVshow (dbgEshow (i+1)) (i+1) vas
+      ++ hdr i ++ "E-LVS"
+      ++ dbgPAIRSshow dbgLVshow dbgLVshow (i+1) lvs
 
-dbgSshow :: (v -> String)
-         -> (lv -> String )
-         -> (Int -> a -> String)
-         -> Int -> Substn v lv a
+dbgPAIRSshow :: (a -> String)
+         -> (b -> String )
+         -> Int -> [(a,b)]
          -> String
-dbgSshow shv shlv shth i  [] = ""
-dbgSshow shv shlv shth i ((StdSub v thing):rest)
- = hdr i ++ shv v ++ "  |->" ++ shth (i+3) thing
-   ++ dbgSshow shv shlv shth i rest
-dbgSshow shv shlv shth i ((LstSub lv1 lv2):rest)
- = hdr i ++ shlv lv1 ++ " |-> " ++ shlv lv2
-   ++ dbgSshow shv shlv shth i rest
+dbgPAIRSshow sha shb i  [] = ""
+dbgPAIRSshow sha shb i  ((a,b):rest)
+ = hdr i ++ sha a ++ " |-> " ++ shb b
+   ++ dbgPAIRSshow sha shb i rest
 
 dbgTshow i Tarb = hdr i ++ "TARB"
 dbgTshow i (Tvar s) = hdr i ++ "TVAR "++s
