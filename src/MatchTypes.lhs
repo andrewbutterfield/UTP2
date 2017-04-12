@@ -320,19 +320,20 @@ but also use $vinj$ if a $VO$ result is found.
 
 However, for  $VSO$ and $TSO$, we do not use $vinj$ or $vproj$ in this way.
 
+We need a way to lift (Maybe a, b) and (a, Maybe b) to m (a,b)
 
 \paragraph{$VO$ update and lookup}~
 
 \begin{code}
 updateVO :: (Monad m, Eq var, Eq trm)
          => String -> var -> SBind var trm -> m (SBind var trm)
-updateVO key v sbind
- | isStdS key  =  m2m $ mtenter same key (VO v) sbind
+updateVO key v (obnd, osbnd)
+ | isStdS key  =  mp2m (mtenter same key (VO v) obnd, osbnd)
  | otherwise   =  nowt
 
 lookupVO :: (Monad m, Eq var, Eq trm) => String -> SBind var trm -> m var
-lookupVO key sbind
-  = case tlookup sbind key of
+lookupVO key (obnd, osbnd)
+  = case tlookup obnd key of
       Just (VO v)  ->  return v
       _            ->  nowt
 \end{code}
@@ -342,17 +343,17 @@ lookupVO key sbind
 \begin{code}
 updateTO :: (Monad m, Eq v, Eq t)
          => (t -> Maybe v) -> String -> t -> SBind v t -> m (SBind v t)
-updateTO vproj key t sbind
+updateTO vproj key t (obnd, osbnd)
  | isLstS key   =  nowt
  | otherwise
    =  case vproj t of
-        Nothing  ->  m2m $ mtenter same key (TO t) sbind
-        Just v   ->  m2m $ mtenter same key (VO v) sbind
+        Nothing  ->  mp2m (mtenter same key (TO t) obnd, osbnd)
+        Just v   ->  mp2m (mtenter same key (VO v) obnd, osbnd)
 
 lookupTO :: (Monad m, Eq v, Eq t)
          => (v -> t) -> String -> SBind v t -> m t
-lookupTO vinj key sbind
-  = case tlookup sbind key of
+lookupTO vinj key (obnd, osbnd)
+  = case tlookup obnd key of
       Just (TO t)  ->  return t
       Just (VO v)  ->  return $ vinj v
       _            ->  nowt
@@ -363,13 +364,13 @@ lookupTO vinj key sbind
 
 \begin{code}
 updateVSO :: (Monad m, Eq v, Eq t) => String -> [v] -> SBind v t -> m (SBind v t)
-updateVSO key vs sbind
- | isLstS key  =  m2m $ mtenter same key (VSO vs) sbind
+updateVSO key vs (obnd, osbnd)
+ | isLstS key  =  pm2m (obnd, mtenter same key (VSO vs) osbnd)
  | otherwise   =  nowt
 
 lookupVSO :: (Monad m, Eq v, Eq t) => String -> SBind v t -> m [v]
-lookupVSO key sbind
-  = case tlookup sbind key of
+lookupVSO key (obnd, osbnd)
+  = case tlookup osbnd key of
       Just (VSO vs)  ->  return vs
       _              ->  nowt
 \end{code}
@@ -379,14 +380,14 @@ lookupVSO key sbind
 \begin{code}
 updateTSO :: (Monad m, Show v, Show t, Eq v, Eq t)
           => (t -> Maybe v) -> String -> [t] -> SBind v t -> m (SBind v t)
-updateTSO vproj key ts sbind
+updateTSO vproj key ts (obnd, osbnd)
  | isStdS key      =  nowt
- | otherwise       =  m2m $ mtenter same key (TSO ts) sbind
+ | otherwise       =  pm2m (obnd, mtenter same key (TSO ts) osbnd)
 
 lookupTSO :: (Monad m, Eq v, Eq t)
            => (v -> t) -> String -> SBind v t -> m [t]
-lookupTSO vinj key sbind
-  = case tlookup sbind key of
+lookupTSO vinj key (obnd, osbnd)
+  = case tlookup osbnd key of
       Just (TSO ts)  ->  return ts
       _              ->  nowt
 \end{code}
@@ -399,30 +400,38 @@ where for the VO and TO cases, the two values must agree (as per tglue)
 but for VSO and TSO we merge the two lists, using helper functions:
 \begin{code}
 mergeBObj :: (Eq v, Eq t)
+          => BObj v t -> BObj v t
+          -> Maybe (BObj v t)
+mergeBObj t1@(TO obj1) (TO obj2)
+ | obj1 == obj2            =  Just t1
+mergeBObj v1@(VO var1) (VO var2)
+ | var1 == var2            =  Just v1
+mergeBObj _ _  =  Nothing
+
+mergeBObjs :: (Eq v, Eq t)
           => ([v] -> [v] -> Maybe [v])
           -> ([t] -> [t] -> Maybe [t])
-          -> BObj v t -> BObj v t
-          -> Maybe (BObj v t)
-mergeBObj vsmrg tsmrg t1@(TO obj1) (TO obj2)
- | obj1 == obj2            =  Just t1
-mergeBObj vsmrg tsmrg v1@(VO var1) (VO var2)
- | var1 == var2            =  Just v1
-mergeBObj vsmrg tsmrg (TSO objs1) (TSO objs2)
+          -> BObjs v t -> BObjs v t
+          -> Maybe (BObjs v t)
+mergeBObjs vsmrg tsmrg (TSO objs1) (TSO objs2)
  = case objs1 `tsmrg` objs2 of
      Nothing     ->  Nothing
      Just objs'  ->  Just $ TSO objs'
-mergeBObj vsmrg tsmrg (VSO vars1) (VSO vars2)
+mergeBObjs vsmrg tsmrg (VSO vars1) (VSO vars2)
  = case vars1 `vsmrg` vars2 of
      Nothing     ->  Nothing
      Just vars'  ->  Just $ VSO vars'
-mergeBObj vsmrg tsmrg _ _  =  Nothing
+mergeBObjs vsmrg tsmrg _ _  =  Nothing
 
 mergeSBind :: (Eq v, Eq t)
            => ([v] -> [v] -> Maybe [v])
            -> ([t] -> [t] -> Maybe [t])
            -> SBind v t -> SBind v t
            -> Maybe (SBind v t)
-mergeSBind vsmrg tsmrg = tmmerge (mergeBObj vsmrg tsmrg)
+mergeSBind vsmrg tsmrg (obnd1, osbnd1) (obnd2, osbnd2)
+ = do obnd' <- tmmerge mergeBObj obnd1 obnd2
+      osbnd' <- tmmerge (mergeBObjs vsmrg tsmrg) osbnd1 osbnd2
+      return (obnd', osbnd')
 \end{code}
 
 The most common use case is to concatentate the two lists,
@@ -443,9 +452,6 @@ lmergeSBind = mergeSBind lmergeBObj lmergeBObj
 We will have three instances, one each for predicates, expressions and types:
 \begin{code}
 type VPBind = SBind ListVar Pred
-showVPObj = showBObj (lvarKey, show)
-showVPBind  :: VPBind -> String
-showVPBind = unlines' . trieShowWith showVPObj
 vpInj :: ListVar -> Pred
 vpInj (V v) = PVar v
 vpInj (L (nm,_,_) _) = vinjErr nm
@@ -456,9 +462,6 @@ vpProj _         =  Nothing
 vinjErr nm =  error ("vpInj/veInj not defined for list-variable : "++nm)
 
 type VEBind = SBind ListVar Expr
-showVEObj = showBObj (lvarKey, show)
-showVEBind :: VEBind -> String
-showVEBind = unlines' . trieShowWith showVEObj
 veInj :: ListVar -> Expr
 veInj (V v) = Var v
 veInj (L (nm,_,_) _) = vinjErr nm
@@ -467,9 +470,6 @@ veProj (Var v)    =  Just $ V v
 veProj _          =  Nothing
 
 type TTBind = SBind TVar Type
-showTTObj = showBObj (id, show)
-showTTBind :: TTBind -> String
-showTTBind = unlines' . trieShowWith showTTObj
 ttInj :: TVar -> Type
 ttInj = Tvar
 ttProj :: Type -> Maybe TVar
@@ -482,22 +482,7 @@ one each for predicates, expressions and types:
 type Binding = (VPBind, VEBind, TTBind)
 
 nullBinds :: Binding
-nullBinds = (tnil,tnil,tnil)
-
-showBinding :: Binding -> [String]
-showBinding (vpbnds,vebnds,ttbnds)
- = let
-     (vpkeysize,vppairs) = flattenTrieD vpbnds
-     (vekeysize,vepairs) = flattenTrieD vebnds
-     (ttkeysize,ttpairs) = flattenTrieD ttbnds
-     keywidth = maximum [vpkeysize,vekeysize,ttkeysize]
-     vpShown = bshow keywidth vppairs
-     veShown = bshow keywidth vepairs
-     ttShown = bshow keywidth ttpairs
-   in concat [vpShown,veShown,ttShown]
- where
-   bshow _ [] = []
-   bshow w pairs = showFlatTrieWith show "" (w,pairs)
+nullBinds = ((tnil,tnil),(tnil,tnil),(tnil,tnil))
 \end{code}
 
 
@@ -516,15 +501,15 @@ veupdateTO :: Monad m => Variable -> Expr -> VEBind -> m VEBind
 veupdateTO v  = updateTO veProj (varKey v)
 
 velookupTO :: Monad m => Variable -> VEBind -> m Expr
-velookupTO v = lookupTO Var (varKey v)
+velookupTO v vebind = lookupTO Var (varKey v) vebind
 
-veupdateVO :: Monad m => Variable -> Variable -> VEBind -> m VEBind
+--veupdateVO :: Monad m => Variable -> Variable -> VEBind -> m VEBind
 veupdateVO v = updateVO (varKey v)
 
-veupdateVSO :: Monad m => Variable -> [Variable] -> VEBind -> m VEBind
+--veupdateVSO :: Monad m => Variable -> [Variable] -> VEBind -> m VEBind
 veupdateVSO v = updateVSO (varKey v)
 
-veupdateTSO :: Monad m => Variable -> [Expr] -> VEBind -> m VEBind
+--veupdateTSO :: Monad m => Variable -> [Expr] -> VEBind -> m VEBind
 veupdateTSO v = updateTSO veProj (varKey v)
 \end{code}
 
@@ -532,10 +517,10 @@ A useful specialisation are variants of \texttt{lbuild} tailored
 for variables:
 \begin{code}
 vbuild :: [(Variable,Variable)] -> VEBind
-vbuild = lbuild . mapboth (varKey,VO)
+vbuild vvs = (lbuild $ mapboth (varKey,VO) vvs, tnil)
 
 vlbuild :: [(Variable,[Variable])] -> VEBind
-vlbuild = lbuild . mapboth (varKey,VSO)
+vlbuild lvlvs = (tnil, lbuild $ mapboth (varKey,VSO) lvlvs)
 \end{code}
 
 \paragraph{Specialising for \texttt{TVar}, \texttt{Type}}~
@@ -571,12 +556,14 @@ Also useful are tailored \texttt{tmap}s:
 \begin{code}
 mapT :: (t -> s) -> BObj v t -> BObj v s
 mapT f (TO x)   =  TO $ f x
-mapT f (TSO xs) =  TSO $ map f xs
 mapT _ (VO v)   =  VO v
-mapT _ (VSO v)  =  VSO v
+
+mapTs :: (t -> s) -> BObjs v t -> BObjs v s
+mapTs _ (VSO v)  =  VSO v
+mapTs f (TSO xs) =  TSO $ map f xs
 
 tmapT :: (t -> s) -> SBind v t -> SBind v s
-tmapT f = tmap (mapT f)
+tmapT f (obnd, osbnd) = (tmap (mapT f) obnd, tmap (mapTs f) osbnd)
 \end{code}
 
 \newpage

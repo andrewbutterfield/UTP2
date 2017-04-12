@@ -940,7 +940,7 @@ instance Monad (Either String) where
 
 A lot of table code was developed with return type \texttt{Maybe x}.
 We want to generalise to monads in general.
-Here we provide a simple wrapper:
+Here we provide some simple wrappers:
 \begin{code}
 m2m :: Monad m => Maybe t -> m t
 m2m Nothing   =  nowt
@@ -948,6 +948,14 @@ m2m (Just x)  =  return x
 nothing = "Nothing"
 nowt :: Monad m => m t
 nowt = fail nothing
+
+mp2m :: Monad  m => (Maybe a, b) -> m (a,b)
+mp2m (Nothing, _)  =  nowt
+mp2m (Just x, y)   =  return (x,y)
+
+pm2m :: Monad  m => (a, Maybe b) -> m (a,b)
+pm2m (_, Nothing)  =  nowt
+pm2m (x, Just y)   =  return (x,y)
 \end{code}
 
 
