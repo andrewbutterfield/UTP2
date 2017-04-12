@@ -1351,14 +1351,14 @@ lVarDenote' ovars dvars decor subs
 Given a general variable, if a reserved list-variable,
 we replace it by its denotation:
 \begin{code}
-varExpand :: MatchContext -> Variable -> ([Variable],[Name])
+varExpand :: MatchContext -> ListVar -> (VarList,[Name])
 varExpand mctxt var
  | isRsvV var  =  ( lnorm vars', lnorm roots' )
  | otherwise      =  ( [var], [] )
  where
    (vars',roots') =  lVarDenote mctxt var
 
-varsExpand :: MatchContext -> [Variable] -> [([Variable],[Name])]
+varsExpand :: MatchContext -> VarList -> [(VarList,[Name])]
 varsExpand mctxt = map $ varExpand mctxt
 \end{code}
 
@@ -1377,7 +1377,7 @@ A useful predicate is one that assesses when the denotation
 of a reserved list variable is ``clean'', that is with
 out any lingering subtracted roots (not matching an observation variable).
 \begin{code}
-cleanVar :: MatchContext -> Variable -> Bool
+cleanVar :: MatchContext -> ListVar -> Bool
 cleanVar mctxt v = null $ snd $ varExpand mctxt v
 \end{code}
 
@@ -1788,8 +1788,8 @@ Quantifier equivalence
 \end{eqnarray*}
 \begin{code}
 qalfequiv :: ([Variable],[Variable])
-          -> ([Pred],[Variable])
-          -> ([Pred],[Variable])
+          -> ([Pred],VarList)
+          -> ([Pred],VarList)
           -> Maybe BIJ
 qalfequiv (bvs1,bvs2) (prs1,qs1) (prs2,qs2)
  | length sq1 /= length sq2  =  fail ""
@@ -1871,11 +1871,11 @@ ealfequiv bvs (Abs n1 _ qs1 es1) (Abs n2 _ qs2 es2)
  | n1 == n2 = qalfequiv bvs (map PExpr es1,qs1) (map PExpr es2,qs2)
 \end{code}
 \begin{eqnarray*}
-   \alfSubL &\defs& \alfSubL
+   \alfSubL &\defs& \alfSubR
 \end{eqnarray*}
 \begin{code}
 ealfequiv bvs (ESub e1 sub1)
-              (ESub e2  sub2)
+              (ESub e2 sub2)
  = salfequiv bvs ealfequiv id ealfequiv (e1, sub1) (e2, sub2)
 
 ealfequiv bvs _ _ = Nothing
