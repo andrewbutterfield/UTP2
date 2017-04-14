@@ -1205,8 +1205,8 @@ deriveMatchContext mctxt
    lenMdl' = length mobs'
    lenScr  = length sobs
    lenScr' = length sobs'
-   mroots = lnorm (mobs++mobs')
-   sroots = lnorm (sobs++sobs')
+   mroots = lnorm $ map fst3 (mobs++mobs')
+   sroots = lnorm $ map fst3 (sobs++sobs')
 
 nullMatchContext
  = MatchContext
@@ -1234,25 +1234,14 @@ nullMatchContext
 mctxt0 = nullMatchContext -- handy shorthand
 
 
-isObsVar mctxt v
- = isRsvV v
-   || v `elem` mdlObs mctxt
-   || v `elem` srcObs mctxt
-   || v `elem` mdlObs' mctxt
-   || v `elem` srcObs' mctxt
-
-isPureObsVar mctxt v
- = isPureList v
-   || v `elem` mdlObs mctxt
-   || v `elem` srcObs mctxt
-   || v `elem` mdlObs' mctxt
-   || v `elem` srcObs' mctxt
-
 isKnownObsVar mctxt v
  =  v `elem` mdlObs mctxt
  || v `elem` srcObs mctxt
  || v `elem` mdlObs' mctxt
  || v `elem` srcObs' mctxt
+
+isKnownObsLVar mctxt (V v)  =  isKnownObsVar mctxt v
+isKnownObsLVar _     _      =  False
 
 getSrcObs VPre  mctxt  =  srcObs  mctxt
 getSrcObs VPost mctxt  =  srcObs' mctxt
@@ -1261,17 +1250,6 @@ getSrcObs d     mctxt  =  map (updVRole d) $ srcObs mctxt
 getMdlObs VPre  mctxt  =  mdlObs  mctxt
 getMdlObs VPost mctxt  =  mdlObs' mctxt
 getMdlObs d     mctxt  =  map (updVRole d) $ mdlObs mctxt
-
-rsvVRoots :: MatchContext -> ListVar -> [String]
-rsvVRoots mctxt (L r _)  =  rsvRoots mctxt r
-rsvVRoots _ _            =  []
-
-rsvRoots :: MatchContext -> Name -> [String]
-rsvRoots mctxt root
- | root == strOBS  =  obsRoots mctxt
- | root == strMDL  =  mdlRoots mctxt
- | root == strSCR  =  scrRoots mctxt
- | otherwise       =  []
 \end{code}
 
 We can classify variables as being:
@@ -1351,25 +1329,24 @@ lVarDenote' ovars dvars decor subs
 Given a general variable, if a reserved list-variable,
 we replace it by its denotation:
 \begin{code}
-varExpand :: MatchContext -> Variable -> ([Variable],[Name])
-varExpand mctxt var
+varExpand :: MatchContext -> ListVar -> (VarList,[Name])
+varExpand mctxt lv@(L var roots)
  | isRsvV var  =  ( lnorm vars', lnorm roots' )
- | otherwise      =  ( [var], [] )
- where
-   (vars',roots') =  lVarDenote mctxt var
+ where (vars',roots') =  lVarDenote mctxt lv
+varExpand mctxt lv  =  ( [lv], [] )
 
-varsExpand :: MatchContext -> [Variable] -> [([Variable],[Name])]
+varsExpand :: MatchContext -> VarList -> [(VarList,[Name])]
 varsExpand mctxt = map $ varExpand mctxt
 \end{code}
 
 A useful variant is a table binding variables to their expansion:
 \begin{code}
-varExpandMaplet :: MatchContext -> Variable -> (String,([Variable],[Name]))
-varExpandMaplet mctxt var
- | isRsvV var  =  ( varKey var, varExpand mctxt var )
- | otherwise      =  ( varKey var, ([var],[])          )
+varExpandMaplet :: MatchContext -> ListVar -> (String,(VarList,[Name]))
+varExpandMaplet mctxt lv@(L v _)
+ | isRsvV v  =  ( varKey v, varExpand mctxt lv )
+varExpandMaplet mctxt lv =  ( lvarKey lv, ([lv],[])          )
 
-varExpandTable :: MatchContext -> [Variable] -> Trie ([Variable],[Name])
+varExpandTable :: MatchContext -> VarList -> Trie (VarList,[Name])
 varExpandTable mctxt = lbuild . map (varExpandMaplet mctxt)
 \end{code}
 
@@ -1377,14 +1354,14 @@ A useful predicate is one that assesses when the denotation
 of a reserved list variable is ``clean'', that is with
 out any lingering subtracted roots (not matching an observation variable).
 \begin{code}
-cleanVar :: MatchContext -> Variable -> Bool
-cleanVar mctxt v = null $ snd $ varExpand mctxt v
+cleanVar :: MatchContext -> ListVar -> Bool
+cleanVar mctxt lv = null $ snd $ varExpand mctxt lv
 \end{code}
 
 Sometimes it is useful to convert a list of variables to their
 combined denotations:
 \begin{code}
-varsDenote :: MatchContext -> [Variable] -> ([Variable],[Name])
+varsDenote :: MatchContext -> VarList -> (VarList,[Name])
 varsDenote mctxt = vDmerge . map (lVarDenote mctxt)
  where
    vDmerge []  = ([],[])
@@ -1491,9 +1468,9 @@ We start with the ``can escape'' relation:
 Here we wrap a variable and its denotation together,
 to keep things consistent with \texttt{possDisjRSV} below.
 \begin{code}
-obsCanEscapeRSV :: ListVar -> (ListVar,([Variable],[Name])) -> Bool
-obsCanEscapeRSV (V v) (_,(vs,[]))  =  not (v `elem` vs)
-obsCanEscapeRSV lv _               =  True
+obsCanEscapeRSV :: ListVar -> (ListVar,(VarList,[Name])) -> Bool
+obsCanEscapeRSV lv@(V v) (_,(lvs,[]))  =  not (lv `elem` lvs)
+obsCanEscapeRSV lv _                   =  True
 \end{code}
 and next, the ``possible disjoint'' reserved-variable relation:
 \begin{eqnarray*}
@@ -1507,8 +1484,8 @@ and next, the ``possible disjoint'' reserved-variable relation:
 Here we wrap a variable and its denotation together,
 in case that denotation should be empty.
 \begin{code}
-possDisjRSV :: (ListVar,([Variable],[Name]))
-            -> (ListVar,([Variable],[Name]))
+possDisjRSV :: (ListVar,(VarList,[Name]))
+            -> (ListVar,(VarList,[Name]))
             -> Bool
 possDisjRSV ( (L (r1, _, d1) []), ([],[]) )
             ( (L (r2, _, d2) []), ([],[]) )
@@ -1528,12 +1505,12 @@ invQVars :: MatchContext -> VarList -> Bool
 invQVars mctxt qvs
  = sort qvs == lnorm qvs -- fails if any duplicates
    &&
-   all (\ v -> all (obsCanEscapeRSV v) rsvs) obs
+   all (\ lv -> all (obsCanEscapeRSV lv) rsvs) obs
    &&
    selfpairwise possDisjRSV rsvs
  where
-   obs = filter (isKnownObsVar mctxt) qvs
-   rsvs = fgraph (varExpand mctxt) $ filter isRsvV qvs
+   obs = filter (isKnownObsLVar mctxt) qvs
+   rsvs = fgraph (varExpand mctxt) $ filter isRsvLV qvs
 \end{code}
 Now, lifting to predicates and expressions:
 \begin{code}
@@ -1595,10 +1572,11 @@ exprESubstInv mctxt e = foldE (eSubInvFold mctxt) e
 \newpage
 \subsubsection{Bijection Code}
 
-We use lists to represent the explicit bijection and sets
+We use lists to represent the explicit bijection and sets,
+lifting variables into the list-variable space.
 \begin{code}
-type ExplBij = [(Variable, Variable)]  -- ordered, unique
-type ImplBij = ([Variable],[Variable])  -- both ordered, unique
+type ExplBij = [(ListVar, ListVar)]  -- ordered, unique
+type ImplBij = (VarList,VarList)  -- both ordered, unique
 type BIJ = ( ExplBij, ImplBij )
 
 nullbij :: BIJ
@@ -1614,7 +1592,7 @@ ebijGlue (xy1:rest1) bij2
  = do bij2' <- ebijIns xy1 bij2
       ebijGlue rest1 bij2'
 
-ebijIns :: Monad m => (Variable, Variable) -> ExplBij -> m ExplBij
+ebijIns :: Monad m => (ListVar, ListVar) -> ExplBij -> m ExplBij
 ebijIns xy [] = return [xy]
 ebijIns xy1@(x1,y1) bij2@(xy2@(x2,y2):rest2)
  | x1 <  x2
@@ -1635,7 +1613,7 @@ ibijGlue ((x:xs),(y:ys)) bij2
       ibijGlue (xs,ys) bij2'
 ibijGlue _ _  =  fail "implicit BIJ: diff. len."
 
-ibijIns :: Monad m => Variable -> Variable -> ImplBij -> m ImplBij
+ibijIns :: Monad m => ListVar -> ListVar -> ImplBij -> m ImplBij
 ibijIns x y (xs,ys)
  | xsgrew == ysgrew  =  return (xs',ys')
  | otherwise         =  fail "implicit BIJ: diff. len."
@@ -1676,8 +1654,8 @@ bijglue (ebij1,(l1,r1)) (ebij2,(l2,r2))
 
 First, some boilerplate --- processing lists of equivalences:
 \begin{code}
-alflist :: (([Variable],[Variable]) -> a -> a -> Maybe BIJ)
-        -> ([Variable],[Variable])
+alflist :: ((VarList,VarList) -> a -> a -> Maybe BIJ)
+        -> (VarList,VarList)
         -> [a] -> [a]
         -> Maybe BIJ
 alflist eqv bvs [] [] = aok
@@ -1691,7 +1669,7 @@ alflist _ _ _ _ = Nothing
 We need a form of bijection restriction:
 \ALFMAPRESTRICT
 \begin{code}
-alwres :: Monad m => ([Variable],[Variable]) -> BIJ -> m BIJ
+alwres :: Monad m => (VarList,VarList) -> BIJ -> m BIJ
 alwres (b1,b2) (explbij,(implbijL,implbijR))
  = do let implbijL' = implbijL \\ b1
       let implbijR' = implbijR \\ b2
@@ -1721,7 +1699,7 @@ alwres (b1,b2) (explbij,(implbijL,implbijR))
    &\defs& \mapof{}
 \end{eqnarray*}
 \begin{code}
-valfequiv :: ([Variable],[Variable]) -> Variable -> Variable -> Maybe BIJ
+valfequiv :: (VarList,VarList) -> ListVar -> ListVar -> Maybe BIJ
 valfequiv (bvs1,bvs2) v1 v2
  | bound1 && bound2  =  Just ([(v1,v2)],([],[]))
  | bound1            =  Nothing
@@ -1739,7 +1717,7 @@ Predicate $\alpha$-equivalence:
 predAlphaEqv :: Pred -> Pred -> Bool
 predAlphaEqv pr1 pr2 = isJust $ palfequiv ([],[]) pr1 pr2
 
-palfequiv :: ([Variable],[Variable]) -> Pred -> Pred -> Maybe BIJ
+palfequiv :: (VarList,VarList) -> Pred -> Pred -> Maybe BIJ
 \end{code}
 
 \begin{eqnarray*}
@@ -1775,21 +1753,28 @@ palfequiv bvs (PAbs n1 _ qs1 prs1) (PAbs n2 _ qs2 prs2)
 \begin{code}
 palfequiv bvs (Sub pr1 sub1)
               (Sub pr2 sub2)
- = salfequiv bvs palfequiv id ealfequiv (pr1, sub1) (pr2, sub2)
+ = salfequiv (Var . fakeVar) bvs palfequiv ealfequiv (pr1, sub1) (pr2, sub2)
 \end{code}
 Leftover stuff
 \begin{code}
 palfequiv _ _ _ = Nothing
 \end{code}
 
+We turn \texttt{ListVar} into `fake' \texttt{Variable}s
+just for this alpha-equivalence check.
+\begin{code}
+fakeVar :: ListVar -> Variable
+fakeVar (V v) = v
+fakeVar (L v _) = v
+\end{code}
 Quantifier equivalence
 \begin{eqnarray*}
    \alfQuantL &\defs& \alfQuantR
 \end{eqnarray*}
 \begin{code}
-qalfequiv :: ([Variable],[Variable])
-          -> ([Pred],[Variable])
-          -> ([Pred],[Variable])
+qalfequiv :: (VarList,VarList)
+          -> ([Pred],VarList)
+          -> ([Pred],VarList)
           -> Maybe BIJ
 qalfequiv (bvs1,bvs2) (prs1,qs1) (prs2,qs2)
  | length sq1 /= length sq2  =  fail ""
@@ -1809,15 +1794,22 @@ qalfequiv (bvs1,bvs2) (prs1,qs1) (prs2,qs2)
 
 Substitution equivalence
 \begin{code}
-salfequiv bvs beqv asVar reqv (body1, sub1) (body2, sub2)
+salfequiv :: (ListVar -> reptrm)
+          -> (VarList,VarList)
+          -> ((VarList,VarList) -> bdytrm -> bdytrm -> Maybe BIJ)
+          -> ((VarList,VarList) -> reptrm -> reptrm -> Maybe BIJ)
+          -> (bdytrm, Substn Variable ListVar reptrm)
+          -> (bdytrm, Substn Variable ListVar reptrm)
+          -> Maybe BIJ
+salfequiv asR bvs beqv reqv (body1, (vas1, lvs1)) (body2, (vas2, lvs2))
  = do prbij  <- beqv bvs body1 body1
-      tgtbij <- alflist valfequiv bvs (map asVar spv1) (map asVar spv2)
+      tgtbij <- alflist valfequiv bvs spv1 spv2
       repbij <- alflist reqv bvs srp1 srp2
       subbij <- tgtbij `bijglue` repbij
       prbij `bijglue` subbij
  where
-   (spv1,srp1) = unzip sub1
-   (spv2,srp2) = unzip sub2
+   (spv1,srp1) = unzip (mapfst V vas1 ++ mapsnd asR lvs1)
+   (spv2,srp2) = unzip (mapfst V vas2 ++ mapsnd asR lvs2)
 \end{code}
 
 \newpage
@@ -1828,7 +1820,7 @@ exprAlphaEqv e1 e2
     Nothing  ->  False
     Just _   ->  True
 
-ealfequiv :: ([Variable],[Variable]) -> Expr -> Expr -> Maybe BIJ
+ealfequiv :: (VarList,VarList) -> Expr -> Expr -> Maybe BIJ
 
 ealfequiv bvs (Num i1) (Num i2) | i1==i2  = aok
 \end{code}
@@ -1839,7 +1831,7 @@ ealfequiv bvs (Num i1) (Num i2) | i1==i2  = aok
    &\defs& \mapof{}
 \end{eqnarray*}
 \begin{code}
-ealfequiv bvs (Var s1) (Var s2) = valfequiv bvs s1 s2
+ealfequiv bvs (Var s1) (Var s2) = valfequiv bvs (V s1) (V s2)
 \end{code}
 \begin{eqnarray*}
    M \balfeqv{B_1}{B_2} M &\defs& \mapof{}
@@ -1875,8 +1867,8 @@ ealfequiv bvs (Abs n1 _ qs1 es1) (Abs n2 _ qs2 es2)
 \end{eqnarray*}
 \begin{code}
 ealfequiv bvs (ESub e1 sub1)
-              (ESub e2  sub2)
- = salfequiv bvs ealfequiv id ealfequiv (e1, sub1) (e2, sub2)
+              (ESub e2 sub2)
+ = salfequiv (Var . fakeVar) bvs ealfequiv ealfequiv (e1, sub1) (e2, sub2)
 
 ealfequiv bvs _ _ = Nothing
 \end{code}

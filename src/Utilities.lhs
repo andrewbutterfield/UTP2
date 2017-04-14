@@ -38,7 +38,7 @@ shdebug s e = debug (s++show e) e
 Something to clear out GHCi to make it easier to find the top of a long list
 of errors:
 \begin{code}
-clr = putStrLn $ unlines $ replicate 40 ""
+clr = putStrLn $ unlines $ replicate 100 ""
 \end{code}
 
 \newpage
