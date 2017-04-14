@@ -490,8 +490,8 @@ nullBinds = ((tnil,tnil),(tnil,tnil),(tnil,tnil))
 
 As required \dots
 \begin{code}
-vpupdateTO :: Monad m => Name -> Pred -> VPBind -> m VPBind
-vpupdateTO nm = updateTO vpProj (varStringRoot nm)
+vpupdateTO :: Monad m => Variable -> Pred -> VPBind -> m VPBind
+vpupdateTO v = updateTO vpProj (varKey v)
 \end{code}
 
 \paragraph{Specialising for \texttt{Variable}, \texttt{Expr}}~
@@ -501,15 +501,15 @@ veupdateTO :: Monad m => Variable -> Expr -> VEBind -> m VEBind
 veupdateTO v  = updateTO veProj (varKey v)
 
 velookupTO :: Monad m => Variable -> VEBind -> m Expr
-velookupTO v vebind = lookupTO Var (varKey v) vebind
+velookupTO v vebind  = lookupTO (Var . lVar) (varKey v) vebind
 
---veupdateVO :: Monad m => Variable -> Variable -> VEBind -> m VEBind
-veupdateVO v = updateVO (varKey v)
+veupdateVO :: Monad m => Variable -> Variable -> VEBind -> m VEBind
+veupdateVO kv bv = updateVO (varKey kv) (V bv)
 
---veupdateVSO :: Monad m => Variable -> [Variable] -> VEBind -> m VEBind
-veupdateVSO v = updateVSO (varKey v)
+veupdateVSO :: Monad m => ListVar -> VarList -> VEBind -> m VEBind
+veupdateVSO lv lvs = updateVSO (lvarKey lv) lvs
 
---veupdateTSO :: Monad m => Variable -> [Expr] -> VEBind -> m VEBind
+veupdateTSO :: Monad m => Variable -> [Expr] -> VEBind -> m VEBind
 veupdateTSO v = updateTSO veProj (varKey v)
 \end{code}
 
@@ -517,10 +517,10 @@ A useful specialisation are variants of \texttt{lbuild} tailored
 for variables:
 \begin{code}
 vbuild :: [(Variable,Variable)] -> VEBind
-vbuild vvs = (lbuild $ mapboth (varKey,VO) vvs, tnil)
+vbuild vvs = (lbuild $ mapboth (varKey,VO . V) vvs, tnil)
 
 vlbuild :: [(Variable,[Variable])] -> VEBind
-vlbuild lvlvs = (tnil, lbuild $ mapboth (varKey,VSO) lvlvs)
+vlbuild lvlvs = (tnil, lbuild $ mapboth (varKey,VSO . map V) lvlvs)
 \end{code}
 
 \paragraph{Specialising for \texttt{TVar}, \texttt{Type}}~
@@ -575,19 +575,17 @@ mkSubBind :: Maybe (SBind v t) -> SBind v t
 mkSubBind (Just sbind) = sbind
 mkSubBind Nothing      = sbnil
 
-bindP :: Name -> Pred -> Binding
-bindP r pr = ( mkSubBind $ vpupdateTO r pr sbnil, tnil, tnil )
-bindE :: Variable -> Expr -> Binding
-bindE v e = ( tnil, mkSubBind $ veupdateTO v e sbnil, tnil )
-
-bindT :: TVar -> Type -> Binding
-bindT tv t = ( tnil, tnil, mkSubBind $ ttupdateTO tv t sbnil )
-
 bindV :: Variable -> Variable -> Binding
-bindV v vv = ( tnil, mkSubBind $ veupdateVO v vv sbnil, tnil )
+bindV v vv = ( sbnil, mkSubBind $ veupdateVO v vv sbnil, sbnil )
+
+bindP :: Variable -> Pred -> Binding
+bindP v pr = ( mkSubBind $ vpupdateTO v pr sbnil, sbnil, sbnil )
+
+bindE :: Variable -> Expr -> Binding
+bindE v e = ( sbnil, mkSubBind $ veupdateTO v e sbnil, sbnil )
 
 bindQL :: ListVar -> VarList -> Binding
-bindQL lv vs = ( tnil, sBindQL lv vs, tnil )
+bindQL lv vs = ( sbnil, sBindQL lv vs, sbnil )
 
 sBindQL lv vs = mkSubBind $ veupdateVSO lv vs sbnil
 \end{code}
@@ -641,14 +639,15 @@ genObsSubscriptMap :: [Name] -- undecorated observable roots
                    -> String   -- to subscript
                    -> VEBind
 genObsSubscriptMap roots froms tos
- = lbuild (rsvMap ++ map (mkTo froms tos) roots)
+ = ( lbuild (map (mkTo froms tos) roots)
+   , lbuild rsvMap )
  where
 
    rsvMap = [ ( strOBS ++ sFrom, VSO $ [mkRVar strOBS [] sTo] )
             , ( strMDL ++ sFrom, VSO $ [mkRVar strMDL [] sTo] )
             , ( strSCR ++ sFrom, VSO $ [mkRVar strSCR [] sTo] ) ]
 
-   mkTo froms tos root = ( root++sFrom, VO (mkSVar root sTo ) )
+   mkTo froms tos root = ( root++sFrom, VO $ V $ mkSVar root sTo )
 
    sFrom = chrSUBS:froms
    sTo = VInter tos
@@ -679,7 +678,7 @@ genRsvLessMap :: [Name] -- undecorated observable roots
 genRsvLessMap roots (L (_, _, _) pless) (L (_ , _, _) tless)
  = case (pstrs, tstrs) of
      ([pstr], [tstr]) | isLstN pstr
-       -> ( bindVL (var pstr) (var tstr)
+       -> ( bindVL (var pstr) [var tstr]
           , [], [] )
      ([pstr], _) | isLstN pstr
        -> ( bindVL (lvar pstr) (map var tstrs)
@@ -703,17 +702,16 @@ Now functions to bind taking account the above considerations:
 bindO :: Monad m => [Name] -> Variable -> Variable -> m MatchResult
 bindO roots p@(pr, _, pd@(VInter ps)) m@(_, _,md@(VInter ms))
  | isObsVarRelated roots pr
- = ( bindV p m `lmrgJB` ( tnil, genObsSubscriptMap roots ps ms, tnil )
+ = ( bindV p m `lmrgJB` ( sbnil, genObsSubscriptMap roots ps ms, sbnil )
    , [], [] )
-   `mergeMR` genRsvLessMap roots p m
+   `mergeMR` genRsvLessMap roots (V p) (V m)
 bindO roots rp rt
- = ( bindV rp rt, [], [] ) `mergeMR` (genRsvLessMap roots rp rt)
+ = ( bindV rp rt, [], [] ) `mergeMR` (genRsvLessMap roots (V rp) (V rt))
 
 isObsVarRelated :: [Name] -> Name -> Bool
 isObsVarRelated roots root
  | isRsv root  =  True
  | otherwise   =  root `elem` roots
-isObsVarRelated _ _ =  False
 \end{code}
 
 When binding to observation-related variable lists,
@@ -724,48 +722,22 @@ bindOL :: Monad m => [Name] -> Variable -> [Variable] -> m Binding
 bindOL roots p@(pr,_,VInter ps) mvs
  | isObsVarRelated roots pr
  = case getSubscripts mvs of
-    []    ->  return $ bindQL p mvs
-    [ms]  ->  return ( tnil
-                   , genObsSubscriptMap roots ps ms `tmerge` sBindQL p mvs
-                   , tnil )
+    []    ->  return $ bindQL (V p) $ map V mvs
+    [ms]  ->  case genObsSubscriptMap roots ps ms
+                   `lmergeSBind`
+                   sBindQL (V p) (map V mvs)
+              of
+               Just vebind'  ->  return ( sbnil, vebind', sbnil )
+               Nothing       ->  return ( sbnil, sbnil, sbnil )
     _     ->  fail "bindOL: differing subscripts"
 
-bindOL roots pobs mvs  =  return $ bindQL pobs mvs
-
-
-lmergeVE :: [Variable] -> [Variable] -> Maybe [Variable]
-lmergeVE xs ys
- | sameSubscripts mrgdvs  =  Just mrgdvs
- | otherwise              =  Nothing
- where
-   mrgdvs  = lnorm (xs ++ ys)
+bindOL roots pobs mvs  =  return $ bindQL (V pobs) $ map V mvs
 
 getSubscripts :: [Variable] -> [String]
 getSubscripts = lnorm . concat . map getSubs
  where
    getSubs (_,_,VInter s) = [s]
    getSubs _              = []
-
-sameSubscripts :: [Variable] -> Bool
-sameSubscripts [] = True
-sameSubscripts ((_,_,VInter s):rest)
- = same s rest
- where
-   same s [] = True
-   same s ((_,_,VInter t):rest) = s==t && same s rest
-   same s (_:rest) = same s rest
-sameSubscripts (_:rest) = sameSubscripts rest
-
-
-lmergeObs :: VEBind -> VEBind -> Maybe VEBind
-lmergeObs = mergeSBind lmergeVE lmergeBObj
-
-lmrgObs :: Binding -> Binding -> Maybe Binding
-(vp1,ev1,tt1) `lmrgObs` (vp2,ev2,tt2)
-  = do vp' <- vp1 `lmergeSBind` vp2
-       ev' <- ev1 `lmergeObs` ev2
-       tt' <- tt1 `lmergeSBind` tt2
-       return (vp',ev',tt')
 \end{code}
 
 
@@ -774,7 +746,7 @@ and 2-place predicates
 need to bind to lists of expressions.
 \begin{code}
 bindES :: Variable -> [Expr] -> Binding
-bindES v es = ( tnil, mkSubBind $ veupdateTSO v es sbnil, tnil )
+bindES v es = ( sbnil, mkSubBind $ veupdateTSO v es sbnil,sbnil )
 \end{code}
 
 \subsubsection{SBind Projections}
@@ -783,22 +755,22 @@ Sometimes it is useful to be able to slice up a binding based
 on the bind-object type or tag:
 \begin{code}
 justTO :: SBind v t ->  Trie t
-justTO = lbuild . catMaybes . map getTO . flattenTrie
+justTO (obnd,_) = lbuild $ catMaybes $ map getTO $ flattenTrie obnd
  where getTO (k,TO t) = Just (k, t)
        getTO _        = Nothing
 
 justVO :: SBind v t ->  Trie v
-justVO = lbuild . catMaybes . map getVO . flattenTrie
+justVO (obnd,_) = lbuild $ catMaybes $ map getVO $ flattenTrie obnd
  where getVO (k,VO v) = Just (k, v)
        getVO _        = Nothing
 
 justTSO :: SBind v t ->  Trie [t]
-justTSO = lbuild . catMaybes . map getTSO . flattenTrie
+justTSO (_,osbnd) = lbuild $ catMaybes $ map getTSO $ flattenTrie osbnd
  where getTSO (k,TSO ts) = Just (k, ts)
        getTSO _          = Nothing
 
 justVSO :: SBind v t ->  Trie [v]
-justVSO = lbuild . catMaybes . map getVSO . flattenTrie
+justVSO (_,osbnd) = lbuild $ catMaybes $ map getVSO $ flattenTrie osbnd
  where getVSO (k,VSO vs) = Just (k, vs)
        getVSO _        = Nothing
 \end{code}
@@ -818,11 +790,17 @@ to different values in $\beta_1$ and $\beta_2$.
 Operationally, the check that $\beta_1 \cong \beta_2$
 is carried out while attempting to compute $\beta_1 \uplus \beta_2$:
 \begin{code}
+sbglue :: (Eq t, Eq v, Monad m) => SBind v t -> SBind v t -> m (SBind v t)
+(o1,os1) `sbglue` (o2,os2)
+  = do o'  <- o1  `tglue` o2
+       os' <- os1 `tglue` os2
+       return (o',os')
+
 mrgB :: Monad m => Binding -> Binding -> m Binding
 (vp1,ev1,tt1) `mrgB` (vp2,ev2,tt2)
-  = do vp' <- vp1 `tglue` vp2
-       ev' <- ev1 `tglue` ev2
-       tt' <- tt1 `tglue` tt2
+  = do vp' <- vp1 `sbglue` vp2
+       ev' <- ev1 `sbglue` ev2
+       tt' <- tt1 `sbglue` tt2
        return (vp',ev',tt')
 
 mrgMB :: Monad m => m Binding -> m Binding -> m Binding
@@ -844,7 +822,7 @@ lmrgB :: Binding -> Binding -> Maybe Binding
 lmrgJB :: Binding -> Binding -> Binding
 bnd1 `lmrgJB` bnd2
  = case bnd1 `lmrgB` bnd2 of
-     Nothing    ->  (tnil, tnil, tnil)
+     Nothing    ->  (sbnil, sbnil, sbnil)
      Just bnd'  ->  bnd'
 \end{code}
 
@@ -919,12 +897,9 @@ Well-formedness when \texttt{v} is instantiated by \texttt{Variable} is as for
 type ESubstMatchToDo = SubstMatchToDo Variable ListVar Expr
 
 isWFSubstToDo :: ESubstMatchToDo -> Bool
-isWFSubstToDo tsubs psubs
+isWFSubstToDo (tsubs, psubs, _)
  = isWFQVarToDo (getESubstListVar tsubs) (getESubstListVar psubs)
 
-dropLCtxt :: SubstMatchToDo v vl a
-          -> ( Substn v lv a
-             , Substn v lv a )
 dropLCtxt (ts,ps,_) = (ts,ps)
 \end{code}
 A match-result is bindings with lists of deferred \texttt{QVar} and \texttt{Substn}
@@ -959,19 +934,19 @@ Some matching is simpler and just returns a single binding,
 so it helps to be able to inject one of these into a full match result:
 \begin{code}
 injPbind :: [(String,Pred)] -> MatchResult
-injPbind pbnd = ((lbuild $ mapsnd TO pbnd,tnil,tnil),[],[])
+injPbind pbnd = (((lbuild $ mapsnd TO pbnd,tnil),sbnil,sbnil),[],[])
 
 injEbind :: [(String,Expr)] -> MatchResult
-injEbind ebnd = ((tnil,lbuild $ mapsnd TO ebnd,tnil),[],[])
+injEbind ebnd = ((sbnil,(lbuild $ mapsnd TO ebnd,tnil),sbnil),[],[])
 
 injTbind :: [(String,Type)] -> MatchResult
-injTbind tbnd = ((tnil,tnil,lbuild $ mapsnd TO tbnd),[],[])
+injTbind tbnd = ((sbnil,sbnil,(lbuild $ mapsnd TO tbnd,tnil)),[],[])
 
 injQbind :: [(String,Variable)] -> MatchResult
-injQbind qbnd = ((tnil,lbuild $ mapsnd VO qbnd,tnil),[],[])
+injQbind qbnd = ((sbnil,(lbuild $ mapsnd (VO . V) qbnd,tnil),sbnil),[],[])
 
 injQLbind :: [(String,[Variable])] -> MatchResult
-injQLbind qbnd = ((tnil,lbuild $ mapsnd VSO qbnd,tnil),[],[])
+injQLbind qbnd = ((sbnil,(tnil,lbuild $ mapsnd (VSO . map V) qbnd),sbnil),[],[])
 \end{code}
 
 A match-outcome either fails,
@@ -982,29 +957,20 @@ type MatchOutcome = Maybe MatchResult
 okNoBinding :: Monad m => m MatchResult
 okNoBinding  = return noBinding
 
-okBindP :: Monad m => Name -> Pred -> m MatchResult
+okBindP :: Monad m => Variable -> Pred -> m MatchResult
 okBindP pv p = return ((bindP pv p),[],[])
 
 okBindE :: Monad m => Variable -> Expr -> m MatchResult
 okBindE ev e = return ((bindE ev e),[],[])
 
-okBindT :: Monad m => TVar -> Type -> m MatchResult
-okBindT tv t = return ((bindT tv t),[],[])
-
-okBindQ :: Monad m => Variable -> Variable -> m MatchResult
-okBindQ qv q = return ((bindV qv q),[],[])
-
 okBindQL :: Monad m => Variable -> [Variable] -> m MatchResult
-okBindQL qv qvs = return ((bindQL qv qvs),[],[])
+okBindQL qv qvs = return ((bindQL (V qv) $ map V qvs),[],[])
 
 okBindV :: Monad m => Variable -> Variable -> m MatchResult
 okBindV v x = return ((bindV v x),[],[])
 
 okBindES :: Monad m => Variable -> [Expr] -> m MatchResult
 okBindES v es = return ((bindES v es),[],[])
-
-okBindEQ :: Monad m => Variable -> Expr -> m MatchResult
-okBindEQ pv te = okBindES pv [te]
 \end{code}
 
 

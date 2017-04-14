@@ -129,6 +129,13 @@ data ListVar
 type VarList = [ListVar]
 \end{code}
 
+A quick way to get the hidden variable out:
+\begin{code}
+lVar :: ListVar -> Variable
+lVar (V v)    =  v
+lVar (L v _)  =  v
+\end{code}
+
 
 \newpage
 \subsection{Substitutions}
