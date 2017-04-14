@@ -1863,7 +1863,7 @@ ealfequiv bvs (Abs n1 _ qs1 es1) (Abs n2 _ qs2 es2)
  | n1 == n2 = qalfequiv bvs (map PExpr es1,qs1) (map PExpr es2,qs2)
 \end{code}
 \begin{eqnarray*}
-   \alfSubL &\defs& \alfSubL
+   \alfSubL &\defs& \alfSubR
 \end{eqnarray*}
 \begin{code}
 ealfequiv bvs (ESub e1 sub1)
