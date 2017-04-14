@@ -7,7 +7,6 @@ import Datatypes
 import DataText
 import Types
 import MatchTypes
-import Invariants
 import Matching
 import Instantiate
 import FreeBound
@@ -311,7 +310,7 @@ tstcdm :: IO TLog
 tstcdm = logInterTest tstCDM
 
 tstCDM :: LoggedTest tst => tst TLog
-tstCDM = return [] 
+tstCDM = return []
 \end{code}
 
 

@@ -8,7 +8,6 @@ import Datatypes
 import DataText
 -- import Types
 import MatchTypes
--- import Invariants
 import Matching
 -- import FreeBound
 -- import Focus

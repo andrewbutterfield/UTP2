@@ -132,42 +132,46 @@ to see if it occurs in the binding.
 If so, it searches the test to see if it can
 find the variables to which it is bound.
 If not, we fail, otherwise the pattern variable and its binding are removed.
-Once all pattern variables have been treated this way we do a final well-formedness check.
+Once all pattern variables have been treated this way
+we do a final well-formedness check.
 
 \input{doc/Manipulation-RuleOut-Qvar}
 
 \begin{code}
-cleanQVarsToDo vebind qvms
- = sequence $ map (clnQVarToDo $ flattenTrie vebind) qvms
+cleanQVarsToDo (obnd,osbnd) qvms
+ = sequence
+   ( map (clnVarToDo $ flattenTrie obnd) qvms
+     ++
+     map (clnLVarToDo $ flattenTrie osbnd) qvms )
 
-clnQVarToDo
+clnVarToDo
  :: Monad m
  => [(String,BObj Variable Expr)] -> QVarMatchToDo -> m QVarMatchToDo
-clnQVarToDo [] qvm  = return qvm
-clnQVarToDo ((pv,bobj):pairs) (tvs, pvs)
- = case extractWrapped stdKey pv pvs of
+clnVarToDo [] qvm  = return qvm
+clnVarToDo ((pv,bobj):pairs) (tvs, pvs)
+ = case extractWrapped varKey pv pvs of
     (Just v',pvs') ->  clnStdToDo pairs pvs' tvs bobj
-    (Nothing,_)
-      -> case extractWrapped lstKey pv pvs of
-          (Just vs',pvs')  ->  clnLstToDo pairs pvs' tvs bobj
-          (Nothing,_)      ->  clnQVarToDo pairs (tvs, pvs)
+    (Nothing,_)    ->  clnVarToDo pairs (tvs, pvs)
 
-stdKey (Gen (Std _),_,key) = key
-stdKey _                   = ""
-lstKey (Gen (Lst _),_,key) = key
-lstKey (Rsv _ _,    _,key) = key
-lstKey _                   = ""
+clnLVarToDo
+ :: Monad m
+ => [(String,BObj Variable Expr)] -> QVarMatchToDo -> m QVarMatchToDo
+clnLVarToDo [] qvm  = return qvm
+clnLVarToDo ((pv,bobjs):pairs) (tvs, pvs)
+ = case extractWrapped lvarKey pv pvs of
+    (Just v',pvs') ->  clnLstToDo pairs pvs' tvs bobjs
+    (Nothing,_)    ->  clnLVarToDo pairs (tvs, pvs)
 
 -- expect std v mapping to VO(std)
-clnStdToDo pairs pvs' tvs (VO tv@(Gen (Std _),_,_))
+clnStdToDo pairs pvs' tvs (VO tv)
  = case extractWrapped id tv tvs of
      (Nothing,_)    ->  fail "std var bound to something else"
-     (Just _,tvs')  ->  clnQVarToDo pairs (tvs', pvs')
+     (Just _,tvs')  ->  clnVarToDo pairs (tvs', pvs')
 clnStdToDo _ _ _ _   =  fail "std var not bound to std var"
 
 -- expect non-std v mapping to VSO
 clnLstToDo pairs pvs' tvs (VSO vs)
- | issubset vs tvs  =  clnQVarToDo pairs (tvs\\vs, pvs')
+ | issubset vs tvs  =  clnLVarToDo pairs (tvs\\vs, pvs')
 clnLstToDo _ _ _ _ = fail "lst var not bound to var-list"
 \end{code}
 
@@ -306,11 +310,11 @@ the functions \texttt{pMatch} and \texttt{eMatch} decribed below.
 We need to extend bound variable lists
 when matching under quantifiers.
 \begin{code}
-(+<) :: [Variable] -> QVars -> [Variable]
-vs +< ( xs) = lnorm (vs++xs)
+(+<) :: VarList -> VarList -> VarList
+vs +< xs = lnorm (vs++xs)
 
-(+<<) :: [Variable] -> (Substn Variable a) -> [Variable]
-vs +<< (Substn sub) = lnorm (vs++map fst sub)
+(+<<) :: VarList -> (Substn Variable ListVar a) -> VarList
+vs +<< (vas, lvs) = lnorm (vs ++ map (V . fst) vas ++ map fst lvs)
 \end{code}
 
 \newpage
@@ -320,7 +324,7 @@ We do not match the \texttt{PVar} $\_UNINT$ marking an uninterpreted language
 construct:
 \begin{code}
 nameUNINT = "_UNINT"
-predUNINT = PVar $ genRootAsVar $ Std nameUNINT
+predUNINT = PVar $ parseVariable nameUNINT
 \end{code}
 
 \begin{code}
@@ -346,13 +350,12 @@ Otherwise it matches anything, except an \texttt{PExpr} whose type is not \textt
 \end{eqnarray*}
 \begin{code}
 pMatch here mres tpr (PVar p)
- | g == Std nameUNINT  =  (fail "Nothing")
+ | varKey p == nameUNINT  =  (fail "Nothing")
  | otherwise
     = case tslookup (knownPreds (mctx here)) (varKey p) of
-       Just dpr  ->  pNameMatch mres tpr (g,dpr)
-       Nothing   ->  freePMatch g tpr
+       Just dpr  ->  pNameMatch mres tpr (p,dpr)
+       Nothing   ->  freePMatch p tpr
  where
-   g = varGenRoot p
    freePMatch p (PExpr te)
     | not ((evalExprType (ttts here) (ttags here) te) `tlequiv` B)
                      =  (fail "Nothing")
@@ -394,10 +397,10 @@ predicates that use meta variables:
 \end{eqnarray*}
 \begin{code}
 pMatch here mres
-       tpr@(PExpr (App tnm [te1,te2]))
-       ppr@(PExpr (App pnm [Var pv1, Var pv2]))
- | tnm==n_Equal && tnm==pnm && isLstV pv1 && isLstV pv2
-    =  pM1Place here mres te1 te2 pv1 pv2
+       tpr@(P2 tnm  tv1 tv2)
+       ppr@(P2 pnm  pv1 pv2)
+ | tnm==pnm && isLstLV pv1 && isLstLV pv2
+    =  pM1Place here mres tv1 tv2 pv1 pv2
 \end{code}
 
 

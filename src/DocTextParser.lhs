@@ -14,7 +14,6 @@ import Precedences
 import Focus
 import DataText
 import Utilities
---import Invariants
 import Proof
 import Theories
 import DSL
