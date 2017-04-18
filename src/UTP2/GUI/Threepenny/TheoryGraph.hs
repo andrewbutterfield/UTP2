@@ -6,13 +6,8 @@ import qualified Graphics.UI.Threepenny                 as UI
 import           Graphics.UI.Threepenny.Core
 import           Graphics.UI.Threepenny.Ext.Contextmenu
 import           Graphics.UI.Threepenny.Ext.Flexbox
+import qualified UTP2.GUI.Threepenny.Style              as Style
 import           UTP2.GUI.Threepenny.Types
-
-nodeStyle = [
-    ("border"       , "1px solid black" )
-  , ("border-radius", "2px"             )
-  , ("padding"      , "5px"             )
-  ]
 
 -- | TGTree and TGNode are defined in Types.
 
@@ -30,6 +25,4 @@ row' nodes =
 
 -- | An element representing a node of the tree.
 node :: TGNode -> UI Element
-node (text, action) =
-  UI.div # set UI.style nodeStyle
-         # set UI.text text
+node (text, action) = Style.box # set UI.text text

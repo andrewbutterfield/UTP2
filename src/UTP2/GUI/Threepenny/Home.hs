@@ -6,6 +6,7 @@ import           Graphics.UI.Threepenny.Core
 import qualified Graphics.UI.Threepenny.Ext.Contextmenu as CM
 import           UTP2.GUI.Threepenny.Events
 import qualified UTP2.GUI.Threepenny.Materialize        as Mat
+import qualified UTP2.GUI.Threepenny.Style              as Style
 import           UTP2.GUI.Threepenny.Text
 import qualified UTP2.GUI.Threepenny.TheoryGraph        as TG
 import           UTP2.GUI.Threepenny.Types
@@ -25,8 +26,8 @@ mkTheories :: UTP2 Element
 mkTheories = do
   top   <- liftUI $ UI.div
   text  <- liftUI $ textI "Theories"
-  box   <- liftUI $ UI.div # set UI.style [("border", "1px solid black")]
-                           # set UI.style [("width", "90vw"), ("min-height", "100px")]
+  box   <- liftUI $ Style.box #
+    set UI.style [("width", "90vw"), ("min-height", "100px")]
   theoryGraphBehavior <- eTheoryGraphBehavior <$> ask
   -- If the tree is not set display a message saying so.
   let treeBehavior = maybe (textB "No Theory Graph") (TG.tree)
