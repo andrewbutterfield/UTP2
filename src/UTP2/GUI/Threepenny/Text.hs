@@ -7,8 +7,8 @@ import           Graphics.UI.Threepenny.Core
 
 -- |Element with given text and style.
 styledText :: [(String, String)] -> String -> UI Element
-styledText style text = UI.div # set UI.text  text
-                               # set UI.style style
+styledText style text = UI.p # set UI.text  text
+                             # set UI.style style
 
 -- |Italics text.
 textI :: String -> UI Element

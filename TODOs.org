@@ -1,10 +1,14 @@
-* TODO maybeEl
-* TODO Finish home screen
-* TODO Fix contextmenu altering source element styling
-
-  Similar behaviour noticed when adding on click handler to materialise styled
-  button. Possibly not a fault of contextmenu code.
-* VERIFY Package as Electron app
+* TODO One more backend integration
+* TODO capture key navigation for laws
+* TODO show laws
+* TODO fix startup file handling
+* TODO Show warnings
+* TODO Right click on theories in graph
+* TODO Create new theory
+* TODO input callback mechanism
+* TODO Theory Graph lines
+* DONE Package as Electron app
+  CLOSED: [2017-04-18 Tue 20:31]
   https://github.com/HeinrichApfelmus/threepenny-gui/issues/111
 ** DONE Electron as main entry point
    CLOSED: [2017-02-28 Tue 15:31]
@@ -12,8 +16,10 @@
    instead of starting the Electron app from Haskell. Edited the ~electron.js~
    to do this, also selects a random free port in the ~15000 range and waits for
    the Threepenny server to have started before displaying.
-** Use electron-builder to create distributable
-** Write instructions
+** DONE Use electron-builder to create distributable
+   CLOSED: [2017-04-18 Tue 20:36]
+** DONE Write instructions
+   CLOSED: [2017-04-18 Tue 20:36]
 * DONE FRP for display workspace
   CLOSED: [2017-03-19 Sun 22:48]
 * DONE File selector takes emitter as a parameter

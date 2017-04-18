@@ -29,11 +29,11 @@ mkTheories = do
   box    <- liftUI $ Style.box #
     set UI.style [("width", "90vw"), ("min-height", "100px")]
   theoryGraphBehavior <- eTheoryGraphBehavior <$> ask
-  -- If the tree is not set display a message saying so.
+  -- If the tree is not set, display a message saying so.
   let treeBehavior = maybe (textB "No Theory Graph") (TG.tree)
                      <$> theoryGraphBehavior
   -- Add the current tree to 'box' now, and whenever the tree changes.
-  liftUI $ nowAndOnChange treeBehavior $ \uiEl -> do
+  liftUI $ nowAndOnChange treeBehavior $ \uiEl ->
     uiEl >>= \el -> element box # set children [el]
   liftUI $ UI.div #+ [
       textI "Theories"
@@ -46,9 +46,12 @@ mkTheories = do
 -- |Proofs in the home window.
 mkProofs :: UTP2 Element
 mkProofs = do
-  button <- Mat.button "."
+  button <- Mat.button "Modify Theories"
   liftUI $ CM.contextMenu [
       CM.actionMenuItem "Create new theory"          []
     , CM.actionMenuItem "Save all modified theories" []
     ] button
-  liftUI $ UI.div #+ [element button]
+  liftUI $ UI.div #+ [
+      textI "Proofs"
+    , element button
+    ]
