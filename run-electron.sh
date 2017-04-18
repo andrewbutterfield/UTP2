@@ -3,5 +3,5 @@
 set -eux
 
 npm install
-stack build
+stack install --local-bin-path build-electron
 ./node_modules/.bin/electron electron.js

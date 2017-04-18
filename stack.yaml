@@ -4,15 +4,11 @@ packages:
 - '.'
 - location:
     git: https://github.com/barischj/threepenny-gui
-    commit: ae1134d3dc6501073d04753941123ff5742ee10b
+    commit: 7809190b9043e5e9f6bcaeae7d56d582bd7fd578
   extra-dep: true
 - location:
     git: https://github.com/barischj/threepenny-gui-contextmenu
-    commit: 03cde41159663fde5c8b11c22e96c4f7dadf30f7
-  extra-dep: true
-- location:
-    git: https://github.com/barischj/threepenny-gui-flexbox
-    commit: 5426fdfcc3d82e9a57209adea41fab1c0bbbcbf7
+    commit: 565e252fc5c3c2f178fdd93bf49c3f14b27d94f4
   extra-dep: true
 
 extra-deps:
@@ -29,6 +25,7 @@ extra-deps:
 - snap-core-1.0.1.0
 - snap-server-1.0.1.1
 - tagged-0.8.4
+- threepenny-gui-flexbox-0.4.1
 - unix-compat-0.4.3.1
 - websockets-0.9.8.2
 - websockets-snap-0.10.2.0

@@ -1,13 +1,9 @@
+* TODO maybeEl
 * TODO Finish home screen
 * TODO Fix contextmenu altering source element styling
 
   Similar behaviour noticed when adding on click handler to materialise styled
   button. Possibly not a fault of contextmenu code.
-* DESIGN Safe JS execution
-  This means returning a ~Maybe~ from an ~ffi~ call incase execution failed,
-  where failure is either a ~null~ or ~undefined~.
-* IMPLEMENT Expose Threepenny event data
-  https://github.com/HeinrichApfelmus/threepenny-gui/issues/167
 * VERIFY Package as Electron app
   https://github.com/HeinrichApfelmus/threepenny-gui/issues/111
 ** DONE Electron as main entry point

@@ -86,6 +86,7 @@ Library
                    , UTP2.GUI.Threepenny.Materialize
                    , UTP2.GUI.Threepenny.Style
                    , UTP2.GUI.Threepenny.Text
+                   , UTP2.GUI.Threepenny.TheoryGraph
                    , UTP2.GUI.Threepenny.Types
                    , UTP2.GUI.Threepenny.Workspace
                    , Utilities

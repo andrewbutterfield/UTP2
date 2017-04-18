@@ -37,5 +37,10 @@ The project should now build with stack.
 
 To run UTP2 using Electron you need Node and npm.
 
-Then from the root directory `./run-electron.sh`
+Then from the root directory: `./run-electron.sh`
 
+## Packaging
+
+Ensure the application is running correctly with Electron.
+
+Then from the root directory: `./package-electron.sh`

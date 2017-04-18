@@ -191,7 +191,5 @@ node_modules/
 # macOS
 .DS_Store
 
-# FYP docs
-doc/threepenny/*.pdf
-doc/threepenny/*.tex
-doc/threepenny/*.org.swp
+# Packaging with Electron
+build-electron/
