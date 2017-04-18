@@ -1,11 +1,21 @@
 module UTP2.GUI.Threepenny.Style where
 
--- |Utility functions for styling elements, including layout.
+-- | Utility functions for styling elements, including layout.
 
 import qualified Graphics.UI.Threepenny      as UI
 import           Graphics.UI.Threepenny.Core
 
-padding :: Int -> UI Element -> UI Element
-padding n = set UI.style [("padding", show n ++ "px")]
+sml = 8
+med = sml * 2
+lrg = med * 2
 
-smlPadding = padding 8
+setPadding :: (Num a, Show a) => a -> UI Element -> UI Element
+setPadding x = set UI.style [("padding", px x)]
+
+-- | Convert to pixel string.
+px :: (Num a, Show a) => a -> String
+px x = show x ++ "px" 
+
+-- | A div with black border and padding. 
+-- box :: UI Element
+-- box = padding smlPadding

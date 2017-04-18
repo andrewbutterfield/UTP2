@@ -1,13 +1,15 @@
 module UTP2.GUI.Threepenny.Home where
 
-import qualified ContextMenu                     as CM
-import           Control.Monad.Trans.Class       (lift)
-import qualified Graphics.UI.Threepenny          as UI
+import           Control.Monad.Reader                   (ask)
+import qualified Graphics.UI.Threepenny                 as UI
 import           Graphics.UI.Threepenny.Core
-import qualified UTP2.GUI.Threepenny.Materialize as Mat
+import qualified Graphics.UI.Threepenny.Ext.Contextmenu as CM
+import           UTP2.GUI.Threepenny.Events
+import qualified UTP2.GUI.Threepenny.Materialize        as Mat
 import           UTP2.GUI.Threepenny.Text
+import qualified UTP2.GUI.Threepenny.TheoryGraph        as TG
 import           UTP2.GUI.Threepenny.Types
-import qualified UTP2.GUI.Threepenny.Workspace   as W
+import qualified UTP2.GUI.Threepenny.Workspace          as W
 
 -- |Home window.
 mkHome :: UTP2 Element
@@ -16,23 +18,30 @@ mkHome = do
   workspace <- W.workspace
   theories  <- mkTheories
   proofs    <- mkProofs
-  lift $ UI.div #+ map element [workspace, theories, proofs]
+  liftUI $ UI.div #+ map element [workspace, theories, proofs]
 
 -- |Theories in the home window.
 mkTheories :: UTP2 Element
 mkTheories = do
-  top  <- lift $ UI.div
-  text <- lift $ textI "Theories"
-  box  <- lift $ UI.div # set UI.style [("border", "1px solid black")]
-                        # set UI.style [("width", "80vw"), ("min-height", "100px")]
-  lift $ element top #+ map element [top, text, box]
+  top   <- liftUI $ UI.div
+  text  <- liftUI $ textI "Theories"
+  box   <- liftUI $ UI.div # set UI.style [("border", "1px solid black")]
+                           # set UI.style [("width", "90vw"), ("min-height", "100px")]
+  theoryGraphBehavior <- eTheoryGraphBehavior <$> ask
+  -- If the tree is not set display a message saying so.
+  let treeBehavior = maybe (textB "No Theory Graph") (TG.tree)
+                     <$> theoryGraphBehavior
+  -- Add the current tree to 'box' now, and whenever the tree changes.
+  liftUI $ nowAndOnChange treeBehavior $ \uiEl -> do
+    uiEl >>= \el -> element box # set children [el]
+  liftUI $ element top #+ map element [text, box]
 
 -- |Proofs in the home window.
 mkProofs :: UTP2 Element
 mkProofs = do
   button <- Mat.button "."
-  lift $ CM.contextMenu [
+  liftUI $ CM.contextMenu [
       CM.actionMenuItem "Create new theory"          []
     , CM.actionMenuItem "Save all modified theories" []
     ] button
-  lift $ UI.div #+ [element button]
+  liftUI $ UI.div #+ [element button]

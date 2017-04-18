@@ -31,10 +31,10 @@ app window = do
     lift $ UI.addStyleSheet window "materialize.css"
     home <- mkHome
     tabs <- Mat.tabs [
-        ("Home",     element home # smlPadding)
-      , ("Laws",     UI.div       # smlPadding # set UI.text "todo")
-      , ("OBS.",     UI.div       # smlPadding # set UI.text "todo")
-      , ("Language", UI.div       # smlPadding # set UI.text "todo")
+        ("Home",     element home # setPadding sml)
+      , ("Laws",     UI.div       # setPadding sml # set UI.text "todo")
+      , ("OBS.",     UI.div       # setPadding sml # set UI.text "todo")
+      , ("Language", UI.div       # setPadding sml # set UI.text "todo")
       ]
     lift $ appendToBody [element tabs]
     lift $ Mat.initTabs
