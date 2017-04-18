@@ -1,9 +1,11 @@
 module UTP2.GUI.Threepenny.Home where
 
+import qualified Clay                                   as C
 import           Control.Monad.Reader                   (ask)
 import qualified Graphics.UI.Threepenny                 as UI
 import           Graphics.UI.Threepenny.Core
 import qualified Graphics.UI.Threepenny.Ext.Contextmenu as CM
+import qualified Graphics.UI.Threepenny.Ext.Flexbox     as F
 import           UTP2.GUI.Threepenny.Events
 import qualified UTP2.GUI.Threepenny.Materialize        as Mat
 import qualified UTP2.GUI.Threepenny.Style              as Style
@@ -24,9 +26,7 @@ mkHome = do
 -- |Theories in the home window.
 mkTheories :: UTP2 Element
 mkTheories = do
-  top   <- liftUI $ UI.div
-  text  <- liftUI $ textI "Theories"
-  box   <- liftUI $ Style.box #
+  box    <- liftUI $ Style.box #
     set UI.style [("width", "90vw"), ("min-height", "100px")]
   theoryGraphBehavior <- eTheoryGraphBehavior <$> ask
   -- If the tree is not set display a message saying so.
@@ -35,7 +35,13 @@ mkTheories = do
   -- Add the current tree to 'box' now, and whenever the tree changes.
   liftUI $ nowAndOnChange treeBehavior $ \uiEl -> do
     uiEl >>= \el -> element box # set children [el]
-  liftUI $ element top #+ map element [text, box]
+  liftUI $ UI.div #+ [
+      textI "Theories"
+      -- Container for 'box', which centers contents (i.e. 'box').
+    , UI.div # F.setFlex (F.justifyContent C.center) #+ [
+        element box
+      ]
+    ]
 
 -- |Proofs in the home window.
 mkProofs :: UTP2 Element
