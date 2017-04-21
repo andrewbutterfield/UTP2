@@ -861,8 +861,8 @@ isWFQVarToDo tvs pvs
  | n == k && m == 0  =  True
  | otherwise         =  ell > 0
  where
-  (n,m) = setboth (length,length) (partition isStdLV tvs)
-  (k,ell) = setboth (length,length) (partition isStdLV pvs)
+  (n,m) = setboth (length,length) (partition isStdGV tvs)
+  (k,ell) = setboth (length,length) (partition isStdGV pvs)
 \end{code}
 
 We also have do do something similar with substitution matching.

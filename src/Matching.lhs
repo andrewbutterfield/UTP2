@@ -399,7 +399,7 @@ predicates that use meta variables:
 pMatch here mres
        tpr@(P2 tnm  tv1 tv2)
        ppr@(P2 pnm  pv1 pv2)
- | tnm==pnm && isLstLV pv1 && isLstLV pv2
+ | tnm==pnm && isLstGV pv1 && isLstGV pv2
     =  pM1Place here mres tv1 tv2 pv1 pv2
 \end{code}
 

@@ -62,7 +62,7 @@ $$
 $$
 \begin{code}
 lUnivDef = (Univ 0 p) === (mkAll qxs p)
-flUnivDef = (lUnivDef,SCareTheFreeOf PredM [lstVar "x"] n_p)
+flUnivDef = (lUnivDef,SCareTheFreeOf PredM [lstAsGen "x"] n_p)
 \end{code}
 
 Disjunction as the least upper bound of the implication ordering:
@@ -105,7 +105,7 @@ $$
 \begin{code}
 flHideVar
   = ( (Univ 0 (p ==> s)) === (Univ 0 ((mkAny vs p) ==> s))
-    , SCnotFreeIn PredM [lstVar "v"] n_s )
+    , SCnotFreeIn PredM [lstAsGen "v"] n_s )
   where vs = qvarr "vs"
 \end{code}
 
@@ -118,7 +118,7 @@ $$
 \begin{code}
 flResidual
  = ( (Univ 0 (xx /\ q ==> s)) === (Univ 0 (xx ==> (mkAll xs (q ==> s))))
-   , SCnotFreeIn PredM [lstVar "x"] n_x )
+   , SCnotFreeIn PredM [lstAsGen "x"] n_x )
  where xs = qvarr "xs"
 \end{code}
 
@@ -406,10 +406,10 @@ xyzDefs = [ ( ";"
                    )
             )
           , ( "::="
-            , Lst "v" `xyzasg` (Var $ lstVar "e")
+            , Lst "v" `xyzasg` (Var $ lstAsGen "e")
                === ( ok ==>
                       ok'
-                      /\ Obs (Equal (Var $ lstVar' "v") (Var $ lstVar "e"))
+                      /\ Obs (Equal (Var $ lstAsGen' "v") (Var $ lstAsGen "e"))
                       /\ Obs (Equal (Var (scrList' \\\ [Lst "v"]))
                                     (Var (scrList \\\ [Lst "v"])))
                    )

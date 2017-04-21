@@ -77,8 +77,8 @@ declPreNVQE,declPostNVQE,declLstNVQE,declLst'NVQE
  :: String -> (String,Variable,QVars,Expr)
 declPreNVQE  = declNVQE preVar
 declPostNVQE = declNVQE postVar
-declLstNVQE  = declNVQE lstVar
-declLst'NVQE = declNVQE lstVar'
+declLstNVQE  = declNVQE lstAsGen
+declLst'NVQE = declNVQE lstAsGen'
 \end{code}
 The intended use is something like \texttt{(x,vx,qx,ex) = declPreNVQE "x"}.
 
@@ -133,11 +133,11 @@ e = mkEvar n_e
 We introduce some quantifier meta-variables:
 \begin{code}
 nx = varKey vx ; vx = preVar "x" ; vx' = postVar "x";  qx = qvar nx; eqx = Var $ preVar nx
-nxs = varKey vxs ; vxs = lstVar "x" ; qxs =  [vxs]
+nxs = varKey vxs ; vxs = lstAsGen "x" ; qxs =  [vxs]
 qxxs =  [vx,vxs]
 
 ny = varKey vy ; vy = preVar "y" ; vy' = postVar "y"; qy = qvar ny; eqy = Var $ preVar ny
-nys = varKey vys ; vys = lstVar "y" ; qys =  [vys]
+nys = varKey vys ; vys = lstAsGen "y" ; qys =  [vys]
 qyys =  [vy,vys]
 
 nz = "z"; vz = preVar nz; vz' = postVar nz; qz = qvar nz; eqz = Var $ preVar nz
@@ -149,8 +149,8 @@ nFs = "Fs" ; qFs = qvarr nFs
 qEsFs = qvarrs [nEs,nFs]
 
 vP = preVar nP; qP =  [vP]
-nPs = varKey vPs; vPs = lstVar "P" ; qPs =  [vPs]
-nQs = varKey vQs; vQs = lstVar "Q" ; qQs =  [vQs]
+nPs = varKey vPs; vPs = lstAsGen "P" ; qPs =  [vPs]
+nQs = varKey vQs; vQs = lstAsGen "Q" ; qQs =  [vQs]
 qPPs =  [vP,vPs]
 
 qPsQs = mkQ [vPs,vQs]

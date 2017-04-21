@@ -454,7 +454,7 @@ pred_Ax_Leibniz
    (pP === Sub pP (Substn [(vxs,evec)]))
  where
    xvec = Var $ vxs
-   evec = Var $ lstVar n_e
+   evec = Var $ lstAsGen n_e
 
 law_Ax_Leibniz = freeRootLaw "Ax-Leibniz" pred_Ax_Leibniz
 \end{code}
@@ -483,14 +483,14 @@ would be very hard to implement in general.
 \end{mathpar}
 \begin{code}
 pred_Ax_TRUE_OSubst
- = (Sub TRUE $ Substn [(vxs,Var $ lstVar "e")]) === TRUE
+ = (Sub TRUE $ Substn [(vxs,Var $ lstAsGen "e")]) === TRUE
 law_Ax_TRUE_OSubst = freeRootLaw "Ax-TRUE-xSubst" pred_Ax_TRUE_OSubst
 
 pred_Ax_TRUE_ESubst = PVar (parseVariable "TRUEESubstNotSupported") ==> TRUE
 law_Ax_TRUE_ESubst = freeRootLaw "Ax-TRUE-ESubst" pred_Ax_TRUE_ESubst
 
 pred_Ax_FALSE_OSubst
- = (Sub FALSE $ Substn [(vxs,Var $ lstVar "e")]) === FALSE
+ = (Sub FALSE $ Substn [(vxs,Var $ lstAsGen "e")]) === FALSE
 law_Ax_FALSE_OSubst = freeRootLaw "Ax-FALSE-xSubst" pred_Ax_FALSE_OSubst
 
 pred_Ax_FALSE_ESubst = PVar (parseVariable "FALSEESubstNotSupported") ==> FALSE

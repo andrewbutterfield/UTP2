@@ -125,7 +125,7 @@ of a list of names, corresponding to variable `roots'
 \begin{code}
 type ListVar
  = ( Variable -- variable denoting a list of variables
-     [Name]   -- list of roots to be ignored)
+   , [Name]   -- list of roots to be ignored)
    )
 \end{code}
 A variable-list is composed in general of a mix of normal variables
@@ -142,8 +142,8 @@ type VarList = [GenVar]
 A quick way to get the hidden variable out:
 \begin{code}
 gVar :: GenVar -> Variable
-gVar (V v)  =  v
-gVar (L v)  =  v
+gVar (V v)       =  v
+gVar (L (v, _))  =  v
 \end{code}
 
 
@@ -916,10 +916,12 @@ debugQSshow = dbgQSshow 0
 dbgQSshow i ( [])  = hdr i ++ "VARS(empty)"
 dbgQSshow i ( qs)
  = hdr i ++ "VARS:"
-   ++ (concat $ map ( (hdr (i+1) ++) . dbgLVshow ) qs)
+   ++ (concat $ map ( (hdr (i+1) ++) . dbgGVshow ) qs)
 
-dbgLVshow (V v) = dbgVshow v
-dbgLVshow (L v ns) = dbgVshow v ++ " LESS " ++ show ns
+dbgGVshow (V v) = "V " ++ dbgVshow v
+dbgGVshow (L lv) = "L " ++ dbgLVshow lv
+
+dbgLVshow (v, ns) = dbgVshow v ++ " LESS " ++ show ns
 
 dbgMshow i (x,y) = hdr i ++ "DOM" ++ dbgEshow (i+1) x ++ hdr i ++ "RNG" ++ dbgEshow (i+1) y
 

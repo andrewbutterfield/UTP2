@@ -282,25 +282,25 @@ gslAllSwap                                                    -- 8.19
   =  (rForall qxs pR (rForall qys pQ pP))
      ===
      (rForall qys pQ (rForall qxs pR pP))
-gsscAllSwap   =  scand [lstVar "y" `notPfree` nR,lstVar "x" `notPfree` nQ]
+gsscAllSwap   =  scand [lstAsGen "y" `notPfree` nR,lstAsGen "x" `notPfree` nQ]
 
 gslAnySwap                                                    -- 8.19
   =  (rExists qxs pR (rExists qys pQ pP))
      ===
      (rExists qys pQ (rExists qxs pR pP))
-gsscAnySwap   =  scand [lstVar "y" `notPfree` nR,lstVar "x" `notPfree` nQ]
+gsscAnySwap   =  scand [lstAsGen "y" `notPfree` nR,lstAsGen "x" `notPfree` nQ]
 
 gslAllNest                                                    -- 8.20
   =  (rForall qxsys (pR /\ pQ) pP)
      ===
      (rForall qxs pR (rForall qys pQ pP))
-gsscAllNest   =  lstVar "y" `notPfree` nR
+gsscAllNest   =  lstAsGen "y" `notPfree` nR
 
 gslAnyNest                                                    -- 8.20
   =  (rExists qxsys (pR /\ pQ) pP)
      ===
      (rExists qxs pR (rExists qys pQ pP))
-gsscAnyNest   =  lstVar "y" `notPfree` nR
+gsscAnyNest   =  lstAsGen "y" `notPfree` nR
 
 -- we note that 8.21, dummy renaming, is built-in
 
@@ -345,7 +345,7 @@ gslAllTrading                                                        -- 9.2
 
 gslDistrOrAll                                                        -- 9.5
   =  pP \/ (rForall qxs pR pQ) === (rForall qxs pR (pP \/ pQ))
-gsscDistrOrAll  = lstVar "x" `notPfree` nP
+gsscDistrOrAll  = lstAsGen "x" `notPfree` nP
 
 gs_laws_7
   =  freeGSLogicLaw "rForall-Trading" gslAllTrading
@@ -355,12 +355,12 @@ gslAllTrading2                                                       -- 9.4
   =  (rForall qxs (pQ /\ pR) pP) === (rForall qxs pQ (pR ==> pP) )
 
 gsl_9_6 = (rForall qxs pR pP) === pP \/ (rForall qxs TRUE (Not pR))    -- 9.6
-gssc_9_6 = lstVar "x" `notPfree` nP
+gssc_9_6 = lstAsGen "x" `notPfree` nP
 
 gslDistrAndAll                                                       -- 9.7
   =  Not(rForall qxs TRUE (Not pR))
       ==> (pP /\ (rForall qxs pR pQ) === (rForall qxs pR (pP /\ pQ)))
-gsscDistrAndAll  = lstVar "x" `notPfree` nP
+gsscDistrAndAll  = lstAsGen "x" `notPfree` nP
 
 gslAllTrue = (rForall qxs pR TRUE) === TRUE                           -- 9.8
 gslDistrEqvAll                                                       -- 9.9
@@ -407,15 +407,15 @@ gslAnyTrading2                                                       -- 9.20
 
 gslDistrAndAny                                                       -- 9.21
   =  pP /\ (rExists qxs pR pQ) === (rExists qxs pR (pP /\ pQ))
-gsscDistrAndAny  = lstVar "x" `notPfree` nP
+gsscDistrAndAny  = lstAsGen "x" `notPfree` nP
 
 gsl_9_22 = (rExists qxs pR pP) === pP /\ (rExists qxs TRUE pR)         -- 9.22
-gssc_9_22 = lstVar "x" `notPfree` nP
+gssc_9_22 = lstAsGen "x" `notPfree` nP
 
 gslDistrOrAny                                                        -- 9.23
   =  (rExists qxs TRUE pR)
       ==> (pP \/ (rExists qxs pR pQ) === (rExists qxs pR (pP \/ pQ)))
-gsscDistrOrAny  = lstVar "x" `notPfree` nP
+gsscDistrOrAny  = lstAsGen "x" `notPfree` nP
 
 gslAnyFalse = (rExists qxs pR FALSE) === FALSE                        -- 9.24
 gslAnyRangeWkn  = (rExists qxs pR pP) ==> (rExists qxs (pQ \/ pR) pP)  -- 9.25
@@ -429,7 +429,7 @@ gslAnyIntro                                                          -- 9.28
 gslIntchgQuant                                                       -- 9.29
   =  (rExists qxs pR (rForall qys pQ pP))
       ==> (rForall qys pQ (rExists qxs pR pP))
-gsscIntchgQuant = scand[lstVar "x" `notPfree` nQ,lstVar "y" `notPfree` nR]
+gsscIntchgQuant = scand[lstAsGen "x" `notPfree` nQ,lstAsGen "y" `notPfree` nR]
 
 gs_conj_8
   =  [( "Gen-DeMorgan-1" , (gslGenDeMorgan1,SCtrue) )
@@ -480,7 +480,7 @@ gs_conj_9  =  []
 
 \begin{code}
 gslUnivDef = Univ 0 pP === rForall qxs TRUE pP
-gsscUnivDef = [lstVar "x"] `coverFreeOfP` nP
+gsscUnivDef = [lstAsGen "x"] `coverFreeOfP` nP
 
 gs_laws_10  =  mkGSLogicLaw "Univ-Def" gslUnivDef gsscUnivDef
 

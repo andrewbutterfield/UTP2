@@ -215,15 +215,15 @@ We define a Parsec-compliant scanner, that returns no errors
 
 Some useful syntax related predicates on variables:
 \begin{code}
-isStdLV, isLstLV :: GenVar -> Bool
-isStdLV (V _)    =  True
-isStdLV (L _)  =  False
+isStdGV, isLstGV :: GenVar -> Bool
+isStdGV (V _)    =  True
+isStdGV (L _)  =  False
 
-isLstLV = not . isStdLV
+isLstGV = not . isStdGV
 
 isRsvLV :: GenVar -> Bool
-isRsvLV (L v)  =  isRsvV v
-isRsvLV _        =  False
+isRsvLV (L (v, _))  =  isRsvV v
+isRsvLV _           =  False
 
 isRsvV :: Variable -> Bool
 isRsvV (nm,_,_)  =  isRsv nm
@@ -655,7 +655,7 @@ lvarKey (v, _)  =  varKey v
 \begin{code}
 gvarKey :: GenVar -> String
 gvarKey (V v)  =  varKey v
-gvarKey (L v)  =  varKey v
+gvarKey (L (v, _))  =  varKey v
 \end{code}
 
 We will often want to store variable information
@@ -755,9 +755,12 @@ showVar (nm, _, _) = nm
 mkLVarName :: Name -> VKind -> VRole -> Name
 mkLVarName nm k r = nm ++ strLST ++ showRole r
 
-showLVar :: GenVar -> String
-showLVar (V (nm, _, _)) = nm
-showLVar (L (nm, _, _) rs) = nm ++ showRoots rs
+showLVar :: ListVar -> String
+showLVar ((nm, _, _), rs) = nm ++ showRoots rs
+
+showGVar :: GenVar -> String
+showGVar (V v) = showVar v
+showGVar (L lv) = showLVar lv
 
 showRole VPost      = strPOST
 showRole (VInter s) = chrSUBS:s
@@ -773,7 +776,7 @@ mkSVar :: Name -> VRole -> Variable
 mkSVar nm r  = mkGVar r nm
 
 mkRVar :: Name -> [Name] -> VRole -> GenVar
-mkRVar nm roots r = L (mkLVarName nm VObs r, VObs, r)  roots
+mkRVar nm roots r = L ((mkLVarName nm VObs r, VObs, r),  roots)
 \end{code}
 
 
@@ -798,17 +801,21 @@ parseVariable str
     [(_,TIdent v),(_,TEOF)]  ->  v
     _                        ->  predVar ("!BadVar<"++str++">")
 
-badVariable (_, _, ('!':_))  =  True
-badVariable _                =  False
+parseListVar :: String -> ListVar
+parseListVar str
+ = case scanner "" str of
+    []                         ->  (predVar ("!NoListVar<"++str++">"), [])
+    [(_,TLVar v rs),(_,TEOF)]  ->  (v, rs)
+    _                          ->  (predVar ("!BadListVar<"++str++">"), [])
 
 parseGenVar :: String -> GenVar
 parseGenVar str
  = case scanner "" str of
-    []                         ->  V $ predVar ("!NoVar<"++str++">")
+    []                         ->  V $ predVar ("!NoGenVar<"++str++">")
     [(_,TName n), (_,TEOF)]    ->  V $ preVar n
-    [(_,TIdent v),(_,TEOF)]    ->  V $ v
-    [(_,TLVar v rs),(_,TEOF)]  ->  L v rs
-    _                          ->  V $ predVar ("!BadVar<"++str++">")
+    [(_,TIdent v),(_,TEOF)]    ->  V v
+    [(_,TLVar v rs),(_,TEOF)]  ->  L (v, rs)
+    _                          ->  V $ predVar ("!BadGenVar<"++str++">")
 \end{code}
 
 \newpage
@@ -827,24 +834,29 @@ subVar s nm  = (nm, VObs, VInter s)
 updVRole :: VRole -> Variable -> Variable
 updVRole r (nm, k, _) = (nm, k, r)
 
-lstVar, lstVar' :: Name -> GenVar
-lstVar  nm = L (nm, VObs, VPre) []
-lstVar' nm = L (nm, VObs, VPost) []
+lstVar, lstVar' :: Name -> ListVar
+lstVar  nm = ((nm, VObs, VPre), [])
+lstVar' nm = ((nm, VObs, VPost), [])
 
-lsubVar :: String -> String -> GenVar
-lsubVar s nm = L (nm, VObs, VInter s) []
+lsubVar :: String -> String -> ListVar
+lsubVar s nm = ((nm, VObs, VInter s), [])
 
-(\\\) :: GenVar -> [Name] -> GenVar
-(L (nm, VObs, r) less1) \\\ less2
-  =  L (nm, VObs, r) (less1 `mrgnorm` less2)
-lv \\\ _ = lv
+lstAsGen, lstAsGen' :: Name -> GenVar
+lstAsGen  nm = L $ lstVar nm
+lstAsGen' nm = L $ lstVar' nm
+
+lsubAsGen :: String -> String -> GenVar
+lsubAsGen s nm = L $ lsubVar s nm
+
+(\\\) :: ListVar -> [Name] -> ListVar
+(v, less1) \\\ less2  =  (v, less1 `mrgnorm` less2)
 
 qnil         =  []
 qvar   x     =  [V $ preVar x]
 qvars  xs    =  lnorm $ map (V . preVar) xs
-qvarr  r     =  [lstVar r]
-qvarrs rs    =  lnorm $ map lstVar rs
-qvarsr xs r  =  lnorm $ (map (V . preVar) xs ++ [lstVar r])
+qvarr  r     =  [lstAsGen r]
+qvarrs rs    =  lnorm $ map lstAsGen rs
+qvarsr xs r  =  lnorm $ (map (V . preVar) xs ++ [lstAsGen r])
 
 rootVar :: Name -> Variable
 rootVar = preVar -- we dont have a null role - should we?
@@ -877,24 +889,24 @@ preRSV = [ strOBS, strMDL, strSCR ]
 postRSV = [ strOBS', strMDL', strSCR' ]
 allRSV = preRSV ++ postRSV
 
-obsList  =  L (strOBS,  VObs, VPre)  []
-obsList' =  L (strOBS', VObs, VPost) []
-mdlList  =  L (strMDL,  VObs, VPre)  []
-mdlList' =  L (strMDL', VObs, VPost) []
-scrList  =  L (strSCR,  VObs, VPre)  []
-scrList' =  L (strSCR', VObs, VPost) []
+obsList  =  L ((strOBS,  VObs, VPre),  [])
+obsList' =  L ((strOBS', VObs, VPost), [])
+mdlList  =  L ((strMDL,  VObs, VPre),  [])
+mdlList' =  L ((strMDL', VObs, VPost), [])
+scrList  =  L ((strSCR,  VObs, VPre),  [])
+scrList' =  L ((strSCR', VObs, VPost), [])
 \end{code}
 
 A range of tests:
 \begin{code}
 -- want a test for pure reserved list, with no _m
-isPureList (L (_, _, VInter _) _)  =  False
-isPureList (L v _)                 =  isRsvV v
-isPureList _                       =  False
+isPureList (L ((_, _, VInter _), _))  =  False
+isPureList (L (v, _))                 =  isRsvV v
+isPureList _                          =  False
 
 -- want a test for subscripted reserved list
-isListSub (L (nm, _, VInter _) _)  =  isRsv nm
-isListSub _                        =  False
+isListSub (L ((nm, _, VInter _), _))  =  isRsv nm
+isListSub _                           =  False
 
 
 obslookup :: (Variable -> t) -> Trie t -> Variable -> Maybe t
@@ -1182,7 +1194,7 @@ variable = do{ v <- lexify p_variable; return $ TEPvar v }
 p_listvar :: TEP_Parser GenVar
 p_listvar = ptoken plvar <?> "list-variable"
  where
-   plvar (TLVar v rs)  =  Just $ L v rs
+   plvar (TLVar v rs)  =  Just $ L (v, rs)
    plvar (TIdent v)    =  Just $ V v
    plvar (TName s)
     | s == strOBS      =  Just obsList
@@ -2100,7 +2112,7 @@ $$
   x_1,\ldots,x_m
 $$
 \begin{code}
-showQVars qs = mkSepList ',' $ map showLVar qs
+showQVars qs = mkSepList ',' $ map showGVar qs
 \end{code}
 
 
@@ -2531,7 +2543,7 @@ genFreshVar used patvar
  where
    alreadyUsed var = var `elem` used
    genvar (V v) substr = V $ addsub v substr
-   genvar (L v rs) substr = L (addsub v substr) rs
+   genvar (L (v, rs)) substr = L ((addsub v substr), rs)
    addsub (r, k, _) substr = (r, k, VInter substr)
 \end{code}
 
@@ -2603,7 +2615,7 @@ two: the standard variables, and the rest.
 Also, list variables can be split into general, and reserved.
 \begin{code}
 vPartition :: VarList -> (VarList,VarList)
-vPartition = partition isStdLV
+vPartition = partition isStdGV
 
 rPartition :: VarList -> (VarList,VarList)
 rPartition = partition isRsvLV
@@ -2612,12 +2624,12 @@ rPartition = partition isRsvLV
 We get observation variables  and ``multiple'' meta-variables
 from quantifier lists:
 \begin{code}
-getstdlvars = filter isStdLV
+getstdlvars = filter isStdGV
 \end{code}
 
 It is useful to be able to partition substitutions on Variables
 between those that are standard and those that are list:
 \begin{code}
 sPartition :: [(GenVar,a)] -> ([(GenVar,a)],[(GenVar,a)])
-sPartition = partition (isStdLV . fst)
+sPartition = partition (isStdGV . fst)
 \end{code}
