@@ -201,32 +201,32 @@ scMatch mctxt ttts ptts ttags ptags
 scMatch mctxt ttts ptts ttags ptags
         (SCnotFreeIn ExprM tvs tvar) (SCnotFreeIn ExprM pvs pvar)
  = moMerge (bindV (parseVariable pvar) (parseVariable tvar),[],[])
-           (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
+           (algVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags
         (SCnotFreeIn PredM tvs tvar) (SCnotFreeIn PredM pvs pvar)
  = moMerge (bindP (parseGenRoot pvar) (PVar $ parseVariable tvar),[],[])
-           (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
+           (algVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags
         (SCareTheFreeOf ExprM tvs tvar) (SCareTheFreeOf ExprM pvs pvar)
  = moMerge (bindV (parseVariable pvar) (parseVariable tvar),[],[])
-           (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
+           (algVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags
         (SCareTheFreeOf PredM tvs tvar) (SCareTheFreeOf PredM pvs pvar)
  = moMerge (bindP (parseGenRoot pvar) (PVar $ parseVariable tvar),[],[])
-           (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
+           (algVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags
         (SCcoverTheFreeOf ExprM tvs tvar) (SCcoverTheFreeOf ExprM pvs pvar)
  = moMerge (bindV (parseVariable pvar) (parseVariable tvar),[],[])
-           (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
+           (algVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags
         (SCcoverTheFreeOf PredM tvs tvar) (SCcoverTheFreeOf PredM pvs pvar)
  = moMerge (bindP (parseGenRoot pvar) (PVar $ parseVariable tvar),[],[])
-           (allVarMatches mctxt ttts ptts ttags ptags tvs pvs)
+           (algVarMatches mctxt ttts ptts ttags ptags tvs pvs)
 
 scMatch mctxt ttts ptts ttags ptags tsc psc = []
 \end{code}
@@ -257,13 +257,13 @@ against pattern:
 ~,~ pR_1,\ldots,pR_d
 ~,~ p\ell_1,\ldots,p\ell_f \]
 \begin{code}
-allVarMatches :: MatchContext
+algVarMatches :: MatchContext
               -> TypeTables -> TypeTables
               -> [TTTag] -> [TTTag]
               -> [Variable]
               -> [Variable]
               -> [MatchResult]
-allVarMatches mctxt ttts ptts ttags ptags tvs pvs
+algVarMatches mctxt ttts ptts ttags ptags tvs pvs
  = aVMphase1 tks tas tRs tls pks pas pRs pls
  where
    (pss,pms) = vPartition $ lnorm pvs
@@ -316,7 +316,7 @@ or members of their denotation (which is why we need the \texttt{MatchContext}).
            Just mr2  ->  aVMphase2 mr2 tks tas (tRs\\[pR]) tls pas pRs pls
      | otherwise
         -- does pattern reserve denote some existing test knowns ?
-        =  case lVarDenote mctxt pR of
+        =  case gVarDenote mctxt pR of
             (_,(_:_))  ->  []  -- !!!!! don't handle subtractions at present
             (pRd,_)
               -> if null (pRd\\tks)
@@ -426,7 +426,7 @@ lawMatch tags fovs ttts mctxt tsc tpr (ppr,lawsc) ptts
        let tscnf = normaliseSC tsc
        let pscnf = normaliseSC lawsc
        unboundFresh <- checkFreshness pscnf bindings
-       let goalvars = getAllGoalVars bindings
+       let goalvars = getAllGoagVars bindings
        let frshBinds = lbuild $ mapboth (varKey,TO . Var)
                          $ genFreshVars goalvars unboundFresh
        bindings' <- (tnil,frshBinds,tnil) `mrgB` bindings
@@ -524,13 +524,13 @@ checkFreshness (SCNFcond vfresh _ _) (gpbinds,vebinds,ttbinds)
         freshChk1 (map fst . exprAllOVars) patvar goalvar $ justTO vebinds
         freshChk1 (map fst . predAllOVars) patvar goalvar $ justTO gpbinds
 
-  freshChk1 allVars patvar goalvar qbinds
+  freshChk1 algVars patvar goalvar qbinds
    = fchk $ flattenTrie qbinds
    where
      fchk []  =  Just []
      fchk ((avar,goalexpr):rest)
       | avar == varKey patvar            =  fchk rest -- skip own mapping
-      | goalvar `elem` allVars goalexpr  =  Nothing -- fgvar is not fresh
+      | goalvar `elem` algVars goalexpr  =  Nothing -- fgvar is not fresh
       | otherwise                        =  fchk rest
 
   checkLFreshness frshv
@@ -559,8 +559,8 @@ checkFreshness (SCNFcond vfresh _ _) (gpbinds,vebinds,ttbinds)
 
 We need all the variables mentioned in goal bindings:
 \begin{code}
-getAllGoalVars :: Binding -> [Variable]
-getAllGoalVars (gpbinds,vebinds,_)
+getAllGoagVars :: Binding -> [Variable]
+getAllGoagVars (gpbinds,vebinds,_)
  = lnorm (pgvars++egvars++esgvars++qgvars)
  where
    pgvars = concat $ map (map fst . predAllOVars) $ trieRng $ justTO gpbinds
@@ -630,7 +630,7 @@ patternTest pshow tags fovs ttts mctxt tsc tpr (ppr,lawsc) ptts
                Just unboundFresh
                 -> debug "\n ****** IS FRESH..."
                   (let
-                     goalvars = getAllGoalVars mbnds
+                     goalvars = getAllGoagVars mbnds
                      frshBinds = foldl evvadd tnil $ genFreshVars goalvars unboundFresh
                    in
                      do mbnds' <- (tnil,frshBinds,tnil) `mrgB` mbnds

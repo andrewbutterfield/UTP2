@@ -226,7 +226,7 @@ rule regarding exactly one binding per ``variable name''.
   \times
   ( Var|_{Lst} \fun  (Var^* + Trm^*))
 \]
-The Std/Lst distinction is already enforced by the \texttt{Variable}/\texttt{ListVar} typing.
+The Std/Lst distinction is already enforced by the \texttt{Variable}/\texttt{GenVar} typing.
 It also encapsulates the \textbf{Std} vs \textbf{Lst} distinction.
 
 A binding object represents the sum type $Trm + Var + Var^* + Trm^*$:
@@ -451,21 +451,21 @@ lmergeSBind = mergeSBind lmergeBObj lmergeBObj
 
 We will have three instances, one each for predicates, expressions and types:
 \begin{code}
-type VPBind = SBind ListVar Pred
-vpInj :: ListVar -> Pred
+type VPBind = SBind GenVar Pred
+vpInj :: GenVar -> Pred
 vpInj (V v) = PVar v
 vpInj (L (nm,_,_) _) = vinjErr nm
-vpProj :: Pred -> Maybe ListVar
+vpProj :: Pred -> Maybe GenVar
 vpProj (PVar v)  =  Just $ V v
 vpProj _         =  Nothing
 
 vinjErr nm =  error ("vpInj/veInj not defined for list-variable : "++nm)
 
-type VEBind = SBind ListVar Expr
-veInj :: ListVar -> Expr
+type VEBind = SBind GenVar Expr
+veInj :: GenVar -> Expr
 veInj (V v) = Var v
 veInj (L (nm,_,_) _) = vinjErr nm
-veProj :: Expr -> Maybe ListVar
+veProj :: Expr -> Maybe GenVar
 veProj (Var v)    =  Just $ V v
 veProj _          =  Nothing
 
@@ -501,13 +501,13 @@ veupdateTO :: Monad m => Variable -> Expr -> VEBind -> m VEBind
 veupdateTO v  = updateTO veProj (varKey v)
 
 velookupTO :: Monad m => Variable -> VEBind -> m Expr
-velookupTO v vebind  = lookupTO (Var . lVar) (varKey v) vebind
+velookupTO v vebind  = lookupTO (Var . gVar) (varKey v) vebind
 
 veupdateVO :: Monad m => Variable -> Variable -> VEBind -> m VEBind
 veupdateVO kv bv = updateVO (varKey kv) (V bv)
 
-veupdateVSO :: Monad m => ListVar -> VarList -> VEBind -> m VEBind
-veupdateVSO lv lvs = updateVSO (lvarKey lv) lvs
+veupdateVSO :: Monad m => GenVar -> VarList -> VEBind -> m VEBind
+veupdateVSO lv lvs = updateVSO (gvarKey lv) lvs
 
 veupdateTSO :: Monad m => Variable -> [Expr] -> VEBind -> m VEBind
 veupdateTSO v = updateTSO veProj (varKey v)
@@ -584,7 +584,7 @@ bindP v pr = ( mkSubBind $ vpupdateTO v pr sbnil, sbnil, sbnil )
 bindE :: Variable -> Expr -> Binding
 bindE v e = ( sbnil, mkSubBind $ veupdateTO v e sbnil, sbnil )
 
-bindQL :: ListVar -> VarList -> Binding
+bindQL :: GenVar -> VarList -> Binding
 bindQL lv vs = ( sbnil, sBindQL lv vs, sbnil )
 
 sBindQL lv vs = mkSubBind $ veupdateVSO lv vs sbnil
@@ -593,7 +593,7 @@ sBindQL lv vs = mkSubBind $ veupdateVSO lv vs sbnil
 Putting a variable/variable-list binding into the right place,
 if possible:
 \begin{code}
-bindVL :: ListVar -> VarList -> Binding
+bindVL :: GenVar -> VarList -> Binding
 bindVL (V v) [(V x)]  =  bindV v x
 bindVL lv xs          =  bindQL lv xs
 \end{code}
@@ -671,8 +671,8 @@ the other the test, and produces all such extra bindings.
 If there is more than one possible such binding then a deferred match is returned.
 \begin{code}
 genRsvLessMap :: [Name] -- undecorated observable roots
-              -> ListVar -- pattern reserved variable
-              -> ListVar -- test reserved variable
+              -> GenVar -- pattern reserved variable
+              -> GenVar -- test reserved variable
               -> MatchResult
 
 genRsvLessMap roots (L (_, _, _) pless) (L (_ , _, _) tless)
@@ -894,11 +894,11 @@ type SubstMatchToDo v lv a
 Well-formedness when \texttt{v} is instantiated by \texttt{Variable} is as for
 \texttt{VarList}:
 \begin{code}
-type ESubstMatchToDo = SubstMatchToDo Variable ListVar Expr
+type ESubstMatchToDo = SubstMatchToDo Variable GenVar Expr
 
 isWFSubstToDo :: ESubstMatchToDo -> Bool
 isWFSubstToDo (tsubs, psubs, _)
- = isWFQVarToDo (getESubstListVar tsubs) (getESubstListVar psubs)
+ = isWFQVarToDo (getESubstGenVar tsubs) (getESubstGenVar psubs)
 
 dropLCtxt (ts,ps,_) = (ts,ps)
 \end{code}
@@ -1263,26 +1263,26 @@ classifyVars isknown here (lv:lvs)
 \input{doc/Matching-List-Denote}
 
 
-Function \texttt{lVarDenote}  computes $\sem{L^d\setminus R}_{\Gamma}$,
+Function \texttt{gVarDenote}  computes $\sem{L^d\setminus R}_{\Gamma}$,
 to the form $V \ominus X$ such that $X$ contains non-observation variables only.
 \begin{code}
-lVarDenote :: MatchContext -> ListVar -> (VarList,[Name])
-lVarDenote mctxt (L (root, _, decor) subs)
- | root == strSCR  =  lVarDenote' obsvars srcvars decor subs
- | root == strMDL  =  lVarDenote' obsvars mdlvars decor subs
- | root == strOBS  =  lVarDenote' obsvars obsvars decor subs
+gVarDenote :: MatchContext -> GenVar -> (VarList,[Name])
+gVarDenote mctxt (L (root, _, decor) subs)
+ | root == strSCR  =  gVarDenote' obsvars srcvars decor subs
+ | root == strMDL  =  gVarDenote' obsvars mdlvars decor subs
+ | root == strOBS  =  gVarDenote' obsvars obsvars decor subs
  where
    srcvars = getSrcObs decor mctxt
    mdlvars = getMdlObs decor mctxt
    obsvars = mdlvars ++ srcvars
-lVarDenote _ lv = ([lv],[])
+gVarDenote _ lv = ([lv],[])
 
-lVarDenote' :: [Variable]   -- all known observables
+gVarDenote' :: [Variable]   -- all known observables
             -> [Variable]   -- observable for this meta-root
             -> VRole        -- associated decoration
             -> [Name]    -- non-observable roots being subtracted
             -> (VarList,[Name])
-lVarDenote' ovars dvars decor subs
+gVarDenote' ovars dvars decor subs
  =  (denotation,csub)
  where
   denotation = map V $ lnorm $ filter keptv dvars
@@ -1295,10 +1295,10 @@ lVarDenote' ovars dvars decor subs
 Given a general variable, if a reserved list-variable,
 we replace it by its denotation:
 \begin{code}
-varExpand :: MatchContext -> ListVar -> (VarList,[Name])
+varExpand :: MatchContext -> GenVar -> (VarList,[Name])
 varExpand mctxt lv@(L var roots)
  | isRsvV var  =  ( lnorm vars', lnorm roots' )
- where (vars',roots') =  lVarDenote mctxt lv
+ where (vars',roots') =  gVarDenote mctxt lv
 varExpand mctxt lv  =  ( [lv], [] )
 
 varsExpand :: MatchContext -> VarList -> [(VarList,[Name])]
@@ -1307,10 +1307,10 @@ varsExpand mctxt = map $ varExpand mctxt
 
 A useful variant is a table binding variables to their expansion:
 \begin{code}
-varExpandMaplet :: MatchContext -> ListVar -> (String,(VarList,[Name]))
+varExpandMaplet :: MatchContext -> GenVar -> (String,(VarList,[Name]))
 varExpandMaplet mctxt lv@(L v _)
  | isRsvV v  =  ( varKey v, varExpand mctxt lv )
-varExpandMaplet mctxt lv =  ( lvarKey lv, ([lv],[])          )
+varExpandMaplet mctxt lv =  ( gvarKey lv, ([lv],[])          )
 
 varExpandTable :: MatchContext -> VarList -> Trie (VarList,[Name])
 varExpandTable mctxt = lbuild . map (varExpandMaplet mctxt)
@@ -1320,7 +1320,7 @@ A useful predicate is one that assesses when the denotation
 of a reserved list variable is ``clean'', that is with
 out any lingering subtracted roots (not matching an observation variable).
 \begin{code}
-cleanVar :: MatchContext -> ListVar -> Bool
+cleanVar :: MatchContext -> GenVar -> Bool
 cleanVar mctxt lv = null $ snd $ varExpand mctxt lv
 \end{code}
 
@@ -1328,7 +1328,7 @@ Sometimes it is useful to convert a list of variables to their
 combined denotations:
 \begin{code}
 varsDenote :: MatchContext -> VarList -> (VarList,[Name])
-varsDenote mctxt = vDmerge . map (lVarDenote mctxt)
+varsDenote mctxt = vDmerge . map (gVarDenote mctxt)
  where
    vDmerge []  = ([],[])
    vDmerge [d] = d
@@ -1347,7 +1347,7 @@ We represent the outcome as a unary relation on numbers,
 of the form less than ($\_ < k$), equal to ($\_ = k$) or greater than ($\_ > k$)
 some constant $k$:
 \begin{code}
-varSize :: MatchContext -> ListVar -> (Ordering,Int)
+varSize :: MatchContext -> GenVar -> (Ordering,Int)
 varSize _     (V _)                 =  (EQ,1)
 varSize mctxt (L (r,_,decor) subs)
  | r == strOBS  =  subSize (roleSize (sizeObs,sizeObs') decor $ mctxt) subs
@@ -1415,7 +1415,7 @@ sizeRelAdd r1     r2         =  sizeRelAdd r2 r1
 \begin{code}
 sizeConformant  :: MatchContext -> String -> VarList -> Bool
 sizeConformant mctxt s qvs
-  = sizeRelSat2 (varSize mctxt $ parseListVar s)
+  = sizeRelSat2 (varSize mctxt $ parseGenVar s)
                 (foldl sizeRelAdd (EQ,0) $ map (varSize mctxt) qvs)
 \end{code}
 
@@ -1434,7 +1434,7 @@ We start with the ``can escape'' relation:
 Here we wrap a variable and its denotation together,
 to keep things consistent with \texttt{possDisjRSV} below.
 \begin{code}
-obsCanEscapeRSV :: ListVar -> (ListVar,(VarList,[Name])) -> Bool
+obsCanEscapeRSV :: GenVar -> (GenVar,(VarList,[Name])) -> Bool
 obsCanEscapeRSV lv@(V v) (_,(lvs,[]))  =  not (lv `elem` lvs)
 obsCanEscapeRSV lv _                   =  True
 \end{code}
@@ -1450,8 +1450,8 @@ and next, the ``possible disjoint'' reserved-variable relation:
 Here we wrap a variable and its denotation together,
 in case that denotation should be empty.
 \begin{code}
-possDisjRSV :: (ListVar,(VarList,[Name]))
-            -> (ListVar,(VarList,[Name]))
+possDisjRSV :: (GenVar,(VarList,[Name]))
+            -> (GenVar,(VarList,[Name]))
             -> Bool
 possDisjRSV ( (L (r1, _, d1) []), ([],[]) )
             ( (L (r2, _, d2) []), ([],[]) )
@@ -1507,7 +1507,7 @@ The invariant:
 \begin{code}
 invESubst :: MatchContext -> ESubst -> Bool
 invESubst mctxt sub
- = invQVars mctxt (getESubstListVar sub)
+ = invQVars mctxt (getESubstGenVar sub)
 \end{code}
 
 Lifting to \texttt{Expr} and \texttt{Pred}:
@@ -1541,7 +1541,7 @@ exprESubstInv mctxt e = foldE (eSubInvFold mctxt) e
 We use lists to represent the explicit bijection and sets,
 lifting variables into the list-variable space.
 \begin{code}
-type ExplBij = [(ListVar, ListVar)]  -- ordered, unique
+type ExplBij = [(GenVar, GenVar)]  -- ordered, unique
 type ImplBij = (VarList,VarList)  -- both ordered, unique
 type BIJ = ( ExplBij, ImplBij )
 
@@ -1558,7 +1558,7 @@ ebijGlue (xy1:rest1) bij2
  = do bij2' <- ebijIns xy1 bij2
       ebijGlue rest1 bij2'
 
-ebijIns :: Monad m => (ListVar, ListVar) -> ExplBij -> m ExplBij
+ebijIns :: Monad m => (GenVar, GenVar) -> ExplBij -> m ExplBij
 ebijIns xy [] = return [xy]
 ebijIns xy1@(x1,y1) bij2@(xy2@(x2,y2):rest2)
  | x1 <  x2
@@ -1579,7 +1579,7 @@ ibijGlue ((x:xs),(y:ys)) bij2
       ibijGlue (xs,ys) bij2'
 ibijGlue _ _  =  fail "implicit BIJ: diff. len."
 
-ibijIns :: Monad m => ListVar -> ListVar -> ImplBij -> m ImplBij
+ibijIns :: Monad m => GenVar -> GenVar -> ImplBij -> m ImplBij
 ibijIns x y (xs,ys)
  | xsgrew == ysgrew  =  return (xs',ys')
  | otherwise         =  fail "implicit BIJ: diff. len."
@@ -1665,7 +1665,7 @@ alwres (b1,b2) (explbij,(implbijL,implbijR))
    &\defs& \mapof{}
 \end{eqnarray*}
 \begin{code}
-valfequiv :: (VarList,VarList) -> ListVar -> ListVar -> Maybe BIJ
+valfequiv :: (VarList,VarList) -> GenVar -> GenVar -> Maybe BIJ
 valfequiv (bvs1,bvs2) v1 v2
  | bound1 && bound2  =  Just ([(v1,v2)],([],[]))
  | bound1            =  Nothing
@@ -1726,10 +1726,10 @@ Leftover stuff
 palfequiv _ _ _ = Nothing
 \end{code}
 
-We turn \texttt{ListVar} into `fake' \texttt{Variable}s
+We turn \texttt{GenVar} into `fake' \texttt{Variable}s
 just for this alpha-equivalence check.
 \begin{code}
-fakeVar :: ListVar -> Variable
+fakeVar :: GenVar -> Variable
 fakeVar (V v) = v
 fakeVar (L v _) = v
 \end{code}
@@ -1760,12 +1760,12 @@ qalfequiv (bvs1,bvs2) (prs1,qs1) (prs2,qs2)
 
 Substitution equivalence
 \begin{code}
-salfequiv :: (ListVar -> reptrm)
+salfequiv :: (GenVar -> reptrm)
           -> (VarList,VarList)
           -> ((VarList,VarList) -> bdytrm -> bdytrm -> Maybe BIJ)
           -> ((VarList,VarList) -> reptrm -> reptrm -> Maybe BIJ)
-          -> (bdytrm, Substn Variable ListVar reptrm)
-          -> (bdytrm, Substn Variable ListVar reptrm)
+          -> (bdytrm, Substn Variable GenVar reptrm)
+          -> (bdytrm, Substn Variable GenVar reptrm)
           -> Maybe BIJ
 salfequiv asR bvs beqv reqv (body1, (vas1, lvs1)) (body2, (vas2, lvs2))
  = do prbij  <- beqv bvs body1 body1

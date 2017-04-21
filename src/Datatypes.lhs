@@ -120,20 +120,30 @@ We also need to introduce the idea of lists of variables,
 for use in binding constructs,
 which may themselves contain special variables
 that denote lists of variables.
+We start by defining a list-variable as a variable with the addition
+of a list of names, corresponding to variable `roots'
 \begin{code}
-data ListVar
+type ListVar
+ = ( Variable -- variable denoting a list of variables
+     [Name]   -- list of roots to be ignored)
+   )
+\end{code}
+A variable-list is composed in general of a mix of normal variables
+and list-variables.
+We gather these into a `general' variable type
+\begin{code}
+data GenVar
  = V Variable -- regular variable
- | L Variable -- variable denoting a list of variables
-     [Name]
+ | L ListVar  -- variable denoting a list of variables
  deriving (Eq, Ord, Show)
-type VarList = [ListVar]
+type VarList = [GenVar]
 \end{code}
 
 A quick way to get the hidden variable out:
 \begin{code}
-lVar :: ListVar -> Variable
-lVar (V v)    =  v
-lVar (L v _)  =  v
+gVar :: GenVar -> Variable
+gVar (V v)  =  v
+gVar (L v)  =  v
 \end{code}
 
 
@@ -274,7 +284,7 @@ and a distinct notion of \emph{names} ($n$).
    n &\in& Names
 \\ k &\in& Constants
 \\ v &\in& Variables
-\\ \ell &\in& ListVar
+\\ \ell &\in& GenVar
 \\ vs \in VarList &=& (v | \ell)^*
 \\ s &\in& Syntax (other)
 \\ t \in Term~k~s
@@ -327,6 +337,7 @@ data Expr
  | Abs String TTTag VarList [Expr]
  | ESub Expr ESubst
  | EPred Pred
+ | E2 String ListVar ListVar
  deriving (Eq, Ord, Show)
 
 
@@ -335,7 +346,7 @@ eerror str = App (n_Eerror ++ str) []
 
 type ESubst = Substn Variable ListVar Expr
 
-getESubstListVar (vas, lvs) = map (V . fst) vas ++ map fst lvs
+getESubstGenVar (vas, lvs) = map (V . fst) vas ++ map fst lvs
 \end{code}
 
 We need some builders that perform
@@ -353,8 +364,8 @@ isVar _         =  False
 
 getVar :: Expr -> Variable
 getVar (Var v)   =  v
-getVar _         =  nullVar
-nullVar  = ("",VScript,VStatic)
+getVar _         =  nulgVar
+nulgVar  = ("",VScript,VStatic)
 
 mgetVar :: Expr -> Maybe Variable
 mgetVar (Var v)   =  Just v

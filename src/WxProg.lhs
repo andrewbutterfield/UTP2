@@ -365,7 +365,7 @@ and we should bind these first.
       | null leftover   =  Just $ mkSeq $ map Var ovars
       | otherwise       =  Nothing -- ISSUE: should we handle leftovers?
       where
-        (ovars,leftover) = lVarDenote mctxt mv
+        (ovars,leftover) = gVarDenote mctxt mv
 
      -- notSeq ----------------------------------------
      notSeq (Just (App nm _)) | nm==n_seq  =  False

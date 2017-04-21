@@ -209,7 +209,7 @@ instantiateESub mctxt bnds (Substn sub)
 
 bevalE1 :: MatchContext -> Binding -> Expr -> Expr
 bevalE1 mctxt bind e
-  | isVar e    =  bevalVar mctxt bind $ getVar e
+  | isVar e    =  bevagVar mctxt bind $ getVar e
   | otherwise  =  instantiateExpr mctxt bind e
 
 instantiatePSub mctxt bnds@(gpbnds,vebnds,_) (Substn sub)

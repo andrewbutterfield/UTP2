@@ -335,10 +335,10 @@ rfdbySynSpec = [SSNull,SSTok "|=",SSNull]
 rfdbyLangSpec = LangSpec [lPredSpec,lPredSpec] rfdbySynSpec
 
 asgSynSpec = [SSNull,SSTok ":=",SSNull]
-asgLangSpec = LangSpec [lVarSpec,lExprSpec] asgSynSpec
+asgLangSpec = LangSpec [gVarSpec,lExprSpec] asgSynSpec
 
 simAsgSynSpec = [SSNull,SSTok "::=",SSNull]
-simAsgLangSpec = LangSpec [lVarSpec,lExprSpec] asgSynSpec
+simAsgLangSpec = LangSpec [gVarSpec,lExprSpec] asgSynSpec
 
 xyzLang = [ (";",compLangSpec)
           , ("|-",designLangSpec)

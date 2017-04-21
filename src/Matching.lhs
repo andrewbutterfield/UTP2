@@ -158,7 +158,7 @@ clnLVarToDo
  => [(String,BObj Variable Expr)] -> QVarMatchToDo -> m QVarMatchToDo
 clnLVarToDo [] qvm  = return qvm
 clnLVarToDo ((pv,bobjs):pairs) (tvs, pvs)
- = case extractWrapped lvarKey pv pvs of
+ = case extractWrapped gvarKey pv pvs of
     (Just v',pvs') ->  clnLstToDo pairs pvs' tvs bobjs
     (Nothing,_)    ->  clnLVarToDo pairs (tvs, pvs)
 
@@ -313,7 +313,7 @@ when matching under quantifiers.
 (+<) :: VarList -> VarList -> VarList
 vs +< xs = lnorm (vs++xs)
 
-(+<<) :: VarList -> (Substn Variable ListVar a) -> VarList
+(+<<) :: VarList -> (Substn Variable GenVar a) -> VarList
 vs +<< (vas, lvs) = lnorm (vs ++ map (V . fst) vas ++ map fst lvs)
 \end{code}
 
@@ -538,9 +538,9 @@ can match the test form.
    \MRPKnownN && \MRPKnown
 \end{eqnarray*}
 \begin{code}
-pNameMatch :: Monad m => MatchResult -> Pred -> (GenRoot,Pred) -> m MatchResult
+pNameMatch :: Monad m => MatchResult -> Pred -> (Name,Pred) -> m MatchResult
 pNameMatch mres tpr@(PVar tname) (pname,pbody)
-  | varGenRoot tname == pname    =  return mres
+  | varKey tname == pname    =  return mres
 pNameMatch mres tpr (pname,pbody)
   | tpr == pbody  =  mres `mrgRMR` okBindP pname tpr -- is == too strong here ?
   | otherwise     =  fail "Nothing"
@@ -582,11 +582,12 @@ pM1Place :: Monad m
          => LocalContext
          -> MatchResult
          -> Expr -> Expr
-         -> Variable -> Variable
+         -> GenVar -> GenVar
          -> m MatchResult
 
-pM1Place here mres te1 te2 pv1 pv2
- | isStdV pv1 || isStdV pv2  =  (fail "Nothing")
+pM1Place here mres te1 te2 (V _) _  =  (fail "Nothing")
+pM1Place here mres te1 te2 _ (V _)  =  (fail "Nothing")
+pM1Place here mres te1 te2 (L pv1 prs1) (L pv2 prs2)
  | validRsvPair te1 te2
     = do bind1 <- pm1bind pv1 te1
          bind2 <- pm1bind pv2 te2
@@ -632,8 +633,8 @@ each variable in $X_p$ to those in $X_t \cup V_p\setminus V_t$.
        = pm1placeBind pv tv pX1 (map varGenRoot pVlesstV++tX1)
     | otherwise = (fail "Nothing")
     where
-     (pV,pX) = lVarDenote mctxt pv
-     (tV,tX) = lVarDenote mctxt tv
+     (pV,pX) = gVarDenote mctxt pv
+     (tV,tX) = gVarDenote mctxt tv
      (pX1,pXs) = partition isStdG pX
      (tX1,tXs) = partition isStdG tX
      lenpX1 = length pX1
@@ -832,29 +833,29 @@ We use \texttt{rlvSnglMatch} to match an
 expression that is a reserved list-variable
 against an single variable as a possible member of its final list.
 \begin{code}
-rlvSnglMatch mctxt pv te@(Var v)   =  rlvSnglVarMatch mctxt pv te v
+rlvSnglMatch mctxt pv te@(Var v)   =  rlvSnggVarMatch mctxt pv te v
 rlvSnglMatch mctxt pv te           =  (fail "Nothing")
 \end{code}
 
-We use \texttt{rlvSnglVarMatch} to match a reserved list-variable
+We use \texttt{rlvSnggVarMatch} to match a reserved list-variable
 against an single variable as a possible member of its final list.
 \MRRSVSINGLE
 \begin{code}
-rlvSnglVarMatch mctxt pv te tv@(Gen (Std _),_,_)
- | tv `elem` fst (lVarDenote mctxt pv)  =  return te
+rlvSnggVarMatch mctxt pv te tv@(Gen (Std _),_,_)
+ | tv `elem` fst (gVarDenote mctxt pv)  =  return te
  | otherwise  =  (fail "Nothing")
 
-rlvSnglVarMatch mctxt pv te tv@(Gen (Lst _),_,_)  =  return te
+rlvSnggVarMatch mctxt pv te tv@(Gen (Lst _),_,_)  =  return te
 
-rlvSnglVarMatch mctxt pv te tv -- isRsvV tv
+rlvSnggVarMatch mctxt pv te tv -- isRsvV tv
 
  | tV `subsetOf` pV  =  return te
 
  where
-   (pV,pX) = lVarDenote mctxt pv
-   (tV,tX) = lVarDenote mctxt tv
+   (pV,pX) = gVarDenote mctxt pv
+   (tV,tX) = gVarDenote mctxt tv
 
-rlvSnglVarMatch _ _ _ _   =  (fail "Nothing")
+rlvSnggVarMatch _ _ _ _   =  (fail "Nothing")
 \end{code}
 
 
@@ -887,7 +888,7 @@ check2PlaceBind mctxt mres pv es
    (tT1,tTS) = partition isStdV $ lnorm $ map getVar es
    vLessT = pV \\ tT1
    diff = length vLessT - length pX1
-   (pV,pX) = lVarDenote mctxt pv
+   (pV,pX) = gVarDenote mctxt pv
    (pX1,pXS) = partition isStdG pX
 
 mk2PlaceRsvBind
@@ -1558,7 +1559,7 @@ qMatch here mres ( tvs) ( pvs)
  where
    mctxt = mctx here
    denotePair tR
-    = let (obs,subr) = lVarDenote (mctx here) tR
+    = let (obs,subr) = gVarDenote (mctx here) tR
       in map (pairR tR) obs
    pairR tR ob = (ob,tR)
    cvmerge (kvs,uvs,lvs,rvs) = kvs++uvs++lvs++rvs
@@ -1641,14 +1642,14 @@ rsvMatch mctxt mres umvrs ctvs@(tks,tus,tls,tRs) tRos prv
  where
    oroots = obsRoots mctxt
 
-   (pRsem,psubr) = lVarDenote mctxt prv
+   (pRsem,psubr) = gVarDenote mctxt prv
    (tksin,tksout) = partition (flip elem pRsem) tks
    (tusin,tusout) = partition (flip elemMS pRsem) tus
    (tRosin,tRosout) = partition (flip elemMS pRsem . fst) tRos
    tmatch = lnorm (tksin++tusin++map snd tRosin)
 
    [trv] = tRs
-   (tRsem,tsubr) = lVarDenote mctxt trv
+   (tRsem,tsubr) = gVarDenote mctxt trv
    psub1 = head psubr
    tsub1 = head tsubr
 \end{code}
@@ -1830,7 +1831,7 @@ srvMatch mctxt mres tvs pv pr pless@(_:_) pd
         bind' <- bindR `mrgB` (tnil, subbind, tnil)
         mres `mrgMR` (bind', [], [])
  where
-   (pkvs,psubg) = lVarDenote mctxt pv -- (Rsv pr [], pd, varKey pv)
+   (pkvs,psubg) = gVarDenote mctxt pv -- (Rsv pr [], pd, varKey pv)
    akvs = tvs `intsctMS` pkvs
    mkvs = pkvs \\ akvs
    oroots = obsRoots mctxt
@@ -1856,10 +1857,10 @@ srvMatch mctxt mres tvs pv pr [us@(Lst ustr)] pd
         bind' <- bindR `mrgB` bindQL (mkGVar pd us) (allV\\tV)
         mres `mrgMR` (bind', [], [])
  where
-   (pV,pX) = lVarDenote mctxt pv
+   (pV,pX) = gVarDenote mctxt pv
    issing [_] = True
    issing _   = False
-   (allV,_) = lVarDenote mctxt $ mkRVar pr [] pd
+   (allV,_) = gVarDenote mctxt $ mkRVar pr [] pd
    (tV,tX) = varsDenote mctxt tvs
    oroots = obsRoots mctxt
 

@@ -215,14 +215,14 @@ We define a Parsec-compliant scanner, that returns no errors
 
 Some useful syntax related predicates on variables:
 \begin{code}
-isStdLV, isLstLV :: ListVar -> Bool
+isStdLV, isLstLV :: GenVar -> Bool
 isStdLV (V _)    =  True
-isStdLV (L _ _)  =  False
+isStdLV (L _)  =  False
 
 isLstLV = not . isStdLV
 
-isRsvLV :: ListVar -> Bool
-isRsvLV (L v _)  =  isRsvV v
+isRsvLV :: GenVar -> Bool
+isRsvLV (L v)  =  isRsvV v
 isRsvLV _        =  False
 
 isRsvV :: Variable -> Bool
@@ -649,8 +649,13 @@ roleKey (VInter s)  =  '_':s
 
 \begin{code}
 lvarKey :: ListVar -> String
-lvarKey (V v)    =  varKey v
-lvarKey (L v _)  =  varKey v
+lvarKey (v, _)  =  varKey v
+\end{code}
+
+\begin{code}
+gvarKey :: GenVar -> String
+gvarKey (V v)  =  varKey v
+gvarKey (L v)  =  varKey v
 \end{code}
 
 We will often want to store variable information
@@ -750,7 +755,7 @@ showVar (nm, _, _) = nm
 mkLVarName :: Name -> VKind -> VRole -> Name
 mkLVarName nm k r = nm ++ strLST ++ showRole r
 
-showLVar :: ListVar -> String
+showLVar :: GenVar -> String
 showLVar (V (nm, _, _)) = nm
 showLVar (L (nm, _, _) rs) = nm ++ showRoots rs
 
@@ -767,7 +772,7 @@ mkGVar r nm  = (mkVarName nm VObs r, VObs, r)
 mkSVar :: Name -> VRole -> Variable
 mkSVar nm r  = mkGVar r nm
 
-mkRVar :: Name -> [Name] -> VRole -> ListVar
+mkRVar :: Name -> [Name] -> VRole -> GenVar
 mkRVar nm roots r = L (mkLVarName nm VObs r, VObs, r)  roots
 \end{code}
 
@@ -796,8 +801,8 @@ parseVariable str
 badVariable (_, _, ('!':_))  =  True
 badVariable _                =  False
 
-parseListVar :: String -> ListVar
-parseListVar str
+parseGenVar :: String -> GenVar
+parseGenVar str
  = case scanner "" str of
     []                         ->  V $ predVar ("!NoVar<"++str++">")
     [(_,TName n), (_,TEOF)]    ->  V $ preVar n
@@ -822,14 +827,14 @@ subVar s nm  = (nm, VObs, VInter s)
 updVRole :: VRole -> Variable -> Variable
 updVRole r (nm, k, _) = (nm, k, r)
 
-lstVar, lstVar' :: Name -> ListVar
+lstVar, lstVar' :: Name -> GenVar
 lstVar  nm = L (nm, VObs, VPre) []
 lstVar' nm = L (nm, VObs, VPost) []
 
-lsubVar :: String -> String -> ListVar
+lsubVar :: String -> String -> GenVar
 lsubVar s nm = L (nm, VObs, VInter s) []
 
-(\\\) :: ListVar -> [Name] -> ListVar
+(\\\) :: GenVar -> [Name] -> GenVar
 (L (nm, VObs, r) less1) \\\ less2
   =  L (nm, VObs, r) (less1 `mrgnorm` less2)
 lv \\\ _ = lv
@@ -954,7 +959,7 @@ data TEP
  | TEPnum Int
  | TEPname String
  | TEPvar Variable
- | TEPlvar ListVar
+ | TEPlvar GenVar
  | TEPprefix TEP TEP
  | TEPinfix Int String TEP TEP
  | TEPpostfix TEP TEP
@@ -1174,7 +1179,7 @@ p_variable = ptoken pvar <?> "variable"
 
 variable = do{ v <- lexify p_variable; return $ TEPvar v }
 
-p_listvar :: TEP_Parser ListVar
+p_listvar :: TEP_Parser GenVar
 p_listvar = ptoken plvar <?> "list-variable"
  where
    plvar (TLVar v rs)  =  Just $ L v rs
@@ -2255,19 +2260,19 @@ and $tok$ denotes the rest or all of a token.
    pSS toks = Left "parseSynSpec: not working now"
 
 --    pSS ((c:'*':sep):toks)
---     | c == lcVar   =  pSS' [llist lVarSpec]  [SSSep sep,SSNull] toks
+--     | c == lcVar   =  pSS' [llist gVarSpec]  [SSSep sep,SSNull] toks
 --     | c == lcType  =  pSS' [llist lTypeSpec] [SSSep sep,SSNull] toks
 --     | c == lcExpr  =  pSS' [llist lExprSpec] [SSSep sep,SSNull] toks
 --     | c == lcPred  =  pSS' [llist lPredSpec] [SSSep sep,SSNull] toks
 --
 --    pSS ((c:'#':sep):toks)
---     | c == lcVar   =  pSS' [lcount lVarSpec]  [SSSep sep,SSNull] toks
+--     | c == lcVar   =  pSS' [lcount gVarSpec]  [SSSep sep,SSNull] toks
 --     | c == lcType  =  pSS' [lcount lTypeSpec] [SSSep sep,SSNull] toks
 --     | c == lcExpr  =  pSS' [lcount lExprSpec] [SSSep sep,SSNull] toks
 --     | c == lcPred  =  pSS' [lcount lPredSpec] [SSSep sep,SSNull] toks
 --
 --    pSS ([c]:toks)
---     | c == lcVar   =  pSS' [lVarSpec]  [SSNull] toks
+--     | c == lcVar   =  pSS' [gVarSpec]  [SSNull] toks
 --     | c == lcType  =  pSS' [lTypeSpec] [SSNull] toks
 --     | c == lcExpr  =  pSS' [lExprSpec] [SSNull] toks
 --     | c == lcPred  =  pSS' [lPredSpec] [SSNull] toks
@@ -2278,19 +2283,19 @@ and $tok$ denotes the rest or all of a token.
 --    pSS' sel revss [] = Right (reverse sel,reverse (SSNull:revss))
 --
 --    pSS' sel revss ((c:'*':sep):toks)
---     | c == lcVar   =  pSS' (llist lVarSpec:sel)  (SSSep sep:revss) toks
+--     | c == lcVar   =  pSS' (llist gVarSpec:sel)  (SSSep sep:revss) toks
 --     | c == lcType  =  pSS' (llist lTypeSpec:sel) (SSSep sep:revss) toks
 --     | c == lcExpr  =  pSS' (llist lExprSpec:sel) (SSSep sep:revss) toks
 --     | c == lcPred  =  pSS' (llist lPredSpec:sel) (SSSep sep:revss) toks
 --
 --    pSS' sel revss ((c:'#':sep):toks)
---     | c == lcVar   =  pSS' (lcount lVarSpec:sel)  (SSSep sep:revss) toks
+--     | c == lcVar   =  pSS' (lcount gVarSpec:sel)  (SSSep sep:revss) toks
 --     | c == lcType  =  pSS' (lcount lTypeSpec:sel) (SSSep sep:revss) toks
 --     | c == lcExpr  =  pSS' (lcount lExprSpec:sel) (SSSep sep:revss) toks
 --     | c == lcPred  =  pSS' (lcount lPredSpec:sel) (SSSep sep:revss) toks
 --
 --    pSS' sel revss ([c]:toks)
---     | c == lcVar   =  pSS' (lVarSpec:sel)  (SSNull:revss) toks
+--     | c == lcVar   =  pSS' (gVarSpec:sel)  (SSNull:revss) toks
 --     | c == lcType  =  pSS' (lTypeSpec:sel) (SSNull:revss) toks
 --     | c == lcExpr  =  pSS' (lExprSpec:sel) (SSNull:revss) toks
 --     | c == lcPred  =  pSS' (lPredSpec:sel) (SSNull:revss) toks
@@ -2301,19 +2306,19 @@ and $tok$ denotes the rest or all of a token.
 --    pSS'' sel revss []                   = Right (reverse sel,reverse revss)
 --
 --    pSS'' sel revss ((c:'*':sep):toks)
---     | c == lcVar   =  pSS' (llist lVarSpec:sel)  (SSSep sep:revss) toks
+--     | c == lcVar   =  pSS' (llist gVarSpec:sel)  (SSSep sep:revss) toks
 --     | c == lcType  =  pSS' (llist lTypeSpec:sel) (SSSep sep:revss) toks
 --     | c == lcExpr  =  pSS' (llist lExprSpec:sel) (SSSep sep:revss) toks
 --     | c == lcPred  =  pSS' (llist lPredSpec:sel) (SSSep sep:revss) toks
 --
 --    pSS'' sel revss ((c:'#':sep):toks)
---     | c == lcVar   =  pSS' (lcount lVarSpec:sel)  (SSSep sep:revss) toks
+--     | c == lcVar   =  pSS' (lcount gVarSpec:sel)  (SSSep sep:revss) toks
 --     | c == lcType  =  pSS' (lcount lTypeSpec:sel) (SSSep sep:revss) toks
 --     | c == lcExpr  =  pSS' (lcount lExprSpec:sel) (SSSep sep:revss) toks
 --     | c == lcPred  =  pSS' (lcount lPredSpec:sel) (SSSep sep:revss) toks
 --
 --    pSS'' sel revss ([c]:toks)
---     | c == lcVar   =  pSS' (lVarSpec:sel)  revss toks
+--     | c == lcVar   =  pSS' (gVarSpec:sel)  revss toks
 --     | c == lcType  =  pSS' (lTypeSpec:sel) revss toks
 --     | c == lcExpr  =  pSS' (lExprSpec:sel) revss toks
 --     | c == lcPred  =  pSS' (lPredSpec:sel) revss toks
@@ -2520,7 +2525,7 @@ and a variable  as a pattern, generate a fresh variable
 based
 on that pattern that is not already used:
 \begin{code}
-genFreshVar :: [ListVar] -> ListVar -> ListVar
+genFreshVar :: [GenVar] -> GenVar -> GenVar
 genFreshVar used patvar
  = head $ dropWhile alreadyUsed $ map (genvar patvar . show) [1..]
  where
@@ -2532,7 +2537,7 @@ genFreshVar used patvar
 
 We generalise this to a list of fresh patterns:
 \begin{code}
-genFreshVars :: [ListVar] -> [ListVar] -> [(ListVar,ListVar)]
+genFreshVars :: [GenVar] -> [GenVar] -> [(GenVar,GenVar)]
 genFreshVars used [] = []
 genFreshVars used (patvar:rest)
  = let gvar = genFreshVar used patvar
@@ -2613,6 +2618,6 @@ getstdlvars = filter isStdLV
 It is useful to be able to partition substitutions on Variables
 between those that are standard and those that are list:
 \begin{code}
-sPartition :: [(ListVar,a)] -> ([(ListVar,a)],[(ListVar,a)])
+sPartition :: [(GenVar,a)] -> ([(GenVar,a)],[(GenVar,a)])
 sPartition = partition (isStdLV . fst)
 \end{code}

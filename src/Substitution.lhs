@@ -112,8 +112,8 @@ normaliseSubstn mctxt (Substn sub)
     | otherwise
        =  []
     where
-      (tgtsem,tsubs) = lVarDenote mctxt y
-      (repsem,rsubs) = lVarDenote mctxt f
+      (tgtsem,tsubs) = gVarDenote mctxt y
+      (repsem,rsubs) = gVarDenote mctxt f
       tlen = length tgtsem
       rlen = length repsem
 \end{code}
@@ -296,7 +296,7 @@ This code is only used in \texttt{Pvar} substitutions.
 Straight variable substitution for both
 single and multiple q-variables.
 \begin{code}
-type VSubst = Substn Variable ListVar Variable
+type VSubst = Substn Variable GenVar Variable
 
 qvarOSub :: MatchContext -> VSubst -> QVars -> QVars
 qvarOSub mctxt (Substn sub) vs = map (areplace sub) vs

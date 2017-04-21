@@ -134,7 +134,7 @@ qMatch here mres (Q tvs) (Q pvs)
  where
    mctxt = mctx here
    denotePair tR
-    = let (obs,subr) = lVarDenote (mctx here) tR
+    = let (obs,subr) = gVarDenote (mctx here) tR
       in map (pairR tR) obs
    pairR tR ob = (ob,tR)
    cvmerge (kvs,uvs,lvs,rvs) = kvs++uvs++lvs++rvs
@@ -217,14 +217,14 @@ rsvMatch mctxt mres umvrs ctvs@(tks,tus,tls,tRs) tRos prv
  where
    oroots = obsRoots mctxt
 
-   (pRsem,psubr) = lVarDenote mctxt prv
+   (pRsem,psubr) = gVarDenote mctxt prv
    (tksin,tksout) = partition (flip elem pRsem) tks
    (tusin,tusout) = partition (flip elemMS pRsem) tus
    (tRosin,tRosout) = partition (flip elemMS pRsem . fst) tRos
    tmatch = lnorm (tksin++tusin++map snd tRosin)
 
    [trv] = tRs
-   (tRsem,tsubr) = lVarDenote mctxt trv
+   (tRsem,tsubr) = gVarDenote mctxt trv
    psub1 = head psubr
    tsub1 = head tsubr
 \end{code}
@@ -406,7 +406,7 @@ srvMatch mctxt mres tvs pv pr pless@(_:_) pd
         bind' <- bindR `mrgB` (tnil, subbind, tnil)
         mres `mrgMR` (bind', [], [])
  where
-   (pkvs,psubg) = lVarDenote mctxt pv -- (Rsv pr [], pd, varKey pv)
+   (pkvs,psubg) = gVarDenote mctxt pv -- (Rsv pr [], pd, varKey pv)
    akvs = tvs `intsctMS` pkvs
    mkvs = pkvs \\ akvs
    oroots = obsRoots mctxt
@@ -432,10 +432,10 @@ srvMatch mctxt mres tvs pv pr [us@(Lst ustr)] pd
         bind' <- bindR `mrgB` bindQL (mkGVar pd us) (allV\\tV)
         mres `mrgMR` (bind', [], [])
  where
-   (pV,pX) = lVarDenote mctxt pv
+   (pV,pX) = gVarDenote mctxt pv
    issing [_] = True
    issing _   = False
-   (allV,_) = lVarDenote mctxt $ mkRVar pr [] pd
+   (allV,_) = gVarDenote mctxt $ mkRVar pr [] pd
    (tV,tX) = varsDenote mctxt tvs
    oroots = obsRoots mctxt
 
