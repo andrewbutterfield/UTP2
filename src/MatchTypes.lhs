@@ -451,25 +451,25 @@ lmergeSBind = mergeSBind lmergeBObj lmergeBObj
 
 We will have three instances, one each for predicates, expressions and types:
 \begin{code}
-type VPBind = SBind GenVar Pred
+type VPBind = SBind GenVar Pred -- P |-> Pred, P$ |-> Q$
 vpInj :: GenVar -> Pred
 vpInj (V v) = PVar v
-vpInj (L (nm,_,_) _) = vinjErr nm
+vpInj (L ((nm,_,_), _)) = vinjErr nm
 vpProj :: Pred -> Maybe GenVar
 vpProj (PVar v)  =  Just $ V v
 vpProj _         =  Nothing
 
 vinjErr nm =  error ("vpInj/veInj not defined for list-variable : "++nm)
 
-type VEBind = SBind GenVar Expr
+type VEBind = SBind GenVar Expr -- x |-> Expr, e$ |-> f$
 veInj :: GenVar -> Expr
 veInj (V v) = Var v
-veInj (L (nm,_,_) _) = vinjErr nm
+veInj (L ((nm,_,_), _)) = vinjErr nm
 veProj :: Expr -> Maybe GenVar
 veProj (Var v)    =  Just $ V v
 veProj _          =  Nothing
 
-type TTBind = SBind TVar Type
+type TTBind = SBind TVar Type  -- tau |-> T
 ttInj :: TVar -> Type
 ttInj = Tvar
 ttProj :: Type -> Maybe TVar
@@ -675,24 +675,25 @@ genRsvLessMap :: [Name] -- undecorated observable roots
               -> GenVar -- test reserved variable
               -> MatchResult
 
-genRsvLessMap roots (L (_, _, _) pless) (L (_ , _, _) tless)
+genRsvLessMap roots (L (_, pless)) (L (_,  tless))
  = case (pstrs, tstrs) of
      ([pstr], [tstr]) | isLstN pstr
-       -> ( bindVL (var pstr) [var tstr]
+       -> ( bindVL (gvar pstr) [gvar tstr]
           , [], [] )
      ([pstr], _) | isLstN pstr
-       -> ( bindVL (lvar pstr) (map var tstrs)
+       -> ( bindVL (lvar pstr) (map gvar tstrs)
           , [], [] )
      _ -> ( nullBinds
-          , [ (map var pstrs, map var tstrs) ]
+          , [ (map gvar pstrs, map gvar tstrs) ]
           , [])
  where
    pstrs = pless \\ roots
    tstrs = tless -- \\ roots
-   var nm
-    | isLstN nm  =  L (nm, VObs, VPre) []
-    | otherwise  =  V (nm, VObs, VPre)
-   lvar nm = L (nm, VObs, VPre) []
+   gvar nm
+    | isLstN nm  =  lvar nm
+    | otherwise  =  V $ var nm
+   lvar nm = L ( (var nm), [] )
+   var nm = (nm, VObs, VPre)
 
 genRsvLessMap roots prv trv = noBinding
 \end{code}
@@ -894,7 +895,7 @@ type SubstMatchToDo v lv a
 Well-formedness when \texttt{v} is instantiated by \texttt{Variable} is as for
 \texttt{VarList}:
 \begin{code}
-type ESubstMatchToDo = SubstMatchToDo Variable GenVar Expr
+type ESubstMatchToDo = SubstMatchToDo Variable ListVar Expr
 
 isWFSubstToDo :: ESubstMatchToDo -> Bool
 isWFSubstToDo (tsubs, psubs, _)
@@ -1245,7 +1246,7 @@ classifyVars isknown here (lv:lvs)
           (V v)
              | isknown here v  ->  ([v],[],[],[])
              | otherwise       ->  ([],[v],[],[])
-          (L v _)
+          (L (v, _))
             | isRsvV v         ->  ([],[],[],[lv])
           otherwise            ->  ([],[],[lv],[])
    (ks,us,xss,rs) = classifyVars isknown here lvs
@@ -1267,7 +1268,7 @@ Function \texttt{gVarDenote}  computes $\sem{L^d\setminus R}_{\Gamma}$,
 to the form $V \ominus X$ such that $X$ contains non-observation variables only.
 \begin{code}
 gVarDenote :: MatchContext -> GenVar -> (VarList,[Name])
-gVarDenote mctxt (L (root, _, decor) subs)
+gVarDenote mctxt (L ((root, _, decor), subs))
  | root == strSCR  =  gVarDenote' obsvars srcvars decor subs
  | root == strMDL  =  gVarDenote' obsvars mdlvars decor subs
  | root == strOBS  =  gVarDenote' obsvars obsvars decor subs
@@ -1296,7 +1297,7 @@ Given a general variable, if a reserved list-variable,
 we replace it by its denotation:
 \begin{code}
 varExpand :: MatchContext -> GenVar -> (VarList,[Name])
-varExpand mctxt lv@(L var roots)
+varExpand mctxt lv@(L (var, roots))
  | isRsvV var  =  ( lnorm vars', lnorm roots' )
  where (vars',roots') =  gVarDenote mctxt lv
 varExpand mctxt lv  =  ( [lv], [] )
@@ -1308,7 +1309,7 @@ varsExpand mctxt = map $ varExpand mctxt
 A useful variant is a table binding variables to their expansion:
 \begin{code}
 varExpandMaplet :: MatchContext -> GenVar -> (String,(VarList,[Name]))
-varExpandMaplet mctxt lv@(L v _)
+varExpandMaplet mctxt lv@(L (v, _))
  | isRsvV v  =  ( varKey v, varExpand mctxt lv )
 varExpandMaplet mctxt lv =  ( gvarKey lv, ([lv],[])          )
 
@@ -1349,7 +1350,7 @@ some constant $k$:
 \begin{code}
 varSize :: MatchContext -> GenVar -> (Ordering,Int)
 varSize _     (V _)                 =  (EQ,1)
-varSize mctxt (L (r,_,decor) subs)
+varSize mctxt (L ((r,_,decor), subs))
  | r == strOBS  =  subSize (roleSize (sizeObs,sizeObs') decor $ mctxt) subs
  | r == strMDL  =  subSize (roleSize (sizeMdl,sizeMdl') decor $ mctxt) subs
  | r == strSCR  =  subSize (roleSize (sizeScr,sizeScr') decor $ mctxt) subs
@@ -1453,8 +1454,8 @@ in case that denotation should be empty.
 possDisjRSV :: (GenVar,(VarList,[Name]))
             -> (GenVar,(VarList,[Name]))
             -> Bool
-possDisjRSV ( (L (r1, _, d1) []), ([],[]) )
-            ( (L (r2, _, d2) []), ([],[]) )
+possDisjRSV ( (L ((r1, _, d1), [])), ([],[]) )
+            ( (L ((r2, _, d2), [])), ([],[]) )
  | isRsv r1 && isRsv r2   =  d1 /= d2 || isDisjRSV r1 r2
 possDisjRSV (_,(vs1,[]))  (_,(vs2,[]))   =  vs1 `disjoint` vs2
 possDisjRSV (_,(vs1,gs1)) (_,(vs2,gs2))  =  vs1 /= vs2 || gs1 /= gs2
@@ -1726,12 +1727,11 @@ Leftover stuff
 palfequiv _ _ _ = Nothing
 \end{code}
 
-We turn \texttt{GenVar} into `fake' \texttt{Variable}s
+We turn \texttt{ListVar}s into `fake' \texttt{Variable}s
 just for this alpha-equivalence check.
 \begin{code}
-fakeVar :: GenVar -> Variable
-fakeVar (V v) = v
-fakeVar (L v _) = v
+fakeVar :: ListVar -> Variable
+fakeVar (v, _) = v
 \end{code}
 Quantifier equivalence
 \begin{eqnarray*}
@@ -1760,12 +1760,12 @@ qalfequiv (bvs1,bvs2) (prs1,qs1) (prs2,qs2)
 
 Substitution equivalence
 \begin{code}
-salfequiv :: (GenVar -> reptrm)
+salfequiv :: (ListVar -> reptrm)
           -> (VarList,VarList)
           -> ((VarList,VarList) -> bdytrm -> bdytrm -> Maybe BIJ)
           -> ((VarList,VarList) -> reptrm -> reptrm -> Maybe BIJ)
-          -> (bdytrm, Substn Variable GenVar reptrm)
-          -> (bdytrm, Substn Variable GenVar reptrm)
+          -> (bdytrm, Substn Variable ListVar reptrm)
+          -> (bdytrm, Substn Variable ListVar reptrm)
           -> Maybe BIJ
 salfequiv asR bvs beqv reqv (body1, (vas1, lvs1)) (body2, (vas2, lvs2))
  = do prbij  <- beqv bvs body1 body1
@@ -1774,8 +1774,8 @@ salfequiv asR bvs beqv reqv (body1, (vas1, lvs1)) (body2, (vas2, lvs2))
       subbij <- tgtbij `bijglue` repbij
       prbij `bijglue` subbij
  where
-   (spv1,srp1) = unzip (mapfst V vas1 ++ mapsnd asR lvs1)
-   (spv2,srp2) = unzip (mapfst V vas2 ++ mapsnd asR lvs2)
+   (spv1,srp1) = unzip (mapfst V vas1 ++ mapfst L (mapsnd asR lvs1))
+   (spv2,srp2) = unzip (mapfst V vas2 ++ mapfst L (mapsnd asR lvs2))
 \end{code}
 
 \newpage

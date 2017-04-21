@@ -346,7 +346,8 @@ eerror str = App (n_Eerror ++ str) []
 
 type ESubst = Substn Variable ListVar Expr
 
-getESubstGenVar (vas, lvs) = map (V . fst) vas ++ map fst lvs
+getESubstGenVar :: ESubst -> VarList
+getESubstGenVar (vas, lvs) = map (V . fst) vas ++ map (L . fst) lvs
 \end{code}
 
 We need some builders that perform
