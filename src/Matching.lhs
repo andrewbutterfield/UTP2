@@ -397,10 +397,9 @@ predicates that use meta variables:
 \end{eqnarray*}
 \begin{code}
 pMatch here mres
-       tpr@(P2 tnm  tv1 tv2)
-       ppr@(P2 pnm  pv1 pv2)
- | tnm==pnm && isLstGV pv1 && isLstGV pv2
-    =  pM1Place here mres tv1 tv2 pv1 pv2
+       tpr@(P2 tnm  tlv1 tlv2)
+       ppr@(P2 pnm  plv1 plv2)
+ | tnm==pnm  =  pM1Place here mres tlv1 tlv2 plv1 plv2
 \end{code}
 
 
@@ -581,29 +580,28 @@ We match a 2-place predicate pattern against a single 2-place predicate test.
 pM1Place :: Monad m
          => LocalContext
          -> MatchResult
-         -> Expr -> Expr
-         -> GenVar -> GenVar
+         -> ListVar -> ListVar
+         -> ListVar -> ListVar
          -> m MatchResult
 
-pM1Place here mres te1 te2 (V _) _  =  (fail "Nothing")
-pM1Place here mres te1 te2 _ (V _)  =  (fail "Nothing")
-pM1Place here mres te1 te2 (L pv1 prs1) (L pv2 prs2)
- | validRsvPair te1 te2
-    = do bind1 <- pm1bind pv1 te1
-         bind2 <- pm1bind pv2 te2
+pM1Place here mres tlv1 tlv2 plv1@(pv1, prs1) plv2@(pv2, prs2)
+ | validRsvPair tlv1 tlv2
+    = do bind1 <- pm1bind plv1 tlv1
+         bind2 <- pm1bind plv2 tlv2
          bind1 `mrgMR` bind2
  | otherwise  =  (fail "Nothing")
  where
    mctxt = mctx here
 
-   validRsvPair (Var ((Rsv r1 _),_,_)) (Var ((Rsv r2 _),_,_)) = r1 == r2
+   validRsvPair (tv1, _) (tv2,_)
+    | isRsvV tv1 && isRsvV tv2  =  tv1 == tv2
    validRsvPair _ _ = True
 
-   pm1bind pv te
-    | isGenV pv  =  mres `mrgMR` (bindES pv [te],[],[])
-    | otherwise  =  pm1place pv te
+   pm1bind plv tlv
+    | isRsvLV plv  =  pm1place plv tlv
+    | otherwise    =  mres `mrgMR` (bindES pv [te],[],[])
 \end{code}
-
+\newpage
 Here we have a reserved list variable pattern $pv$ whose denotation is $V_p \ominus X_p$
 and test $tv$ with denotation $V_t \ominus X_t$, where $V_p, V_t \subseteq \sem O$,
 are known, while $X_p$ and $X_t$ are not.
@@ -620,8 +618,10 @@ and we require the pattern to have no fewer unknowns than the test
   \#X_p \geq \#X_t
 \]
 The extra bindings are from
-each variable in $X_p$ to those in $X_t \cup V_p\setminus V_t$.
+each variable in $X_p$ to those in $X_t \cup (V_p\setminus V_t)$.
 \begin{code}
+-- in pM1Place here mres tlv1 tlv2 (pv1, prs1) (pv2, prs2)
+
    pm1place pv (Var tv)
     | not (vdMatch tv pv) = fail "Nothing"
     | not (lessOK mctxt pv tv) = fail "Nothing"
@@ -641,7 +641,7 @@ each variable in $X_p$ to those in $X_t \cup V_p\setminus V_t$.
      lentX1 = length tX1
      pVlesstV = pV \\ tV
 
-     lessOK mctxt (Rsv pr pless,_,_) (Rsv tr tless,_,_)
+     lessOK mctxt (pr, pless) (tr, tless)
       | pr == tr  =  True
       | not ((proots \\ troots) `subsetOf` plesss) = False
       | not ((troots \\ proots) `subsetOf` tlesss) = False
@@ -663,6 +663,8 @@ will result in the following variable bindings:
 \[u \to v, u' \to v'
 \]
 \begin{code}
+-- in pM1Place here mres tlv1 tlv2 (pv1, prs1) (pv2, prs2)
+
    pm1placeBind pv tv pX tX
     | null xS  =  okBindV pv tv
     | otherwise
@@ -694,6 +696,8 @@ against test
 \]
 where at least one of $XS_p$ and $XS_t$ is non-empty.
 \begin{code}
+-- in pM1Place here mres tlv1 tlv2 (pv1, prs1) (pv2, prs2)
+
 --    pm1placeLVs :: Variable -- pv
 --                -> Variable -- tv
 --                -> [Variable] -- pV
@@ -738,6 +742,8 @@ we are ok if
 
 For now we pick off simple cases.
 \begin{code}
+-- in pM1Place here mres tlv1 tlv2 (pv1, prs1) (pv2, prs2)
+
    pm1placeLVs pv@(_, pd, _) tv pV tV [] [] [pX] []
      = do rmatch <- bindO oroots pv tv
           let lbind = bindQL (mkGVar Pre pX) []

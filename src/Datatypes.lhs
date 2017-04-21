@@ -337,7 +337,6 @@ data Expr
  | Abs String TTTag VarList [Expr]
  | ESub Expr ESubst
  | EPred Pred
- | E2 String ListVar ListVar
  deriving (Eq, Ord, Show)
 
 
@@ -876,6 +875,8 @@ dbgPshow i  (PAbs nm tts qs prs)
    ++ concat (map (dbgPshow (i+1)) prs)
 dbgPshow i  (Sub pr sub)
  = hdr i ++ "SUB" ++ dbgPshow (i+1) pr ++ dbgESshow (i+1) sub
+dbgPshow i  (P2 nm lv1 lv2)
+ = hdr i ++ "P2 " ++ nm ++ ' ':dbgLVshow lv1 ++ ' ':dbgLVshow lv2
 
 dbgSSshow i SSNull      = hdr i ++ "SSNULL"
 dbgSSshow i (SSTok s)   = hdr i ++ "SSTOK "  ++ s
@@ -891,6 +892,7 @@ dbgEshow i (Abs s tts qs es)
    ++ concat (map (dbgEshow (i+1)) es)
 dbgEshow i (ESub e sub)
  = hdr i ++ "ESUB "  ++ dbgEshow (i+1) e ++ dbgESshow (i+1) sub
+dbgEshow i  (EPred pr)  = hdr i ++ "EPRED " ++ dbgPshow (i+1) pr
 
 dbgKshow VObs = "VOBS"
 dbgKshow VExpr = "VEXP"
@@ -922,7 +924,7 @@ dbgQSshow i ( qs)
 dbgGVshow (V v) = "V " ++ dbgVshow v
 dbgGVshow (L lv) = "L " ++ dbgLVshow lv
 
-dbgLVshow (v, ns) = dbgVshow v ++ " LESS " ++ show ns
+dbgLVshow (v, ns) = '[':dbgVshow v ++ " LESS " ++ show ns ++ "]"
 
 dbgMshow i (x,y) = hdr i ++ "DOM" ++ dbgEshow (i+1) x ++ hdr i ++ "RNG" ++ dbgEshow (i+1) y
 

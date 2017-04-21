@@ -1704,10 +1704,12 @@ showPred p (Sub pr s)
 
 showPred p pr@(PExpr e)  =  exprShow p e
 
--- showPred p pr = "XXXXXX(showPred of unexpected variant)XXXXXX"
+showPred p pr@(TypeOf e t)
+  = eShow 0 e ++ tksymHASTYPE ++ tShow 0 t
+
+showPred p pr@(P2 n lv1 lv2)
+  = n ++ "(" ++ showLVar lv1 ++ "," ++ showLVar lv2 ++ ")"
 \end{code}
-
-
 
 
 \subsection{Parsing \texttt{Pred}/\texttt{Expr}}
