@@ -60,7 +60,8 @@ in a \texttt{V} position in a \texttt{Lang} construct can only match other unkno
 or known $S$ variables. It cannot match $M$ variables.
 Also, such a variable, if known, must be a $S$ variable.
 \par
-We use \verb":" in the ASCII syntax to separate many subtracted variables:
+We use \verb":" in the ASCII syntax to separate many subtracted variables,
+simply because a comma is already used to separate variables in lists:
 $$
   x,y := e,f ~\defs~ ok \implies ok' \land x' = e \land y'=f
     \land S'\less{x,y} = S\less{x,y}
@@ -77,7 +78,7 @@ x,y := e,f  ==  ok => ok' /\ x' = e /\ y' = f /\ S'\x:y = S\x:y
      \land S'\less{x_1,\ldots,x_n} = S\less{x_1,\ldots,x_n}
 \end{eqnarray*}
 \begin{verbatim}
-v$ ::= e$  ==  ok => ok' /\ v$' = e$ /\ S'\v$ = S\v$
+x$ ::= e$  ==  ok => ok' /\ x$' = e$ /\ S'\x$ = S\x$
 \end{verbatim}
 In the mathematical form, we use indices and ellipsis
 to suggest that we have lists of variables and expressions
