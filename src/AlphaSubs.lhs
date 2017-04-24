@@ -216,11 +216,11 @@ N,\sigma\oplus\sigma')P
   xsub subf v@(r@(Gen _),d,_)
     = case trlookup subf r of
        Nothing    ->  v
-       (Just r')  ->  mkVar r' d []
+       (Just r')  ->  mkObs r' d []
   xsub subf v@(r@(Rsv _ s),d,_)
     = case trlookup subf r of
        Nothing    ->  v
-       (Just r')  ->  mkVar r' d s
+       (Just r')  ->  mkObs r' d s
 \end{code}
 
 For \texttt{Expr}, we use special handling for particular atomic

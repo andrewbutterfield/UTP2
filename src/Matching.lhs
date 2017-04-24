@@ -599,7 +599,7 @@ pM1Place here mres tlv1 tlv2 plv1@(pv1, prs1) plv2@(pv2, prs2)
 
    pm1bind plv tlv
     | isRsvLV plv  =  pm1place plv tlv
-    | otherwise    =  mres `mrgMR` (bindES pv [te],[],[])
+    | otherwise    =  mres `mrgMR` (bindES plv [tlv],[],[])
 \end{code}
 \newpage
 Here we have a reserved list variable pattern $pv$ whose denotation is $V_p \ominus X_p$
@@ -630,13 +630,13 @@ each variable in $X_p$ to those in $X_t \cup (V_p\setminus V_t)$.
     -- null pXs, tXs, so everything must fit together exactly
     | lenpX1 < lentX1  = fail "Nothing"
     | length pV - length tV == lenpX1 - lentX1
-       = pm1placeBind pv tv pX1 (map varGenRoot pVlesstV++tX1)
+       = pm1placeBind pv tv pX1 (map varRoot pVlesstV++tX1)
     | otherwise = (fail "Nothing")
     where
-     (pV,pX) = gVarDenote mctxt pv
-     (tV,tX) = gVarDenote mctxt tv
-     (pX1,pXs) = partition isStdG pX
-     (tX1,tXs) = partition isStdG tX
+     (pV,pX) = lVarDenote mctxt pv
+     (tV,tX) = lVarDenote mctxt tv
+     (pX1,pXs) = partition isStdGV pX
+     (tX1,tXs) = partition isStdGV tX
      lenpX1 = length pX1
      lentX1 = length tX1
      pVlesstV = pV \\ tV
@@ -646,10 +646,10 @@ each variable in $X_p$ to those in $X_t \cup (V_p\setminus V_t)$.
       | not ((proots \\ troots) `subsetOf` plesss) = False
       | not ((troots \\ proots) `subsetOf` tlesss) = False
       where
-        proots = rsvRoots mctxt pr
-        plesss = map genRootString pless
-        troots = rsvRoots mctxt tr
-        tlesss = map genRootString tless
+        proots = rsvVRoots mctxt pr
+        plesss = map varStringRoot pless
+        troots = rsvVRoots mctxt tr
+        tlesss = map varStringRoot tless
      lessOK mctxt _ _ = True
 
    pm1place _ _ = (fail "Nothing")
@@ -677,10 +677,10 @@ will result in the following variable bindings:
    gRootBind (pGR,tGR)
      = okBindV pV tV `mrgMO` okBindV pV' tV'
      where
-       pV = mkVar (Gen pGR) Pre []
-       tV = mkVar (Gen tGR) Pre []
-       pV' = mkVar (Gen pGR) Post []
-       tV' = mkVar (Gen tGR) Post []
+       pV  = mkObs pGR VPre
+       tV  = mkObs tGR VPre
+       pV' = mkObs pGR VPost
+       tV' = mkObs tGR VPost
 \end{code}
 
 \newpage
@@ -746,13 +746,13 @@ For now we pick off simple cases.
 
    pm1placeLVs pv@(_, pd, _) tv pV tV [] [] [pX] []
      = do rmatch <- bindO oroots pv tv
-          let lbind = bindQL (mkGVar Pre pX) []
+          let lbind = bindQL (mkGVar VPre pX) []
           mres `mrgRMR` (rmatch `ovrMR` (lbind, [], []))
 
 
    pm1placeLVs pv@(_, pd, _) tv pV tV [] [] [pX] tXs
     = do rmatch <- bindO oroots pv tv
-         let lbind = bindQL (mkGVar Pre pX) (map (mkGVar Pre) tXs)
+         let lbind = bindQL (mkGVar VPre pX) (map (mkGVar VPre) tXs)
          mres `mrgRMR` (rmatch `ovrMR` (lbind, [], []))
 
    pm1placeLVs pv tv pV tV pX1 tX1 pXs tXs = fail "Nothing"
@@ -782,11 +782,7 @@ Given a pattern of the form $p(\lst x,\lst y)$,
 and a list of test predicates $\seqof{t_1,\ldots,t_n}$,
 where $t_i = p(e_i,f_i)$,
 can we get a sequences of matches ?
-These either occur as \texttt{Bin} with list-\texttt{Var} components,
-or as a \texttt{Lang} with two \texttt{LElem},
- each either a list-\texttt{LVar}
-or \texttt{LExpr} list-\texttt{Var}.
-The $e_i$ and $f_i$  are stored in ebinds as a \texttt{Seq}.
+These can only occur as \texttt{P2}.
 \begin{code}
 pM2Place :: Monad m
          => LocalContext
@@ -799,9 +795,8 @@ pM2Place here mres tprs ppr
  = pm2place ppr
  where
 
-   pm2place (PExpr (App nm  [Var pv1, Var pv2]))
-    | nm==n_Equal && isLstV pv1 && isLstV pv2
-       =  pm2place' pm2equal tprs pv1 pv2
+   pm2place (P2 pnm plv1 plv2)
+     =  pm2place' (pm2name pnm) tprs plv1 plv2
 
    pm2place _ = fail "Nothing"
 \end{code}
@@ -813,23 +808,23 @@ as the pattern. We get back lists of expressions.
 We then check the consistency of the two lists
 of the appropriate type.
 \begin{code}
-   pm2place' pm2 tprs pv1 pv2
-    = do epairs <- sequence (map (pm2 pv1 pv2) tprs)
+   pm2place' pm2 tprs plv1 plv2
+    = do epairs <- sequence (map (pm2 plv1 plv2) tprs)
          let (es1,es2) = unzip epairs
-         mres1 <- check2PlaceBind (mctx here) mres pv1 es1
-         check2PlaceBind (mctx here) mres1 pv2 es2
+         mres1 <- check2PlaceBind (mctx here) mres plv1 es1
+         check2PlaceBind (mctx here) mres1 plv2 es2
 
-   pm2equal pv1 pv2 (PExpr (App nm [te1,te2]))
-    | nm==n_Equal = pm2place'' te1 te2 pv1 pv2
-   pm2equal _ _ _ = fail "Nothing"
+   pm2name pnm plv1 plv2 (PExpr (App nm [te1,te2]))
+    | nm == pnm    =  pm2place'' te1 te2 plv1 plv2
+   pm2equal _ _ _  =  fail "Nothing"
 \end{code}
 
 Here we now need to match pattern variables against
 corresponding expressions.
 \begin{code}
-   pm2place'' te1 te2 pv1 pv2
-    = do e1 <- lvSnglMatch (mctx here) pv1 te1
-         e2 <- lvSnglMatch (mctx here) pv2 te2
+   pm2place'' te1 te2 plv1 plv2
+    = do e1 <- lvSnglMatch (mctx here) plv1 te1
+         e2 <- lvSnglMatch (mctx here) plv2 te2
          return (e1,e2)
 
 -- end pM2PlaceObs

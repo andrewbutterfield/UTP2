@@ -1260,6 +1260,24 @@ classifyVars isknown here (lv:lvs)
 
 \input{doc/Matching-List-Roots}
 
+\begin{code}
+rsvGVRoots :: MatchContext -> GenVar -> [String]
+rsvGVRoots mctxt (L lv)  =  rsvLVRoots mctxt lv
+rsvGVRoots _ _               =  []
+
+rsvLVRoots :: MatchContext -> ListVar -> [String]
+rsvLVRoots mctxt (v, _)  =  rsvVRoots mctxt v
+
+rsvVRoots :: MatchContext -> Variable -> [String]
+rsvVRoots mctxt (r, _, _)  =  rsvRoots mctxt r
+
+rsvRoots :: MatchContext -> Name -> [String]
+rsvRoots mctxt root
+ | root == strOBS  =  obsRoots mctxt
+ | root == strMDL  =  mdlRoots mctxt
+ | root == strSCR  =  scrRoots mctxt
+ | otherwise       =  []
+\end{code}
 
 \input{doc/Matching-List-Denote}
 
@@ -1268,22 +1286,25 @@ Function \texttt{gVarDenote}  computes $\sem{L^d\setminus R}_{\Gamma}$,
 to the form $V \ominus X$ such that $X$ contains non-observation variables only.
 \begin{code}
 gVarDenote :: MatchContext -> GenVar -> (VarList,[Name])
-gVarDenote mctxt (L ((root, _, decor), subs))
- | root == strSCR  =  gVarDenote' obsvars srcvars decor subs
- | root == strMDL  =  gVarDenote' obsvars mdlvars decor subs
- | root == strOBS  =  gVarDenote' obsvars obsvars decor subs
+gVarDenote mctxt (L lvar)  =  lVarDenote mctxt lvar
+gVarDenote _ stdv = ([stdv],[])
+
+lVarDenote :: MatchContext -> ListVar -> (VarList,[Name])
+lVarDenote mctxt ((root, _, decor), subs)
+ | root == strSCR  =  lVarDenote' obsvars srcvars decor subs
+ | root == strMDL  =  lVarDenote' obsvars mdlvars decor subs
+ | root == strOBS  =  lVarDenote' obsvars obsvars decor subs
  where
    srcvars = getSrcObs decor mctxt
    mdlvars = getMdlObs decor mctxt
    obsvars = mdlvars ++ srcvars
-gVarDenote _ lv = ([lv],[])
 
-gVarDenote' :: [Variable]   -- all known observables
+lVarDenote' :: [Variable]   -- all known observables
             -> [Variable]   -- observable for this meta-root
             -> VRole        -- associated decoration
             -> [Name]    -- non-observable roots being subtracted
             -> (VarList,[Name])
-gVarDenote' ovars dvars decor subs
+lVarDenote' ovars dvars decor subs
  =  (denotation,csub)
  where
   denotation = map V $ lnorm $ filter keptv dvars

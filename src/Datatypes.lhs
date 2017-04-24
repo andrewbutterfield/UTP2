@@ -113,6 +113,9 @@ Variable utility code.
 \begin{code}
 varmap :: (String -> String) -> Variable -> Variable
 varmap f (n,k,r) = (f n, k, r)
+
+mkObs :: Name -> VRole -> Variable -- common usage
+mkObs n vr = (n, VObs, vr)
 \end{code}
 
 

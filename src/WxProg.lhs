@@ -348,9 +348,9 @@ and we should bind these first.
      v2' = instantiatemv v2
 
      instantiatemv (r@(Gen _),decor,_)
-      = mkVar r decor []
+      = mkObs r decor []
      instantiatemv (r@(Rsv _ subs),decor,_)
-      = mkVar r decor (map bv subs)
+      = mkObs r decor (map bv subs)
 
      bv g = case velookupTO (rootAsVar $ Gen g) vebnds of
               Just (Var ((Gen g'),Pre,_))  ->  g'

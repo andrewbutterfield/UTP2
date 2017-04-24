@@ -325,7 +325,7 @@ or members of their denotation (which is why we need the \texttt{MatchContext}).
                          Just mr2  ->  aVMphase2 mr2 (tks\\pRd) tas tRs tls pas pRs pls
                   else [] -- cannot find enough known observations.
      where
-        obsAsMdlScr = [mkVar (Rsv MDL []) pRd [], mkVar (Rsv SCR []) pRd []]
+        obsAsMdlScr = [mkObs (Rsv MDL []) pRd [], mkObs (Rsv SCR []) pRd []]
 \end{code}
 All the pattern reserved variables are accounted for, so we have test,
 \[  tk_1,\ldots,tk_{u'}

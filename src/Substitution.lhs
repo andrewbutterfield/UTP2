@@ -192,7 +192,7 @@ avoidVarCapture subfree efree bvars = (bvars',alphasub')
    fresh r s ss i
      = if v' `elem` ss  then fresh r s ss (i+1) else (v',i+1)
      where
-      v' = mkVar r (Subscript $ show i) s
+      v' = mkObs r (Subscript $ show i) s
 \end{code}
 To link the two phases we need to be able to extend
 the free variable list, maintaining order:
