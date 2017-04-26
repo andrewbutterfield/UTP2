@@ -294,6 +294,33 @@ moMerge mr0 (mr:mrs)
 \newpage
 \subsection{Structural Matching}
 
+Given the revision of the variable types,
+we now expect structural matching to be a form of recursive
+invoking one matcher for each of the term and variable types,
+plus two specialised matchers for lists of things
+(variable-lists and substitutions).
+
+\begin{tabular}{|l|l|}
+  \hline
+  Type & Matcher
+\\\hline
+  \texttt{Variable} & \texttt{vMatch}
+\\\hline
+  \texttt{ListVar} & \texttt{lvMatch}
+\\\hline
+  \texttt{GenVar} & \texttt{gvMatch}
+\\\hline
+  \texttt{Expr} & \texttt{eMatch}
+\\\hline
+  \texttt{Pred} & \texttt{pMatch}
+\\\hline
+  \texttt{Substn} & \texttt{sMatch}
+\\\hline
+  \texttt{VarList} & \texttt{vlMatch}
+\\\hline
+\end{tabular}
+
+\subsubsection{Structural Rules}
 
 Let $\Gamma \vdash P \matches T | \beta$
 mean that pattern $P$ matches test $T$ with bindings $\beta$,
