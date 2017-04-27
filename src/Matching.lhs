@@ -182,6 +182,7 @@ clnLstToDo _ _ _ _ = fail "lst var not bound to var-list"
 \begin{code}
 cleanESubstToDo vebind esubtodo = return (vebind, esubtodo, [], [])
 \end{code}
+\textbf{This is not used --- should it stay or should it go?}
 
 \subsubsection{Smart \texttt{MatchResult} Builder}
 
@@ -579,20 +580,11 @@ With type-tags
 pQMatch here mres ttag tqv tprs ptag pqv pprs
  = do bodymr <- pMList here' mres tprs pprs
       (tqv',pqv') <- qMCondition bodymr tqv pqv
-      qMatch here bodymr tqv' pqv'
+      vlMatch here bodymr tqv' pqv'
  where here' = here{ ttags=ttag:(ttags here)
                    , ptags=ptag:(ptags here)
                    , tbvs=(tbvs here) +< tqv
                    , pbvs=(pbvs here) +< pqv }
-\end{code}
-
-Without type-tags
-\begin{code}
-pPQMatch here mres tqv tpr pqv ppr
- = do bodymr <- pMatch here' mres tpr ppr
-      qMatch here bodymr tqv pqv
- where here' = here{ tbvs = (tbvs here) +< tqv
-                   , pbvs = (pbvs here) +< pqv }
 \end{code}
 
 \newpage
@@ -955,38 +947,6 @@ lvSnglMatch mctxt pv te
 \end{code}
 
 \newpage
-\subsubsection{Pred-Substitution Matching}
-
-Conditioning:
-\begin{code}
-psMCondition :: Monad m
-             => MatchResult -> PSubst -> PSubst -> m ( PSubst, PSubst )
-
-psMCondition _ tsub psub = return (tsub,psub) -- for now.
-\end{code}
-
-\begin{eqnarray*}
-   \MRPSubstN && \MRPSubst
-\end{eqnarray*}
-\begin{code}
-psMatch :: (Functor m, Monad m)
-        => LocalContext
-        -> MatchResult
-        -> PSubst -> PSubst
-        -> m MatchResult
-
-psMatch here mres (Substn tssub) (Substn pssub)
- = do mres1 <- pMList here mres vs' us'
-      pMList here mres1 qs ps
- where
-   (us,ps) = unzip pssub
-   (vs,qs) = unzip tssub
-   us' = map (PVar . genRootAsVar) us
-   vs' = map (PVar . genRootAsVar) vs
-\end{code}
-
-
-\newpage
 \subsection{Basic Expression Matching}
 
 \begin{code}
@@ -1043,7 +1003,7 @@ eMatch here mres (App ts tes) (App ps pes)
 eMatch here mres (Abs tnm ttag tqvs tes) (Abs pnm ptag pqvs pes)
  | tnm==pnm
     = do mres1 <- eMList here' mres tes pes
-         qMatch here mres1 tqvs pqvs
+         vlMatch here mres1 tqvs pqvs
     where here' = here{ ttags = ttag:(ttags here)
                       , ptags = ptag:(ptags here)
                       , tbvs = (tbvs here) +< tqvs
@@ -1087,18 +1047,6 @@ eNameMatch :: Monad m
 eNameMatch mres te (ename,ebody)
   | te == ebody  =  return mres
   | otherwise     =  fail "Nothing"
-\end{code}
-
-
-\begin{code}
-eQMatch here mres ttag tqvs tpr te ptag pqvs ppr pe
- = do mres1 <- pMatch here' mres tpr ppr
-      mres2 <- eMatch here' mres1 te pe
-      qMatch here mres2 tqvs pqvs
- where here' = here{ ttags = ttag:(ttags here)
-                   , ptags = ptag:(ptags here)
-                   , tbvs = (tbvs here) +< tqvs
-                   , pbvs = (pbvs here) +< pqvs }
 \end{code}
 
 \newpage
@@ -1525,7 +1473,7 @@ to find them in \texttt{tqv}:
      where tvvs = map getVar tves
 \end{code}
 If \texttt{pv} is a reserved variable, we leave everything as is, and move on
-(best dealt with by \texttt{qMatch}):
+(best dealt with by \texttt{vlMatch}):
 \begin{code}
    qMcheck pcv pqv tqv _ pv@(Rsv _ _,_,_)  =  qMcond (pv:pcv) tqv pqv
 \end{code}
@@ -1538,8 +1486,8 @@ All other cases result in failure.
 \subsection{Quantifier Matcher}
 
 Quantifier-list matching has two phases:
-the first (\texttt{qMatch1}) deals with any pattern reserved variables,
-while the second (\texttt{qMatch2}) processes the rest.
+the first (\texttt{vlMatch1}) deals with any pattern reserved variables,
+while the second (\texttt{vlMatch2}) processes the rest.
 
 Given that all these variables are in quantifier lists,
 none are considered to be ``known''.
@@ -1565,14 +1513,14 @@ The remaining  parts of pattern and test are then
 subject to a number of heuristics,
 before being defferred, if necessary.
 \begin{code}
-qMatch :: Monad m
+vlMatch :: Monad m
        => LocalContext
        -> MatchResult
        -> QVars             -- test QVars
        -> QVars             -- pattern QVars
        -> m MatchResult
 
-qMatch here mres ( tvs) ( pvs)
+vlMatch here mres ( tvs) ( pvs)
  = do let (prvs,pgvs) = partition isRsvV pvs
       let (tks,tus,tls,tRs) = classifyVars (isKnownObsVar . mctx) here tvs
       let tRos = concat $ map denotePair tRs
@@ -1581,9 +1529,9 @@ qMatch here mres ( tvs) ( pvs)
                  , sizeMdl' mctxt > 0
                  , sizeScr' mctxt > 0 )
       (ctvs',mres1,umrvs)
-                     <- qMatch1 here mres [] (tks,tus,tls,tRs) tRos prvs
+                     <- vlMatch1 here mres [] (tks,tus,tls,tRs) tRos prvs
       let tvs' = cvmerge ctvs'
-      qMatch2 here mres1 tvs' (lnorm (pgvs ++ umrvs))
+      vlMatch2 here mres1 tvs' (lnorm (pgvs ++ umrvs))
  where
    mctxt = mctx here
    denotePair tR
@@ -1598,7 +1546,7 @@ qMatch here mres ( tvs) ( pvs)
 We handle each reserved variable one at a time,
 returning bindings and/or defferred \texttt{QVar} matches,or failing:
 \begin{code}
-qMatch1 :: Monad m
+vlMatch1 :: Monad m
         => LocalContext
         -> MatchResult
         -> [Variable]
@@ -1607,11 +1555,11 @@ qMatch1 :: Monad m
         -> [Variable]
         -> m ( ClassedVars, MatchResult, [Variable] )
 
-qMatch1 here mres umrvs ctvs tRos [] = return(ctvs, mres, umrvs)
+vlMatch1 here mres umrvs ctvs tRos [] = return(ctvs, mres, umrvs)
 
-qMatch1 here mres umrvs ctvs tRos (prv:prvs)
+vlMatch1 here mres umrvs ctvs tRos (prv:prvs)
  = do (ctvs',tRos',mres',umrvs') <- rsvMatch (mctx here) mres umrvs ctvs tRos prv
-      qMatch1 here mres' umrvs' ctvs' tRos' prvs
+      vlMatch1 here mres' umrvs' ctvs' tRos' prvs
 \end{code}
 
 \newpage
@@ -1726,7 +1674,7 @@ $$
 A match is infeasible if the number of pattern standard variables
 is greater than the number of test standard variables.
 \begin{code}
-qMatch2 :: Monad m
+vlMatch2 :: Monad m
         => LocalContext -> MatchResult
         -> [Variable] -> [Variable] -> m MatchResult
 \end{code}
@@ -1736,7 +1684,7 @@ Initially, we try to pick off some common simple cases.
    \Gamma & s & t & \maplet s t
 }
 \begin{code}
-qMatch2 here mres [tv@(Gen (Std _),_,_)] [pv@(Gen (Std _),_,_)]
+vlMatch2 here mres [tv@(Gen (Std _),_,_)] [pv@(Gen (Std _),_,_)]
  = mres `mrgRMR` (okBindV pv tv)
 \end{code}
 \MRULES{
@@ -1745,8 +1693,8 @@ qMatch2 here mres [tv@(Gen (Std _),_,_)] [pv@(Gen (Std _),_,_)]
   & \mapof{ R\less u \to \sem{R}\setminus\setof k, u \to k }
 }
 \begin{code}
-qMatch2 here mres tvs [pv]
- | isGenV pv  =  mres `mrgRMR` (okBindQL pv tvs)
+vlMatch2 here mres tvs [pv]
+ | isGenV pv  =  mres `mrgRMR` (okBindQL pv tvs) -- this is qMatchNull
  | isRsvV pv
    =  let (Rsv pr pless,pd,_) = pv
       in  srvMatch (mctx here) mres tvs pv pr pless pd
@@ -1754,7 +1702,7 @@ qMatch2 here mres tvs [pv]
 
 -- pattern singles must cover all test singles
 -- then look at reserved list variables
-qMatch2 here mres tvs pvs
+vlMatch2 here mres tvs pvs
  | n < k                         =  (fail "Nothing")
  | ell == 0 && (n > k || m > 0)  =  (fail "Nothing")
  | otherwise
@@ -1894,28 +1842,6 @@ srvMatch mctxt mres tvs pv pr [us@(Lst ustr)] pd
 
 srvMatch _ _ _ _ _ _ _ = fail "Nothing"
 \end{code}
-
-
-To allow $Q$ to match against $\forall \lst x @ P$
-with $\lst x$ bound to nil, we need a special matcher
-\begin{eqnarray*}
-   \MRNullQuantZN && \MRNullQuantZ
-\end{eqnarray*}
-\begin{code}
-qMatchNull :: Monad m
-           => MatchResult
-           -> QVars             -- pattern QVars
-           -> m MatchResult
-
-qMatchNull mres ( qs)
- | all isGenV qs = mres `mrgMR` (injQLbind $ map bindnull qs)
- | otherwise  =  fail "Nothing"
- where bindnull (_,_,vs) = (vs,[])
-\end{code}
-
-\newpage
-\subsubsection{Valid reserved list-Variable lists}
-
 
 
 \newpage
