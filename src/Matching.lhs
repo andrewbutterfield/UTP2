@@ -301,23 +301,23 @@ invoking one matcher for each of the term and variable types,
 plus two specialised matchers for lists of things
 (variable-lists and substitutions).
 
-\begin{tabular}{|l|l|}
+\begin{tabular}{|l|l|l|}
   \hline
-  Type & Matcher
+  Type & Matcher & Page
 \\\hline
-  \texttt{Variable} & \texttt{vMatch}
+  \texttt{Pred}     & \texttt{pMatch}  & \pageref{pMatch}
 \\\hline
-  \texttt{ListVar} & \texttt{lvMatch}
+  \texttt{Expr}     & \texttt{eMatch}  & \pageref{eMatch}
 \\\hline
-  \texttt{GenVar} & \texttt{gvMatch}
+  \texttt{Variable} & \texttt{vMatch}  & \pageref{vMatch}
 \\\hline
-  \texttt{Expr} & \texttt{eMatch}
+  \texttt{VarList}  & \texttt{vlMatch} & \pageref{vlMatch}
 \\\hline
-  \texttt{Pred} & \texttt{pMatch}
+  \texttt{GenVar}   & \texttt{gvMatch} & \pageref{gvMatch}
 \\\hline
-  \texttt{Substn} & \texttt{sMatch}
+  \texttt{ListVar}  & \texttt{lvMatch} & \pageref{lvMatch}
 \\\hline
-  \texttt{VarList} & \texttt{vlMatch}
+  \texttt{Substn}   & \texttt{sMatch}  & \pageref{sMatch}
 \\\hline
 \end{tabular}
 
@@ -346,6 +346,20 @@ vs +<< (vas, lvs) = lnorm (vs ++ map (V . fst) vas ++ map fst lvs)
 \end{code}
 
 \newpage
+\subsection{Variable Matching Principles}
+
+We will have a common case with terms  that have embedded variables
+(e.g. \texttt{Pred} and \texttt{Expr})
+where we are matching such a terms as a test
+against a pattern that is such an embedded variable.
+If the pattern variable has kind \texttt{VObs} then the term must be a
+(possibly embedded) \texttt{Expr} or an embedded \texttt{VObs} variable.
+If the pattern variable has kind \texttt{VExpr} (\texttt{VPred}) then the term must be
+a (possibly embedded) \texttt{Expr} (\texttt{Pred}).
+
+If the variable is known it can only match itself or its definition,
+otherwise it can match any appropriate term as described above.
+
 \subsection{Basic Predicate Matching}
 
 We do not match the \texttt{PVar} $\_UNINT$ marking an uninterpreted language
@@ -355,6 +369,7 @@ nameUNINT = "_UNINT"
 predUNINT = PVar $ parseVariable nameUNINT
 \end{code}
 
+\label{pMatch}
 \begin{code}
 pMatch :: (Functor m, Monad m)
        => LocalContext
@@ -364,39 +379,48 @@ pMatch :: (Functor m, Monad m)
        -> m MatchResult
 \end{code}
 
-
-\subsubsection{Matching \texttt{PVar}}
-
-\texttt{PVar} $\_UNINT$ never matches anything.
-A \texttt{PVar} that is defined,
-matches itself or its definition (\texttt{pNameMatch}).
-Otherwise it matches anything, except an \texttt{PExpr} whose type is not \texttt{B}.
-\begin{eqnarray*}
-   \MRPUnInstN && \MRPUnInst
-\\ \MRPKnownN && \MRPKnown
-\\ \MRPUnKnownN && \MRPUnKnown
-\end{eqnarray*}
-\begin{code}
-pMatch here mres tpr (PVar p)
- | varKey p == nameUNINT  =  (fail "Nothing")
- | otherwise
-    = case tslookup (knownPreds (mctx here)) (varKey p) of
-       Just dpr  ->  pNameMatch mres tpr (p,dpr)
-       Nothing   ->  freePMatch p tpr
- where
-   freePMatch p (PExpr te)
-    | not ((evalExprType (ttts here) (ttags here) te) `tlequiv` B)
-                     =  (fail "Nothing")
-   freePMatch p tpr  =  mres `mrgRMR` okBindP p tpr
-\end{code}
-
-\subsubsection{Matching \texttt{XXX}}
-
+\subsubsection{Matching \texttt{TRUE/FALSE}}
 
 \begin{code}
 pMatch here mres TRUE TRUE = return mres
 pMatch here mres FALSE FALSE = return mres
 \end{code}
+
+
+\subsubsection{Matching \texttt{PVar}}
+
+\texttt{PVar} $\UnInstN$ never matches anything.
+\begin{eqnarray*}
+   \MRPUnInstN && \MRPUnInst
+\end{eqnarray*}
+\begin{code}
+pMatch here mres tpr (PVar p)
+ | varKey p == nameUNINT  =  (fail "Nothing")
+\end{code}
+
+
+A \texttt{PVar} variable of kind \texttt{VPred} can only match predicates,
+or expressions whose type is boolean (atomic predicates).
+\begin{code}
+pMatch here mres tpr (PVar pv@(_,VPred,_))
+ = case tslookup (knownPreds (mctx here)) (varKey pv) of
+     Just dpr  ->  pNameMatch mres tpr (pv,dpr)
+     Nothing   ->  freePMatch pv tpr
+ where
+   freePMatch pv (PExpr te)
+    | not ((evalExprType (ttts here) (ttags here) te) `tlequiv` B)
+                     =  (fail "Nothing")
+   freePMatch pv tpr  =  mres `mrgRMR` okBindP pv tpr
+\end{code}
+
+A \texttt{PVar} variable of kind \texttt{VExpr} can only match expressions.
+\begin{code}
+pMatch here mres tpr@(PExpr e) (PVar pv@(_,VExpr,_))
+ = case tslookup (knownExprs (mctx here)) (varKey pv) of
+     Just de  ->  eNameMatch mres e (pv,de)
+     Nothing  ->  mres `mrgRMR` okBindE pv e
+\end{code}
+
 
 When matching $\land$
 we need also to look for 2-place atomic predicate conjunctions:
@@ -849,30 +873,45 @@ corresponding expressions.
 -- end pM2PlaceObs
 \end{code}
 
+We use \texttt{lvSnglMatch} to match a list-variable
+against an expression as a possible member of its final list.
+Reserved list variables can only match single variables in their denotation
+here, or reserved variables that they can subsume,
+while non-reserved ones can match anything.
+The bindings produced here are ``raw'', in that we have
+a list-variable (\texttt{pv}) bound to a single item directly.
+All these bindings get post-processed by \texttt{listVFuse} to generate the
+appropriate lists later on.
+\begin{code}
+lvSnglMatch mctxt plv te
+ | isRsvV plv  =  rlvSnglMatch mctxt plv te
+ | otherwise  =  return te
+\end{code}
+
 We use \texttt{rlvSnglMatch} to match an
 expression that is a reserved list-variable
 against an single variable as a possible member of its final list.
 \begin{code}
-rlvSnglMatch mctxt pv te@(Var v)   =  rlvSnggVarMatch mctxt pv te v
-rlvSnglMatch mctxt pv te           =  (fail "Nothing")
+rlvSnglMatch mctxt plv te@(Var v)   =  rlvSnggVarMatch mctxt plv te v
+rlvSnglMatch mctxt plv te           =  (fail "Nothing")
 \end{code}
 
 We use \texttt{rlvSnggVarMatch} to match a reserved list-variable
 against an single variable as a possible member of its final list.
 \MRRSVSINGLE
 \begin{code}
-rlvSnggVarMatch mctxt pv te tv@(Gen (Std _),_,_)
+rlvSnggVarMatch mctxt plv te tv@(Gen (Std _),_,_)
  | tv `elem` fst (gVarDenote mctxt pv)  =  return te
  | otherwise  =  (fail "Nothing")
 
-rlvSnggVarMatch mctxt pv te tv@(Gen (Lst _),_,_)  =  return te
+rlvSnggVarMatch mctxt plv te tv@(Gen (Lst _),_,_)  =  return te
 
-rlvSnggVarMatch mctxt pv te tv -- isRsvV tv
+rlvSnggVarMatch mctxt plv te tv -- isRsvV tv
 
  | tV `subsetOf` pV  =  return te
 
  where
-   (pV,pX) = gVarDenote mctxt pv
+   (pV,pX) = gVarDenote mctxt plv
    (tV,tX) = gVarDenote mctxt tv
 
 rlvSnggVarMatch _ _ _ _   =  (fail "Nothing")
@@ -931,24 +970,11 @@ mk2PlaceRsvBind mres pv@(_,pd,_) tT1 pX1 pXS vLessT
     ,[] ))
 \end{code}
 
-We use \texttt{lvSnglMatch} to match a list-variable
-against an expression as a possible member of its final list.
-Reserved list variables can only match single variables in their denotation
-here, or reserved variables that they can subsume,
-while non-reserved ones can match anything.
-The bindings produced here are ``raw'', in that we have
-a list-variable (\texttt{pv}) bound to a single item directly.
-All these bindings get post-processed by \texttt{listVFuse} to generate the
-appropriate lists later on.
-\begin{code}
-lvSnglMatch mctxt pv te
- | isRsvV pv  =  rlvSnglMatch mctxt pv te
- | otherwise  =  return te
-\end{code}
 
 \newpage
 \subsection{Basic Expression Matching}
 
+\label{eMatch}
 \begin{code}
 eMatch :: (Functor m, Monad m)
        => LocalContext
@@ -1317,6 +1343,7 @@ A reserved variable matches itself.
 We need to support decoration matching,
 in that a subscript matches any other subscript,
 and \texttt{Pre} matches anything.
+\label{vMatch}
 \begin{code}
 vMatch :: Monad m
        => LocalContext -> MatchResult
@@ -1512,6 +1539,7 @@ and see if these can be matched against test variables.
 The remaining  parts of pattern and test are then
 subject to a number of heuristics,
 before being defferred, if necessary.
+\label{vlMatch}
 \begin{code}
 vlMatch :: Monad m
        => LocalContext

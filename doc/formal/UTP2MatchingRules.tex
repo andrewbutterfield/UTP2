@@ -600,9 +600,10 @@ $$\begin{array}{r@{\qquad}l}
 \end{array}$$
 }
 
+\def\UnInstN{\_UNINST}
 \def\MRPUnInstN{\LNAME{PM-UNINST}}
 \def\MRPUnInstAnte{}
-\def\MRPUnInstCons{\_UNIST \not{\!\matches\,} p}
+\def\MRPUnInstCons{\UnInstN \not{\!\matches\,} p}
 \def\MRPUnInst{\inferrule\MRPUnInstAnte\MRPUnInstCons}
 
 \def\MRPKnownN{\LNAME{PM-Known}}
