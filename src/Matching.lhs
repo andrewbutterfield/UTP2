@@ -413,78 +413,13 @@ pMatch here mres tpr (PVar pv@(_,VPred,_))
    freePMatch pv tpr  =  mres `mrgRMR` okBindP pv tpr
 \end{code}
 
-A \texttt{PVar} variable of kind \texttt{VExpr} can only match expressions.
+A \texttt{PVar} variable of any opther kind is delegated to \texttt{eMatch}.
 \begin{code}
-pMatch here mres tpr@(PExpr e) (PVar pv@(_,VExpr,_))
- = case tslookup (knownExprs (mctx here)) (varKey pv) of
-     Just de  ->  eNameMatch mres e (pv,de)
-     Nothing  ->  mres `mrgRMR` okBindE pv e
-\end{code}
-
-
-When matching $\land$
-we need also to look for 2-place atomic predicate conjunctions:
-
-\subsubsection{Matching \texttt{XXX}}
-
-\begin{eqnarray*}
-   \MRTwoPlaceManyN && \MRTwoPlaceMany
-\\
-\\ \MRTwoPlaceLessN && \MRTwoPlaceLess
-\end{eqnarray*}
-\begin{code}
-pMatch here mres (PApp tnm tprs) (PApp pnm pprs)
- | tnm==n_And && tnm==pnm  =  pMList here mres tprs pprs
-pMatch here mres (PApp tnm tprs) ppr
- | tnm==n_And  =  pM2Place here mres (conjDeepFlatten tprs) ppr
-\end{code}
-
-\subsubsection{Matching \texttt{XXX}}
-
-
-We also need to look for 2-place test
-predicates that use meta variables:
-\begin{eqnarray*}
-   \MRTwoPlaceOneN && \MRTwoPlaceOne
-\end{eqnarray*}
-\begin{code}
-pMatch here mres
-       tpr@(P2 tnm  tlv1 tlv2)
-       ppr@(P2 pnm  plv1 plv2)
- | tnm==pnm  =  pM1Place here mres tlv1 tlv2 plv1 plv2
-\end{code}
-
-
-\subsubsection{Matching \texttt{XXX}}
-
-Expressions (Atomic Predicates):
-We only match expressions whose types are compatible
-\begin{code}
-pMatch here mres (PExpr te) (PExpr pe)
- | ttype `tlequiv` ptype
-    = eMatch here mres te pe
- | otherwise  =  (fail "Nothing")
- where
-   ttype = evalExprType (ttts here) (ttags here) te
-   ptype = evalExprType (ptts here) (ptags here) pe
-\end{code}
-
-\subsubsection{Matching \texttt{TypeOf}}
-
-\begin{code}
-pMatch here mres (TypeOf te tt) (TypeOf pe pt)
- | ttype `tlequiv` ptype
-   = do tbnds <- tMatch tt pt
-        ebnds <- eMatch here mres te pe
-        mres `mrgRMR` (injTbind tbnds `mrgMR` ebnds)
- | otherwise  =  (fail "Nothing")
- where
-   ttype = evalExprType (ttts here) (ttags here) te
-   ptype = evalExprType (ptts here) (ptags here) pe
+pMatch here mres tpr@(PExpr te) (PVar pv)
+ = eMatch here mres te (Var pv)
 \end{code}
 
 \subsubsection{Matching \texttt{PApp}}
-
 
 The next collection of patterns involve simple recursion
 into predicate sub-components:
@@ -496,10 +431,7 @@ pMatch here mres (PApp tnm tprs) (PApp pnm pprs)
  | tnm==pnm = pMList here mres tprs pprs
 \end{code}
 
-\newpage
-
 \subsubsection{Matching \texttt{PAbs}}
-
 
 We permit meta-matching in quantifier variable lists,
 and we also support the fact that vector metavariables can
@@ -515,34 +447,18 @@ For now we do not support the following:
 \end{eqnarray*}
 \begin{code}
 pMatch here mres (PAbs tnm ttag tqv tprs) (PAbs pnm ptag pqv pprs)
- | tnm==pnm  =  pQMatch here mres ttag tqv tprs ptag pqv pprs
+ | tnm==pnm
+   = do bodymr <- pMList here' mres tprs pprs
+        (tqv',pqv') <- qMCondition bodymr tqv pqv
+        vlMatch here bodymr tqv' pqv'
+ where here' = here{ ttags=ttag:(ttags here)
+                   , ptags=ptag:(ptags here)
+                   , tbvs=(tbvs here) +< tqv
+                   , pbvs=(pbvs here) +< pqv }
 \end{code}
 
-\subsubsection{Matching \texttt{Univ}}
 
-
-With universal closure, all pattern variables are bound,
-and hence should never be treated as ``known''.
-\begin{eqnarray*}
-  \MRUnivN && \MRUniv
-\end{eqnarray*}
-Reminder: A proposed pattern like $[ok \implies ok'] \land ok$
-needs to have bound variables made fresh,
-and so should become $[f_1 \implies f_2] \land ok$,
-where $f_1$ and $f_2$ are fresh,
-before its use in matching.
-\begin{code}
--- pMatch here mres (Univ ttag tpr) (Univ ptag ppr)
---  = pMatch here' mres tpr ppr
---  where here' = here{ ttags=ttag:(ttags here)
---                    , ptags=ptag:(ptags here)
---                    , tbvs=(tbvs here) -- plus freevars of tpr?
---                    , pbvs=(pbvs here) -- plus freevars of ppr
---                    }
-\end{code}
-
-\subsubsection{Matching \texttt{XXX}}
-
+\subsubsection{Matching \texttt{Sub}}
 
 Substitutions:
 \begin{eqnarray*}
@@ -553,6 +469,54 @@ pMatch here mres (Sub tpr tsub) (Sub ppr psub)
   = do bodymr <- pMatch here mres tpr ppr
        (tsub',psub') <- esMCondition bodymr tsub psub
        esMatch here bodymr tsub' psub'
+\end{code}
+
+\subsubsection{Matching \texttt{PExpr}}
+
+Expressions (Atomic Predicates):
+We only match expressions whose types are compatible
+\begin{code}
+pMatch here mres (PExpr te) (PExpr pe)
+ | ttype `tlequiv` ptype
+    = eMatch here mres te pe
+ | otherwise  =  (fail "Nothing")
+ where
+   ttype = evalExprType (ttts here) (ttags here) te
+   ptype = evalExprType (ptts here) (ptags here) pe
+\end{code}
+
+
+\subsubsection{Matching \texttt{TypeOf}}
+
+\begin{code}
+pMatch here mres (TypeOf te tt) (TypeOf pe pt)
+ | ttype `tlequiv` ptype
+   = do tbnds <- tMatch tt pt
+        ebnds <- eMatch here mres te pe
+        mres `mrgRMR` (injTbind tbnds `mrgMR` ebnds)
+ | otherwise  =  (fail "Nothing")
+ where
+   ttype = evalExprType (ttts here) (ttags here) te
+   ptype = evalExprType (ptts here) (ptags here) pe
+\end{code}
+
+\subsubsection{Matching \texttt{P2}}
+
+We also need to look for 2-place test
+predicates that use meta variables:
+\begin{eqnarray*}
+   \MRTwoPlaceOneN && \MRTwoPlaceOne
+\end{eqnarray*}
+Here we delegate the complex matching
+to helper functions.
+\begin{code}
+pMatch here mres
+       tpr@(P2 tnm  tlv1 tlv2)
+       ppr@(P2 pnm  plv1 plv2)
+ | tnm==pnm  =  pM1Place here mres tlv1 tlv2 plv1 plv2
+pMatch here mres (PApp tnm tprs) (P2 pnm plv1 plv2)
+ | tnm==n_And && pnm==n_And
+     =  pM2Place here mres (conjDeepFlatten tprs) plv1 plv2
 \end{code}
 
 \subsubsection{Matching Done}
@@ -595,20 +559,6 @@ pNameMatch mres tpr@(PVar tname) (pname,pbody)
 pNameMatch mres tpr (pname,pbody)
   | tpr == pbody  =  mres `mrgRMR` okBindP pname tpr -- is == too strong here ?
   | otherwise     =  fail "Nothing"
-\end{code}
-
-\subsubsection{Predicate Quantifier Matching}
-
-With type-tags
-\begin{code}
-pQMatch here mres ttag tqv tprs ptag pqv pprs
- = do bodymr <- pMList here' mres tprs pprs
-      (tqv',pqv') <- qMCondition bodymr tqv pqv
-      vlMatch here bodymr tqv' pqv'
- where here' = here{ ttags=ttag:(ttags here)
-                   , ptags=ptag:(ptags here)
-                   , tbvs=(tbvs here) +< tqv
-                   , pbvs=(pbvs here) +< pqv }
 \end{code}
 
 \newpage
@@ -831,17 +781,8 @@ pM2Place :: Monad m
          => LocalContext
          -> MatchResult
          -> [Pred] -- And-list (via deepConjFlatten)
-         -> Pred
+         -> ListVar -> ListVar
          -> m MatchResult
-
-pM2Place here mres tprs ppr
- = pm2place ppr
- where
-
-   pm2place (P2 pnm plv1 plv2)
-     =  pm2place' (pm2name pnm) tprs plv1 plv2
-
-   pm2place _ = fail "Nothing"
 \end{code}
 
 The 2-place atomic predicate \texttt{ppr} over meta-variables
@@ -851,12 +792,12 @@ as the pattern. We get back lists of expressions.
 We then check the consistency of the two lists
 of the appropriate type.
 \begin{code}
-   pm2place' pm2 tprs plv1 plv2
-    = do epairs <- sequence (map (pm2 plv1 plv2) tprs)
-         let (es1,es2) = unzip epairs
-         mres1 <- check2PlaceBind (mctx here) mres plv1 es1
-         check2PlaceBind (mctx here) mres1 plv2 es2
-
+pM2Place here mres tprs plv1 plv2
+ = do epairs <- sequence (map (pm2 plv1 plv2) tprs)
+      let (es1,es2) = unzip epairs
+      mres1 <- check2PlaceBind (mctx here) mres plv1 es1
+      check2PlaceBind (mctx here) mres1 plv2 es2
+ where
    pm2name pnm plv1 plv2 (PExpr (App nm [te1,te2]))
     | nm == pnm    =  pm2place'' te1 te2 plv1 plv2
    pm2equal _ _ _  =  fail "Nothing"
@@ -870,7 +811,7 @@ corresponding expressions.
          e2 <- lvSnglMatch (mctx here) plv2 te2
          return (e1,e2)
 
--- end pM2PlaceObs
+-- end pM2Place
 \end{code}
 
 We use \texttt{lvSnglMatch} to match a list-variable
@@ -987,6 +928,19 @@ eMatch :: (Functor m, Monad m)
    \MRKnownVN   && \MRKnownV
 \\ \MRUnknownVN && \MRUnknownV
 \end{eqnarray*}
+
+%%%%% Adpat to this
+%A \texttt{PVar} variable of kind \texttt{VExpr} can only match expressions.
+%\begin{code}
+%pMatch here mres tpr@(PExpr te) (PVar pv@(_,VExpr,_))
+% = case tslookup (knownExprs (mctx here)) (varKey pv) of
+%     Just de  ->  eNameMatch mres te (pv,de)
+%     Nothing  ->  mres `mrgRMR` okBindE pv e
+%\end{code}
+%A \texttt{PVar} variable of kind \texttt{VObs} can only match expressions
+%or variables. We delegate this to \texttt{eMatch}.
+
+
 \begin{code}
 eMatch here mres (Var tv) (Var pv)
  = vMatch here mres tv pv
