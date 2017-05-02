@@ -515,8 +515,7 @@ pMatch here mres
        ppr@(P2 pnm  plv1 plv2)
  | tnm==pnm  =  pM1Place here mres tlv1 tlv2 plv1 plv2
 pMatch here mres (PApp tnm tprs) (P2 pnm plv1 plv2)
- | tnm==n_And && pnm==n_And
-     =  pM2Place here mres (conjDeepFlatten tprs) plv1 plv2
+ | tnm==n_And  =  pM2Place here mres (conjDeepFlatten tprs) pnm plv1 plv2
 \end{code}
 
 \subsubsection{Matching Done}
@@ -781,6 +780,7 @@ pM2Place :: Monad m
          => LocalContext
          -> MatchResult
          -> [Pred] -- And-list (via deepConjFlatten)
+         -> String -- 2-place predicate name
          -> ListVar -> ListVar
          -> m MatchResult
 \end{code}
@@ -792,21 +792,21 @@ as the pattern. We get back lists of expressions.
 We then check the consistency of the two lists
 of the appropriate type.
 \begin{code}
-pM2Place here mres tprs plv1 plv2
- = do epairs <- sequence (map (pm2 plv1 plv2) tprs)
+pM2Place here mres tprs pnm plv1 plv2
+ = do epairs <- sequence (map (pm2name pnm plv1 plv2) tprs)
       let (es1,es2) = unzip epairs
       mres1 <- check2PlaceBind (mctx here) mres plv1 es1
       check2PlaceBind (mctx here) mres1 plv2 es2
  where
    pm2name pnm plv1 plv2 (PExpr (App nm [te1,te2]))
-    | nm == pnm    =  pm2place'' te1 te2 plv1 plv2
-   pm2equal _ _ _  =  fail "Nothing"
+    | nm == pnm    =  pM2Place' te1 te2 plv1 plv2
+   pm2name _ _ _   =  fail "Nothing"
 \end{code}
 
 Here we now need to match pattern variables against
 corresponding expressions.
 \begin{code}
-   pm2place'' te1 te2 plv1 plv2
+   pM2Place' te1 te2 plv1 plv2
     = do e1 <- lvSnglMatch (mctx here) plv1 te1
          e2 <- lvSnglMatch (mctx here) plv2 te2
          return (e1,e2)
@@ -834,28 +834,16 @@ expression that is a reserved list-variable
 against an single variable as a possible member of its final list.
 \begin{code}
 rlvSnglMatch mctxt plv te@(Var v)   =  rlvSnggVarMatch mctxt plv te v
-rlvSnglMatch mctxt plv te           =  (fail "Nothing")
+rlvSnglMatch mctxt plv te           =  fail "Nothing"
 \end{code}
 
 We use \texttt{rlvSnggVarMatch} to match a reserved list-variable
 against an single variable as a possible member of its final list.
 \MRRSVSINGLE
 \begin{code}
-rlvSnggVarMatch mctxt plv te tv@(Gen (Std _),_,_)
- | tv `elem` fst (gVarDenote mctxt pv)  =  return te
- | otherwise  =  (fail "Nothing")
-
-rlvSnggVarMatch mctxt plv te tv@(Gen (Lst _),_,_)  =  return te
-
-rlvSnggVarMatch mctxt plv te tv -- isRsvV tv
-
- | tV `subsetOf` pV  =  return te
-
- where
-   (pV,pX) = gVarDenote mctxt plv
-   (tV,tX) = gVarDenote mctxt tv
-
-rlvSnggVarMatch _ _ _ _   =  (fail "Nothing")
+rlvSnggVarMatch mctxt plv te tv
+ | tv `elem` fst (gVarDenote mctxt plv)  =  return te
+ | otherwise  =  fail "Nothing"
 \end{code}
 
 
@@ -874,10 +862,10 @@ final outcome is OK.
 \end{eqnarray*}
 \begin{code}
 check2PlaceBind :: Monad m
-                => MatchContext -> MatchResult -> Variable -> [Expr]
+                => MatchContext -> MatchResult -> ListVar -> [Expr]
                 -> m MatchResult
 
-check2PlaceBind mctxt mres pv es
+check2PlaceBind mctxt mres plv es
  | isGenV pv                    =  mres `mrgRMR` okBindES pv es
  | not (null tTS)               =  fail "Nothing" -- too loose, best not to match
  | not( tT1 `subsetOf` pV)      =  fail "Nothing"
