@@ -799,14 +799,16 @@ pM2Place here mres tprs pnm plv1 plv2
       check2PlaceBind (mctx here) mres1 plv2 es2
  where
    pm2name pnm plv1 plv2 (PExpr (App nm [te1,te2]))
-    | nm == pnm    =  pM2Place' te1 te2 plv1 plv2
+    | nm == pnm    =  pM2Places te1 te2 plv1 plv2
+   pm2name pnm plv1 plv2 (P2 nm tlv1 tlv2)
+    | nm == pnm    =  pM1Places here mres tlv1 tlv2 plv1 plv2
    pm2name _ _ _   =  fail "Nothing"
 \end{code}
 
 Here we now need to match pattern variables against
 corresponding expressions.
 \begin{code}
-   pM2Place' te1 te2 plv1 plv2
+   pM2Places te1 te2 plv1 plv2
     = do e1 <- lvSnglMatch (mctx here) plv1 te1
          e2 <- lvSnglMatch (mctx here) plv2 te2
          return (e1,e2)
@@ -833,17 +835,9 @@ We use \texttt{rlvSnglMatch} to match an
 expression that is a reserved list-variable
 against an single variable as a possible member of its final list.
 \begin{code}
-rlvSnglMatch mctxt plv te@(Var v)   =  rlvSnggVarMatch mctxt plv te v
-rlvSnglMatch mctxt plv te           =  fail "Nothing"
-\end{code}
-
-We use \texttt{rlvSnggVarMatch} to match a reserved list-variable
-against an single variable as a possible member of its final list.
-\MRRSVSINGLE
-\begin{code}
-rlvSnggVarMatch mctxt plv te tv
+rlvSnglMatch mctxt plv te@(Var tv)
  | tv `elem` fst (gVarDenote mctxt plv)  =  return te
- | otherwise  =  fail "Nothing"
+rlvSnglMatch mctxt plv te            =  fail "Nothing"
 \end{code}
 
 
@@ -865,37 +859,37 @@ check2PlaceBind :: Monad m
                 => MatchContext -> MatchResult -> ListVar -> [Expr]
                 -> m MatchResult
 
-check2PlaceBind mctxt mres plv es
- | isGenV pv                    =  mres `mrgRMR` okBindES pv es
+check2PlaceBind mctxt mres plv@(pv, _) es
+ | not $ isRsvLV plv            =  mres `mrgRMR` okBindES pv es
  | not (null tTS)               =  fail "Nothing" -- too loose, best not to match
  | not( tT1 `subsetOf` pV)      =  fail "Nothing"
- | null pXS && diff == 0        =  mk2PlaceRsvBind mres pv tT1 pX1 pXS vLessT
- | not (null pXS) && diff >= 0  =  mk2PlaceRsvBind mres pv tT1 pX1 pXS vLessT
+ | null pXS && diff == 0        =  mk2PlaceRsvBind mres plv tT1 pX1 pXS vLessT
+ | not (null pXS) && diff >= 0  =  mk2PlaceRsvBind mres plv tT1 pX1 pXS vLessT
  | otherwise                    =  fail "Nothing"
  where
    (tT1,tTS) = partition isStdV $ lnorm $ map getVar es
    vLessT = pV \\ tT1
    diff = length vLessT - length pX1
-   (pV,pX) = gVarDenote mctxt pv
+   (pV,pX) = gVarDenote mctxt plv
    (pX1,pXS) = partition isStdG pX
 
 mk2PlaceRsvBind
  :: Monad m
  => MatchResult
- -> Variable   --  pv     : pattern reserved variable
+ -> ListVar   --  plv     : pattern reserved variable
  -> [Variable] --  tT1    : list of test observation (std) variables
  -> [GenRoot]  --  pX1    : standard variables in X where [[pv]] = V (-) X
  -> [GenRoot]  --  pXS    : list variables in X where [[pv]] = V (-) X
  -> [Variable] --  vLessT :  V \ tT1 where [[pv]] = V (-) X
  -> m MatchResult
 
-mk2PlaceRsvBind mres pv@(_,pd,_) tT1 pX1 pXS vLessT
+mk2PlaceRsvBind mres plv@((_,_,vr),_) tT1 pX1 pXS vLessT
  = mres
    `mrgRMR`
-   (((bindQL pv tT1),[],[])
+   (((bindQL (L plv) tT1),[],[])
     `mrgMR`
     ( nullBinds
-    , [(vLessT,map (mkGVar pd) (pX1++pXS))]
+    , [(vLessT,map (mkGVar vr) (pX1++pXS))]
     ,[] ))
 \end{code}
 

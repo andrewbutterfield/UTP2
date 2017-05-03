@@ -76,7 +76,8 @@ variables, but are used to tailor definitional shorthands that
 assume that these are enacting the relevant UTP variable conventions.
 
 \begin{code}
-data VRole = VStatic
+data VRole = VAny -- can play any role, useful for generic laws
+           | VStatic
            | VPre
            | VPost
            | VRel          -- VExpr, VPred only
@@ -401,15 +402,18 @@ perror str = PApp (n_Perror ++ str) []
 type PSubst = Substn Variable ListVar Pred
 \end{code}
 
-We define two constructor functions to handle the \texttt{Expr}/\texttt{Pred} ``crossovers'':
+We define two constructor functions to handle
+the \texttt{Expr}/\texttt{Pred} ``crossovers'':
 \begin{code}
-ePred (PExpr e)           = e
-ePred (Sub (PExpr e) sub) = ESub e sub
-ePred pr                  = EPred pr
+ePred (PExpr e)             =  e
+ePred (PVar v)              =  Var v
+ePred (Sub (PExpr e) sub)   =  ESub e sub
+ePred pr                    =  EPred pr
 
-pExpr (EPred pr)            = pr
-pExpr (ESub (EPred pr) sub) = Sub pr sub
-pExpr e                     = PExpr e
+pExpr (EPred pr)            =  pr
+pExpr (Var v)               =  PVar v
+pExpr (ESub (EPred pr) sub) =  Sub pr sub
+pExpr e                     =  PExpr e
 \end{code}
 
 We also define smart constructors for certain constructs
@@ -586,9 +590,6 @@ data OClass = Model | Script deriving (Eq,Ord,Show)
 type ObsKind = (Variable,OClass,Type)
 \end{code}
 
-
-
-
 \subsubsection{Change Marker}
 \begin{code}
 data ChgMrk = Chgd | NoChg deriving (Eq,Show)
@@ -603,8 +604,6 @@ chgmap f (x:xs)
        (xs',xschgd) = chgmap f xs
    in (x':xs',xchgd `chgmrg` xschgd)
 \end{code}
-
-
 
 \newpage
 \subsection{Single Recursion Boilerplate}
