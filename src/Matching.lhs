@@ -614,7 +614,7 @@ each variable in $X_p$ to those in $X_t \cup (V_p\setminus V_t)$.
 \begin{code}
 -- in pM1Place here mres tlv1 tlv2 (pv1, prs1) (pv2, prs2)
 
-   pm1place pv (Var tv)
+   pm1place plv@(pv,proots) tlv@(tv,troots)
     | not (vdMatch tv pv) = fail "Nothing"
     | not (lessOK mctxt pv tv) = fail "Nothing"
     | not (null pXs && null tXs)
@@ -622,7 +622,7 @@ each variable in $X_p$ to those in $X_t \cup (V_p\setminus V_t)$.
     -- null pXs, tXs, so everything must fit together exactly
     | lenpX1 < lentX1  = fail "Nothing"
     | length pV - length tV == lenpX1 - lentX1
-       = pm1placeBind pv tv pX1 (map varRoot pVlesstV++tX1)
+       = pm1placeBind plv tlv pX1 (map varRoot pVlesstV++tX1)
     | otherwise = (fail "Nothing")
     where
      (pV,pX) = lVarDenote mctxt pv
@@ -657,7 +657,7 @@ will result in the following variable bindings:
 \begin{code}
 -- in pM1Place here mres tlv1 tlv2 (pv1, prs1) (pv2, prs2)
 
-   pm1placeBind pv tv pX tX
+   pm1placeBind plv tlv pX tX
     | null xS  =  okBindV pv tv
     | otherwise
       = do bind1 <- okBindV pv tv
@@ -738,13 +738,13 @@ For now we pick off simple cases.
 
    pm1placeLVs pv@(_, pd, _) tv pV tV [] [] [pX] []
      = do rmatch <- bindO oroots pv tv
-          let lbind = bindQL (mkGVar VPre pX) []
+          let lbind = bindVL (mkGVar VPre pX) []
           mres `mrgRMR` (rmatch `ovrMR` (lbind, [], []))
 
 
    pm1placeLVs pv@(_, pd, _) tv pV tV [] [] [pX] tXs
     = do rmatch <- bindO oroots pv tv
-         let lbind = bindQL (mkGVar VPre pX) (map (mkGVar VPre) tXs)
+         let lbind = bindVL (mkGVar VPre pX) (map (mkGVar VPre) tXs)
          mres `mrgRMR` (rmatch `ovrMR` (lbind, [], []))
 
    pm1placeLVs pv tv pV tV pX1 tX1 pXs tXs = fail "Nothing"
@@ -886,7 +886,7 @@ mk2PlaceRsvBind
 mk2PlaceRsvBind mres plv@((_,_,vr),_) tT1 pX1 pXS vLessT
  = mres
    `mrgRMR`
-   (((bindQL (L plv) tT1),[],[])
+   (((bindVL (L plv) tT1),[],[])
     `mrgMR`
     ( nullBinds
     , [(vLessT,map (mkGVar vr) (pX1++pXS))]
@@ -1794,7 +1794,7 @@ Provided $\sem{R_t}\setminus ks' \subseteq \sem{R_p}$:
 srvMatch mctxt mres tvs pv pr [us@(Lst ustr)] pd
  | issing pX && null tX && null (tV\\allV)
    = do bindR <- bindOL oroots pv tvs
-        bind' <- bindR `mrgB` bindQL (mkGVar pd us) (allV\\tV)
+        bind' <- bindR `mrgB` bindVL (mkGVar pd us) (allV\\tV)
         mres `mrgMR` (bind', [], [])
  where
    (pV,pX) = gVarDenote mctxt pv

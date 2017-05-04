@@ -117,6 +117,9 @@ varmap f (n,k,r) = (f n, k, r)
 
 mkObs :: Name -> VRole -> Variable -- common usage
 mkObs n vr = (n, VObs, vr)
+
+anyVar :: String -> Variable
+anyVar nm = (nm, VObs, VAny)
 \end{code}
 
 
