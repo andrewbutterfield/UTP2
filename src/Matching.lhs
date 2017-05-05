@@ -618,17 +618,17 @@ each variable in $X_p$ to those in $X_t \cup (V_p\setminus V_t)$.
     | not (vdMatch tv pv) = fail "Nothing"
     | not (lessOK mctxt pv tv) = fail "Nothing"
     | not (null pXs && null tXs)
-       = pm1placeLVs pv tv pV tV pX1 tX1 pXs tXs
+       = pm1placeLVs plv tlv pV tV pX1 tX1 pXs tXs
     -- null pXs, tXs, so everything must fit together exactly
     | lenpX1 < lentX1  = fail "Nothing"
     | length pV - length tV == lenpX1 - lentX1
        = pm1placeBind plv tlv pX1 (map varRoot pVlesstV++tX1)
     | otherwise = (fail "Nothing")
     where
-     (pV,pX) = lVarDenote mctxt pv
-     (tV,tX) = lVarDenote mctxt tv
-     (pX1,pXs) = partition isStdGV pX
-     (tX1,tXs) = partition isStdGV tX
+     (pV,pX) = lVarDenote mctxt plv
+     (tV,tX) = lVarDenote mctxt tlv
+     (pX1,pXs) = partition isStdS pX
+     (tX1,tXs) = partition isStdS tX
      lenpX1 = length pX1
      lentX1 = length tX1
      pVlesstV = pV \\ tV
@@ -690,14 +690,14 @@ where at least one of $XS_p$ and $XS_t$ is non-empty.
 \begin{code}
 -- in pM1Place here mres tlv1 tlv2 (pv1, prs1) (pv2, prs2)
 
---    pm1placeLVs :: Variable -- pv
---                -> Variable -- tv
---                -> [Variable] -- pV
---                -> [Variable] -- tV
---                -> [GenRoot] -- pX1, Std
---                -> [GenRoot] -- tX1, Std
---                -> [GenRoot] -- pXs, Lst
---                -> [GenRoot] -- tXs, Lst
+--    pm1placeLVs :: ListVar -- plv_n, n=1,2
+--                -> ListVar -- tlv_n, n=1,2
+--                -> VarList -- pV
+--                -> VarList -- tV
+--                -> [Name] -- pX1, Std
+--                -> [Name] -- tX1, Std
+--                -> [Name] -- pXs, Lst
+--                -> [Name] -- tXs, Lst
 --                -> MatchOutcome
 \end{code}
 
@@ -736,8 +736,8 @@ For now we pick off simple cases.
 \begin{code}
 -- in pM1Place here mres tlv1 tlv2 (pv1, prs1) (pv2, prs2)
 
-   pm1placeLVs pv@(_, pd, _) tv pV tV [] [] [pX] []
-     = do rmatch <- bindO oroots pv tv
+   pm1placeLVs plv@(pv@(_, pd, _),proots) tlv@(tv,_) pV tV [] [] [pX] []
+     = do rmatch <- bindO oroots plv tlv
           let lbind = bindVL (mkGVar VPre pX) []
           mres `mrgRMR` (rmatch `ovrMR` (lbind, [], []))
 
@@ -1563,7 +1563,7 @@ rsvMatch mctxt mres umvrs ctvs@(tks,tus,tls,tRs) tRos prv
  |  null psubr && (fst $ varsDenote mctxt tmatch)
                 `eqvsMS`
                 (fst $ varsDenote mctxt pRsem)
-   = do bind' <-bindOL oroots prv tmatch
+    = do bind' <-bindOL oroots prv tmatch
         mres' <- mres `mrgMR` (bind', [], [])
         return ( (tksout,tusout,tls,tRs\\(map snd tRosin))
                , tRosout

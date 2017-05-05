@@ -685,16 +685,17 @@ genRsvLessMap roots (_, pless) (_,  tless)
 genRsvLessMap roots prv trv = noBinding
 \end{code}
 
-Now functions to bind taking account the above considerations:
+Now functions to bind taking account the above considerations.
+Here the variable parameters are in fact the variable part of a list-variable.
 \begin{code}
-bindO :: Monad m => [Name] -> Variable -> Variable -> m MatchResult
-bindO roots p@(pr, _, pd@(VInter ps)) m@(_, _,md@(VInter ms))
+bindO :: Monad m => [Name] -> ListVar -> ListVar -> m MatchResult
+bindO roots plv@(p@(pr, _, pd@(VInter ps)),_) tlv@(m@(_, _,md@(VInter ms)),_)
  | isObsVarRelated roots pr
  = ( bindV p m `lmrgJB` ( sbnil, genObsSubscriptMap roots ps ms, sbnil )
    , [], [] )
-   `mergeMR` genRsvLessMap roots (V p) (V m)
+   `mergeMR` genRsvLessMap roots plv tlv
 bindO roots rp rt
- = ( bindV rp rt, [], [] ) `mergeMR` (genRsvLessMap roots (V rp) (V rt))
+ = ( bindVL rp [L rt], [], [] ) `mergeMR` (genRsvLessMap roots rp rt)
 
 isObsVarRelated :: [Name] -> Name -> Bool
 isObsVarRelated roots root
@@ -710,16 +711,16 @@ bindOL :: Monad m => [Name] -> Variable -> [Variable] -> m Binding
 bindOL roots p@(pr,_,VInter ps) mvs
  | isObsVarRelated roots pr
  = case getSubscripts mvs of
-    []    ->  return $ bindVL (V p) $ map V mvs
+     []    ->  return $ bindVL (L (p, roots)) $ map V mvs
     [ms]  ->  case genObsSubscriptMap roots ps ms
                    `catMergeSBind`
-                   sBindQL (V p) (map V mvs)
+                   sBindQL (L (p, roots)) (map V mvs)
               of
                Just vebind'  ->  return ( sbnil, vebind', sbnil )
                Nothing       ->  return ( sbnil, sbnil, sbnil )
     _     ->  fail "bindOL: differing subscripts"
 
-bindOL roots pobs mvs  =  return $ bindVL (V pobs) $ map V mvs
+bindOL roots pobs mvs  =  return $ bindVL (L (pobs, roots)) $ map V mvs
 
 getSubscripts :: [Variable] -> [String]
 getSubscripts = lnorm . concat . map getSubs
