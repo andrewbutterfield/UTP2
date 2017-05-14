@@ -76,8 +76,8 @@ Andrew Butterfield\inst{1}\thanks{SFI/Lero/UTP}
   Are sound trustworthy user-centric theorem provers possible?
   Will automated theorem-proving always be the sole preserve of dedicated users,
   or can it ever become something that anyone with the relevant logic knowledge could just pickup and use?
-  How can I best assess and disseminate my ideas about slightly alternative ways
-  to go about theorem proving.
+  How can I best assess and disseminate my ideas about slightly(?) alternative ways
+  to go about theorem proving?
 \end{abstract}
 
 
@@ -86,9 +86,9 @@ Andrew Butterfield\inst{1}\thanks{SFI/Lero/UTP}
 \section{Introduction}
 \label{sect:introduction}
 
-I should talk about myself a bit.
-Show I have at least some form in this space.
-I do UTP theory development,
+
+I do semantic theory developmewnt in the
+Unifying Theories of Programming (UTP) paradigm\cite{DBLP:conf/RelMiCS/1998},
 having looked at slotted-Circus, Handel-C, and probability.
 Along the way I got so frustrated with long proofs that
 I explored the use of theorem provers.
@@ -101,11 +101,27 @@ My semantic modeling and proof style uses predicate calculus,
 classical, usually first order
 but with occasional forays into higher orders.
 A key point is that I prefer equational reasoning,
-keeping the more sequent oriented material for high level proof planning.
+keeping the more ``sequent oriented'' material for high level proof planning.
 
-Now, talk about the predicate calculator\cite{DBLP:conf/utp/Butterfield16},
-and how I was driven to it by
+I developed a rapid-prototyping predicate calculator\cite{DBLP:conf/utp/Butterfield16},
+driven to it by trying to construct
 my compositional semantics for shared-variable concurrency.
+The key issue here was that my semantic theory went through a number of
+distinct versions before I found one that worked.
+Failure at each point emerged after some long drawn-out test calculation
+would stall, either with no further progress possible,
+or because the emerging result was clearly wrong.
+What I needed was a tool to do most of the biolerplate calculation,
+with an easy way to add definitions, and an almost complete disregard
+for any soundess guarantees.
+
+The key point was that I did not need (nor want) a theorem \emph{prover},
+because almost every proposition I investigated was false, either in the logic,
+or in my intended interpretation. In fact my starting point whould be
+a predicate that was not a theorem, i.e. not universally true.
+What I was hoping to do was to use equational calculation to simplify it down to
+something that was then clearly correct (w.r.t. my intended interpretation).
+
 
 The relevance of Reiner H\"{a}hnle\cite{RH:UserExpr:2016}:
 I vastly prefer my prover to those in the Isabelle/HOL or Coq style.
