@@ -1,0 +1,177 @@
+% easychair.tex,v 3.5 2017/03/15
+
+%\documentclass{easychair}
+\documentclass[EPiC]{easychair}
+%\documentclass[EPiCempty]{easychair}
+%\documentclass[debug]{easychair}
+%\documentclass[verbose]{easychair}
+%\documentclass[notimes]{easychair}
+%\documentclass[withtimes]{easychair}
+%\documentclass[a4paper]{easychair}
+%\documentclass[letterpaper]{easychair}
+
+\usepackage{doc}
+
+% use this if you have a long article and want to create an index
+% \usepackage{makeidx}
+
+% In order to save space or manage large tables or figures in a
+% landcape-like text, you can use the rotating and pdflscape
+% packages. Uncomment the desired from the below.
+%
+% \usepackage{rotating}
+% \usepackage{pdflscape}
+
+% Some of our commands for this guide.
+%
+\newcommand{\easychair}{\textsf{easychair}}
+\newcommand{\miktex}{MiK{\TeX}}
+\newcommand{\texniccenter}{{\TeX}nicCenter}
+\newcommand{\makefile}{\texttt{Makefile}}
+\newcommand{\latexeditor}{LEd}
+
+%\makeindex
+
+%% Front Matter
+%%
+% Regular title as in the article class.
+%
+\title{User-Oriented Theorem Prover Design%
+\thanks{Thanks!}}
+
+% Authors are joined by \and. Their affiliations are given by \inst, which indexes
+% into the list defined using \institute
+%
+\author{
+Andrew Butterfield\inst{1}\thanks{SFI/Lero/UTP}
+}
+
+% Institutes for affiliations are also joined by \and,
+\institute{
+  Trinity College Dublin,
+  Ireland\\
+  \email{butrfeld@scss.tcd.ie}
+ }
+
+%  \authorrunning{} has to be set for the shorter version of the authors' names;
+% otherwise a warning will be rendered in the running heads. When processed by
+% EasyChair, this command is mandatory: a document without \authorrunning
+% will be rejected by EasyChair
+
+\authorrunning{Butterfield}
+
+% \titlerunning{} has to be set to either the main title or its shorter
+% version for the running heads. When processed by
+% EasyChair, this command is mandatory: a document without \titlerunning
+% will be rejected by EasyChair
+\titlerunning{User-Oriented TP}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  What do I want to say?
+  Why was Reiner Hahnle's article \cite{RH:UserExpr:2016}such a trigger?
+  Are sound trustworthy user-centric theorem provers possible?
+  Will automated theorem-proving always be the sole preserve of dedicated users,
+  or can it ever become something that anyone with the relevant logic knowledge could just pickup and use?
+  How can I best assess and disseminate my ideas about slightly(?) alternative ways
+  to go about theorem proving?
+\end{abstract}
+
+
+
+%------------------------------------------------------------------------------
+\section{Introduction}
+\label{sect:introduction}
+
+
+I do semantic theory developmewnt in the
+Unifying Theories of Programming (UTP) paradigm\cite{DBLP:conf/RelMiCS/1998},
+having looked at slotted-Circus, Handel-C, and probability.
+Along the way I got so frustrated with long proofs that
+I explored the use of theorem provers.
+However, none suited my way of working,
+so I took a big leap and started to roll my own
+\cite{conf/utp/Butterfield10,conf/utp/Butterfield12,DBLP:journals/corr/Butterfield14}!
+
+
+My semantic modeling and proof style uses predicate calculus,
+classical, usually first order
+but with occasional forays into higher orders.
+A key point is that I prefer equational reasoning,
+keeping the more ``sequent oriented'' material for high level proof planning.
+
+I developed a rapid-prototyping predicate calculator\cite{DBLP:conf/utp/Butterfield16},
+driven to it by trying to construct
+my compositional semantics for shared-variable concurrency.
+The key issue here was that my semantic theory went through a number of
+distinct versions before I found one that worked.
+Failure at each point emerged after some long drawn-out test calculation
+would stall, either with no further progress possible,
+or because the emerging result was clearly wrong.
+What I needed was a tool to do most of the biolerplate calculation,
+with an easy way to add definitions, and an almost complete disregard
+for any soundess guarantees.
+
+The key point was that I did not need (nor want) a theorem \emph{prover},
+because almost every proposition I investigated was false, either in the logic,
+or in my intended interpretation. In fact my starting point whould be
+a predicate that was not a theorem, i.e. not universally true.
+What I was hoping to do was to use equational calculation to simplify it down to
+something that was then clearly correct (w.r.t. my intended interpretation).
+
+
+The relevance of Reiner H\"{a}hnle\cite{RH:UserExpr:2016}:
+I vastly prefer my prover to those in the Isabelle/HOL or Coq style.
+I don't have to keep relearning how to do proofs after an absence.
+My third year students got the proof bit almost immediately,
+complaining instead about my choice of keyboard shortcuts.
+It would be lovely to compare these automated proof styles
+with mathematical users with no prior theorem prover experience.
+To paraphrase the title of David S. Platt's notorious(?) book
+about bad software\cite{Platt:2006}:
+\begin{quote}
+  Why Theorem-Provers Suck\dots and What You Can Do About It
+\end{quote}
+The main problem that he identifies can be summarised by the following
+direct quote:
+\begin{quote}
+  ``
+   Your.
+   User.
+   Is.
+   Not.
+   You.
+  ''\cite{Platt:2006}
+\end{quote}
+
+\section{Discussion Points}
+
+Let's get thought-provoking.
+
+Some strong assertions suggested to me by my experience, but lacking any kind of hard evidence:
+\begin{itemize}
+  \item
+     equational (and inequational) reasoning is easiest, particularly for those new to theorem proving.
+  \item
+    keep deductive/sequent reasoning styles for top-level proof strategies
+  \item
+    allow point and click/drag to be used to identify sub-goals
+    ---
+    the  pretty printers in most theorem proverbs are simply dreadful!
+\end{itemize}
+
+
+
+\label{sect:bib}
+\bibliographystyle{plain}
+%\bibliographystyle{alpha}
+%\bibliographystyle{unsrt}
+%\bibliographystyle{abbrv}
+\bibliography{ARCADE2017}
+
+
+%------------------------------------------------------------------------------
+\end{document}

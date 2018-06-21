@@ -1,0 +1,5 @@
+{
+  "root" : "UTP2-MAIN.tex",
+  "toolchain" : "%TEX %ARG %DOC",
+  "latex_ext": [".lhs"]
+}
